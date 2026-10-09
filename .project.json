@@ -3,10 +3,14 @@
   "title": "Nyhedsradar",
   "description": "Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-gruppen, med kopiér-knap og notifikationer",
   "type": "web-app",
-  "stack": ["python", "github-actions", "pwa"],
+  "stack": [
+    "python",
+    "github-actions",
+    "pwa"
+  ],
   "status": "active",
   "created": "2026-10-09",
   "updated": "2026-10-09",
   "owner": "AramJ",
-  "repo": ""
+  "repo": "https://github.com/aram313/nyhedsradar"
 }
