@@ -22,5 +22,8 @@
     "community": 0.8,
     "big": 0.6,
     "copied": 1.5
+  },
+  "same_story_strict": {
+    "ar": 0.86
   }
 }

@@ -96,22 +96,28 @@ def percentile(scores_sorted, s):
     return int(100 * np.searchsorted(scores_sorted, s, side='left') / len(scores_sorted))
 
 
-def clusters(emb, order, threshold):
+def clusters(emb, order, threshold, langs=None, strict=None):
     """Group items about the same story. Each item joins the existing story whose centre it is
     closest to (if close enough), otherwise starts a new one. Comparing with the centre rather
     than with any single member keeps a day of different Gaza stories from melting into one."""
-    centres, sums, groups = [], [], []
+    centres, sums, groups, glang = [], [], [], []
+    strict = strict or {}
     for i in order:
         e = emb[i]
+        lang = langs[i] if langs else ''
         if centres:
             sims = np.array(centres) @ e
             j = int(sims.argmax())
-            if sims[j] >= threshold:
+            # the model rates any two texts in some languages (Arabic) as rather alike,
+            # so a story made only of such texts needs a closer match
+            need = strict.get(lang, threshold) if glang[j] == {lang} else threshold
+            if sims[j] >= need:
+                glang[j].add(lang)
                 groups[j].append(i)
                 sums[j] = sums[j] + e
                 centres[j] = sums[j] / np.linalg.norm(sums[j])
                 continue
-        centres.append(e.copy()); sums.append(e.copy()); groups.append([i])
+        centres.append(e.copy()); sums.append(e.copy()); groups.append([i]); glang.append({lang})
     return groups
 
 
@@ -228,9 +234,14 @@ def main():
         scores = relevance(np.array([emb_store[k] for k in ids]), profile, weights, s['top_k'], ids, prof_ids)
         for k, sc in zip(ids, scores):
             items[k]['score'] = round(float(sc), 4)
-    ranked = np.sort(np.array([items[k]['score'] for k in ids], dtype=np.float32))
+    # rank within each language: the model scores some languages (Arabic) higher across the board
+    ranked = {'': np.sort(np.array([items[k]['score'] for k in ids], dtype=np.float32))}
+    for lang in {items[k].get('lang', '') for k in ids}:
+        sc = [items[k]['score'] for k in ids if items[k].get('lang', '') == lang]
+        if lang and len(sc) >= 50:
+            ranked[lang] = np.sort(np.array(sc, dtype=np.float32))
     for k in ids:
-        items[k]['pct'] = percentile(ranked, items[k]['score'])
+        items[k]['pct'] = percentile(ranked.get(items[k].get('lang', ''), ranked['']), items[k]['score'])
 
     # 5. same story from several outlets -> one card; many outlets -> "big story"
     recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36)),
@@ -240,7 +251,8 @@ def main():
         it.pop('cluster_pct', None)
     if recent:
         emb = np.array([emb_store[k] for k in recent])
-        for g in clusters(emb, range(len(recent)), s['same_story_similarity']):
+        for g in clusters(emb, range(len(recent)), s['same_story_similarity'],
+                          [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {})):
             members = [items[recent[i]] for i in g]
             lead = max(members, key=lambda x: (x['pct'], x['score']))
             n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
