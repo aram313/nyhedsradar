@@ -20,7 +20,7 @@ def tidy(text):
     """Clean model output: entities, unknown-token marks, doubled spaces."""
     text = html.unescape(html.unescape(text.replace('▁', ' ')))
     text = re.sub(r'\s*⁇\s*', ' ', text)
-    text = re.sub(r'\s+([,.;:!?])', r'', text)
+    text = re.sub(r'\s+([,.;:!?])', r'\1', text)
     return re.sub(r'\s{2,}', ' ', text).strip(' :-–')
 
 
