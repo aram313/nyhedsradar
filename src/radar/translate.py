@@ -3,7 +3,9 @@
 Uses the free Argos Translate models (OPUS-MT, CTranslate2 format) directly, without the
 argostranslate package, which would pull in several gigabytes of PyTorch. Nothing is sent
 to an online service."""
+import html
 import io
+import re
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -12,6 +14,14 @@ MODELS = {
     'ar': 'https://argos-net.com/v1/translate-ar_en-1_0.argosmodel',
     'tr': 'https://argos-net.com/v1/translate-tr_en-1_5.argosmodel',
 }
+
+
+def tidy(text):
+    """Clean model output: entities, unknown-token marks, doubled spaces."""
+    text = html.unescape(html.unescape(text.replace('▁', ' ')))
+    text = re.sub(r'\s*⁇\s*', ' ', text)
+    text = re.sub(r'\s+([,.;:!?])', r'', text)
+    return re.sub(r'\s{2,}', ' ', text).strip(' :-–')
 
 
 class Translator:
@@ -42,9 +52,11 @@ class Translator:
             return [None] * len(texts)
         try:
             tr, sp = self._load(lang)
-            toks = [sp.encode(t[:600], out_type=str) for t in texts]
+            # separators and emoji are unknown to the model and come back as '⁇'
+            prep = [re.sub(r'\s+', ' ', re.sub(r'[|•⭕🔴⚡️🆘📌‼️⁉️]+', ' ', t[:600])).strip(' :-–') for t in texts]
+            toks = [sp.encode(t, out_type=str) for t in prep]
             res = tr.translate_batch(toks, beam_size=2, max_decoding_length=200)
-            return [sp.decode(r.hypotheses[0]).replace('▁', ' ').strip() for r in res]
+            return [tidy(sp.decode(r.hypotheses[0])) if t else '' for r, t in zip(res, prep)]
         except Exception as e:  # translation is a bonus; the radar must keep running
             print(f'translate {lang}: failed: {type(e).__name__}: {e}')
             return [None] * len(texts)

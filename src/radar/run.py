@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from radar import feedback, push
-from radar.translate import Translator
+from radar.translate import Translator, tidy
 from radar.feeds import fetch_all
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -289,6 +289,10 @@ def main():
         for it, t, sm in zip(todo, titles, sums):
             if t:
                 it['title_tr'], it['summary_tr'] = t, (sm or '') if it['summary'] else ''
+
+    for it in shown:  # also tidies translations stored by earlier versions
+        if it.get('title_tr'):
+            it['title_tr'], it['summary_tr'] = tidy(it['title_tr']), tidy(it.get('summary_tr') or '')
 
     # 6. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}
