@@ -95,3 +95,6 @@ textarea { width: 100%; font: 12px ui-monospace, Menlo, monospace; background: v
 .sources li { padding: 3px 0; break-inside: avoid; color: var(--text-secondary); }
 .sources li::before { content: "●"; margin-right: 6px; color: var(--good); font-size: 10px; vertical-align: 2px; }
 .sources li.bad::before { color: var(--big); }
+.radio { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--surface-1); border-radius: 10px; margin-bottom: 6px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+.radio input { margin-top: 3px; accent-color: var(--accent); }
+.radio b { color: var(--text-primary); }

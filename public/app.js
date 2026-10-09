@@ -9,7 +9,8 @@ const store = {
 
 let data = { items: [], sources: {} };
 let tab = 'top', query = '';
-let copied = store.get('copied', {});         // id -> {at, title, link, source, words}
+let copied = store.get('copied', {});
+let foreignMode = store.get('foreignMode', 'translate');   // translate | hide | original         // id -> {at, title, link, source, words}
 const expanded = new Set();
 const focusId = new URLSearchParams(location.search).get('item');
 
@@ -70,9 +71,18 @@ async function load(manual) {
 }
 
 // ---------------------------------------------------------------- render
+const LANG_NAME = { ar: 'arabisk', tr: 'tyrkisk' };
+// what the card shows: Danish/English as-is, other languages translated unless the user wants the original
+function display(i) {
+  if (!i.foreign || foreignMode === 'original' || !i.title_tr) return i;
+  return { ...i, title: i.title_tr, summary: i.summary_tr || '', translatedFrom: LANG_NAME[i.lang] || i.lang };
+}
+const readable = t => !/[؀-ۿ]/.test(t || '');
 function visibleItems() {
   const sets = copiedWordSets();
-  let items = data.items.map(i => ({ ...i, learned: !i.important && likeCopied(i, sets) }));
+  let items = data.items.map(display)
+    .filter(i => !i.foreign || (foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr)))
+    .map(i => ({ ...i, learned: !i.important && likeCopied(i, sets) }));
   if (tab === 'top') items = items.filter(i => i.important || i.learned);
   if (tab === 'copied') items = Object.entries(copied).sort((a, b) => b[1].at - a[1].at)
     .map(([id, c]) => data.items.find(i => i.id === id) || { id, title: c.title, link: c.link, source: c.source, found: new Date(c.at).toISOString(), summary: '', also: [] });
@@ -88,6 +98,7 @@ function card(i) {
   if (i.big) badges.push(`<span class="badge big">Stor historie · ${i.outlets} medier</span>`);
   else if (i.important) badges.push('<span class="badge top">Meget relevant</span>');
   else if (i.learned) badges.push('<span class="badge top">Ligner det du kopierer</span>');
+  if (i.translatedFrom) badges.push(`<span class="badge">Oversat fra ${esc(i.translatedFrom)}</span>`);
   const isCopied = !!copied[i.id];
   const also = i.also || [];
   return `<article class="card" id="c-${esc(i.id)}">
@@ -100,7 +111,7 @@ function card(i) {
     </div>
     ${also.length ? `<button class="more" data-more="${esc(i.id)}">${expanded.has(i.id) ? 'Skjul' : `Også hos ${also.length} ${also.length === 1 ? 'anden kilde' : 'andre kilder'}`}</button>` : ''}
     ${also.length && expanded.has(i.id) ? `<ul class="also">${also.map((a, n) =>
-      `<li><span><b>${esc(a.source)}</b> · <span dir="auto">${esc(a.title)}</span></span><button data-copy-also="${esc(i.id)}:${n}">Kopiér</button></li>`).join('')}</ul>` : ''}
+      `<li><span><b>${esc(a.source)}</b>${foreignMode === 'original' || readable(a.title) ? ` · <span dir="auto">${esc(a.title)}</span>` : ' · <i>på arabisk</i>'}</span><button data-copy-also="${esc(i.id)}:${n}">Kopiér</button></li>`).join('')}</ul>` : ''}
   </article>`;
 }
 
@@ -142,7 +153,8 @@ function toast(msg) {
 $('list').addEventListener('click', async e => {
   const c = e.target.closest('[data-copy]'), m = e.target.closest('[data-more]'), a = e.target.closest('[data-copy-also]');
   if (c) {
-    const i = data.items.find(x => x.id === c.dataset.copy) || (copied[c.dataset.copy] && { id: c.dataset.copy, ...copied[c.dataset.copy] });
+    const raw = data.items.find(x => x.id === c.dataset.copy);
+    const i = raw ? display(raw) : (copied[c.dataset.copy] && { id: c.dataset.copy, ...copied[c.dataset.copy] });
     if (!i) return;
     if (await copyText(`${i.title}\n${i.link}`)) {
       copied[i.id] = { at: Date.now(), title: i.title, link: i.link, source: i.source, words: words(i.title) };
@@ -222,6 +234,10 @@ $('openSettings').addEventListener('click', () => {
     .map(([n, v]) => `<li class="${v.ok ? '' : 'bad'}" title="${v.ok ? 'Virker' : 'Kunne ikke hentes ved sidste kørsel'}">${esc(n)}</li>`).join('');
   $('settings').showModal();
   refreshPushInfo();
+});
+document.querySelectorAll('input[name="foreign"]').forEach(r => {
+  r.checked = r.value === foreignMode;
+  r.addEventListener('change', () => { foreignMode = r.value; store.set('foreignMode', foreignMode); render(); });
 });
 $('closeSettings').addEventListener('click', () => $('settings').close());
 

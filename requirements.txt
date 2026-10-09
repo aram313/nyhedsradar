@@ -1,3 +1,5 @@
 fastembed==0.8.1
 numpy>=1.26,<3
 pywebpush==2.0.3
+ctranslate2>=4.4,<5
+sentencepiece>=0.2,<0.3

@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from radar import feedback, push
+from radar.translate import Translator
 from radar.feeds import fetch_all
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +19,7 @@ CONFIG = ROOT / 'config'
 STATE = Path(os.environ.get('RADAR_STATE', ROOT / 'state'))
 CACHE = Path(os.environ.get('RADAR_CACHE', ROOT / '.cache'))
 NOW = datetime.now(timezone.utc)
+READABLE = {'da', 'en'}   # languages the owner reads; others are translated or used only as signal
 
 
 def load(path, default):
@@ -254,7 +256,8 @@ def main():
         for g in clusters(emb, range(len(recent)), s['same_story_similarity'],
                           [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {})):
             members = [items[recent[i]] for i in g]
-            lead = max(members, key=lambda x: (x['pct'], x['score']))
+            # prefer a Danish/English article as the card; foreign ones still count as outlets
+            lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['pct'], x['score']))
             n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
             for m in members:
                 m['lead'] = m is lead
@@ -269,12 +272,23 @@ def main():
             continue
         cpct = it.get('cluster_pct', it['pct'])
         it['big'] = it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
-        it['important'] = it['big'] or it['pct'] >= s['important_percentile']
-        if it['pct'] >= s['show_percentile'] or it['big']:
+        it['important'] = it['big'] or cpct >= s['important_percentile']
+        it['foreign'] = it.get('lang') not in READABLE
+        if cpct >= s['show_percentile'] or it['big']:
             shown.append(it)
         if it['big'] and cpct >= s['learn_big_min_percentile'] and it['id'] not in learned_ids:
             learned.append({'id': it['id'], 't': text(it), 'at': NOW.isoformat(), 'why': 'big'})
             learned_ids.add(it['id'])
+
+    # foreign-language cards (no Danish/English version of the story): translate to English once
+    translator = Translator(CACHE)
+    for lang in {it['lang'] for it in shown if it['foreign'] and 'title_tr' not in it}:
+        todo = [it for it in shown if it['lang'] == lang and it['foreign'] and 'title_tr' not in it]
+        titles = translator([it['title'] for it in todo], lang)
+        sums = translator([it['summary'] or '' for it in todo], lang)
+        for it, t, sm in zip(todo, titles, sums):
+            if t:
+                it['title_tr'], it['summary_tr'] = t, (sm or '') if it['summary'] else ''
 
     # 6. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}
@@ -282,8 +296,8 @@ def main():
     told = np.array([emb_store[n['id']] for n in notified]) if notified else np.zeros((0, 384), np.float32)
     pending = [p for p in pushes['pending'] if ts(p['at']) >= NOW - timedelta(hours=3) and p['id'] in emb_store]
     for it in shown:
-        why = 'top' if it['id'] in new_ids and it['pct'] >= s['notify_percentile'] else 'big' if it['big'] else None
-        if not why or first_run:
+        why = 'top' if it['id'] in new_ids and it.get('cluster_pct', it['pct']) >= s['notify_percentile'] else 'big' if it['big'] else None
+        if not why or first_run or (it['foreign'] and not it.get('title_tr')):
             continue
         e = emb_store[it['id']]
         if len(told) and float((told @ e).max()) >= s['same_story_similarity']:
@@ -298,12 +312,13 @@ def main():
     if pending and gap_ok and not in_quiet_hours(s) and len(sent_today) < s['notify_max_per_day']:
         batch = sorted(pending, key=lambda p: (p['why'] != 'big', -items[p['id']]['pct']))
         lead = items[batch[0]['id']]
+        headline = lead.get('title_tr') or lead['title']
         if len(batch) == 1:
             title = f"Stor historie · {lead['outlets']} medier" if lead['big'] else lead['source']
-            body = lead['title']
+            body = headline
         else:
             title = f'{len(batch)} vigtige nyheder'
-            body = f"{lead['title']}  (+{len(batch) - 1} mere)"
+            body = f"{headline}  (+{len(batch) - 1} mere)"
         result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}", 'tag': lead['id']})
         print('push:', result)
         if result.get('sent'):
@@ -315,7 +330,7 @@ def main():
 
     # 7. write state + the public file the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
-                     'pct', 'big', 'important', 'outlets', 'also')
+                     'pct', 'big', 'important', 'outlets', 'also', 'foreign', 'title_tr', 'summary_tr')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {
