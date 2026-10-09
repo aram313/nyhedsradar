@@ -26,7 +26,8 @@ class Translator:
         import sentencepiece
         target = self.dir / lang
         if not (target / 'ready').exists():
-            with urllib.request.urlopen(MODELS[lang], timeout=120) as r:
+            req = urllib.request.Request(MODELS[lang], headers={'User-Agent': 'Mozilla/5.0 (Nyhedsradar)'})
+            with urllib.request.urlopen(req, timeout=180) as r:
                 zipfile.ZipFile(io.BytesIO(r.read())).extractall(target)
             (target / 'ready').write_text('ok')
         root = next(p.parent for p in target.rglob('sentencepiece.model'))
