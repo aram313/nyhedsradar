@@ -1,0 +1,3 @@
+fastembed==0.8.1
+numpy>=1.26,<3
+pywebpush==2.0.3

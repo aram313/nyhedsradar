@@ -1,0 +1,295 @@
+[
+ {
+  "name": "TV 2",
+  "lang": "da",
+  "url": "https://feeds.services.tv2.dk/api/feeds/nyheder/rss"
+ },
+ {
+  "name": "DR",
+  "lang": "da",
+  "url": "https://www.dr.dk/nyheder/service/feeds/allenyheder",
+  "outlet": "DR"
+ },
+ {
+  "name": "DR Udland",
+  "lang": "da",
+  "url": "https://www.dr.dk/nyheder/service/feeds/udland",
+  "outlet": "DR"
+ },
+ {
+  "name": "DR Politik",
+  "lang": "da",
+  "url": "https://www.dr.dk/nyheder/service/feeds/politik",
+  "outlet": "DR"
+ },
+ {
+  "name": "BT",
+  "lang": "da",
+  "url": "https://www.bt.dk/bt/seneste/rss"
+ },
+ {
+  "name": "Ekstra Bladet",
+  "lang": "da",
+  "url": "https://ekstrabladet.dk/rssfeed/all/"
+ },
+ {
+  "name": "Berlingske",
+  "lang": "da",
+  "url": "https://www.berlingske.dk/content/rss"
+ },
+ {
+  "name": "Politiken",
+  "lang": "da",
+  "url": "https://politiken.dk/rss/senestenyt.rss"
+ },
+ {
+  "name": "Information",
+  "lang": "da",
+  "url": "https://www.information.dk/feed"
+ },
+ {
+  "name": "Altinget",
+  "lang": "da",
+  "url": "https://www.altinget.dk/rss"
+ },
+ {
+  "name": "TV 2 Kosmopol",
+  "lang": "da",
+  "url": "https://www.tv2kosmopol.dk/rss"
+ },
+ {
+  "name": "Al Jazeera",
+  "lang": "en",
+  "url": "https://www.aljazeera.com/xml/rss/all.xml"
+ },
+ {
+  "name": "Middle East Eye",
+  "lang": "en",
+  "url": "https://www.middleeasteye.net/rss.xml",
+  "community": true
+ },
+ {
+  "name": "Middle East Monitor",
+  "lang": "en",
+  "url": "https://www.middleeastmonitor.com/feed/",
+  "community": true
+ },
+ {
+  "name": "BBC",
+  "lang": "en",
+  "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+ },
+ {
+  "name": "The Guardian",
+  "lang": "en",
+  "url": "https://www.theguardian.com/world/rss",
+  "outlet": "The Guardian"
+ },
+ {
+  "name": "The Guardian Mellemøsten",
+  "lang": "en",
+  "url": "https://www.theguardian.com/world/middleeast/rss",
+  "outlet": "The Guardian"
+ },
+ {
+  "name": "New York Times",
+  "lang": "en",
+  "url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml"
+ },
+ {
+  "name": "Dawn",
+  "lang": "en",
+  "url": "https://www.dawn.com/feeds/home"
+ },
+ {
+  "name": "Al-Monitor",
+  "lang": "en",
+  "url": "https://www.al-monitor.com/rss"
+ },
+ {
+  "name": "Anadolu",
+  "lang": "en",
+  "url": "https://www.aa.com.tr/en/rss/default?cat=guncel"
+ },
+ {
+  "name": "France 24",
+  "lang": "en",
+  "url": "https://www.france24.com/en/middle-east/rss"
+ },
+ {
+  "name": "DW",
+  "lang": "en",
+  "url": "https://rss.dw.com/rdf/rss-en-world"
+ },
+ {
+  "name": "Jerusalem Post",
+  "lang": "en",
+  "url": "https://www.jpost.com/rss/rssfeedsheadlines.aspx"
+ },
+ {
+  "name": "The National",
+  "lang": "en",
+  "url": "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml"
+ },
+ {
+  "name": "5Pillars",
+  "lang": "en",
+  "url": "https://5pillarsuk.com/feed",
+  "community": true
+ },
+ {
+  "name": "Islam21c",
+  "lang": "en",
+  "url": "https://islam21c.com/feed/",
+  "community": true
+ },
+ {
+  "name": "الجزيرة",
+  "lang": "ar",
+  "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9"
+ },
+ {
+  "name": "BBC عربي",
+  "lang": "ar",
+  "url": "https://feeds.bbci.co.uk/arabic/rss.xml"
+ },
+ {
+  "name": "CNN بالعربية",
+  "lang": "ar",
+  "url": "https://arabic.cnn.com/api/v1/rss/rss.xml"
+ },
+ {
+  "name": "سكاي نيوز عربية",
+  "lang": "ar",
+  "url": "https://www.skynewsarabia.com/rss"
+ },
+ {
+  "name": "حزب التحرير",
+  "lang": "ar",
+  "max_age_hours": 240,
+  "url": "https://www.hizb-ut-tahrir.info/ar/index.php?format=feed&type=rss",
+  "community": true
+ },
+ {
+  "name": "Reuters",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:reuters.com when:1d"
+ },
+ {
+  "name": "AP",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:apnews.com when:1d"
+ },
+ {
+  "name": "Times of Israel",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:timesofisrael.com when:1d"
+ },
+ {
+  "name": "The New Arab",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:newarab.com when:1d"
+ },
+ {
+  "name": "Jyllands-Posten",
+  "lang": "da",
+  "type": "gnews",
+  "query": "site:jyllands-posten.dk",
+  "locale": "da:DK"
+ },
+ {
+  "name": "Kristeligt Dagblad",
+  "lang": "da",
+  "type": "gnews",
+  "query": "site:kristeligt-dagblad.dk",
+  "locale": "da:DK"
+ },
+ {
+  "name": "Weekendavisen",
+  "lang": "da",
+  "type": "gnews",
+  "query": "site:weekendavisen.dk",
+  "locale": "da:DK",
+  "max_age_hours": 168
+ },
+ {
+  "name": "Stand 4 Palestine",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "stand4palestine",
+  "community": true
+ },
+ {
+  "name": "QudsN",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "qudsnen",
+  "community": true
+ },
+ {
+  "name": "شبكة قدس",
+  "lang": "ar",
+  "type": "telegram",
+  "channel": "qudsn",
+  "community": true
+ },
+ {
+  "name": "TMW Media",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "tmw_media"
+ },
+ {
+  "name": "DOAM",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "doamuslims",
+  "community": true
+ },
+ {
+  "name": "Daily Islamist",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "dailyislamist",
+  "community": true
+ },
+ {
+  "name": "Clash Report",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "clashreport"
+ },
+ {
+  "name": "Warfare Analysis",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "warfareanalysis"
+ },
+ {
+  "name": "Köklü Değişim",
+  "lang": "tr",
+  "type": "telegram",
+  "channel": "kokludegisim",
+  "community": true
+ },
+ {
+  "name": "Islamisk Viden",
+  "lang": "da",
+  "type": "youtube",
+  "channel": "UCt5K1r4S4MfsNAE4lp1Yplw",
+  "max_age_hours": 336,
+  "community": true
+ },
+ {
+  "name": "DIP Podcast",
+  "lang": "da",
+  "type": "youtube",
+  "channel": "UCUbujDfkdxYP3LGk-rvRw_A",
+  "max_age_hours": 336,
+  "community": true
+ }
+]

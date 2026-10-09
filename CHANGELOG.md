@@ -12,6 +12,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 ### Added
 
 - Project scaffolded from the `web-app` workspace template.
+- Radar that reads ~50 sources (RSS, Google News, Telegram, YouTube) every 5 minutes.
+- Relevance scoring against the group's shared links with a multilingual language model.
+- Same-story grouping, big-story detection and one-notification-per-story pushes.
+- Automatic self-learning from community sources, big stories and copy taps.
+- iPhone home-screen app with copy button, tabs, search and notification sign-up.
 
 ---
 

@@ -22,18 +22,33 @@ Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-g
 
 | Task | Command |
 |---|---|
-| Install dependencies | |
-| Run in development | |
-| Run tests | |
-| Build for production | |
-| Lint / format | |
+| Install dependencies | Cloud only: `pip install -r requirements.txt` (runs in Actions; locally only numpy + pytest are needed) |
+| Run in development | `py -m http.server 8765 --directory public` |
+| Run tests | `py -m pytest -q tests` |
+| Build for production | Push to `main`; `pages.yml` publishes `public/` |
+| Run the radar now | `gh workflow run radar.yml` |
 
 ## Architecture
+
+- `src/radar/feeds.py` fetches and parses every source type (rss, gnews, telegram, youtube). Stdlib only.
+- `src/radar/run.py` is one radar run: dedupe → embed → self-learn → score → cluster → notify → write state.
+- `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
+- `public/` is the PWA. `config.js` and `data.json` there are local-preview only (gitignored);
+  `pages.yml` generates the real `config.js`.
+- State lives on the force-pushed orphan branch `data` (no history), read back at the start of each run.
+- `config/profile.enc` = output of `scripts/build_profile.py`, AES-256-CBC/PBKDF2 (200k iterations) with `PROFILE_KEY`:
+  `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in .cache/profile.jsonl -out config/profile.enc -pass env:PROFILE_KEY`
 
 <!-- How the pieces fit together. Where the entry point is. What depends on what.
      Update this when the shape of the project changes. -->
 
 ## Project-specific conventions
+
+- The owner wants it **fully automatic**: no feedback buttons. Adaptation comes from community
+  sources, big stories and silent copy taps only.
+- The profile contains no names or message authors. Keep it that way, and keep it encrypted. The repo is public.
+- Facebook, Instagram, TikTok and X cannot be followed. Do not add scrapers for them without the owner's explicit decision (cost/ToS risk).
+- Tests use `tests/fake_embed.py` instead of the real model, so they run offline without fastembed.
 
 <!-- Anything that differs from, or adds to, the workspace standard. If nothing
      differs, say so explicitly so the next session does not go looking. -->

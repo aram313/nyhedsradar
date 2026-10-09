@@ -1,0 +1,26 @@
+{
+  "max_age_hours": 48,
+  "keep_hours": 72,
+  "top_k": 10,
+  "show_percentile": 85,
+  "important_percentile": 95,
+  "notify_percentile": 98.5,
+  "big_story_sources": 4,
+  "big_story_min_percentile": 60,
+  "same_story_similarity": 0.75,
+  "notify_min_gap_minutes": 20,
+  "notify_max_per_day": 15,
+  "quiet_hours": [
+    23,
+    7
+  ],
+  "timezone": "Europe/Copenhagen",
+  "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "learn_days": 30,
+  "learn_big_min_percentile": 60,
+  "learn_weights": {
+    "community": 0.8,
+    "big": 0.6,
+    "copied": 1.5
+  }
+}

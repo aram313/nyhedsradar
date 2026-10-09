@@ -1,0 +1,78 @@
+name: Radar
+
+# Every 5 minutes (GitHub often runs it a little later): fetch all sources, score, notify,
+# and save the result on the "data" branch, which the phone app reads.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get saved state
+        run: |
+          mkdir -p state
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch --depth=1 origin data
+            git archive FETCH_HEAD | tar -x -C state
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Cache language model and profile
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: radar-${{ hashFiles('config/profile.enc', 'config/settings.json', 'requirements.txt') }}
+
+      - name: Unlock profile
+        env:
+          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
+        run: |
+          mkdir -p .cache
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in config/profile.enc -out .cache/profile.jsonl -pass env:PROFILE_KEY
+
+      - name: Run radar
+        env:
+          PYTHONPATH: src
+          RADAR_STATE: state
+          PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          FEEDBACK_TOPIC: ${{ vars.FEEDBACK_TOPIC }}
+        run: python -m radar.run
+
+      - name: Save state
+        run: |
+          rm -f .cache/profile.jsonl
+          cd state
+          git init -q -b data
+          git config user.name "radar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "radar $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
+
+      - name: Keep the schedule switched on
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/radar.yml/enable" || true
