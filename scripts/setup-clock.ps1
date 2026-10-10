@@ -29,6 +29,16 @@ if (-not $url) { $url = 'https://qstash-eu-central-1.upstash.io' }
 $qs = Read-Host -AsSecureString '3/3  Indsæt QSTASH_TOKEN fra Upstash'
 $qsToken = (ConvertFrom-SecureString $qs -AsPlainText).Trim().Trim('"', "'", ' ')
 
+# a quick look whether Upstash knows the token, before anything is made (only its first characters are shown)
+$hint = "starter med '$($qsToken.Substring(0, [Math]::Min(3, $qsToken.Length)))…', $($qsToken.Length) tegn"
+try {
+    Invoke-RestMethod -Method Get -Uri "$url/v2/schedules" -Headers @{ Authorization = "Bearer $qsToken" } | Out-Null
+    Write-Host "     OK – Upstash kender nøglen ($hint)." -ForegroundColor Green
+} catch {
+    Write-Host "     Upstash kender ikke denne nøgle ($hint) på $url." -ForegroundColor Yellow
+    Write-Host '     Den rigtige QSTASH_TOKEN starter normalt med "ey" og er lang. Tjek at det ikke er en signing key eller en gammel nøgle.'
+    exit 1
+}
 Write-Host '     Opretter vækkeuret (hvert 5. minut) ...'
 try {
     $res = Invoke-RestMethod -Method Post -Uri "$url/v2/schedules/$dispatch" -ContentType 'application/json' -Body '{"ref":"main"}' -Headers @{
