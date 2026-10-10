@@ -780,6 +780,10 @@ $('enablePush').addEventListener('click', async () => {
 });
 $('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });
 
+// an app, not a web page: no pinch or double-tap zoom (iPhone ignores the viewport setting for pinching)
+['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+let lastTouch = 0;
+document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouch < 300 && !e.target.closest('input, textarea')) e.preventDefault(); lastTouch = now; }, { passive: false });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 const startTab = params.get('tab');
 if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'latest')) setTab(startTab, { top: true });

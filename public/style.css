@@ -39,7 +39,7 @@
 
 /* ------------------------------------------------------------ base */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { scrollbar-width: none; -webkit-text-size-adjust: 100%; }
+html { scrollbar-width: none; -webkit-text-size-adjust: 100%; touch-action: manipulation; }   /* no double-tap zoom */
 html::-webkit-scrollbar { display: none; }
 html, body { margin: 0; background-color: var(--bg); color: var(--text); overscroll-behavior-y: none; transition: background-color .35s, color .35s; }
 body { font: 16px/1.38 var(--sans); -webkit-font-smoothing: antialiased; background-image: var(--grain); background-attachment: fixed;
