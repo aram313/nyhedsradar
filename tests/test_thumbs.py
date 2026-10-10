@@ -17,22 +17,34 @@ def test_share_image():
     assert thumbs.share_image('<meta property="og:title" content="x">', 'https://news.test/') == ''
 
 
-def test_attach(tmp_path, monkeypatch):
+def test_stand_in_names():
+    assert thumbs.STAND_IN.search('https://www.bt.dk/brands/bt/share.jpg')
+    assert thumbs.STAND_IN.search('https://x.test/static/og-default.png?v=2')
+    assert not thumbs.STAND_IN.search('https://www.al-monitor.com/sites/default/files/styles/social/2026-10/photo.jpg')
+    assert not thumbs.STAND_IN.search('https://asset.dr.dk/drdk/umbraco-images/1stndkbu/20260921-150403-5.jpg?im=x')
+
+
+@pytest.fixture
+def photo():
     Image = pytest.importorskip('PIL.Image')
-    buf = io.BytesIO()
+    buf, icon = io.BytesIO(), io.BytesIO()
     Image.new('RGB', (640, 360), (200, 30, 30)).save(buf, 'JPEG')
-    photo, icon = buf.getvalue(), io.BytesIO()
     Image.new('RGB', (64, 64)).save(icon, 'PNG')
+    return buf.getvalue(), icon.getvalue()
+
+
+def test_attach(tmp_path, monkeypatch, photo):
+    jpg, icon = photo
     calls = []
 
     def fake_get(url, limit, accept, timeout=8):
         calls.append(url)
         if url == 'https://dr.test/story':
-            return b'<meta property="og:image" content="https://dr.test/share.jpg">'
+            return b'<meta property="og:image" content="https://dr.test/photo.jpg">'
         if url == 'https://img.test/icon.png':
-            return icon.getvalue()
-        if url.startswith('https://img.test/') or url == 'https://dr.test/share.jpg':
-            return photo
+            return icon
+        if url.startswith('https://img.test/') or url == 'https://dr.test/photo.jpg':
+            return jpg
         raise OSError('blocked')
     monkeypatch.setattr(thumbs, 'get', fake_get)
 
@@ -46,7 +58,7 @@ def test_attach(tmp_path, monkeypatch):
     memory = thumbs.attach(cards, members, {'Kanal'}, tmp_path, {})
     got = {c['id']: c.get('thumb') for c in cards}
     assert got['a'] == thumbs.name_of('https://img.test/bbc.jpg')
-    assert got['b'] == thumbs.name_of('https://dr.test/share.jpg')
+    assert got['b'] == thumbs.name_of('https://dr.test/photo.jpg')
     assert got['c'] is None and 'https://img.test/war.jpg' not in calls   # channels never lend a picture
     assert got['d'] is None and 'https://img.test/icon.png' in memory['bad']   # an icon is no photo
     assert sorted(p.name for p in tmp_path.iterdir()) == sorted([got['a'], got['b']])
@@ -55,3 +67,17 @@ def test_attach(tmp_path, monkeypatch):
     thumbs.attach(cards[:1], members, {'Kanal'}, tmp_path, memory)
     assert calls == [] and cards[0]['thumb'] == got['a']
     assert [p.name for p in tmp_path.iterdir()] == [got['a']]   # pictures no card uses are deleted
+
+
+def test_stand_ins_are_no_pictures(tmp_path, monkeypatch, photo):
+    pages = {'https://bt.test/1': 'https://bt.test/brands/bt/share.jpg',      # named as the site's stand-in
+             'https://pol.test/1': 'https://pol.test/img/house.jpg',           # one picture for two stories:
+             'https://pol.test/2': 'https://pol.test/img/house.jpg'}           # the site's default
+    monkeypatch.setattr(thumbs, 'get', lambda url, limit, accept, timeout=8:
+                        f'<meta property="og:image" content="{pages[url]}">'.encode() if url in pages else photo[0])
+    cards = [{'id': k, 'source': 'X', 'link': k, 'img': ''} for k in pages]
+    memory = thumbs.attach(cards, {}, set(), tmp_path, {})
+    assert [c.get('thumb') for c in cards] == [None, None, None]
+    assert not list(tmp_path.iterdir())
+    thumbs.attach(cards, {}, set(), tmp_path, memory)   # and stays so in the next run
+    assert [c.get('thumb') for c in cards] == [None, None, None]

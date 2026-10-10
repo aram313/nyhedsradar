@@ -84,7 +84,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Arabic source names are shown in Latin script (Al Jazeera (arabisk), Sky News Arabia, BBC Arabic …).
 - Small pictures on every card: the feed's own image, another outlet's picture of the same story or the article
   page's share image, shrunk by the radar to a 144 px JPEG of a few kilobytes (`t/` on the data branch,
-  `src/radar/thumbs.py`). Telegram channels never lend a picture. Where there is none, the outlet's initials.
+  `src/radar/thumbs.py`). Telegram channels never lend a picture, and a site's logo or default picture (one
+  picture for several stories) never counts. Where there is none, the outlet's initials.
 - One colour per section – Danmark blue, Mellemøsten green, Verden purple – on the story kicker, the day
   markers, the topic names and the selected tab; red stays the signal for a big story.
 - **Seneste** (fifth tab): everything Khabar picked, newest first, all sections mixed, with the time of day.

@@ -17,6 +17,8 @@ SIZE = 144
 SHARE_META = re.compile(r'<meta\b[^>]*(?:property|name)\s*=\s*["\'](?:og:image(?::secure_url|:url)?|twitter:image(?::src)?)["\'][^>]*>', re.I)
 CONTENT = re.compile(r'\bcontent\s*=\s*["\']([^"\']+)["\']', re.I)
 NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube\.com|youtu\.be)/', re.I)
+# a site's stand-in picture when an article has none of its own (bt.dk/brands/bt/share.jpg is the B.T. logo)
+STAND_IN = re.compile(r'/(?:brands?|logos?)/|[/_-](?:logo|share|default|placeholder|fallback)[\w-]*\.(?:jpe?g|png|webp|gif)(?:[?#]|$)', re.I)
 
 
 def name_of(url):
@@ -62,25 +64,44 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     memory: {'page': {article link: [its share image or '', when]}, 'bad': {image url: when}}, kept between runs."""
     import PIL  # noqa: F401 – without Pillow (local test runs) the caller skips pictures altogether
     now = now or datetime.now(timezone.utc)
-    since = (now - timedelta(days=3)).isoformat()
-    pages = {k: v for k, v in memory.get('page', {}).items() if v[1] >= since}
+    since, retry = (now - timedelta(days=3)).isoformat(), (now - timedelta(hours=6)).isoformat()
+    # a page that gave no picture (slow, blocked, none) is asked again after 6 hours
+    pages = {k: v for k, v in memory.get('page', {}).items() if v[1] >= (since if v[0] else retry)}
     bad = {k: v for k, v in memory.get('bad', {}).items() if v >= since}
     folder.mkdir(parents=True, exist_ok=True)
     have = {p.name for p in folder.glob('*.jpg')}
 
+    def own(it):   # the card and its other outlets, without unverified channels
+        return [m for m in [it] + members_of.get(it['id'], []) if m['source'] not in unverified]
+
     def options(it):
         """Picture URLs for a card, best first; ('page', link) where only the article page can tell."""
-        own = [m for m in [it] + members_of.get(it['id'], []) if m['source'] not in unverified]
-        out = [m['img'] for m in own if m.get('img')]
-        if own and not NO_PAGE.match(own[0]['link']):
-            known = pages.get(own[0]['link'])
-            out.append(known[0] if known else ('page', own[0]['link']))
-        return [o for o in out if o and o not in bad]
+        mine = own(it)
+        out = [m['img'] for m in mine if m.get('img')]
+        if mine and not NO_PAGE.match(mine[0]['link']):
+            known = pages.get(mine[0]['link'])
+            out.append(known[0] if known else ('page', mine[0]['link']))
+        return [o for o in out if o]
+
+    # a site's stand-in (its logo, a default picture) is no photo of the story: it is named so, or two
+    # different stories or articles show the very same picture
+    shown_by = {}
+    for it in cards:
+        for o in options(it):
+            if isinstance(o, str):
+                shown_by.setdefault(o, set()).add(it['id'])
+    leads = {mine[0]['link'] for it in cards for mine in [own(it)] if mine}
+    for link, (url, _) in pages.items():
+        if url and link not in leads:
+            shown_by.setdefault(url, set()).add(link)
+    for url, who in shown_by.items():
+        if len(who) > 1 or STAND_IN.search(url):
+            bad[url] = now.isoformat()
 
     todo = {}
     for it in cards:
         it.pop('thumb', None)
-        opts = options(it)
+        opts = [o for o in options(it) if o not in bad]
         ready = next((o for o in opts if isinstance(o, str) and name_of(o) in have), None)
         if ready:                        # a picture made in an earlier run stays, so cards do not flicker
             it['thumb'] = name_of(ready)
@@ -106,10 +127,13 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     for k, o in list(todo.items()):
         if isinstance(o, tuple):
             url = pages.get(o[1], [''])[0]
-            if url and url not in bad:
+            if url and url not in bad and not STAND_IN.search(url):
                 todo[k] = url
             else:
                 del todo[k]
+    for url in {u for u in todo.values() if list(todo.values()).count(u) > 1}:   # one stand-in, two new stories
+        bad[url] = now.isoformat()
+        todo = {k: u for k, u in todo.items() if u != url}
 
     def fetch(url):
         if time.monotonic() - start > seconds:
