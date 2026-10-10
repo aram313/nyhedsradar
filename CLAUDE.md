@@ -86,6 +86,8 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   overviews); the full mixed list lives in 'Seneste'. Colour is minimal (the owner found section-coloured labels
   'in your face'): a small section dot on mixed lists, red only for big stories and 'live'. Headlines guide the eye
   with bold keywords (who and where) instead. Block titles and day markers must never look alike.
+- The app never mentions Claude in visible text and has no 'how Khabar chooses' explainer (owner's request,
+  2026-10-10). Default look: Dæmpet (light) and Notion (dark); the 'Blød' tone was removed.
 - Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
   tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
   copy of the live state, no fetching or embedding) and compare what each section would show.
