@@ -18,7 +18,8 @@
   "url": "https://www.dr.dk/nyheder/service/feeds/udland",
   "outlet": "DR",
   "group": "dk",
-  "sec": "abroad"
+  "sec": "abroad",
+  "label": "DR"
  },
  {
   "name": "DR Politik",
@@ -26,7 +27,8 @@
   "url": "https://www.dr.dk/nyheder/service/feeds/politik",
   "outlet": "DR",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "label": "DR"
  },
  {
   "name": "BT",
@@ -120,7 +122,8 @@
   "url": "https://www.theguardian.com/world/middleeast/rss",
   "outlet": "The Guardian",
   "group": "west",
-  "sec": "me"
+  "sec": "me",
+  "label": "The Guardian"
  },
  {
   "name": "New York Times",
@@ -398,7 +401,8 @@
   "outlet": "DR",
   "url": "https://www.dr.dk/nyheder/service/feeds/indland",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "label": "DR"
  },
  {
   "name": "DR Regionale",
@@ -406,7 +410,8 @@
   "outlet": "DR",
   "url": "https://www.dr.dk/nyheder/service/feeds/regionale",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "label": "DR"
  },
  {
   "name": "Politiken Indland",
@@ -414,7 +419,8 @@
   "outlet": "Politiken",
   "url": "https://politiken.dk/rss/indland.rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "label": "Politiken"
  },
  {
   "name": "Politiken Udland",
@@ -422,14 +428,16 @@
   "outlet": "Politiken",
   "url": "https://politiken.dk/rss/udland.rss",
   "group": "dk",
-  "sec": "abroad"
+  "sec": "abroad",
+  "label": "Politiken"
  },
  {
   "name": "Ekstra Bladet Nyheder",
   "lang": "da",
   "outlet": "Ekstra Bladet",
   "url": "https://ekstrabladet.dk/rssfeed/nyheder/",
-  "group": "dk"
+  "group": "dk",
+  "label": "Ekstra Bladet"
  },
  {
   "name": "TV 2 Øst",

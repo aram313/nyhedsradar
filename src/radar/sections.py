@@ -10,10 +10,22 @@ ARABIC = re.compile(r'[؀-ۿ]')
 PLAIN = {'danmark', 'dansk', 'danske', 'danskere', 'denmark', 'danish', 'danes'}
 NOT_A_SPEAKER = re.compile(r'^(?:analyse|analysis|kommentar|leder|opinion|debat|interview|live|video|watch|breaking|'
                            r'update|opdatering|nyt|se|explainer|guide|quiz|podcast)\b', re.I)
+# the label of a column or a hub page before a colon is no speaker ('Magtens Morgenbrief:', 'Afghanistan News:')
+LABELS = {'news', 'latest', 'blog', 'blogs', 'brief', 'morgenbrief', 'briefing', 'update', 'updates', 'live', 'decision',
+          'nyheder', 'overblik'}
 CAPITALISED = re.compile(r"^[A-ZÆØÅÄÖÜ][\w'’.-]*$")
 # capitalised small words that never belong to a name next to them
 SMALL = {'a', 'an', 'the', 'en', 'et', 'den', 'det', 'de', 'i', 'in', 'on', 'at', 'to', 'for', 'med', 'til', 'om', 'på',
          'af', 'og', 'and', 'efter', 'after', 'som', 'han', 'hun', 'da', 'når', 'nu', 'her'}
+# subjects, not names, in the section word lists: a headline's first word is capitalised anyway ('Kommuner vil …'),
+# so these never count as a name there
+SUBJECTS = ('dkpol', 'regering', 'finanslov', 'finansforslag', 'åbningsdebat', 'folketingsvalg', 'kommunalvalg',
+            'regionsrådsvalg', 'grundlov', 'udlænding', 'integrationsminist', 'statsborgerskab', 'indfødsret', 'ghettolov',
+            'parallelsamfund', 'kommun', 'folkeskole', 'gymnasie', 'dagpenge', 'kontanthjælp', 'efterløn', 'seniorpension',
+            'tørklædeforbud', 'koranlov', 'koranafbrænding', 'byret', 'landsret', 'bosætter', 'settler', 'arab', 'syrisk',
+            'syrer', 'kurd', 'emirat', 'golfstat', 'kongres', 'congress', 'senat', 'russisk', 'russer', 'kinesisk', 'chinese',
+            'tysk', 'german', 'britisk', 'british', 'briter', 'fransk', 'french', 'svensk', 'swedish', 'norsk', 'indisk',
+            'indian', 'straffedomstol', 'libysk', 'jordani', 'tyrki', 'turkish', 'lebanes', 'libanes', 'palæstin')
 # English headlines in Title Case capitalise these; sentence case never does (outside the first word)
 TITLE_CASE = re.compile(r'(?<!^)\b(?:With|From|Into|After|Over|About|Says|Will|That|This|Amid|Against|Under|Their)\b')
 
@@ -68,12 +80,15 @@ class Sections:
         'Who: what' headline, and the places, parties, people and organisations of the section word lists,
         widened to whole words and to the capitalised words next to them (Pia Olsen Dyhr, Gaza City)."""
         title = title or ''
-        title_case = bool(TITLE_CASE.search(title))
+        # Title Case headlines ('Saudi Airports Prompt Mass …') capitalise every word, so capitals say nothing there
+        long = [w for w in re.findall(r"[^\W\d_][\w'’-]*", title)[1:] if len(w) > 3]
+        title_case = bool(TITLE_CASE.search(title)) or (len(long) >= 4 and sum(w[0].isupper() for w in long) >= .7 * len(long))
         spans = []
         m = re.match(r'^([^:]{2,60}):\s+\S', title)
         who = m.group(1).split() if m else []
-        if (who and len(who) <= 5 and not NOT_A_SPEAKER.match(m.group(1))   # 'Yaqoub Ali: …', 'Kreml: …'
-                and all(CAPITALISED.match(w) or w.lower() in ('og', 'and', 'of', 'al', 'bin', 'el') for w in who)):
+        if (who and len(who) <= 5 and not NOT_A_SPEAKER.match(m.group(1)) and not title_case   # 'Yaqoub Ali: …'
+                and all(CAPITALISED.match(w) or w.lower() in ('og', 'and', 'of', 'al', 'bin', 'el') for w in who)
+                and not any(re.sub(r"['’]s?$", '', w.lower()) in LABELS or (w.isupper() and len(w) > 3) for w in who)):
             spans.append((0, len(m.group(1)), 2))
         hits = []
         for k in self.keys:
@@ -87,7 +102,9 @@ class Sections:
         for a, b in hits:
             if not title_case:   # the capitalised words around a name belong to it (not the next name)
                 a, b = self._widen(title, a, b, starts)
-            if title[a:b].lower() not in PLAIN:
+            # names only: places, parties, people and organisations are capitalised; topic words
+            # (finanslov, regeringen, kommuner) are not
+            if title[a:b].lower() not in PLAIN and title[a].isupper() and not (a == 0 and title[a:b].lower().startswith(SUBJECTS)):
                 spans.append((a, b, 1 + (' ' in title[a:b])))
         spans.sort(key=lambda s: (s[0], -s[1]))
         merged = []
@@ -110,7 +127,7 @@ class Sections:
             return CAPITALISED.match(w) and w.lower().strip('.') not in SMALL
         while len(title[a:b].split()) < most:
             m = re.search(r"([\w'’-]+)\s+$", title[:a])
-            if not m or not name_word(m.group(1)) or m.start(1) in starts:
+            if not m or m.start(1) == 0 or not name_word(m.group(1)) or m.start(1) in starts:   # not into 'Three Saudi'
                 break
             a = m.start(1)
         while len(title[a:b].split()) < most:

@@ -61,9 +61,12 @@ def image(el):
     return ''
 
 
+INVISIBLE = re.compile(r'[​-‏⁠﻿]')   # zero-width marks some feeds put between words
+
+
 def clean(s, limit=None):
     s = html.unescape(TAG.sub(' ', html.unescape(s or '')))
-    s = SPACE.sub(' ', s).strip()
+    s = SPACE.sub(' ', INVISIBLE.sub('', s)).strip()
     if limit and len(s) > limit:
         s = s[:limit].rsplit(' ', 1)[0] + ' …'
     return s
@@ -128,12 +131,28 @@ TG_TIME = re.compile(r'<time datetime="([^"]+)"')
 # channel posts open with alarm emoji and tags ('⚡️', 'Breaking |', 'عاجل |', 'Gaza sources'); a headline needs none
 POST_TAGS = re.compile(r'^(?:[←-⯿\U0001f000-\U0001faff️‍\s]'
                        r'|(?:breaking|urgent|watch|video|update|just in|عاجل|متابعة|فيديو)\s*[|:\-–]\s*'
-                       r'|(?:gaza|west bank|lebanon|syria|yemen|iran|israeli|hebrew|palestinian) sources\s+(?!say|said|report|told|claim))+',
+                       r'|(?:gaza|west bank|lebanon|lebanese|syria|syrian|yemen|yemeni|iran|iranian|iraqi|israeli|hebrew|'
+                       r'palestinian|local|medical|security) sources\s+(?!say|said|report|told|claim))+',
                        re.I)
+URL = re.compile(r'https?://\S+|www\.\S+')
+SIGN_OFF = re.compile(r'\[[^\]\n]{1,20}\]')   # '[Ak]': the initials of whoever posted it
+# a full stop after these is no sentence end ('Secondary School No. 9', 'Gen. Halevi', 'J. Smith')
+ABBREV = re.compile(r'(?:\b(?:No|Nr|Dr|Mr|Mrs|Ms|St|Gen|Lt|Col|Maj|Capt|Sgt|Prof|Sen|Rep|Gov|Jr|Sr|vs|etc|ca|bl\.a|f\.eks)|\b[A-Z])\.$')
 
 
 def tidy_post(text):
     return POST_TAGS.sub('', text).strip()
+
+
+def headline(text, limit=160):
+    """A post's first sentence as its headline (not cut after 'No.' or an initial), else its first words."""
+    for m in re.finditer(r'[.!?](?=\s)', text[:limit]):
+        if m.start() > 30 and not ABBREV.search(text[:m.end()]):
+            return text[:m.end()], text[m.end():]
+    if len(text) <= 140:
+        return text, ''
+    cut = text[:140].rsplit(' ', 1)[0]
+    return cut + ' …', text[len(cut):]
 
 
 ARABIC = re.compile(r'[؀-ۿ]')
@@ -165,22 +184,23 @@ def parse_telegram(page, feed):
         m = TG_TEXT.search(body)
         if not m:
             continue
-        text = clean(re.sub(r'<br\s*/?>', ' ', m.group(1)))
-        text = tidy_post(PROMO.split(text)[0])  # drop 'Join our platforms / Follow us' footers and opening tags
+        # line by line: links and sign-offs out, 'Join our platforms / Follow us' footers and opening tags off
+        lines = [URL.sub('', SIGN_OFF.sub('', clean(l))).strip(' -–|') for l in re.split(r'<br\s*/?>', m.group(1))]
+        lines = [l for l in lines if l and not PROMO.match(l)]
+        text = tidy_post(PROMO.split(' '.join(lines))[0])
         if len(text) < 20:
             continue
-        cut = re.search(r'(?<=[.!?])\s', text[:160])
-        if cut and cut.start() > 30:
-            title = rest = text[:cut.start()]
+        first = tidy_post(lines[0]) if lines else ''
+        if 20 <= len(first) <= 160 and len(lines) > 1 and text.startswith(first):
+            title, rest = first, text[len(first):]   # a post with a first line of its own: that line is the headline
         else:
-            rest = text[:140].rsplit(' ', 1)[0] if len(text) > 140 else text
-            title = rest + (' …' if len(text) > len(rest) else '')
+            title, rest = headline(text)
         t = TG_TIME.search(body)
         date = parse_date(t.group(1)) if t else None
         link = f'https://t.me/{post}'
         items.append({
             'id': hashlib.sha1(link.encode()).hexdigest()[:16], 'title': title,
-            'summary': clean(text[len(rest):], 280).strip(' -–:|'), 'link': link,
+            'summary': clean(rest, 280).strip(' -–:|'), 'link': link,
             'source': feed['name'], 'lang': sniff(text, feed.get('lang', '')), 'published': date.isoformat() if date else None,
         })
     return items

@@ -55,7 +55,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: radar-${{ hashFiles('config/profile.enc', 'config/settings.json', 'requirements.txt', 'src/radar/translate.py') }}
+          # not keyed on settings.json: a changed setting must not send every run back to downloading ~270 MB of
+          # models; restore-keys brings back the newest earlier cache when the key does change
+          key: radar-${{ hashFiles('config/profile.enc', 'requirements.txt', 'src/radar/translate.py') }}
+          restore-keys: radar-
 
       # a fresh cache is saved at the end of this run, so it must hold every translation model, not only the
       # ones this run happens to need (otherwise later runs download the missing one again and again)

@@ -106,6 +106,19 @@ STATEMENT = re.compile(r'^(?!(?:analyse|analysis|kommentar|leder|opinion|debat|i
 SAYS = re.compile(r'^\S.{0,60}?\b(says|said|warns|tells|vows|urges|calls on|claims|denies|confirms|announces|rejects)\b', re.I)
 
 
+# 'strike' in war news is an attack, but the English-Danish model makes it a labour strike ('strejke')
+WAR_STRIKE = re.compile(r'\b((?:air|drone|missile|israeli|russian|ukrainian|us|u\.s\.|military|deadly|fresh|new|overnight|'
+                        r'retaliatory|precision|houthi)\s+)strikes?\b|\bstrikes(?=\s+(?:on|against|targeting|hit))',
+                        re.I)
+
+
+def military(text):
+    def swap(m):
+        word = 'attacks' if m.group(0).lower().endswith('s') else 'attack'
+        return (m.group(1) or '') + (word.capitalize() if not m.group(1) and m.group(0)[0].isupper() else word)
+    return WAR_STRIKE.sub(swap, text)
+
+
 def is_noise(item):
     return bool(NOISE_TITLE.search(item['title'].strip()) or NOISE_URL.search(item['link']))
 
@@ -261,10 +274,16 @@ def main():
     # 3. self-learning: community sources, big stories and copy taps feed the profile automatically
     learned = [l for l in learned if ts(l['at']) >= NOW - timedelta(days=s['learn_days'])]
     learned_ids = {l['id'] for l in learned}
+    # one community source teaches at most a few stories a day, so a busy channel cannot take over the taste
+    taught = {}
+    for l in learned:
+        if l['why'] == 'community' and l['id'] in items and ts(l['at']) >= NOW - timedelta(hours=24):
+            taught[items[l['id']]['source']] = taught.get(items[l['id']]['source'], 0) + 1
     for it in new:
-        if it['community'] and it['id'] not in learned_ids:
+        if it['community'] and it['id'] not in learned_ids and taught.get(it['source'], 0) < s.get('learn_per_source_day', 10):
             learned.append({'id': it['id'], 't': text(it), 'at': it['found'], 'why': 'community'})
             learned_ids.add(it['id'])
+            taught[it['source']] = taught.get(it['source'], 0) + 1
     taps, relay['since'] = feedback.pull(relay['since'])
     # the relay topic is readable in the public app, so anyone could post to it: learn only from stories the
     # radar itself has, with the radar's own text, and at most a few dozen signals a day
@@ -426,6 +445,8 @@ def main():
                 and not sig[it['id']]['trivia']):
             it['big'] = True
         it['important'] = it['big'] or it['spct'] >= s['important_percentile']
+        if sig[it['id']]['trivia']:   # light news is never big or important, however many front pages carry it
+            it['big'] = it['important'] = False
         it['foreign'] = it.get('lang') not in READABLE
         # Danish news has to touch politics, Islam and Muslims or immigration – or be on most Danish front pages
         everyday = (it['sec'] == 'dk' and not it['_core_dk']
@@ -446,7 +467,17 @@ def main():
             if per_channel[day] > s['max_channel_per_day']:
                 continue
         kept.append(it)
-    shown = kept
+    # posts no established outlet carries fill at most about an eighth of a section (they were a quarter of Mellemøsten)
+    per_sec = {}
+    for it in kept:
+        per_sec[it['sec']] = per_sec.get(it['sec'], 0) + 1
+    unconfirmed, shown = {}, []
+    for it in kept:   # best first
+        if not it['confirmed'] and not it['big']:
+            unconfirmed[it['sec']] = unconfirmed.get(it['sec'], 0) + 1
+            if unconfirmed[it['sec']] > max(4, per_sec[it['sec']] // 8):
+                continue
+        shown.append(it)
     for it in shown:
         cpct = it.get('cluster_pct', it['pct'])
         if it['big'] and cpct >= s['learn_big_min_percentile'] and it['id'] not in learned_ids:
@@ -468,8 +499,8 @@ def main():
                 it['title_tr'], it['summary_tr'] = t, (sm or '') if it['summary'] else ''
     todo = [it for it in shown if 'title_da' not in it and it['lang'] != 'da' and (it['lang'] == 'en' or it.get('title_tr'))]
     if todo:
-        en_title = [it.get('title_tr') or it['title'] for it in todo]
-        en_sum = [(it.get('summary_tr') if it['foreign'] else it['summary']) or '' for it in todo]
+        en_title = [military(it.get('title_tr') or it['title']) for it in todo]
+        en_sum = [military((it.get('summary_tr') if it['foreign'] else it['summary']) or '') for it in todo]
         for it, t, sm in zip(todo, translator(en_title, 'en', 'da'), translator(en_sum, 'en', 'da')):
             if t:
                 it['title_da'], it['summary_da'] = tidy(t), tidy(sm or '')
@@ -533,7 +564,7 @@ def main():
                 v.pop('title_da', None)   # made again from the new English below
     todo = [v for v in statements if v.get('lang') != 'da' and 'title_da' not in v
             and (v.get('lang') == 'en' or v.get('title_tr'))]
-    for v, t in zip(todo, translator([v.get('title_tr') or v['title'] for v in todo], 'en', 'da')):
+    for v, t in zip(todo, translator([military(v.get('title_tr') or v['title']) for v in todo], 'en', 'da')):
         if t:
             v['title_da'] = tidy(t)
 
@@ -620,7 +651,7 @@ def main():
          'p': v['published'], 'x': v.get('sec'), 'c': int(v['id'] in on_card)}
         for v in sorted(items.values(), key=lambda v: v['published'], reverse=True)
         if not is_noise(v) and (v.get('lang') in READABLE or v.get('title_tr'))
-        and ts(v['found']) >= NOW - timedelta(hours=48)][:3000]})
+        and ts(v['found']) >= NOW - timedelta(hours=48)][:5000]})
     save(STATE / 'items.json', items)
     save(STATE / 'seen.json', seen)
     save(STATE / 'learned.json', learned)

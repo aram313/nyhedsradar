@@ -132,6 +132,28 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Fixed
 
+- The front page no longer repeats the overview's stories when another outlet's article has since become their
+  card; shares and opens from the overview teach the radar again.
+- Telegram posts: the first line is the headline, links and sign-offs like '[Ak]' are gone, 'No. 9' no longer
+  ends a sentence, 'Lebanese/Syrian/local sources' prefixes are dropped; zero-width marks are removed everywhere.
+- Share texts skip half sentences, links and sign-offs instead of sending them to WhatsApp.
+- Bold keywords: names only (topic words like 'finanslov' and 'regeringen' no longer bold), no column labels or
+  hub pages as speakers ('THE LATEST', 'Afghanistan News'), Title Case headlines recognised, whole words only.
+- Light news (northern lights, selfies) is never 'big' or 'important'; a section's 'Vigtigst lige nu' shows only
+  important stories (the strongest three on a quiet day).
+- Unconfirmed Telegram posts fill at most about an eighth of a section; one community source teaches the taste
+  profile at most ten stories a day (two channels made two thirds of it).
+- 'Strike(s)' in war news is translated as 'angreb', not 'strejke'; Ukrainian places (Zaporizjzja, Kharkiv …)
+  place a story in Verden.
+- Outlets are shown by name (DR, Politiken, The Guardian) instead of feed names; a source is marked as failing in
+  the settings only after three failed runs in a row.
+- Tab dots clear once the tab has been visited, and a quick trip to WhatsApp no longer marks everything as seen.
+- The app asks the server whether the data changed instead of downloading it all every two minutes; offline it
+  says 'Ingen forbindelse'; search finds Erdogan as Erdoğan and is refreshed after 15 minutes.
+- Readability: darker grey text (WCAG 4.5:1), 44 pt buttons, 'ubekræftet' in grey instead of orange, VoiceOver no
+  longer reads every refresh aloud; coverage lists say how many more outlets carry a story.
+- The overview editor uses the time a story was found (a radar gap could hide stories from the next edition);
+  a changed setting no longer sends the radar back to downloading its language models.
 - From the second day on, the outlets' copies of a story that had left the 36-hour story window came back as
   separate cards (one story could become eight). An outlet's copy now stays part of its story.
 - A liveblog or podcast that became a story's lead hid the whole story (four multi-outlet stories, among them

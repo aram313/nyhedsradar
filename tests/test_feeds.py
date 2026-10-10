@@ -33,3 +33,17 @@ def test_sniff_mixed_channels():
     assert feeds.sniff('عاجل | مراسل الجزيرة: غارات إسرائيلية على جنوب لبنان', 'en') == 'ar'
     assert feeds.sniff('Israeli strikes hit southern Lebanon, says the army', 'ar') == 'en'
     assert feeds.sniff('Regeringen vil stramme reglerne for statsborgerskab', 'da') == 'da'
+
+
+def test_telegram_posts_become_clean_headlines():
+    page = ('<div data-post="kanal/1"><div class="tgme_widget_message_text js-message_text">'
+            '⚡️ Lebanese sources An Israeli drone targets the town of Kfar Tebnit in southern Lebanon.<br/>'
+            'More details to follow https://x.com/abc [Ak]</div><time datetime="2026-10-10T10:00:00+00:00"></time></div>'
+            '<div data-post="kanal/2"><div class="tgme_widget_message_text js-message_text">'
+            'Students were denied entry to Secondary School No. 9 in Jelilabad city for wearing the hijab, parents say.'
+            '</div><time datetime="2026-10-10T10:05:00+00:00"></time></div>')
+    a, b = feeds.parse_telegram(page, {'name': 'Kanal', 'lang': 'en'})
+    assert a['title'] == 'An Israeli drone targets the town of Kfar Tebnit in southern Lebanon.', a['title']
+    assert 'x.com' not in a['summary'] and '[Ak]' not in a['summary']
+    assert b['title'].startswith('Students were denied entry to Secondary School No. 9 in Jelilabad'), b['title']
+    assert feeds.clean('president ​Mahmoud ​Abbas') == 'president Mahmoud Abbas'

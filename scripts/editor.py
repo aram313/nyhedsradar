@@ -132,7 +132,7 @@ def cmd_input(args):
     period = args.period or period_of(now)
     data, lines, moves = material(args)
     start = window_start(now, period, moves.get('briefs', []))
-    stories = [i for i in data.get('items', []) if ts(i.get('published') or i['found']) >= start]
+    stories = [i for i in data.get('items', []) if ts(i.get('found') or i['published']) >= start]   # found: a gap must not hide it
     stories.sort(key=lambda i: -(i.get('rank') or 0))
     wire = uncovered(lines, moves.get('briefs', []))
     out = [f'# Material for the {period} edition · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '',

@@ -186,3 +186,11 @@ def test_clock_skew_and_untrusted_signals(tmp_path, monkeypatch):
     learned = json.loads((tmp_path / 'state' / 'learned.json').read_text(encoding='utf-8'))
     shared = [l for l in learned if l['why'] == 'copied']
     assert [l['id'] for l in shared] == ['id0001'] and 'forkert ur' in shared[0]['t']   # the radar's own text
+
+
+def test_war_strikes_are_attacks_before_danish():
+    import radar.run as run
+    assert run.military('Israeli strikes on Gaza kill 7') == 'Israeli attacks on Gaza kill 7'
+    assert run.military('Russian drone strike hits Kyiv') == 'Russian drone attack hits Kyiv'
+    assert run.military('US and Russia strike diesel deal') == 'US and Russia strike diesel deal'
+    assert run.military('Workers strike in France as teachers threaten strikes across Denmark').count('attack') == 0

@@ -39,6 +39,8 @@ jobs:
           sed -i "s/radar-shell-v1/radar-shell-${GITHUB_SHA::8}/" public/sw.js
           rm -f public/data.json
       - uses: actions/configure-pages@v5
+      # stay on v3 (or v5 with include-hidden-files: true): v4 silently drops dot-folders such as .well-known,
+      # which the Android app (assetlinks.json) needs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public

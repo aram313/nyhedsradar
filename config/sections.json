@@ -32,7 +32,7 @@
       "khan younis", "jenin", "nablus", "ramallah", "hebron", "tel aviv", "libanon", "lebanon", "lebanes",
       "libanes", "beirut", "syrien", "syria", "syrisk", "syrer", "damask", "aleppo", "idlib", "al-sharaa",
       "julani", "assad", "iran", "teheran", "tehran", "khamenei", "irak", "iraq", "baghdad", "bagdad", "kurd",
-      "yemen", "jemen", "houthi", "huthi", "saudi", "riyadh", "egypt", "kairo", "cairo", "sisi=", "jordan=",
+      "yemen", "jemen", "saudi arabia", "saudi-arabien", "houthi", "huthi", "saudi", "riyadh", "egypt", "kairo", "cairo", "sisi=", "jordan=",
       "jordani", "amman=", "qatar", "doha=", "emirat", "UAE=", "dubai", "abu dhabi", "oman=", "kuwait", "bahrain",
       "tyrki", "turkey", "turkish", "türkiye", "erdogan", "erdoğan", "ankara", "istanbul", "libya", "libyen",
       "libysk", "tripoli", "sudan", "khartoum", "darfur", "tunesi", "tunisia", "algeri", "marokk", "morocc",
@@ -49,7 +49,7 @@
     "world": [
       "USA=", "US=", "U.S.", "amerika", "america", "trump", "washington", "white house", "det hvide hus",
       "pentagon", "kongres", "congress", "senat", "biden", "vance=", "rusland", "russia", "russisk", "russer",
-      "putin", "kreml", "moskva", "moscow", "ukrain", "zelensk", "kyiv", "kiev", "kina", "china", "chinese",
+      "putin", "kreml", "moskva", "moscow", "ukrain", "zelensk", "kyiv", "kiev", "zaporizj", "zaporizh", "zaporozh", "kharkiv", "kharkov", "kherson", "donetsk", "luhansk", "odesa", "odessa", "dnipro", "mariupol", "bakhmut", "lviv", "sumy=", "pokrovsk", "krim=", "crimea", "kina", "china", "chinese",
       "kinesisk", "beijing", "xi jinping", "taiwan", "hongkong", "hong kong", "japan", "korea", "NATO", "EU=",
       "EU's", "european union", "europæiske union", "bruxelles", "brussels", "von der leyen", "frankrig", "france",
       "french", "fransk", "macron", "paris", "tyskland", "germany", "german", "tysk", "berlin", "storbritannien",

@@ -36,6 +36,7 @@ const edOpen = new Set();                                                // open
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
 let lastSeen = store.get('lastSeen', 0);                                 // stories found later get a small dot
+const seenTab = store.get('seenTab', {});                                // when each tab was last looked at
 let shownIds = new Set();
 const scrollPos = {};                                                    // each tab remembers where you were
 let searchIndex = null, searchState = 'idle';
@@ -82,34 +83,35 @@ const hours = i => Math.max(0, (Date.now() - when(i)) / 3600e3);
 const num = n => Number(n || 0).toLocaleString('da-DK');
 
 // ---------------------------------------------------------------- data
-const bust = url => url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-let busy = 0;
+// 'no-cache' asks the server whether the file changed (a few bytes when it did not); the files live behind a
+// cache that ignores query strings, so adding one never made them fresher
+let busy = 0, offline = false;
 async function load(manual) {
   busy++; document.body.classList.add('loading');
   let changed = false;
+  const wasOffline = offline;
   try {
-    const r = await fetch(bust(CFG.dataUrl), { cache: 'no-store' });
+    const r = await fetch(CFG.dataUrl, { cache: 'no-cache' });
     if (!r.ok) throw new Error(r.status);
     const fresh = await r.json();
-    changed = !data || fresh.updated !== data.updated;
-    data = fresh;
-    store.set('lastData', data);
+    offline = false;
+    if (!data || fresh.updated !== data.updated) { changed = true; data = fresh; store.set('lastData', data); }
   } catch (e) {
-    if (manual) toast('Kunne ikke hente nye nyheder', false);
+    offline = true;
+    if (manual) toast('Ingen forbindelse', false);
   }
   if (CFG.digestUrl) {
     try {
-      const r = await fetch(bust(CFG.digestUrl), { cache: 'no-store' });
+      const r = await fetch(CFG.digestUrl, { cache: 'no-cache' });
       if (r.ok) {
         const d = await r.json();
         const stamp = x => x && `${x.created}|${(x.topics || []).length}|${(x.items || []).length}`;
-        if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; }
-        digest = d; store.set('lastDigest', digest);
+        if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; digest = d; store.set('lastDigest', digest); }
       }
     } catch { /* keep the last overview */ }
   }
   if (--busy === 0) document.body.classList.remove('loading');
-  if (changed || manual) render({ fresh: true }); else renderHeader();
+  if (changed || manual || offline !== wasOffline) render({ fresh: true }); else renderHeader();
 }
 
 // ---------------------------------------------------------------- what a story shows
@@ -118,7 +120,8 @@ async function load(manual) {
 // channel posts open with alarm emoji and tags ('⚡️', 'Breaking |', 'عاجل |'); a headline needs none
 const TAGS = new RegExp('^(?:[\\u2190-\\u2bff\\u{1f000}-\\u{1faff}\\ufe0f\\u200d\\s]'
   + '|(?:breaking|urgent|watch|video|update|just in|عاجل|متابعة|فيديو)\\s*[|:\\-–]\\s*'
-  + '|(?:gaza|west bank|lebanon|syria|yemen|iran|israeli|hebrew|palestinian) sources\\s+(?!say|said|report|told|claim))+', 'iu');
+  + '|(?:gaza|west bank|lebanon|lebanese|syria|syrian|yemen|yemeni|iran|iranian|iraqi|israeli|hebrew|palestinian|local|medical|security)'
+  + ' sources\\s+(?!say|said|report|told|claim))+', 'iu');
 const tidy = t => (t || '').replace(TAGS, '') || t;
 function display(i) {
   let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [] };
@@ -133,11 +136,13 @@ function display(i) {
 }
 // the words that say who and where (the radar finds them) in bold; the rest of the headline stays plain
 function bold(text, words = []) {
-  const at = [];
+  const at = [], letter = /[\p{L}\p{N}]/u;
+  const whole = (i, w) => !(i > 0 && letter.test(text[i - 1])) && !letter.test(text[i + w.length] || '');   // not 'Russia' in 'Russian'
   for (const w of words) {
+    if (!w) continue;
     let i = text.indexOf(w);
-    while (i >= 0 && at.some(([a, b]) => i < b && i + w.length > a)) i = text.indexOf(w, i + 1);
-    if (w && i >= 0) at.push([i, i + w.length]);
+    while (i >= 0 && (!whole(i, w) || at.some(([a, b]) => i < b && i + w.length > a))) i = text.indexOf(w, i + 1);
+    if (i >= 0) at.push([i, i + w.length]);
   }
   let out = '', p = 0;
   for (const [a, b] of at.sort((x, y) => x[0] - y[0])) { out += esc(text.slice(p, a)) + '<b>' + esc(text.slice(a, b)) + '</b>'; p = b; }
@@ -169,9 +174,13 @@ function stories() {
   return list;
 }
 const find = id => (stories(), cache && cache.byId.get(id));
+// a story can be found by any of its outlets' articles: its card follows whichever article leads it right now
+const findStory = id => find(id) || stories().find(i => (i.also || []).some(a => a.id === id));
 
 function shareText(d) {
-  const first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '');
+  let first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '').trim();
+  // the rest of a cut-off sentence, a link or a sign-off is no summary
+  if (first.length < 20 || /^[a-zæøå]/.test(first) || /^(https?:|www\.|\[)/i.test(first)) first = '';
   return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}`;
 }
 
@@ -233,12 +242,13 @@ function coverage(i) {
       : a.title_tr ? `<span>${esc(tidy(a.title_tr))}</span> <i>oversat</i>` : `<i>overskrift på ${LANG[a.lang] || 'arabisk'}</i>`;
     return `<a href="${esc(a.link)}" target="_blank" rel="noopener"><b>${esc(a.source)}</b>${title}</a>`;
   }).join('')).join('');
-  const sum = coverSummary(i.cover);
-  return `<div class="cov"><div class="cov-h">Dækning · ${i.outlets} medier</div>${sum ? `<div class="cov-sum">${sum}</div>` : ''}${rows}</div>`;
+  const sum = coverSummary(i.cover), more = (i.outlets || 1) - 1 - also.length;
+  return `<div class="cov"><div class="cov-h">Dækning · ${i.outlets} medier</div>${sum ? `<div class="cov-sum">${sum}</div>` : ''}${rows}${more > 0
+    ? `<div class="cov-more">+ ${more} ${more === 1 ? 'medie' : 'medier'} mere</div>` : ''}</div>`;
 }
 
 // ---------------------------------------------------------------- the overview
-// One edition at 7 and one at 22: the most important stories grouped by topic, each with a short summary,
+// An edition at 7, 15 and 22: the most important stories grouped by topic, each with a short summary,
 // and under each topic what the actors say – every line of Al Jazeera's Arabic breaking wire since the
 // edition before, translated into Danish. Topics with articles come first; topics with only statements follow.
 function edition(d) {
@@ -257,7 +267,7 @@ function topicRow(ed, tp, k) {
   const key = `${ed.created}|${k}`, open = tpOpen.has(key), lead = tp.stories[0], n = (tp.lines || []).length;
   return `<article class="tp${open ? ' open' : ''}" data-tp="${esc(key)}">
     <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>${esc(tp.name)}</b> ${esc(lead.headline)}</span>${n
-      ? `<span class="tp-n" aria-label="${n} udtalelser"><svg><use href="#i-quote"/></svg>${n}</span>` : ''}</button>
+      ? `<span class="tp-n"><svg aria-hidden="true"><use href="#i-quote"/></svg>${n}<span class="vh"> udtalelser</span></span>` : ''}</button>
     <div class="x"><div><div class="x-in">${open ? topicBody(tp) : ''}</div></div></div></article>`;
 }
 function saidList(tp) {
@@ -277,7 +287,7 @@ function restRow(ed, rest) {
   const names = rest.slice(0, 3).map(([tp]) => esc(tp.name)).join(', ') + (rest.length > 3 ? ` og ${rest.length - 3} andre` : '');
   return `<article class="tp rest${open ? ' open' : ''}" data-tp="${esc(key)}">
     <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>Også</b> ${names}</span>
-      <span class="tp-n" aria-label="${n} udtalelser"><svg><use href="#i-quote"/></svg>${n}</span></button>
+      <span class="tp-n"><svg aria-hidden="true"><use href="#i-quote"/></svg>${n}<span class="vh"> udtalelser</span></span></button>
     <div class="x"><div><div class="x-in">${open ? restBody(rest) : ''}</div></div></div></article>`;
 }
 const restBody = rest => rest.map(([tp]) => `<div class="said-h">${esc(tp.name)}</div>${saidList(tp)}`).join('');
@@ -314,7 +324,7 @@ async function loadArchive() {
   archiveState = 'loading'; render();
   const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
   try {
-    const r = await fetch(bust(url), { cache: 'no-store' });
+    const r = await fetch(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(r.status);
     moves = await r.json(); archiveState = 'ok';
   } catch { archiveState = 'error'; }
@@ -355,21 +365,25 @@ function home(all, opts) {
   const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
   let html = fresh ? briefCard(ed)
     : '<section class="brief"><div class="brief-h"><b>Overblik</b><span>kommer kl. 7, 15 og 22</span></div></section>';
-  const inBrief = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
-  let cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 6);
-  if (cands.length < 6) cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 18);
+  // the overview's stories are told already – also when another outlet's article has since become their card
+  const told = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
+  const inBrief = i => told.has(i.id) || (i.also || []).some(a => told.has(a.id));
+  let cands = all.filter(i => !inBrief(i) && hours(i) < 6);
+  if (cands.length < 6) cands = all.filter(i => !inBrief(i) && hours(i) < 18);
   const now = pick(cands, 6);
-  html += `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Alle nyheder<svg><use href="#i-chev"/></svg></button>')}
+  html += `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   html += `<section class="block">${archive(fresh && ed)}</section>`;
-  const src = Object.keys(data.sources || {}).length;
-  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${all.length} ud.</p>`;
+  const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
+  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
   return html;
 }
 function sectionPage(sec, all, opts) {
   const list = all.filter(i => inSection(i, sec));
   if (!list.length) return '<div class="empty">Ingen historier her endnu.</div>';
-  const top = pick(list.filter(i => hours(i) < 24), 5);
+  // the day's important stories; on a quiet day, the strongest three
+  const imp = list.filter(i => hours(i) < 24 && i.important);
+  const top = imp.length >= 2 ? pick(imp, 5) : pick(list.filter(i => hours(i) < 24), 3);
   const ids = new Set(top.map(i => i.id));
   const html = top.length ? `<section class="block">${blockHead('Vigtigst lige nu')}${top.map((i, n) => story(i, n, opts)).join('')}</section>` : '';
   return html + timeline(list.filter(i => !ids.has(i.id)), opts, top.length);
@@ -377,27 +391,37 @@ function sectionPage(sec, all, opts) {
 // everything as it comes in, all sections mixed, newest first
 function latestPage(all, opts) {
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = '<p class="explain top">Alt, Khabar har valgt ud, nyeste først – Danmark, Mellemøsten og Verden blandet.</p>';
-  html += timeline(recent, { ...opts, tag: true, clock: true });
+  let html = timeline(recent, { ...opts, tag: true, clock: true });
   if (recent.length < all.length) html += `<button class="wide soft" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
+// search ignores accents and Turkish letters (Erdogan finds Erdoğan); marks are set on the plain text, all at once
+const fold = s => String(s || '').toLowerCase().replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, '');
 function mark(text, terms) {
-  let out = esc(text);
-  for (const t of terms) if (t.length > 1) out = out.replace(new RegExp(esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`);
-  return out;
+  const f = fold(text), at = [];
+  if (f.length === text.length) {   // where folding changed the length, no marks rather than marks in the wrong place
+    for (const t of terms) {
+      for (let i = t.length > 1 ? f.indexOf(t) : -1; i >= 0; i = f.indexOf(t, i + t.length)) at.push([i, i + t.length]);
+    }
+  }
+  let out = '', p = 0;
+  for (const [a, b] of at.sort((x, y) => x[0] - y[0])) {
+    if (a < p) continue;
+    out += esc(text.slice(p, a)) + '<mark>' + esc(text.slice(a, b)) + '</mark>'; p = b;
+  }
+  return out + esc(text.slice(p));
 }
 function searchPage(all) {
-  const q = query.trim().toLowerCase();
+  const q = fold(query.trim());
   const total = searchIndex ? searchIndex.items.length : (data.scanned_24h || 0);
   if (!q) return `<div class="empty">Søg i alle ${num(total)} nyheder, Khabar har læst de seneste to døgn – også dem, der ikke kom på listerne.</div>`;
   const terms = q.split(/\s+/).filter(Boolean);
-  const hit = t => terms.every(w => t.includes(w));
-  const inApp = all.filter(i => hit(`${i.title} ${i.summary || ''} ${i.source} ${i.origTitle || ''}`.toLowerCase())).sort((a, b) => when(b) - when(a));
+  const hit = t => { const f = fold(t); return terms.every(w => f.includes(w)); };
+  const inApp = all.filter(i => hit(`${i.title} ${i.summary || ''} ${i.source} ${i.origTitle || ''}`)).sort((a, b) => when(b) - when(a));
   let html = inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '';
   if (searchIndex) {
     const onApp = new Set(data.items.map(i => i.id));
-    const others = searchIndex.items.filter(x => !onApp.has(x.i) && hit(`${x.t} ${x.s}`.toLowerCase()));
+    const others = searchIndex.items.filter(x => !onApp.has(x.i) && hit(`${x.t} ${x.s}`));
     if (others.length) html += `<div class="day"><span>Andre nyheder · ${others.length}</span></div>` + others.slice(0, 60).map(x =>
       `<a class="hit" href="${esc(x.u)}" target="_blank" rel="noopener"><b dir="auto">${mark(x.t, terms)}</b><span>${esc(x.s)} · ${ago(x.p)}</span></a>`).join('');
   } else {
@@ -412,13 +436,15 @@ function renderHeader() {
   $('dot').classList.toggle('stale', !!stale);
   $('status').classList.toggle('stale', !!stale);
   $('status').textContent = !data ? 'henter …' : stale ? 'ikke opdateret siden ' + clock(data.updated) : 'opdateret ' + clock(data.updated);
+  $('status').setAttribute('aria-label', $('status').textContent + ' – tryk for at opdatere');
 }
 function render(opts = {}) {
   renderHeader();
   $('list').dataset.sec = SECTIONS[tab] ? tab : '';   // a section's own page takes its colour
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
   const all = stories();
-  let html = isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
+  let html = offline ? `<p class="notice">Ingen forbindelse – viser nyhederne fra kl. ${clock(data.updated)}.</p>`
+    : isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
   html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'latest' ? latestPage(all, opts)
     : sectionPage(tab, all, opts);
   $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
@@ -430,17 +456,20 @@ function render(opts = {}) {
     $('freshPill').hidden = false;
   }
   // a dot on a tab with something the user has not seen yet: a new overview, or an important story
+  // (a tab's dot goes once the tab has been looked at)
+  const since = name => Math.max(lastSeen, seenTab[name] || 0);
   document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
-    tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > lastSeen));
+    tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > since('home')));
   for (const sec of Object.keys(SECTIONS)) {
-    document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i => i.important && isNew(i) && secOf(i) === sec));
+    document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i =>
+      i.important && isNew(i) && secOf(i) === sec && new Date(i.found).getTime() > since(sec)));
   }
   if (focusId) openFocus(all);
 }
 // a notification opens the app on its story: find it, open it, show it
 function openFocus(all) {
   // the story may since have joined another outlet's card: then open that card
-  const i = all.find(x => x.id === focusId) || all.find(x => (x.also || []).some(a => a.id === focusId));
+  const i = findStory(focusId);
   if (!i) return;
   focusId = null;
   expanded.add(i.id);
@@ -533,8 +562,8 @@ $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
   if (t.closest('[data-tp-toggle]')) { toggleTopic(t.closest('[data-tp]')); return; }
-  if (t.closest('[data-tp-share]')) { const s = topicStory(t), r = find(s.id); share(`*${s.headline}*\n${s.text}\n${s.link}`, r); return; }
-  if (t.closest('[data-tp-read]')) { const r = find(topicStory(t).id); if (r) learnFrom(r, 'read'); return; }
+  if (t.closest('[data-tp-share]')) { const s = topicStory(t), r = findStory(s.id); share(`*${s.headline}*\n${s.text}\n${s.link}`, r); return; }
+  if (t.closest('[data-tp-read]')) { const r = findStory(topicStory(t).id); if (r) learnFrom(r, 'read'); return; }
   if (t.closest('[data-ed-share]')) { const ed = edOf(t); share(t.closest('[data-ed-share]').dataset.edShare === 'lines' ? linesText(ed) : overviewText(ed)); return; }
   if (t.closest('[data-archive]')) { loadArchive(); return; }
   if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; edOpen.has(c) ? edOpen.delete(c) : edOpen.add(c); render(); return; }
@@ -567,6 +596,11 @@ addEventListener('touchmove', e => {
   ptr.style.setProperty('--k', Math.min(1, pull.d / 84).toFixed(3));
   ptr.classList.toggle('ready', pull.d >= 84);
 }, { passive: true });
+addEventListener('touchcancel', () => {   // an interrupted pull must not leave the list pulled down
+  if (!pull) return;
+  pull = null;
+  list.classList.remove('pulling'); list.style.transform = ''; ptr.style.opacity = 0; ptr.style.setProperty('--k', 0); ptr.classList.remove('ready');
+});
 addEventListener('touchend', async () => {
   if (!pull) return;
   const go = pull.d >= 84;
@@ -590,6 +624,7 @@ function setTab(next, opts = {}) {
     return;
   }
   scrollPos[tab] = scrollY;
+  seenTab[tab] = Date.now(); seenTab[next] = Date.now(); store.set('seenTab', seenTab);
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
   $('title').textContent = TITLES[tab] || SECTIONS[tab];
@@ -601,14 +636,16 @@ function setTab(next, opts = {}) {
   scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
 }
 // everything the radar read in the last two days, fetched only when someone searches
-async function loadIndex() {
-  if (searchIndex || searchState === 'loading') return;
+let searchLoaded = 0;
+async function loadIndex() {   // fetched again after a quarter of an hour: the app can stay open for days
+  if (searchState === 'loading' || (searchIndex && Date.now() - searchLoaded < 15 * 60e3)) return;
   searchState = 'loading';
   const url = CFG.searchUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'search.json');
   try {
-    const r = await fetch(bust(url), { cache: 'no-store' });
+    const r = await fetch(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(r.status);
     searchIndex = await r.json();
+    searchLoaded = Date.now();
     searchState = 'ok';
   } catch { searchState = 'error'; }
   if (tab === 'search') render();
@@ -630,9 +667,17 @@ if (vv) vv.addEventListener('resize', () => {
 });
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
 
+// what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story
+// must not mark everything as seen
+function backFromBreak() {
+  const away = store.get('hiddenAt', 0);
+  if (away && Date.now() - away > 10 * 60e3 && away > lastSeen) { lastSeen = away; store.set('lastSeen', lastSeen); }
+}
+backFromBreak();   // also when the phone closed the app in the background and it starts afresh
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) store.set('lastSeen', Date.now());
-  else { lastSeen = store.get('lastSeen', lastSeen); load(); }
+  if (document.hidden) { store.set('hiddenAt', Date.now()); seenTab[tab] = Date.now(); store.set('seenTab', seenTab); return; }
+  backFromBreak();
+  load();
 });
 setInterval(() => { if (!document.hidden) load(); }, 120000);
 setInterval(renderHeader, 30000);
@@ -640,9 +685,16 @@ setInterval(renderHeader, 30000);
 // ---------------------------------------------------------------- settings sheet: slides up, drag down to close
 function openSheet() {
   const by = {};
-  Object.entries((data && data.sources) || {}).forEach(([n, v]) => (by[v.group || 'west'] ||= []).push([v.label || n, v]));
+  // one line per outlet name; red only after three failed runs in a row (one hiccup is no broken source)
+  const named = {};
+  Object.entries((data && data.sources) || {}).forEach(([n, v]) => {
+    const label = v.label || n, bad = (v.failing_runs || 0) >= 3;
+    if (named[label]) { named[label][1].bad = named[label][1].bad && bad; return; }
+    named[label] = [label, { bad }];
+    (by[v.group || 'west'] ||= []).push(named[label]);
+  });
   $('sources').innerHTML = GROUP_ORDER.filter(g => by[g]).map(g => `<h4>${GROUPS[g]}</h4><ul>` + by[g].sort((a, b) => a[0].localeCompare(b[0], 'da'))
-    .map(([n, v]) => `<li class="${v.ok ? '' : 'bad'}">${esc(n)}</li>`).join('') + '</ul>').join('');
+    .map(([n, v]) => `<li class="${v.bad ? 'bad' : ''}">${esc(n)}</li>`).join('') + '</ul>').join('');
   $('sheet').hidden = false;
   $('sheetScroll').scrollTop = 0;
   void $('sheet').offsetHeight;
@@ -745,7 +797,7 @@ $('enablePush').addEventListener('click', async () => {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.vapidPublicKey) });
     showCode(sub); $('enablePush').hidden = true;
-    $('pushInfo').textContent = 'Næsten færdig – kopiér koden herunder, så telefonen kan kobles på.';
+    $('pushInfo').textContent = 'Næsten færdig – kopiér koden herunder og send den til den, der driver Khabar.';
   } catch (e) { toast('Det lykkedes ikke: ' + e.message, false); }
 });
 $('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });
