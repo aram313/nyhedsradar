@@ -97,6 +97,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Default look: **Dæmpet** (soft grey) in light mode and **Notion** in dark mode, listed first in the
+  settings; every phone starts there once (an earlier tone choice is reset once), then chooses freely.
 - **Overblik and Bevægelser are one edition** (07 and 22), kept compact: one line per topic – its name in bold,
   then the headline, and a small count of statements; tap for the summary, the source (Læs, Del) and 'Det siger
   de' – the Al Jazeera wire lines on it, translated by Claude. Topics with only statements share one line
@@ -145,6 +147,7 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 - The 'Kopieret' tab, swipe-to-copy, the red 'KOPIERET' stamp, the ink-drop pull-to-refresh, the splash
   animation, the relevance bar and the guessed 'learned' lines (word overlap with earlier copies).
+- The 'Blød' tone; the 'Sådan vælger Khabar' section in the settings; every mention of Claude in the app.
 - The separate Bevægelser tab (its content is now inside the overview) and the endless mixed list on the front
   page (now the Seneste tab).
 

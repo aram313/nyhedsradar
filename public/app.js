@@ -1,5 +1,5 @@
 // Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
-// by the radar every few minutes) and digest.json (Claude's overview at 7 and 22: the most important stories by
+// by the radar every few minutes) and digest.json (the editor's overview at 7 and 22: the most important stories by
 // topic, and under each topic what the actors say, translated from Al Jazeera's Arabic breaking wire).
 // Front page = that overview + what matters right now; a tab per section – Danmark, Mellemøsten, Verden – and
 // 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
@@ -237,7 +237,7 @@ function coverage(i) {
   return `<div class="cov"><div class="cov-h">Dækning · ${i.outlets} medier</div>${sum ? `<div class="cov-sum">${sum}</div>` : ''}${rows}</div>`;
 }
 
-// ---------------------------------------------------------------- Claude's overview
+// ---------------------------------------------------------------- the overview
 // One edition at 7 and one at 22: the most important stories grouped by topic, each with a short summary,
 // and under each topic what the actors say – every line of Al Jazeera's Arabic breaking wire since the
 // edition before, translated into Danish. Topics with articles come first; topics with only statements follow.
@@ -322,7 +322,7 @@ async function loadArchive() {
 }
 function archive(latest) {
   if (!moves) {
-    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'alle Claudes udgaver';
+    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'alle udgaver';
     return `<div class="arch"><button class="arch-row" data-archive><span><b>Tidligere overblik</b><small>${note}</small></span><svg><use href="#i-chev"/></svg></button></div>`;
   }
   const html = '<div class="arch-h">Tidligere overblik</div>';
@@ -350,7 +350,7 @@ function timeline(list, opts, n0 = 0) {
   });
   return html;
 }
-// the front page: Claude's overview, then what matters right now (all sections), then earlier overviews
+// the front page: the overview, then what matters right now (all sections), then earlier overviews
 function home(all, opts) {
   const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
   let html = fresh ? briefCard(ed)
@@ -637,18 +637,7 @@ setInterval(() => { if (!document.hidden) load(); }, 120000);
 setInterval(renderHeader, 30000);
 
 // ---------------------------------------------------------------- settings sheet: slides up, drag down to close
-function howText() {
-  const src = Object.keys((data && data.sources) || {}).length || 61, L = (data && data.learned) || {};
-  return `<p>Khabar læser <b>${src} kilder</b> hvert femte minut: danske, vestlige, arabiske og israelske medier og miljøets egne kanaler.${data && data.scanned_24h ? ` Det seneste døgn er ${num(data.scanned_24h)} nyheder vurderet.` : ''}</p>
-    <p><b>Forsiden</b> har Claudes <b>overblik</b> øverst. Kl. 7 og 22 vælger Claude de vigtigste nyheder, skriver et kort resumé af hver artikel og samler dem i emner – én linje pr. emne; tryk for resumé og kilder. Under hvert emne står, hvad aktørerne siger (<svg class="inline"><use href="#i-quote"/></svg> og antal) – alle linjer fra Al Jazeeras arabiske breaking-kanal siden sidst, oversat til dansk. Emner med kun udtalelser står under <b>Også</b>. <b>Del udtalelser</b> sender dem i samme form, som gruppen kender fra »Politiske nyheder«. Ældre udgaver ligger under <b>Tidligere overblik</b>.</p>
-    <p>Under overblikket viser <b>Vigtigst lige nu</b> det, radaren har fundet siden – og fanen <b>Seneste</b> viser alt, nyeste først.</p>
-    <p><b>Fed skrift</b> i overskrifterne viser, hvem og hvor det handler om – personer, partier, steder og organisationer. På de blandede lister viser en lille prik sektionen: <span class="c-dk">●</span> Danmark, <span class="c-me">●</span> Mellemøsten, <span class="c-world">●</span> Verden. Rødt betyder en stor historie, som mange medier dækker.</p>
-    <p><b>Rækkefølge.</b> Tre ting tæller: hvor meget historien ligner det, gruppen har delt (ca. 6.500 links), hvor mange medier der dækker den, og om den handler om kerneemnerne – politik, Palæstina, islam og muslimer, krig og magt. Dansk politik får et ekstra løft, fordi gruppens links mest handler om udlandet. Vejr, sport, kongehus og lokale ulykker trækkes ned.</p>
-    <p><b>Samme historie</b> fra flere medier samles på én linje. Åbn den og se, hvordan danske, vestlige, arabiske og israelske medier dækker den. <b>Ubekræftet</b> betyder, at den kun findes på Telegram eller YouTube indtil videre.</p>
-    <p><b>Khabar lærer af sig selv</b> – fra miljøets egne kilder (${num(L.community)}), store historier (${num(L.big)}) og det, du deler (${num(L.copied)}) og læser (${num(L.read)}). Claude tjekker kilderne hver morgen.</p>`;
-}
 function openSheet() {
-  $('how').innerHTML = howText();
   const by = {};
   Object.entries((data && data.sources) || {}).forEach(([n, v]) => (by[v.group || 'west'] ||= []).push([v.label || n, v]));
   $('sources').innerHTML = GROUP_ORDER.filter(g => by[g]).map(g => `<h4>${GROUPS[g]}</h4><ul>` + by[g].sort((a, b) => a[0].localeCompare(b[0], 'da'))
@@ -698,13 +687,16 @@ $('foreignSeg').addEventListener('click', e => {
 });
 paintSeg();
 
-// appearance: five light tones, four dark palettes, and automatic / light / dark
-let tone = store.get('tone', 'papir'), mode = store.get('mode', 'auto'), dark = store.get('dark', 'grafit');
+// appearance: four light tones (Dæmpet first), four dark palettes (Notion first), and automatic / light / dark
+const TONES = ['daempet', 'papir', 'klassisk', 'kolig'], DARKS = ['notion', 'grafit', 'material', 'apple'];
+let tone = store.get('tone', 'daempet'), mode = store.get('mode', 'auto'), dark = store.get('dark', 'notion');
+if (!TONES.includes(tone)) tone = 'daempet';   // e.g. 'blod', which no longer exists
+if (!DARKS.includes(dark)) dark = 'notion';
 function applyLook() {
   const d = document.documentElement;
-  tone === 'papir' ? delete d.dataset.tone : d.dataset.tone = tone;
+  tone === 'daempet' ? delete d.dataset.tone : d.dataset.tone = tone;
   mode === 'auto' ? delete d.dataset.theme : d.dataset.theme = mode;
-  dark === 'grafit' ? delete d.dataset.dark : d.dataset.dark = dark;
+  dark === 'notion' ? delete d.dataset.dark : d.dataset.dark = dark;
   document.querySelectorAll('#darkSeg [data-dark]').forEach(b => b.setAttribute('aria-checked', b.dataset.dark === dark));
   document.querySelectorAll('#toneSeg [data-tone]').forEach(b => b.setAttribute('aria-checked', b.dataset.tone === tone));
   document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
@@ -752,7 +744,7 @@ $('enablePush').addEventListener('click', async () => {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.vapidPublicKey) });
     showCode(sub); $('enablePush').hidden = true;
-    $('pushInfo').textContent = 'Næsten færdig – send koden herunder til Claude.';
+    $('pushInfo').textContent = 'Næsten færdig – kopiér koden herunder, så telefonen kan kobles på.';
   } catch (e) { toast('Det lykkedes ikke: ' + e.message, false); }
 });
 $('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });

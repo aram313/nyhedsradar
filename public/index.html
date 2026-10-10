@@ -8,8 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Khabar">
-<meta name="theme-color" content="#efe5d1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1e1d1b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eeeeeb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -20,12 +20,14 @@
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
     const q = new URLSearchParams(location.search), d = document.documentElement;
-    const tone = q.get('tone') || JSON.parse(localStorage.getItem('tone') || '"papir"');
+    // Dæmpet and Notion became the standard look (Oct 2026): everyone starts there once, then chooses freely
+    if (localStorage.getItem('look') !== '2') { localStorage.removeItem('tone'); localStorage.removeItem('dark'); localStorage.setItem('look', '2'); }
+    const tone = q.get('tone') || JSON.parse(localStorage.getItem('tone') || '"daempet"');
     const mode = q.get('theme') || JSON.parse(localStorage.getItem('mode') || '"auto"');
-    const dark = q.get('dark') || JSON.parse(localStorage.getItem('dark') || '"grafit"');
-    if (tone !== 'papir') d.dataset.tone = tone;
+    const dark = q.get('dark') || JSON.parse(localStorage.getItem('dark') || '"notion"');
+    if (tone !== 'daempet') d.dataset.tone = tone;
     if (mode !== 'auto') d.dataset.theme = mode;
-    if (dark !== 'grafit') d.dataset.dark = dark;
+    if (dark !== 'notion') d.dataset.dark = dark;
   } catch (e) {}
 </script>
 </head>
@@ -86,9 +88,9 @@
 
     <h3>Udseende</h3>
     <p class="tones-label">Lys</p>
-    <div class="tones" id="toneSeg" role="radiogroup" aria-label="Lys tone"><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="blod" style="--c-bg:#f7f7f5;--c-ac:#d9261c"><i></i>Blød</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-ac:#d62d30"><i></i>Kølig</button><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-ac:#b8403a"><i></i>Dæmpet</button></div>
+    <div class="tones four" id="toneSeg" role="radiogroup" aria-label="Lys tone"><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-ac:#b8403a"><i></i>Dæmpet</button><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-ac:#d62d30"><i></i>Kølig</button></div>
     <p class="tones-label">Mørk</p>
-    <div class="tones four" id="darkSeg" role="radiogroup" aria-label="Mørk palet"><button role="radio" data-dark="grafit" style="--c-bg:#1e1d1b;--c-ac:#ff5a4e"><i></i>Grafit</button><button role="radio" data-dark="material" style="--c-bg:#121212;--c-ac:#ff453a"><i></i>Material</button><button role="radio" data-dark="apple" style="--c-bg:#1c1c1e;--c-ac:#ff453a"><i></i>Apple</button><button role="radio" data-dark="notion" style="--c-bg:#191919;--c-ac:#eb5757"><i></i>Notion</button></div>
+    <div class="tones four" id="darkSeg" role="radiogroup" aria-label="Mørk palet"><button role="radio" data-dark="notion" style="--c-bg:#191919;--c-ac:#eb5757"><i></i>Notion</button><button role="radio" data-dark="grafit" style="--c-bg:#1e1d1b;--c-ac:#ff5a4e"><i></i>Grafit</button><button role="radio" data-dark="material" style="--c-bg:#121212;--c-ac:#ff453a"><i></i>Material</button><button role="radio" data-dark="apple" style="--c-bg:#1c1c1e;--c-ac:#ff453a"><i></i>Apple</button></div>
     <div class="seg" id="modeSeg" role="radiogroup" aria-label="Lys eller mørk">
       <button role="radio" data-v="auto">Automatisk</button>
       <button role="radio" data-v="light">Lys</button>
@@ -111,13 +113,10 @@
     <p class="hint" id="pushInfo"></p>
     <button class="wide" id="enablePush" hidden>Slå notifikationer til</button>
     <div id="pushCode" hidden>
-      <p class="hint">Kopiér koden og send den til Claude, så kobler Claude din telefon på.</p>
+      <p class="hint">Kopiér koden – med den bliver din telefon koblet på notifikationerne.</p>
       <textarea id="pushCodeText" readonly rows="3"></textarea>
       <button class="wide" id="copyPushCode">Kopiér kode</button>
     </div>
-
-    <h3>Sådan vælger Khabar</h3>
-    <div class="how" id="how"></div>
 
     <h3>Kilder</h3>
     <div class="sources" id="sources"></div>

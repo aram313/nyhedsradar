@@ -2,8 +2,9 @@
    two-line rows that open in place; sharing is one action among several, not the centre of the app.
    Motion is quiet and short and only shows what happened. Apple HIG: 44pt targets, 17pt inputs, safe areas,
    Reduce Motion respected. */
-/* Light tones (data-tone, default "Papir" = warm paper with grain) and proven dark palettes (data-dark,
-   default "Grafit"; also Material, Apple and Notion). data-theme forces light/dark, else the phone decides. */
+/* Light tones (data-tone, default "Dæmpet" = soft grey; also Papir with a paper grain, Klassisk and Kølig) and
+   proven dark palettes (data-dark, default "Notion"; also Grafit, Material and Apple). data-theme forces light/dark,
+   else the phone decides. */
 :root {
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --logo: "Lalezar", var(--sans);
@@ -14,21 +15,20 @@
   --dock: 56px;
   --kb: 0px;
 }
-:root { color-scheme: light; --bg: #efe5d1; --text: #141210; --text-2: #4f473b; --text-3: #877d6c; --line: #ddd1b8; --fill: #e6dbc3; --fill-2: #dacdb1; --pulse: #d4110a; --pulse-soft: rgba(212, 17, 10, 0.1); --bar: rgba(239, 229, 209, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 .13'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+:root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #8b8b88; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
+:root[data-tone="papir"] { color-scheme: light; --bg: #efe5d1; --text: #141210; --text-2: #4f473b; --text-3: #877d6c; --line: #ddd1b8; --fill: #e6dbc3; --fill-2: #dacdb1; --pulse: #d4110a; --pulse-soft: rgba(212, 17, 10, 0.1); --bar: rgba(239, 229, 209, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 .13'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
 :root[data-tone="klassisk"] { color-scheme: light; --bg: #ffffff; --text: #000000; --text-2: #333333; --text-3: #777777; --line: #e5e5e5; --fill: #f2f2f2; --fill-2: #e6e6e6; --pulse: #e10600; --pulse-soft: rgba(225, 6, 0, 0.1); --bar: rgba(255, 255, 255, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
-:root[data-tone="blod"] { color-scheme: light; --bg: #f7f7f5; --text: #161616; --text-2: #444444; --text-3: #858585; --line: #e6e6e3; --fill: #ececea; --fill-2: #e1e1de; --pulse: #d9261c; --pulse-soft: rgba(217, 38, 28, 0.1); --bar: rgba(247, 247, 245, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
 :root[data-tone="kolig"] { color-scheme: light; --bg: #f4f6f8; --text: #12161b; --text-2: #434b55; --text-3: #848d98; --line: #e1e6eb; --fill: #e9edf1; --fill-2: #dde3e9; --pulse: #d62d30; --pulse-soft: rgba(214, 45, 48, 0.1); --bar: rgba(244, 246, 248, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
-:root[data-tone="daempet"] { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #8b8b88; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #88837b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
+  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #7a7a78; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
   :root[data-dark="material"]:not([data-theme="light"]) { color-scheme: dark; --bg: #121212; --text: #ececec; --text-2: #a6a6a6; --text-3: #737373; --line: #262626; --fill: #1e1e1e; --fill-2: #2a2a2a; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(18, 18, 18, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
   :root[data-dark="apple"]:not([data-theme="light"]) { color-scheme: dark; --bg: #1c1c1e; --text: #ffffff; --text-2: #aeaeb2; --text-3: #8e8e93; --line: #38383a; --fill: #2c2c2e; --fill-2: #3a3a3c; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(28, 28, 30, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
-  :root[data-dark="notion"]:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #7a7a78; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
+  :root[data-dark="grafit"]:not([data-theme="light"]) { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #88837b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 }
-:root[data-theme="dark"] { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #88837b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #7a7a78; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 :root[data-dark="material"][data-theme="dark"] { color-scheme: dark; --bg: #121212; --text: #ececec; --text-2: #a6a6a6; --text-3: #737373; --line: #262626; --fill: #1e1e1e; --fill-2: #2a2a2a; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(18, 18, 18, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 :root[data-dark="apple"][data-theme="dark"] { color-scheme: dark; --bg: #1c1c1e; --text: #ffffff; --text-2: #aeaeb2; --text-3: #8e8e93; --line: #38383a; --fill: #2c2c2e; --fill-2: #3a3a3c; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(28, 28, 30, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
-:root[data-dark="notion"][data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #7a7a78; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
+:root[data-dark="grafit"][data-theme="dark"] { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #88837b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 /* colour is used sparingly: a small dot tells the section on mixed lists; red is only for big news and 'live' */
 :root { --dk: #3b6fc4; --me: #2f855a; --world: #8058b8; --warn: #9a5800; --sec: var(--text-3); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dk: #7aa7ff; --me: #4cc38a; --world: #b794f6; --warn: #f0b45a; } }
@@ -36,10 +36,6 @@
 [data-sec="dk"] { --sec: var(--dk); }
 [data-sec="me"] { --sec: var(--me); }
 [data-sec="world"] { --sec: var(--world); }
-.c-dk { color: var(--dk); }
-.c-me { color: var(--me); }
-.c-world { color: var(--world); }
-svg.inline { width: 14px; height: 14px; vertical-align: -2px; }
 
 /* ------------------------------------------------------------ base */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -279,8 +275,6 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
 .sheet h3 { margin: 24px 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
 .hint { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--text-2); }
 .hint b { color: var(--text); font-weight: 640; }
-.how p { margin: 0 0 9px; font-size: 14px; line-height: 1.52; color: var(--text-2); }
-.how b { color: var(--text); font-weight: 650; }
 .wide { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 50px; border-radius: 14px; background: var(--fill);
   font-size: 16px; font-weight: 650; margin: 4px 0 8px; transition: transform .12s; }
 .wide:active { transform: scale(.98); background: var(--fill-2); }
