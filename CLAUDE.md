@@ -42,6 +42,19 @@ Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-g
 <!-- How the pieces fit together. Where the entry point is. What depends on what.
      Update this when the shape of the project changes. -->
 
+## Scheduling and Claude routines
+
+- GitHub's own `*/5` schedule is unreliable (it ran once in a whole night). The real clock is an external
+  scheduler (Upstash QStash or cron-job.org, set up by the owner) calling the workflow_dispatch API with a
+  fine-grained token limited to Actions on this repo. GitHub's schedule stays as a fallback.
+- Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
+  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,15,16 UTC, works only at 07/17 Danish time,
+    writes `digest.json` to the orphan `digest` branch.
+  - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
+    appends a line to docs/radar-status.md.
+- Phones: `PUSH_SUBS` secret = JSON list of Web Push subscriptions from the app's 'NYHEDSRADAR-PUSH:' code.
+  Test with `gh workflow run push-test.yml`.
+
 ## Project-specific conventions
 
 - The owner wants it **fully automatic**: no feedback buttons. Adaptation comes from community

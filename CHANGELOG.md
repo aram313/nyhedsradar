@@ -17,6 +17,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Same-story grouping, big-story detection and one-notification-per-story pushes.
 - Automatic self-learning from community sources, big stories and copy taps.
 - iPhone home-screen app with copy button, tabs, search and notification sign-up.
+- 11 more Danish sources; liveblog/sport/celebrity filter; at most 4 'Vigtigste' cards per source a day.
+- Trust labels: 'Bekræftet af N medier' / 'Ubekræftet · kun Telegram/YouTube'.
+- Optional Danish mode (offline English-to-Danish translation, WhatsApp-ready copy with bold headline).
+- Arabic/Turkish setting: translate, hide or show original.
+- Claude editor routine writes 'Dagens overblik' at 07 and 17 to the `digest` branch; the app shows it and notifies.
+- Claude caretaker routine checks the radar daily, repairs or disables broken sources, logs to docs/radar-status.md.
+- Stale-data warning in the app; per-source failure counts; manual push-test workflow.
 
 ---
 
