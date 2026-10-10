@@ -79,7 +79,7 @@ def test_notifies_once_per_story_and_learns(tmp_path, monkeypatch):
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)
     sent = []
-    monkeypatch.setattr(run.push, 'send', lambda p: sent.append(p) or {'sent': 1})
+    monkeypatch.setattr(run.push, 'send', lambda p, subs=None: sent.append(p) or {'sent': 1})
     monkeypatch.setattr(run.feedback, 'pull', lambda since: ([], since))
     batches = {'items': []}
     monkeypatch.setattr(run, 'fetch_all', lambda f: (batches['items'], {}))
@@ -94,7 +94,7 @@ def test_notifies_once_per_story_and_learns(tmp_path, monkeypatch):
             for i, s in enumerate(['TV 2', 'BT', 'Politiken', 'Berlingske', 'Information'])]
     batches['items'] = filler + gaza
     run.main()
-    assert len(sent) == 1 and 'Stor historie' in sent[0]['title'], sent
+    assert len(sent) == 1 and 'Topnyhed' in sent[0]['title'], sent
 
     batches['items'] = filler + gaza + [make_item(50, 'Israel bomber Gaza flygtningelejr angreb version50', 'Community')]
     run.main()

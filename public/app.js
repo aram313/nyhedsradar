@@ -200,7 +200,7 @@ function thumb(source, file) {
 }
 function meta(i, opts = {}) {
   const m = [];
-  if (i.big) m.push('<span class="big">Stor historie</span>');
+  if (i.big) m.push('<span class="big">Topnyhed</span>');
   if (opts.tag) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);   // mixed lists say where it belongs
   m.push(`<span class="src">${esc(i.source)}</span>`, `<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`);
   if (i.outlets >= 3 && !opts.tag) m.push(`<span>${i.outlets} medier</span>`);
@@ -741,9 +741,19 @@ $('installApp').addEventListener('click', async () => {
   try { await installEvent.userChoice; } catch { /* closed */ }
   installEvent = null; refreshPushInfo();
 });
+// a phone signs up by itself: its push address goes to Khabar through the private relay (the radar picks it up
+// within minutes); it is sent again once a week, so a lost one comes back on its own
+async function tellKhabar(sub, kind = 'sub') {
+  if (!CFG.feedbackTopic) return false;
+  try {
+    const r = await fetch('https://ntfy.sh/' + CFG.feedbackTopic, { method: 'POST', body: JSON.stringify({ kind, sub: sub.toJSON() }) });
+    if (r.ok && kind === 'sub') store.set('phoneSent', Date.now());
+    return r.ok;
+  } catch { return false; }
+}
 async function refreshPushInfo() {
-  const info = $('pushInfo'), btn = $('enablePush'), android = !standalone && /Android/.test(navigator.userAgent);
-  btn.hidden = true;
+  const info = $('pushInfo'), btn = $('enablePush'), off = $('disablePush'), android = !standalone && /Android/.test(navigator.userAgent);
+  btn.hidden = true; off.hidden = true;
   $('installHint').hidden = !android; $('installApp').hidden = !(android && installEvent);
   if (!standalone && /iPhone|iPad/.test(navigator.userAgent)) {
     info.innerHTML = 'Læg først Khabar på hjemmeskærmen: <b>Del</b> → <b>Føj til hjemmeskærm</b> i Safari, og åbn den derfra.';
@@ -754,16 +764,12 @@ async function refreshPushInfo() {
   if (!reg) { info.textContent = 'Notifikationer kan kun slås til i appen på hjemmeskærmen.'; return; }
   const sub = await reg.pushManager.getSubscription();
   if (sub && Notification.permission === 'granted') {
-    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og dagens resumé kl. 21. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
-    showCode(sub);
+    info.textContent = 'Slået til: topnyheder, de allervigtigste nyheder og dagens resumé kl. 21. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
+    off.hidden = false;
   } else {
-    info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og dagens resumé.';
+    info.textContent = 'Få besked ved topnyheder, de allervigtigste nyheder og dagens resumé.';
     btn.hidden = false;
   }
-}
-function showCode(sub) {
-  $('pushCode').hidden = false;
-  $('pushCodeText').value = 'NYHEDSRADAR-PUSH:' + btoa(JSON.stringify(sub));
 }
 $('enablePush').addEventListener('click', async () => {
   try {
@@ -771,11 +777,21 @@ $('enablePush').addEventListener('click', async () => {
     if (perm !== 'granted') { toast('Notifikationer blev ikke tilladt', false); return; }
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.vapidPublicKey) });
-    showCode(sub); $('enablePush').hidden = true;
-    $('pushInfo').textContent = 'Næsten færdig – kopiér koden herunder og send den til den, der driver Khabar.';
+    if (await tellKhabar(sub)) { toast('Notifikationer er slået til'); refreshPushInfo(); }
+    else toast('Ingen forbindelse – prøv igen om lidt', false);
   } catch (e) { toast('Det lykkedes ikke: ' + e.message, false); }
 });
-$('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });
+$('disablePush').addEventListener('click', async () => {
+  const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+  if (sub) { await tellKhabar(sub, 'unsub'); await sub.unsubscribe(); }
+  toast('Notifikationer er slået fra'); refreshPushInfo();
+});
+(async () => {   // already signed up: remind Khabar once a week
+  if (!('serviceWorker' in navigator) || Date.now() - store.get('phoneSent', 0) < 7 * 864e5) return;
+  const reg = await Promise.race([navigator.serviceWorker.ready, wait(4000)]);
+  const sub = reg && await reg.pushManager.getSubscription();
+  if (sub && Notification.permission === 'granted') tellKhabar(sub);
+})();
 
 // an app, not a web page: no pinch zoom (iPhone ignores the viewport setting for pinching; CSS stops double-tap zoom)
 ['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));

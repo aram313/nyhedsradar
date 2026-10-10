@@ -97,6 +97,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Notifications switch on with one tap: the app sends the phone's push address to the radar through the
+  relay, the radar keeps the list encrypted (state/phones.bin, PROFILE_KEY), caps new phones at 30 a day and
+  drops phones that switch off or disappear. No more NYHEDSRADAR-PUSH codes to copy and forward.
+- 'Stor historie' is now 'Topnyhed' in the app and in notifications.
 - One recap a day instead of an overview that grew three times a day: at 21:00 the editor writes 'Resumé'
   (up to 25 short 'Who: what' lines covering the day since 21:00 the evening before), it replaces the previous
   one under 'Vigtigst i dag' (now 8 stories) and the phones are told right away. Owner's request: news on the

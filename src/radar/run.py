@@ -228,6 +228,7 @@ def main():
     relay = load(STATE / 'relay.json', {'since': None})
     health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
+    phones = push.load_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''))   # signed up in the app
     emb_store = {}
     if (STATE / 'emb.npz').exists():
         z = np.load(STATE / 'emb.npz', allow_pickle=False)
@@ -285,6 +286,11 @@ def main():
             learned_ids.add(it['id'])
             taught[it['source']] = taught.get(it['source'], 0) + 1
     taps, relay['since'] = feedback.pull(relay['since'])
+    # phones sign up by themselves through the same relay (push.py keeps them, encrypted)
+    signups = [x for x in taps if x['kind'] in ('sub', 'unsub')]
+    taps = [x for x in taps if x['kind'] not in ('sub', 'unsub')]
+    added = sum(1 for p in phones if p.get('at') and ts(p['at']) >= NOW - timedelta(hours=24))
+    phones = push.sign_up(phones, signups, NOW.isoformat(), added)
     # the relay topic is readable in the public app, so anyone could post to it: learn only from stories the
     # radar itself has, with the radar's own text, and at most a few dozen signals a day
     today = sum(1 for l in learned if l['why'] in ('copied', 'read') and ts(l['at']) >= NOW - timedelta(hours=24))
@@ -584,6 +590,7 @@ def main():
             continue
         pending.append({'id': it['id'], 'why': why, 'at': NOW.isoformat()})
 
+    gone = set()
     sent_today = [x for x in pushes['sent'] if ts(x) >= NOW - timedelta(hours=24)]
     last = max((ts(x) for x in pushes['sent']), default=None)
     gap_ok = last is None or NOW - last >= timedelta(minutes=s['notify_min_gap_minutes'])
@@ -593,14 +600,16 @@ def main():
         headline = lead.get('title_tr') or lead['title']
         if len(batch) == 1:
             where = ' i Danmark' if lead.get('sec') == 'dk' else ''
-            title = (f"Stor historie{where} · {lead['outlets']} medier" if lead['big']
+            title = (f"Topnyhed{where} · {lead['outlets']} medier" if lead['big']
                      else label_of.get(lead['source'], lead['source']))
             body = headline
         else:
             title = f'{len(batch)} vigtige nyheder'
             body = f"{headline}  (+{len(batch) - 1} mere)"
-        result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}", 'tag': lead['id']})
+        result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}", 'tag': lead['id']},
+                           push.everyone(phones))
         print('push:', result)
+        gone.update(result.get('gone') or [])
         if result.get('sent'):
             pushes['sent'].append(NOW.isoformat())
             notified += [{'id': p['id'], 'at': NOW.isoformat()} for p in batch]
@@ -614,10 +623,12 @@ def main():
             'title': f"Khabar · overblik {digest.get('period', '')}".strip(),
             'body': digest.get('intro') or (digest.get('items') or [{}])[0].get('headline', '')}
         if note:   # an update that added nothing is no news
-            result = push.send({**note, 'url': './?digest=1', 'tag': 'digest'})
+            result = push.send({**note, 'url': './?digest=1', 'tag': 'digest'}, push.everyone(phones))
             print('digest push:', result)
+            gone.update(result.get('gone') or [])
         pushes['digest_sent'] = digest['created']
 
+    phones = [p for p in phones if p['endpoint'] not in gone]   # app deleted or notifications off: drop the phone
     pushes.update(pending=pending, notified=notified,
                   sent=[x for x in pushes['sent'] if ts(x) >= NOW - timedelta(days=2)])
 
@@ -659,6 +670,7 @@ def main():
     save(STATE / 'learned.json', learned)
     save(STATE / 'pushes.json', pushes)
     save(STATE / 'relay.json', relay)
+    push.save_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''), phones)
     save(STATE / 'health.json', health)
     keep = list(emb_store)
     np.savez_compressed(STATE / 'emb.npz', ids=np.array(keep, dtype='U32'),

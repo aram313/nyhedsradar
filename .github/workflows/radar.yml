@@ -80,6 +80,7 @@ jobs:
           PYTHONPATH: src
           RADAR_STATE: state
           RADAR_DIGEST: .cache/digest.json
+          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}   # encrypts the list of signed-up phones (state/phones.bin)
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
           VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
           VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io

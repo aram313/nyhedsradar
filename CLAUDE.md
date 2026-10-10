@@ -75,7 +75,8 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
     line format copies the 'Politiske nyheder' briefings members post in the group.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
-- Phones: `PUSH_SUBS` secret = JSON list of Web Push subscriptions from the app's 'NYHEDSRADAR-PUSH:' code.
+- Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
+  `state/phones.bin` (Fernet, key from PROFILE_KEY). The old `PUSH_SUBS` secret is still merged in.
   Test with `gh workflow run push-test.yml`.
 
 ## Project-specific conventions

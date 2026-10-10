@@ -10,7 +10,7 @@ Headlines set the names of people, parties and places in bold. The front page op
 the day's most important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire,
 grouped by topic; each recap replaces the one before, and earlier days stay in an archive below it. The fifth tab, **Seneste**, shows everything as it comes in. Every story has a small picture; opening it shows a short summary, how Danish, Western,
 Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is
-one tap away) or copy. Big stories and the most relevant news also trigger a notification.
+one tap away) or copy. Top stories and the most relevant news also trigger a notification; a phone signs up with one tap (no code to send).
 
 ## Status
 

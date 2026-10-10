@@ -1,11 +1,89 @@
-"""Send Web Push notifications to the phones that signed up in the app."""
+"""Send Web Push notifications to the phones that signed up in the app.
+
+A phone signs up by itself: the app posts its push address to the private relay topic, the radar picks it up on
+its next run (feedback.pull) and keeps it in state/phones.bin, encrypted with PROFILE_KEY because the data branch
+is public. Addresses from the older PUSH_SUBS secret are still used too. An address the push service reports as
+gone (404/410) is dropped."""
+import base64
+import hashlib
 import json
 import os
 import tempfile
+from urllib.parse import urlparse
+
+# the push services of Chrome/Android, Firefox, Safari/iPhone and Edge; any other address is no phone of ours
+HOSTS = ('fcm.googleapis.com', 'push.services.mozilla.com', 'push.apple.com', 'notify.windows.com')
+MAX_PHONES = 300
+NEW_PER_DAY = 30
 
 
-def send(payload):
-    subs = json.loads(os.environ.get('PUSH_SUBS') or '[]')
+def valid(sub):
+    """A subscription as the browser makes it: an https endpoint at a known push service and its two keys."""
+    if not isinstance(sub, dict):
+        return False
+    url, keys = sub.get('endpoint'), sub.get('keys') or {}
+    if not isinstance(url, str) or len(url) > 1000 or not isinstance(keys, dict):
+        return False
+    u = urlparse(url)
+    host = (u.hostname or '').lower()
+    return (u.scheme == 'https' and any(host == h or host.endswith('.' + h) for h in HOSTS)
+            and all(isinstance(keys.get(k), str) and 0 < len(keys[k]) < 200 for k in ('p256dh', 'auth')))
+
+
+def _fernet(secret):
+    from cryptography.fernet import Fernet
+    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(b'khabar-phones|' + secret.encode()).digest()))
+
+
+def load_phones(path, secret):
+    """The phones that signed up by themselves; nothing (and no error) without the key or the file."""
+    if not secret or not os.path.exists(path):
+        return []
+    try:
+        with open(path, 'rb') as f:
+            return json.loads(_fernet(secret).decrypt(f.read()).decode('utf-8'))
+    except Exception as e:  # noqa: BLE001 – a broken file must not stop the radar
+        print('phones: could not read the list:', e)
+        return []
+
+
+def save_phones(path, secret, phones):
+    if not secret:
+        return
+    with open(path, 'wb') as f:
+        f.write(_fernet(secret).encrypt(json.dumps(phones, separators=(',', ':')).encode('utf-8')))
+
+
+def sign_up(phones, signals, now, today):
+    """Adds new phones and removes the ones that switched off; at most NEW_PER_DAY new a day and MAX_PHONES in all,
+    so nobody can flood the list through the public relay. `today` = phones added in the last 24 hours."""
+    have = {p['endpoint'] for p in phones}
+    for s in signals:
+        sub = s.get('sub')
+        if not valid(sub):
+            continue
+        if s['kind'] == 'unsub':
+            phones = [p for p in phones if p['endpoint'] != sub['endpoint']]
+            have.discard(sub['endpoint'])
+        elif sub['endpoint'] not in have and today < NEW_PER_DAY and len(phones) < MAX_PHONES:
+            phones.append({'endpoint': sub['endpoint'], 'keys': {k: sub['keys'][k] for k in ('p256dh', 'auth')}, 'at': now})
+            have.add(sub['endpoint'])
+            today += 1
+    return phones
+
+
+def everyone(phones):
+    """The signed-up phones plus the ones from the PUSH_SUBS secret, each once."""
+    out, seen = [], set()
+    for sub in json.loads(os.environ.get('PUSH_SUBS') or '[]') + phones:
+        if isinstance(sub, dict) and sub.get('endpoint') and sub['endpoint'] not in seen:
+            seen.add(sub['endpoint'])
+            out.append({'endpoint': sub['endpoint'], 'keys': sub.get('keys', {})})
+    return out
+
+
+def send(payload, subs=None):
+    subs = everyone([]) if subs is None else subs
     key = os.environ.get('VAPID_PRIVATE', '').strip()
     if not subs or not key:
         return {'sent': 0, 'skipped': 'no subscribers or no key'}
@@ -14,7 +92,7 @@ def send(payload):
     with tempfile.NamedTemporaryFile('w', suffix='.pem', delete=False) as f:
         f.write(key)
         key_path = f.name
-    sent, failed = 0, []
+    sent, failed, gone = 0, [], []
     try:
         for sub in subs:
             try:
@@ -25,7 +103,9 @@ def send(payload):
                 sent += 1
             except WebPushException as e:
                 code = getattr(e.response, 'status_code', None)
+                if code in (404, 410):
+                    gone.append(sub['endpoint'])
                 failed.append('expired' if code in (404, 410) else str(code or e)[:80])
     finally:
         os.unlink(key_path)
-    return {'sent': sent, 'failed': failed}
+    return {'sent': sent, 'failed': failed, 'gone': gone}
