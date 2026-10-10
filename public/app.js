@@ -94,7 +94,8 @@ async function load(manual) {
       const r = await fetch(bust(CFG.digestUrl), { cache: 'no-store' });
       if (r.ok) {
         const d = await r.json();
-        changed = changed || !digest || d.created !== digest.created;
+        const stamp = x => x && `${x.created}|${x.moves ? x.moves.created : ''}`;   // the overview or the briefing changed
+        changed = changed || stamp(d) !== stamp(digest);
         digest = d; store.set('lastDigest', digest);
       }
     } catch { /* keep the last overview */ }
