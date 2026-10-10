@@ -62,10 +62,9 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
 - GitHub's own `*/5` schedule is unreliable (it ran once in a whole night). The real clock is an external
   scheduler (Upstash QStash or cron-job.org, set up by the owner) calling the workflow_dispatch API with a
   fine-grained token limited to Actions on this repo. GitHub's schedule stays as a fallback.
-- **Temporary clock (2026-10-10):** Windows Task Scheduler task `Nabd vaekkeur` runs `scripts/pc-clock.vbs` every
-  5 minutes while the PC is on (uses the PC's own `gh` login; logs to `.cache/pc-clock.log`). Remove it with
-  `Unregister-ScheduledTask -TaskName 'Nabd vaekkeur' -Confirm:$false` once `scripts/setup-clock.ps1` (QStash) has
-  been run by the owner. Note: `gh` logins made from Claude's sandboxed Bash are not visible to Windows tasks.
+- **The clock (since 2026-10-11):** Upstash QStash schedule `nabd-radar` (owner's account, eu-central-1) calls the
+  workflow_dispatch API every 5 minutes with a fine-grained GitHub token (Actions read/write on this repo only, made
+  by the owner; it expires – renew it and rerun `scripts/setup-clock.ps1`). The PC task 'Nabd vaekkeur' is removed.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
   - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 19,20 UTC, works only at 21 Danish time (owner's choice 2026-10-10). It runs
     `scripts/editor.py input`, writes the recap of the day (at most 25 short 'Who: what' lines from the stories
