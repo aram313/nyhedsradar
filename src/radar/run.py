@@ -316,8 +316,8 @@ def main():
             for kind in ('dk', 'west', 'mena', 'il', 'channel'):
                 if by_kind.get(kind) and len(others) < 10:
                     others.append(by_kind[kind].pop(0))
-        lead['also'] = [{'source': m['source'], 'title': m['title'], 'link': m['link'], 'lang': m.get('lang'),
-                         'group': group_of.get(m['source'], 'west')} for m in others]
+        lead['also'] = [{'id': m['id'], 'source': m['source'], 'title': m['title'], 'link': m['link'], 'lang': m.get('lang'),
+                         'group': group_of.get(m['source'], 'west'), 'title_tr': m.get('title_tr')} for m in others]
         lead['cluster_pct'] = max(m['pct'] for m in members)
         lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
         return [lead] + [m for m in members if m is not lead]
@@ -452,6 +452,21 @@ def main():
     for it in shown:  # also tidies translations stored by earlier versions
         if it.get('title_tr'):
             it['title_tr'], it['summary_tr'] = tidy(it['title_tr']), tidy(it.get('summary_tr') or '')
+
+    # the other outlets' Arabic and Turkish headlines on shown stories, so the coverage view can show how
+    # Arab media tell a story (headlines only; translated once and kept)
+    members_of = {st[0]['id']: st[1:] for st in stories}
+    foreign_others = [m for it in shown for m in members_of.get(it['id'], [])
+                      if m.get('lang') not in READABLE and 'title_tr' not in m]
+    for lang in {m['lang'] for m in foreign_others}:
+        todo = [m for m in foreign_others if m['lang'] == lang]
+        for m, t in zip(todo, translator([m['title'] for m in todo], lang)):
+            if t:
+                m['title_tr'] = tidy(t)
+    for it in shown:
+        for a in it.get('also', []):
+            if items.get(a.get('id'), {}).get('title_tr'):
+                a['title_tr'] = items[a['id']]['title_tr']
 
     # 7. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}

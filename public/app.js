@@ -191,8 +191,9 @@ function coverage(i) {
   const by = {};
   also.forEach(a => (by[a.group || 'west'] ||= []).push(a));
   const rows = GROUP_ORDER.filter(g => by[g]).map(g => `<div class="cov-g">${GROUPS[g]}</div>` + by[g].map(a => {
-    const title = foreignMode === 'original' || readable(a.title) ? `<span dir="auto">${esc(a.title)}</span>`
-      : `<i>overskrift på ${LANG[a.lang] || 'arabisk'}</i>`;
+    const own = foreignMode === 'original' || readable(a.title);
+    const title = own ? `<span dir="auto">${esc(tidy(a.title))}</span>`
+      : a.title_tr ? `<span>${esc(tidy(a.title_tr))}</span> <i>oversat</i>` : `<i>overskrift på ${LANG[a.lang] || 'arabisk'}</i>`;
     return `<a href="${esc(a.link)}" target="_blank" rel="noopener"><b>${esc(a.source)}</b>${title}</a>`;
   }).join('')).join('');
   const sum = coverSummary(i.cover);

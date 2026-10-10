@@ -59,7 +59,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - A political story carried by most Danish outlets counts as a big story ("Stor historie i Danmark").
 - The same story told by a Danish and an English outlet now becomes one card (second look at the cards).
 - Coverage view: an opened story shows how Danish, Western, Arab/Muslim and Israeli media and the channels
-  each tell it, one article per outlet, with counts per kind of media.
+  each tell it, one article per outlet, with counts per kind of media; Arabic and Turkish headlines there are
+  machine-translated.
 - Front page: 'Netop nu' (big and very fresh important stories), Claude's overview, and the best 4 stories of
   each section (at most one per source, unconfirmed channel posts last).
 - Section pages: 'Vigtigst lige nu' then everything else by day.
