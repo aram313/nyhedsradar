@@ -85,12 +85,12 @@ class Translator:
         if pair not in MODELS or not texts:
             return [None] * len(texts)
         try:
-            tr, sp = self._load(pair)
+            tr, splitter = self._load(pair)
             # separators and emoji are unknown to the model and come back as '⁇'
             prep = [re.sub(r'\s+', ' ', re.sub(r'[|•⭕🔴⚡️🆘📌‼️⁉️]+', ' ', t[:600])).strip(' :-–') for t in texts]
-            toks = [sp.encode(t, out_type=str) for t in prep]
+            toks = [splitter.encode(t) for t in prep]
             res = tr.translate_batch(toks, beam_size=2, max_decoding_length=200)
-            return [tidy(sp.decode(r.hypotheses[0])) if t else '' for r, t in zip(res, prep)]
+            return [tidy(splitter.decode(r.hypotheses[0])) if t else '' for r, t in zip(res, prep)]
         except Exception as e:  # translation is a bonus; the radar must keep running
             print(f'translate {lang}->{to}: failed: {type(e).__name__}: {e}')
             return [None] * len(texts)
