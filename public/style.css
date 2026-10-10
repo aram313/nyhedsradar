@@ -120,6 +120,16 @@ main { min-height: 70vh; }
   overflow: hidden; background: var(--fill-2); }
 .th b { font-size: 13.5px; font-weight: 750; letter-spacing: .02em; color: var(--text-3); }
 .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* with a picture: it fills the right of the row and fades into the page, no box; without one, no box either */
+.story .th { display: none; }
+.story.pic .th { display: block; position: absolute; top: 1px; right: 0; bottom: 0; width: 46%; height: auto; margin: 0; border-radius: 0;
+  background: none; pointer-events: none; }
+.story.pic .th b { display: none; }
+.story.pic .th img { -webkit-mask-image: linear-gradient(to right, transparent, rgba(0, 0, 0, .25) 30%, rgba(0, 0, 0, .9) 72%, #000);
+  mask-image: linear-gradient(to right, transparent, rgba(0, 0, 0, .25) 30%, rgba(0, 0, 0, .9) 72%, #000); }
+.story.pic .tx { position: relative; padding-right: 30%; }
+.story.pic .h { text-shadow: 0 0 10px var(--bg), 0 0 2px var(--bg); }
+.story.pic.open .x { position: relative; }
 .story.new .row::after { content: ""; position: absolute; left: 5px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--pulse); }
 .story.fresh { animation: freshBg 3s ease-out; }
 .story.enter { animation: rise .34s var(--out) both; animation-delay: calc(var(--i, 0) * 16ms); }

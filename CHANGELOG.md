@@ -97,6 +97,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- A story's picture now fills the right of its row and fades into the page instead of sitting in a box;
+  the radar makes 360x270 pictures for it. Stories without a picture show no box.
 - After a tester found it hard to follow: the recap is one row that folds out; day bands say 'I dag · lørdag
   10. oktober' on a dark label; rows show the clock time ('kl. 14.05', 'i går kl. 22.10') instead of '5 t';
   'Vigtigst i dag' holds today's stories; the selected tab sits on a pill and the tab bar has a clear edge.

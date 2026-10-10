@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
-SIZE = 216   # sharp at 76 px on a 3x phone screen
+SIZE = (360, 270)   # the picture fills the right of a story row and fades out; sharp on a 3x phone screen
 SHARE_META = re.compile(r'<meta\b[^>]*(?:property|name)\s*=\s*["\'](?:og:image(?::secure_url|:url)?|twitter:image(?::src)?)["\'][^>]*>', re.I)
 CONTENT = re.compile(r'\bcontent\s*=\s*["\']([^"\']+)["\']', re.I)
 NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube\.com|youtu\.be)/', re.I)
@@ -42,18 +42,18 @@ def get(url, limit, accept, timeout=8):
 
 
 def shrink(raw):
-    """A centred square JPEG, or None for what is no photo: icons, logos, banners, unreadable files."""
+    """A centred 4:3 JPEG, or None for what is no photo: icons, logos, banners, unreadable files."""
     from PIL import Image, ImageOps
     try:
         im = Image.open(io.BytesIO(raw))
         w, h = im.size
         if min(w, h) < 120 or max(w, h) > 2.6 * min(w, h):
             return None
-        im.draft('RGB', (SIZE * 2, SIZE * 2))   # JPEGs decode straight at a smaller size
+        im.draft('RGB', (SIZE[0] * 2, SIZE[1] * 2))   # JPEGs decode straight at a smaller size
         im = ImageOps.exif_transpose(im).convert('RGB')
-        im = ImageOps.fit(im, (SIZE, SIZE), Image.LANCZOS, centering=(.5, .42))
+        im = ImageOps.fit(im, SIZE, Image.LANCZOS, centering=(.5, .42))
         out = io.BytesIO()
-        im.save(out, 'JPEG', quality=72, optimize=True, progressive=True)
+        im.save(out, 'JPEG', quality=68, optimize=True, progressive=True)
         return out.getvalue()
     except Exception:  # noqa: BLE001 – a broken picture is no picture
         return None
