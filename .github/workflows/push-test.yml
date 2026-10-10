@@ -1,6 +1,6 @@
 name: Push test
 
-# Sends one test notification to every phone in PUSH_SUBS. Run it by hand from the Actions tab
+# Sends one test notification to every phone: the ones that signed up in the app (state/phones.bin) and PUSH_SUBS. Run it by hand from the Actions tab
 # (or `gh workflow run push-test.yml`) whenever a phone has been (re)connected.
 on:
   workflow_dispatch:
@@ -14,16 +14,22 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install pywebpush==2.0.3
+      - name: Get the signed-up phones
+        run: git fetch --depth=1 origin data && git show FETCH_HEAD:phones.bin > phones.bin || true
       - name: Send
         env:
           PYTHONPATH: src
+          PROFILE_KEY: ${{ secrets.PROFILE_KEY }}
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
           VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
           VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io
         run: |
           python -c "
           from radar import push
-          r = push.send({'title': 'Khabar', 'body': 'Det virker! Du får nu besked ved store historier og de vigtigste nyheder.', 'url': './', 'tag': 'test'})
+          import os
+          phones = push.load_phones('phones.bin', os.environ.get('PROFILE_KEY', ''))
+          print('signed-up phones:', len(phones))
+          r = push.send({'title': 'Khabar', 'body': 'Det virker! Du får nu besked ved topnyheder, de vigtigste nyheder og dagens resumé.', 'url': './', 'tag': 'test'}, push.everyone(phones))
           print(r)
           assert r.get('sent'), r
           "
