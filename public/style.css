@@ -255,3 +255,97 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* a phone app shows no scrollbars */
 html { scrollbar-width: none; }
 html::-webkit-scrollbar { display: none; }
+
+/* ============================================================ motion: paper, ink and press
+   Everything below is transform/opacity (cheap on phones) and switched off by Reduce Motion. */
+
+/* opening: خبر is written right-to-left in ink, the red dot drops in, then the logo flies to the header */
+.splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; }
+.splash-bg { position: absolute; inset: 0; background: var(--bg); background-image: var(--grain); transition: opacity .5s var(--ease); }
+.splash-logo { position: relative; font-family: var(--logo); font-size: 132px; line-height: 1; color: var(--text); padding-top: 38px;
+  clip-path: inset(-60% 0 -30% 100%); transition: transform .55s cubic-bezier(.65, 0, .25, 1); }
+.splash-logo i { position: absolute; top: .1em; left: calc(86% - .09em); width: .18em; height: .18em; border-radius: 50%; background: var(--pulse); opacity: 0; }
+.splash.write .splash-logo { animation: write .75s cubic-bezier(.6, .04, .3, 1) forwards; }
+@keyframes write { to { clip-path: inset(-60% 0 -30% 0); } }
+.splash.drop .splash-logo i { animation: dropIn .6s cubic-bezier(.3, 1.5, .5, 1) forwards; }
+@keyframes dropIn { 0% { opacity: 0; transform: translateY(-1.4em) scale(.5); } 55% { opacity: 1; transform: translateY(.05em) scale(1.15, .85); } 100% { opacity: 1; transform: none; } }
+.splash.fly .splash-bg { opacity: 0; }
+.splash.fly .splash-logo { clip-path: none; }
+body.opening .top .logo { opacity: 0; }
+body.opening .dock { transform: translateY(110%); }
+.dock { transition: transform .5s var(--ease) .1s; }
+
+/* lines are "printed" in: they rise out of a soft ink blur */
+.item.enter { animation: print .55s var(--ease) both; animation-delay: calc(var(--i, 0) * 32ms); }
+@keyframes print { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } 60% { filter: blur(0); } }
+.item.enter .m .hot, .item.fresh .m .hot { display: inline-block; animation: throb .7s var(--spring) .35s both; }
+@keyframes throb { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* tabs slide in the direction you moved */
+.view.from-right { animation: fromRight .34s var(--ease); }
+.view.from-left { animation: fromLeft .34s var(--ease); }
+@keyframes fromRight { from { opacity: 0; transform: translateX(28px); } }
+@keyframes fromLeft { from { opacity: 0; transform: translateX(-28px); } }
+
+/* a line unfolds like paper */
+.x-pad { transform-origin: top center; transform: perspective(700px) rotateX(-14deg) translateY(-6px); }
+.open .x-pad { transform: none; }
+
+/* copying: a red newspaper stamp lands on the line */
+.stamp { position: absolute; right: 58px; top: 50%; z-index: 2; padding: 3px 9px; border: 2.5px solid var(--pulse); border-radius: 5px;
+  color: var(--pulse); font: 900 13px/1.2 var(--sans); letter-spacing: .14em; text-transform: uppercase; pointer-events: none;
+  mix-blend-mode: multiply; animation: stamp 1.5s var(--ease) forwards; }
+:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; } }
+@keyframes stamp {
+  0% { opacity: 0; transform: translateY(-50%) rotate(-14deg) scale(1.9); }
+  14% { opacity: .95; transform: translateY(-50%) rotate(-7deg) scale(.94); }
+  22% { transform: translateY(-50%) rotate(-7deg) scale(1); }
+  75% { opacity: .9; transform: translateY(-50%) rotate(-7deg) scale(1); }
+  100% { opacity: 0; transform: translateY(-50%) rotate(-7deg) scale(1.04); }
+}
+.item.just-copied .row { animation: inked .9s var(--ease); }
+@keyframes inked { 0% { background: var(--pulse-soft); } 100% { background: transparent; } }
+
+/* the overview's rule is drawn, then its lines are printed one by one */
+.ov { border-top: 0; position: relative; }
+.ov::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--text); transform-origin: left; }
+.ov.enter::before { animation: rule .7s var(--ease) both; }
+@keyframes rule { from { transform: scaleX(0); } }
+.ov.enter li { animation: print .5s var(--ease) both; }
+.ov.enter li:nth-child(1) { animation-delay: .25s; } .ov.enter li:nth-child(2) { animation-delay: .32s; }
+.ov.enter li:nth-child(3) { animation-delay: .39s; } .ov.enter li:nth-child(4) { animation-delay: .46s; }
+.ov.enter li:nth-child(5) { animation-delay: .53s; } .ov.enter li:nth-child(6) { animation-delay: .6s; }
+.ov.enter li:nth-child(7) { animation-delay: .67s; }
+
+/* pull to refresh: the red dot stretches into an ink drop, then splashes into rings while loading */
+.ptr { width: 60px; height: 60px; margin-left: -30px; top: calc(var(--top) + 54px); --k: 0; }
+.ptr .drop { position: absolute; left: 50%; top: 6px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--pulse); transform: translateY(calc(var(--k) * 10px)) scale(calc(.6 + var(--k) * .4), calc(.6 + var(--k) * .75));
+  transition: transform .2s var(--spring); }
+.ptr.ready .drop { transform: translateY(12px) scale(1.05, 1.5); }
+.ptr b { position: absolute; left: 50%; top: 32px; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
+  border: 2px solid var(--pulse); opacity: 0; }
+.ptr.rippling .drop { animation: fall .35s cubic-bezier(.5, 0, .9, .5) forwards; }
+@keyframes fall { to { transform: translateY(24px) scale(1.1, .3); opacity: 0; } }
+.ptr.rippling b { animation: ripple 1.1s var(--ease) infinite; }
+.ptr.rippling b:nth-of-type(2) { animation-delay: .3s; }
+.ptr.rippling b:nth-of-type(3) { animation-delay: .6s; }
+@keyframes ripple { 0% { opacity: .9; transform: scale(.4, .25); } 100% { opacity: 0; transform: scale(3.2, 1.1); } }
+body.refreshing .beat::before, body.refreshing .beat::after { animation-duration: .9s; }
+
+/* header: the logo settles a little smaller once you scroll */
+.top { transition: box-shadow .3s; }
+.top .logo { transition: transform .35s var(--ease); transform-origin: right center; }
+.top.scrolled .logo { transform: scale(.88); }
+.top.scrolled { box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0, 0, 0, .06); }
+
+/* "↑ N nye" arrives like a stamp */
+.fresh-pill { animation: pillStamp .55s var(--spring); }
+@keyframes pillStamp { 0% { opacity: 0; transform: translate(-50%, -6px) scale(1.5) rotate(-6deg); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { display: none; }
+  body.opening .top .logo { opacity: 1; }
+  body.opening .dock { transform: none; }
+}

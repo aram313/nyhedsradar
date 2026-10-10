@@ -40,6 +40,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   The other tones (Klassisk, Blød, Kølig, Dæmpet) remain in 'Mere'.
 - New icon and logo: the word خبر in Lalezar on warm paper with the red dot over the خ; in the app the dot
   is the live pulse. Icon renderer kept in scripts/icon/.
+- Motion design on paper and ink: an opening where خبر is written right-to-left and the red dot drops in before
+  the logo flies into the header; lines printed in from an ink blur; a red 'KOPIERET' stamp when copying;
+  pull-to-refresh as an ink drop that splashes into ripples; tabs slide in the direction of travel; lines unfold
+  like paper; the overview rule draws itself; big-story markers throb once; the logo settles when scrolling.
 - Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
   Danish stories (e.g. northern lights) no longer qualify.
 

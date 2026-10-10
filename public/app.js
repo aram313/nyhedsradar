@@ -170,7 +170,9 @@ function line(i, n, opts) {
 function overview() {
   if (!digest || !digest.created || Date.now() - new Date(digest.created) > 12 * 3600e3) return '';
   const items = digest.items || [];
-  return `<section class="ov${overviewOpen ? '' : ' short'}" id="ov">
+  const fresh = digest.created !== overview.seen;
+  overview.seen = digest.created;
+  return `<section class="ov${overviewOpen ? '' : ' short'}${fresh && !reduceMotion ? ' enter' : ''}" id="ov">
     <div class="ov-head">Overblik <span>${esc(digest.period || '')} · kl. ${clock(digest.created)} · Claude</span></div>
     ${digest.intro && overviewOpen ? `<p class="ov-intro">${esc(digest.intro)}</p>` : ''}
     <ol>${(overviewOpen ? items : items.slice(0, 4)).map(x => `<li><a href="${esc(x.link)}" target="_blank" rel="noopener"><div><b>${esc(x.headline)}</b>${x.text ? `<small>${esc(x.text)}</small>` : ''}</div><em>${esc(x.source || '')}</em></a></li>`).join('')}</ol>
@@ -213,7 +215,8 @@ function render(opts = {}) {
   });
   // new lines that arrived while the user was scrolled down: offer a pill instead of jumping
   const newIds = opts.fresh && shownIds.size ? items.filter(i => !shownIds.has(i.id)).length : 0;
-  $('list').innerHTML = `<div class="${opts.anim && !reduceMotion ? 'view' : ''}">${html}</div>`;
+  const viewCls = opts.anim && !reduceMotion ? `view${typeof opts.anim === 'string' ? ' from-' + opts.anim : ''}` : '';
+  $('list').innerHTML = `<div class="${viewCls}">${html}</div>`;
   shownIds = new Set(items.map(i => i.id));
   if (newIds && scrollY > 240) { $('freshPill').querySelector('span').textContent = `${newIds} ${newIds === 1 ? 'ny' : 'nye'}`; $('freshPill').hidden = false; }
   if (focusId && !render.focused) {
@@ -245,7 +248,14 @@ async function copyItem(id, withSummary) {
   copied[id] = { at: Date.now(), title: i.title, link: i.link, source: i.source, words: words(i.origTitle || i.title) };
   store.set('copied', copied);
   const el = $('c-' + id);
-  if (el) { el.classList.add('done'); el.querySelector('.new')?.remove(); }
+  if (el) {
+    el.classList.add('done'); el.querySelector('.new')?.remove();
+    el.classList.add('just-copied'); setTimeout(() => el.classList.remove('just-copied'), 1000);
+    if (!reduceMotion) {   // a red newspaper stamp lands on the line
+      const st = document.createElement('span'); st.className = 'stamp'; st.textContent = 'Kopieret';
+      el.querySelector('.row').append(st); setTimeout(() => st.remove(), 1500);
+    }
+  }
   renderHeader();
   toast(withSummary || danish ? 'Kopieret med resumé' : 'Kopieret');
   learnFrom(i);
@@ -273,7 +283,10 @@ $('list').addEventListener('click', async e => {
   }
 });
 $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
-addEventListener('scroll', () => { if (scrollY < 120) $('freshPill').hidden = true; }, { passive: true });
+addEventListener('scroll', () => {
+  if (scrollY < 120) $('freshPill').hidden = true;
+  $('top').classList.toggle('scrolled', scrollY > 8);
+}, { passive: true });
 
 // ---------------------------------------------------------------- swipe right to copy
 let sw = null;
@@ -307,7 +320,7 @@ $('list').addEventListener('touchend', () => {
   if (dx > 90) copyItem(item.dataset.id);
 });
 
-// ---------------------------------------------------------------- pull down to refresh: the pulse line draws itself
+// ---------------------------------------------------------------- pull down to refresh: the red dot becomes an ink drop
 let pull = null;
 addEventListener('touchstart', e => {
   if (scrollY <= 0 && !e.target.closest('.sheet, .dock')) pull = { y: e.touches[0].clientY, d: 0 };
@@ -315,26 +328,31 @@ addEventListener('touchstart', e => {
 addEventListener('touchmove', e => {
   if (!pull) return;
   pull.d = e.touches[0].clientY - pull.y;
-  if (pull.d <= 0 || scrollY > 0) { $('list').style.transform = ''; return; }
+  if (pull.d <= 0 || scrollY > 0) { $('list').style.transform = ''; $('ptr').style.opacity = 0; return; }
   const k = Math.min(1, pull.d / 90);
   $('list').classList.add('pulling');
-  $('list').style.transform = `translateY(${Math.min(110, pull.d * 0.5)}px)`;
-  $('ptr').style.opacity = k;
-  $('ptr').style.setProperty('--draw', 100 - k * 100);
+  $('list').style.transform = `translateY(${Math.min(120, pull.d * 0.8)}px)`;
+  $('ptr').style.opacity = Math.min(1, k * 1.4);
+  $('ptr').style.setProperty('--k', k);
+  $('ptr').classList.toggle('ready', k >= 1);
 }, { passive: true });
 addEventListener('touchend', async () => {
   if (!pull) return;
   const go = pull.d > 90;
   pull = null;
   $('list').classList.remove('pulling');
+  $('ptr').classList.remove('ready');
   if (go) {
-    $('list').style.transform = 'translateY(52px)';
-    $('ptr').classList.add('beating');
-    await Promise.all([load(true), new Promise(r => setTimeout(r, 900))]);
-    $('ptr').classList.remove('beating');
+    $('list').style.transform = 'translateY(78px)';
+    $('ptr').classList.add('rippling');
+    document.body.classList.add('refreshing');
+    await Promise.all([load(true), new Promise(r => setTimeout(r, 1100))]);
+    document.body.classList.remove('refreshing');
+    $('ptr').classList.remove('rippling');
   }
   $('list').style.transform = '';
   $('ptr').style.opacity = 0;
+  $('ptr').style.setProperty('--k', 0);
 });
 
 // ---------------------------------------------------------------- tab bar + search
@@ -344,6 +362,8 @@ function moveIndicator() {
 }
 function setTab(next) {
   if (next === tab) { scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); return; }
+  const order = ['top', 'all', 'copied', 'search'];
+  const dir = order.indexOf(next) > order.indexOf(tab) ? 'right' : 'left';
   tab = next;
   document.querySelectorAll('.tabbar [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
   moveIndicator();
@@ -351,7 +371,7 @@ function setTab(next) {
   if (tab === 'search') setTimeout(() => $('search').focus(), 60);
   else $('search').blur();
   $('freshPill').hidden = true;
-  render({ anim: true, stagger: true });
+  render({ anim: dir, stagger: true });
   scrollTo(0, 0);
 }
 $('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
@@ -484,6 +504,34 @@ $('enablePush').addEventListener('click', async () => {
 $('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+renderHeader();
 moveIndicator();
-render({ stagger: true });
+async function opening() {
+  const sp = $('splash');
+  let skipped = false;
+  const finish = () => {
+    if (skipped) return; skipped = true;
+    sp.remove(); document.body.classList.remove('opening');
+    render({ stagger: true });
+  };
+  if (reduceMotion || sessionStorage.getItem('opened')) { finish(); return; }
+  sessionStorage.setItem('opened', '1');
+  document.body.classList.add('opening');
+  sp.addEventListener('click', finish);
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  await Promise.race([document.fonts.load('132px "Lalezar"', 'حبر'), wait(900)]);
+  sp.classList.add('write'); await wait(720);
+  if (skipped) return;
+  sp.classList.add('drop'); await wait(620);
+  if (skipped) return;
+  // FLIP the big logo onto the small one in the header
+  const from = sp.querySelector('.splash-logo').getBoundingClientRect(), to = document.querySelector('.top .logo').getBoundingClientRect();
+  const sc = to.height / from.height;
+  sp.querySelector('.splash-logo').style.transform =
+    `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(${sc})`;
+  sp.classList.add('fly');
+  await wait(560);
+  finish();
+}
+opening().catch(() => { $('splash')?.remove(); document.body.classList.remove('opening'); render({ stagger: true }); });
 load();
