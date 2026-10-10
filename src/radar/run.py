@@ -229,7 +229,9 @@ def main():
     new = []
     for it in fetched:
         pub = ts(it['published']) if it['published'] else NOW
-        if pub > NOW + timedelta(hours=1) or NOW - pub > timedelta(hours=max_age.get(it['source'], 48)):
+        if NOW < pub <= NOW + timedelta(hours=12):   # a feed that stamps local time as GMT (Jerusalem Post: +3 h)
+            pub = NOW
+        if pub > NOW or NOW - pub > timedelta(hours=max_age.get(it['source'], 48)):
             continue
         nt = norm_title(it['title'])
         if len(nt.split()) < 4 or is_noise(it):  # section pages, teasers, liveblogs, sport, celebrity …
@@ -264,13 +266,20 @@ def main():
             learned.append({'id': it['id'], 't': text(it), 'at': it['found'], 'why': 'community'})
             learned_ids.add(it['id'])
     taps, relay['since'] = feedback.pull(relay['since'])
+    # the relay topic is readable in the public app, so anyone could post to it: learn only from stories the
+    # radar itself has, with the radar's own text, and at most a few dozen signals a day
+    today = sum(1 for l in learned if l['why'] in ('copied', 'read') and ts(l['at']) >= NOW - timedelta(hours=24))
     for tap in taps:   # shared or copied = strong "more like this"; opened to read = a milder one
+        it = items.get(tap.get('id'))
+        if not it or today >= s.get('max_signals_per_day', 40):
+            continue
         why = 'read' if tap['kind'] == 'read' else 'copied'
         if why == 'read' and any(l['id'] == tap['id'] and l['why'] == 'copied' for l in learned):
             continue
         learned = [l for l in learned if not (l['id'] == tap['id'] and l['why'] in (why, 'read'))]
-        learned.append({'id': tap['id'], 't': f"{tap['title']}. {tap['summary'][:220]}", 'at': NOW.isoformat(), 'why': why})
+        learned.append({'id': tap['id'], 't': text(it), 'at': NOW.isoformat(), 'why': why})
         learned_ids.add(tap['id'])
+        today += 1
 
     base, base_w = load_profile(embed)
     l_emb = load_learned_embeddings(embed, learned)
@@ -298,7 +307,8 @@ def main():
         items[k]['gpct'] = percentile(ranked[''], items[k]['score'])  # across all languages
 
     # 5. same story from several outlets -> one card; many outlets -> "big story"
-    recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36)),
+    # noise (liveblogs, podcasts, sport) never joins a story – as its lead it would hide the whole story
+    recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36) and not is_noise(items[k])),
                     key=lambda k: items[k]['found'])
     for it in items.values():
         it.update(lead=True, outlets=1, also=[], big=False, important=False,
@@ -313,7 +323,7 @@ def main():
         n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
         n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
         for m in members:
-            m.update(lead=m is lead, outlets=n_out, confirmed=n_est, also=[])
+            m.update(lead=m is lead, outlets=n_out, confirmed=n_est, also=[], member=m is not lead)
             m.pop('cluster_pct', None)
             m.pop('cluster_gpct', None)
         # the other outlets, one article each, taking turns between kinds of media so a story shows how
@@ -361,7 +371,7 @@ def main():
                 where.append(len(joined) - 1)
         stories = joined
     clustered = {m['id'] for st in stories for m in st}
-    stories += [[items[k]] for k in ids if k not in clustered]   # older than the story window: on their own
+    stories += [[items[k]] for k in ids if k not in clustered and not items[k].get('member') and not is_noise(items[k])]
 
     # 6. where each story belongs (Danmark / Mellemøsten / Verden) and how strongly it should rank.
     # The group's taste comes first; then how many outlets carry the story and whether it is about the
@@ -534,8 +544,8 @@ def main():
     pending = [p for p in pushes['pending'] if ts(p['at']) >= NOW - timedelta(hours=3) and p['id'] in emb_store]
     for it in shown:
         why = 'top' if it['id'] in new_ids and it.get('cluster_pct', it['pct']) >= s['notify_percentile'] else 'big' if it['big'] else None
-        if not why or first_run or (it['foreign'] and not it.get('title_tr')):
-            continue
+        if not why or first_run or (it['foreign'] and not it.get('title_tr')) or not it['confirmed']:
+            continue   # never for a Telegram/YouTube post no established outlet carries
         e = emb_store[it['id']]
         if len(told) and float((told @ e).max()) >= s['same_story_similarity']:
             continue  # already told about this story

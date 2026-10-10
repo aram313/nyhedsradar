@@ -19,7 +19,7 @@
       "mette frederiksen", "mette f.", "løkke", "troels lund", "støjberg", "messerschmidt", "vanopslagh",
       "olsen dyhr", "dragsted", "lidegaard", "søren gade", "dybvad", "hummelgaard", "engel-schmidt", "wammen",
       "heunicke", "tesfaye", "stoklund", "bødskov", "siddique", "skaarup", "finanslov", "finansforslag",
-      "åbningsdebat", "folketingsvalg", "kommunalvalg", "regionsrådsvalg", "grundlov", "udlænding",
+      "åbningsdebat", "folketingsvalg", "kommunalvalg", "regionsrådsvalg", "grundloven", "udlænding",
       "integrationsminist", "statsborgerskab", "indfødsret", "ghettolov", "parallelsamfund", "udlændingestyrelsen",
       "rigspolitiet", "PET=", "kommune", "kommunal", "folkeskole", "gymnasie", "SU=", "SU'en", "dagpenge",
       "kontanthjælp", "efterløn", "seniorpension", "tørklædeforbud", "koranlov", "koranafbrænding",
@@ -93,10 +93,10 @@
     "dansk folkeparti", "danmarksdemokrat", "støjberg", "mette frederiksen", "mette f.", "løkke", "troels lund",
     "messerschmidt", "vanopslagh", "olsen dyhr", "dragsted", "søren gade", "hummelgaard", "dybvad",
     "demonstration", "terror", "dkpol", "opposition", "EU=", "EU's", "partistøtte", "ministerium", "retsforbeh",
-    "grundlov"
+    "grundloven"
   ],
   "trivia": [
-    "vejret", "vejrudsigt", "regnvejr", "solskin", "hedebølge", "nordlys", "northern lights", "trafik",
+    "vejret", "selfie", "vejrudsigt", "regnvejr", "solskin", "hedebølge", "nordlys", "northern lights", "trafik",
     "togtrafik", "motorvej", "kø på", "kongehus", "kongen", "dronning", "kronprins", "prinsesse", "royal",
     "kendis", "reality", "x factor", "vild med dans", "opskrift", "recipe", "fodbold", "superliga", "landshold",
     "håndbold", "cykelløb", "formel 1", "quiz", "horoskop", "lotto", "jackpot", "black friday", "koncert",

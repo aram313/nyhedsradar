@@ -1,4 +1,5 @@
 """Fetch and parse news feeds (RSS 2.0, RSS 1.0/RDF and Atom) with the standard library only."""
+import gzip
 import hashlib
 import html
 import re
@@ -204,6 +205,8 @@ def fetch_one(feed, timeout=20):
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = r.read()
+        if data[:2] == b'\x1f\x8b':   # some servers send gzip whether asked or not (Middle East Eye)
+            data = gzip.decompress(data)
         if feed.get('type') == 'telegram':
             items = parse_telegram(data.decode('utf-8', 'replace'), feed)
         else:

@@ -22,12 +22,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # exit code 2 means the branch does not exist yet (a first run); any other failure (network) must stop the
+      # job – starting empty would overwrite 30 days of learning and the notification history
       - name: Get saved state
         run: |
           mkdir -p state
-          if git ls-remote --exit-code --heads origin data >/dev/null; then
+          rc=0; git ls-remote --exit-code --heads origin data >/dev/null || rc=$?
+          if [ "$rc" -eq 0 ]; then
             git fetch --depth=1 origin data
             git archive FETCH_HEAD | tar -x -C state
+          elif [ "$rc" -ne 2 ]; then
+            echo "Could not reach the data branch (exit $rc) – stopping rather than starting empty"; exit 1
           fi
 
       - name: Get the editor's latest overview

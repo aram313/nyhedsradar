@@ -439,7 +439,8 @@ function render(opts = {}) {
 }
 // a notification opens the app on its story: find it, open it, show it
 function openFocus(all) {
-  const i = all.find(x => x.id === focusId);
+  // the story may since have joined another outlet's card: then open that card
+  const i = all.find(x => x.id === focusId) || all.find(x => (x.also || []).some(a => a.id === focusId));
   if (!i) return;
   focusId = null;
   expanded.add(i.id);

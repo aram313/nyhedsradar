@@ -71,7 +71,8 @@
   "lang": "da",
   "url": "https://www.tv2kosmopol.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "Al Jazeera",
@@ -83,10 +84,12 @@
  {
   "name": "Middle East Eye",
   "lang": "en",
-  "url": "https://www.middleeasteye.net/rss.xml",
   "community": true,
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "type": "gnews",
+  "query": "site:middleeasteye.net when:1d",
+  "locale": "en-US:US"
  },
  {
   "name": "Middle East Monitor",
@@ -163,7 +166,7 @@
  {
   "name": "Jerusalem Post",
   "lang": "en",
-  "url": "https://www.jpost.com/rss/rssfeedsheadlines.aspx",
+  "url": "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
   "group": "il",
   "sec": "me"
  },
@@ -276,10 +279,8 @@
  {
   "name": "Jyllands-Posten",
   "lang": "da",
-  "type": "gnews",
-  "query": "site:jyllands-posten.dk",
-  "locale": "da:DK",
-  "group": "dk"
+  "group": "dk",
+  "url": "https://feeds.jp.dk/jp/seneste"
  },
  {
   "name": "Kristeligt Dagblad",
@@ -435,41 +436,47 @@
   "lang": "da",
   "url": "https://www.tv2east.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "TV 2 Fyn",
   "lang": "da",
   "url": "https://www.tv2fyn.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "TV 2 Nord",
   "lang": "da",
   "url": "https://www.tv2nord.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "TV 2 Østjylland",
   "lang": "da",
   "url": "https://www.tv2ostjylland.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "TV Midtvest",
   "lang": "da",
   "url": "https://www.tvmidtvest.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  },
  {
   "name": "TV Syd",
   "lang": "da",
   "url": "https://www.tvsyd.dk/rss",
   "group": "dk",
-  "sec": "dk"
+  "sec": "dk",
+  "outlet": "TV 2 regionalt"
  }
 ]

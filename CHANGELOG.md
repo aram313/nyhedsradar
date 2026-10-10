@@ -132,6 +132,21 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Fixed
 
+- From the second day on, the outlets' copies of a story that had left the 36-hour story window came back as
+  separate cards (one story could become eight). An outlet's copy now stays part of its story.
+- A liveblog or podcast that became a story's lead hid the whole story (four multi-outlet stories, among them
+  Al Jazeera's lead, were invisible). Noise no longer joins stories.
+- Middle East Eye (compressed feed, frozen since 2019), Jerusalem Post (frozen feed, clock three hours ahead) and
+  Jyllands-Posten (Google News returned old articles) now deliver fresh stories; the seven regional TV 2
+  stations count as one outlet, so shared stories no longer look like big news.
+- 'grundlov' matched 'grundlovsforhør' (custody hearings lifted crime stories into Danish politics); selfies
+  count as light news.
+- Notifications only for stories an established outlet carries (no single Telegram posts); a notification for a
+  story that has since joined another card opens that card instead of nothing.
+- The feedback relay is public, so anyone could post fake 'shared' signals with any text: the radar now learns
+  only from stories it has, with its own text, at most 40 signals a day.
+- A network hiccup when reading the saved state made the radar start empty and overwrite 30 days of learning;
+  it now stops instead.
 - Machine translation of Arabic got names wrong ("Island correspondent" for Al Jazeera, "Trimpe", "Butin"); a name
   glossary fixes them before and after translating.
 - A new Bevægelser briefing now shows even when the overview itself is unchanged.

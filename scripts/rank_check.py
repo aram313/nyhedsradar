@@ -62,8 +62,18 @@ def profile_cache():
 
 
 def main(per_section=25):
+    import shutil
     cache = profile_cache()
     state = Path(tempfile.mkdtemp(prefix='khabar-'))
+    try:
+        check(cache, state, per_section)
+    finally:   # the copies hold the plain group profile and the radar state: never leave them behind
+        shutil.rmtree(state, ignore_errors=True)
+        if cache != ROOT / '.cache':
+            shutil.rmtree(cache, ignore_errors=True)
+
+
+def check(cache, state, per_section):
     for name in FILES:
         with urllib.request.urlopen(RAW + name) as r:
             (state / name).write_bytes(r.read())

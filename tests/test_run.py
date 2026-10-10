@@ -143,3 +143,46 @@ def test_noise_trust_balance_and_danish(tmp_path, monkeypatch):
     en = [i for i in data['items'] if i['lang'] == 'en']
     assert all(i.get('title_da', '').startswith('[da]') for i in en), en
     assert data['sources']['BT']['failing_runs'] == 1
+
+
+def _setup(tmp_path, monkeypatch):
+    import importlib
+    import radar.run as run
+    importlib.reload(run)
+    from fake_embed import FakeEmbedder
+    monkeypatch.setattr(run, 'STATE', tmp_path / 'state')
+    monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
+    (tmp_path / 'cache').mkdir()
+    (tmp_path / 'cache' / 'profile.jsonl').write_text(json.dumps({'d': '2026-09-01', 't': 'Israel bomber Gaza igen'}), encoding='utf-8')
+    monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
+    monkeypatch.setattr(run, 'Translator', NoTranslator)
+    monkeypatch.setattr(run.feedback, 'pull', lambda since: ([], since))
+    return run
+
+
+def test_old_copies_of_a_story_do_not_come_back_as_cards(tmp_path, monkeypatch):
+    run = _setup(tmp_path, monkeypatch)
+    sources = ['DR', 'TV 2', 'BT', 'Politiken', 'Berlingske']
+    gaza = [make_item(i, f'Israel bomber Gaza – nyt angreb i nat version{i}', s) for i, s in enumerate(sources)]
+    monkeypatch.setattr(run, 'fetch_all', lambda f: (gaza, {}))
+    run.main()
+    monkeypatch.setattr(run, 'NOW', run.NOW + timedelta(hours=40))   # the story leaves the 36-hour window
+    monkeypatch.setattr(run, 'fetch_all', lambda f: ([], {}))
+    run.main()
+    data = json.loads((tmp_path / 'state' / 'data.json').read_text(encoding='utf-8'))
+    assert len([i for i in data['items'] if 'Gaza' in i['title']]) <= 1, [i['title'] for i in data['items']]
+
+
+def test_clock_skew_and_untrusted_signals(tmp_path, monkeypatch):
+    run = _setup(tmp_path, monkeypatch)
+    ahead = make_item(1, 'Israel bomber Gaza ifølge israelsk avis med forkert ur', 'Jerusalem Post', hours_ago=-3)
+    monkeypatch.setattr(run, 'fetch_all', lambda f: ([ahead], {}))
+    taps = [{'kind': 'share', 'id': 'id0001', 'title': 'something else entirely', 'summary': ''},
+            {'kind': 'share', 'id': 'nope', 'title': 'Planted text', 'summary': ''}]
+    monkeypatch.setattr(run.feedback, 'pull', lambda since: (taps, since))
+    run.main()
+    items = json.loads((tmp_path / 'state' / 'items.json').read_text(encoding='utf-8'))
+    assert 'id0001' in items and items['id0001']['published'] <= run.NOW.isoformat()   # kept, not 'from the future'
+    learned = json.loads((tmp_path / 'state' / 'learned.json').read_text(encoding='utf-8'))
+    shared = [l for l in learned if l['why'] == 'copied']
+    assert [l['id'] for l in shared] == ['id0001'] and 'forkert ur' in shared[0]['t']   # the radar's own text
