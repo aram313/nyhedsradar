@@ -135,3 +135,19 @@ def test_keywords_say_who_and_where():
     assert kw('Putin told Trump Kyiv scuttled negotiations') == ['Putin', 'Trump', 'Kyiv']   # three names, not one
     assert 'Gaza City' in kw('Residents west of Gaza City were hit.')        # no full stop in bold
     assert len(kw('Israeli settlers attack Palestinian farmers near Ramallah as Gaza and Lebanon burn')) == 3
+
+
+def test_danish_debate_stays_in_denmark():
+    """A Danish piece about Muslims that names no country stays in Danmark even when its nearest stories are
+    Middle East stories; a Danish story without such words still follows its neighbours abroad."""
+    def member(title, source='BT'):
+        item = {'title': title, 'summary': '', 'source': source, 'lang': 'da'}
+        return [{**item, 'sig': SEC.signals(item)}]
+    e = np.zeros((4, 384), np.float32)
+    e[:, 0] = 1                                       # all four look alike to the language model
+    stories = [member('Israel bomber Gaza og Libanon igen i nat'), member('Israel og Hamas: nye angreb i Gaza by'),
+               member('Yaqoub Ali: Det bedste, muslimerne kunne gøre for sig selv, er at holde islam uden for offentligheden'),
+               member('Tre børn blandt dræbte i angreb på byen i nat')]
+    placed = SEC.place(stories, e, {})
+    assert placed[0] == ['me'] and placed[2] == ['dk'] and placed[3] == ['me'], placed
+    assert SEC.place([stories[2]], e[:1], {'BT': 'abroad'})[0] != []   # a foreign desk keeps the old way

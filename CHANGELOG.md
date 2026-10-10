@@ -131,6 +131,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Machine translation of Arabic got names wrong ("Island correspondent" for Al Jazeera, "Trimpe", "Butin"); a name
   glossary fixes them before and after translating.
 - A new Bevægelser briefing now shows even when the overview itself is unchanged.
+- A Danish debate piece about Muslims in Denmark (B.T., no country named) landed in Mellemøsten because its nearest
+  stories were Middle East stories about Islam. A Danish article about Islam and Muslims, immigration or Danish
+  politics that names no other country now always stays in Danmark.
 - Wire lines that reached the radar a few minutes before Claude's run but after Claude read the list fell
   between two editions; every edition now records the lines it covered (`ids`), and the next one takes every
   line no edition has covered.

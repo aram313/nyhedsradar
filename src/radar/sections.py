@@ -147,6 +147,9 @@ class Sections:
             for i, p in enumerate(placed):
                 if p and max(scores[i].values()) >= 2:
                     continue
+                if self._home_debate(stories[i], hint):
+                    placed[i] = ['dk']
+                    continue
                 sims = ref @ emb[i]
                 top = np.argsort(-sims)[:7]
                 vote = {}
@@ -168,6 +171,14 @@ class Sections:
                 placed[i] = ['dk' if lead.get('lang') == 'da' and h != 'abroad'
                              else 'me' if lead.get('lang') in ('ar', 'tr') or h == 'me' else 'world']
         return placed
+
+    @staticmethod
+    def _home_debate(members, hint):
+        """A Danish article about Islam and Muslims, immigration or Danish politics that names no other country is
+        Danish news, however much it resembles stories from abroad (a BT debate piece on Muslims in Denmark once
+        landed in Mellemøsten because its nearest neighbours were Middle East stories about Islam)."""
+        return (all(m.get('lang') == 'da' and hint.get(m['source']) != 'abroad' for m in members)
+                and max(m['sig']['core_dk'] for m in members) >= 2)
 
     def _pick(self, sc):
         top = max(sc.values())
