@@ -635,7 +635,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'kw', 'kw_tr', 'kw_da')
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {

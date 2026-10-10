@@ -97,6 +97,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Front page: the day's lead story opens big (its outlet's own picture, headline on a dark veil), the rest are
+  compact rows with a small black-and-white square picture; the radar passes on each picture's original (pic).
 - Story pictures are cut around the biggest face (OpenCV's face finder, new dependency in the cloud only)
   and shown in black and white in the lists; an opened story shows its picture in colour.
 - A story's picture now fills the right of its row and fades into the page instead of sitting in a box;

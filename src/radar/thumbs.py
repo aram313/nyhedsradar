@@ -135,10 +135,11 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     todo = {}
     for it in cards:
         it.pop('thumb', None)
+        it.pop('pic', None)
         opts = [o for o in options(it) if o not in bad]
         ready = next((o for o in opts if isinstance(o, str) and name_of(o) in have), None)
         if ready:                        # a picture made in an earlier run stays, so cards do not flicker
-            it['thumb'] = name_of(ready)
+            it['thumb'], it['pic'] = name_of(ready), ready   # pic: the original, for the big lead picture
         elif opts:
             todo[it['id']] = opts[0]
 
@@ -187,7 +188,7 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
                 bad[url] = now.isoformat()
     for it in cards:
         if 'thumb' not in it and todo.get(it['id']) in made:
-            it['thumb'] = made[todo[it['id']]]
+            it['thumb'], it['pic'] = made[todo[it['id']]], todo[it['id']]
 
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):

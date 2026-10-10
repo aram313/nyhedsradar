@@ -211,10 +211,20 @@ function meta(i, opts = {}) {
 }
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
+  if (opts.hero) return heroStory(i, n, opts);
   const cls = ['story', i.thumb && 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''} style="--i:${n}">
     <button class="row" data-toggle aria-expanded="${open}"><span class="tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, opts)}</span></span>${thumb(i.source, i.thumb)}</button>
+    <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
+}
+// the day's lead story: its own picture big (the outlet's original, else our small copy), headline on top of it
+function heroStory(i, n, opts) {
+  const open = expanded.has(i.id), small = THUMBS + i.thumb;
+  return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1" style="--i:${n}">
+    <button class="hero-row" data-toggle aria-expanded="${open}"><img src="${esc(i.pic || small)}" alt="" decoding="async"
+      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'"><span class="hero-tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span>
+      <span class="m">${meta(i, opts)}</span></span></button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
 function detail(i) {
@@ -354,9 +364,12 @@ function home(all, opts) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
-  const now = pick(cands, 8);
+  const now = pick(cands, 7);
+  // the strongest of the first three with a picture opens the page big
+  const lead = now.slice(0, 3).find(i => i.thumb);
+  if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
   let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
-    ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
+    ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
@@ -490,7 +503,7 @@ function toggle(el) {
   } else {
     el.classList.remove('open'); expanded.delete(id);
   }
-  el.querySelector('.row').setAttribute('aria-expanded', open);
+  el.querySelector('[data-toggle]').setAttribute('aria-expanded', open);
 }
 
 // ---------------------------------------------------------------- share and copy
