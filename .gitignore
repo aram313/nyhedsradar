@@ -65,6 +65,7 @@ state/
 public/digest.json
 public/search.json
 public/lines.json
+public/moves.json
 public/toner-preview.html
 public/ikoner.html
 public/ikoner2.html

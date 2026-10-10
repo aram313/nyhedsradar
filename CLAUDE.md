@@ -60,9 +60,11 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   `Unregister-ScheduledTask -TaskName 'Nabd vaekkeur' -Confirm:$false` once `scripts/setup-clock.ps1` (QStash) has
   been run by the owner. Note: `gh` logins made from Claude's sandboxed Bash are not visible to Windows tasks.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
-  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,15,16 UTC, works only at 07/17 Danish time,
-    writes `digest.json` to the orphan `digest` branch: the overview (items) and the Bevægelser briefing (moves).
-    The briefing copies the format members post in the group; the prompt holds an example from 9-10 Oct 2026.
+  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,20,21 UTC, works only at 07/22 Danish time, and writes
+    two files to the orphan `digest` branch in one commit: `digest.json` (the overview, each story with a 2-3
+    sentence summary) and `moves.json` (Bevægelser: a growing list of editions, newest first, max 30; each edition
+    translates every Al Jazeera wire line since the previous edition's `until`). The edition format copies the
+    briefings members post in the group; the prompt holds an example from 9-10 Oct 2026.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones: `PUSH_SUBS` secret = JSON list of Web Push subscriptions from the app's 'NYHEDSRADAR-PUSH:' code.

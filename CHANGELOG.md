@@ -85,6 +85,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Claude now works at 07 and 22 (was 07 and 17) and writes both things in the same run: the overview, where
+  every story has a 2–3 sentence summary of the article (Claude reads the article when it can), and a new
+  edition of Bevægelser – the whole Al Jazeera breaking wire of the period, translated by Claude.
+- Bevægelser is a growing list: each edition is added on top and the earlier ones stay (moves.json on the
+  digest branch, 30 editions). The machine-translated live list that changed every five minutes is gone.
+- Front page: Claude's overview on top, then every story as it comes in, all sections mixed and marked with
+  their section (replaces 'Netop nu' and the section blocks).
+- Short explanations on the overview and on Bevægelser of what they are and when they update.
 - Search moved to a magnifier in the top bar; the fifth tab is now Bevægelser.
 - Sharing is one action among three (Læs, Del, Kopiér) inside an opened story instead of the centre of the app.
 - Quiet, short motion instead of the paper-and-ink effects: no opening animation, a neutral ring for

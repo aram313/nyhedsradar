@@ -98,6 +98,7 @@ main { min-height: 70vh; }
 .m > span + span::before { content: "·"; margin: 0 5px; color: var(--text-3); }
 .m .src { color: var(--text-2); font-weight: 620; }
 .m .big { color: var(--pulse); font-weight: 650; }
+.m .sec { color: var(--text-3); }
 .m .warn { font-style: italic; }
 .story.new .row::after { content: ""; position: absolute; left: 5px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--pulse); }
 .story.fresh { animation: freshBg 3s ease-out; }
@@ -154,14 +155,14 @@ main { min-height: 70vh; }
 .topic li b { color: var(--text); font-weight: 650; }
 .topic li > a:active { opacity: .6; }
 .moves .acts { margin-top: 14px; }
-.notice.soft { background: var(--fill); color: var(--text-2); }
-.line { display: grid; grid-template-columns: 44px 1fr; gap: 8px; padding: 9px 16px 10px; position: relative; }
-.line + .line::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--line); }
-.line:active { background: var(--fill); }
-.line .tm { font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
-.line .tx { font-size: 15px; line-height: 1.42; color: var(--text-2); }
-.line .tx b { color: var(--text); font-weight: 650; }
-.line .tx i { font-style: normal; font-size: 12px; color: var(--text-3); }
+.moves.shut { padding-bottom: 4px; }
+.moves.shut .moves-t { font-size: 18px; }
+.brief-open { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; margin-top: 2px; text-align: left;
+  font-size: 14px; line-height: 1.4; color: var(--text-2); }
+.brief-open span { flex: 1; }
+.brief-open svg { width: 16px; height: 16px; color: var(--text-3); }
+.explain { margin: 6px 0 2px; font-size: 12.5px; line-height: 1.45; color: var(--text-3); }
+.explain.top { margin: 14px 18px 2px; font-size: 13.5px; }
 
 /* ------------------------------------------------------------ search */
 .hit { display: block; padding: 10px 16px 11px; position: relative; }

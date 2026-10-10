@@ -579,11 +579,14 @@ def main():
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
     })
+    # every wire line of the window (Claude translates them all into 'Bevægelser'), plus the newest other statements
+    newest = sorted(statements, key=lambda v: v['published'], reverse=True)
+    keep = [v for v in newest if v['source'] in wire] + [v for v in newest if v['source'] not in wire][:300]
     save(STATE / 'lines.json', {'updated': NOW.isoformat(), 'items': [
         {'i': v['id'], 't': v['title'], 'tr': v.get('title_tr'), 'da': v.get('title_da'),
          's': label_of.get(v['source'], v['source']), 'l': v.get('lang'), 'p': v['published'], 'u': v['link'],
          'x': v.get('sec'), 'k': kind(v)}
-        for v in sorted(statements, key=lambda v: v['published'], reverse=True)][:500]})
+        for v in sorted(keep, key=lambda v: v['published'], reverse=True)]})
     # everything the radar saw in the last days, for the app's search (loaded only when someone searches)
     on_card = {it['id'] for it in shown}
     save(STATE / 'search.json', {'updated': NOW.isoformat(), 'items': [

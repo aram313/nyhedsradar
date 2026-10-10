@@ -5,8 +5,8 @@ The app is called **Khabar** (خبر, "news"). The repository and folder keep th
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
 *Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and
-**Verden**, plus **Bevægelser**: where political movement is happening, as short attributed statements. The front page shows what is happening right now, Claude's overview at 07 and 17, and the
-best stories of each section. Opening a story shows a short summary, how Danish, Western, Arab/Muslim
+**Verden**, plus **Bevægelser**: where political movement is happening, as short attributed statements. The front page shows Claude's overview (07 and 22, a short summary of every article) on top and
+then every story as it comes in, all sections mixed. Opening a story shows a short summary, how Danish, Western, Arab/Muslim
 and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is one
 tap away) or copy. Big stories and the most relevant news also trigger a notification.
 
@@ -39,12 +39,12 @@ tap away) or copy. Big stories and the most relevant news also trigger a notific
    profile and fade out over 30 days.
 7. **Notifications:** at most one per story, batched, at least 20 minutes apart, at most
    15 per day, never between 23:00 and 07:00.
-8. **Bevægelser:** one-line statements ("Kremlin: ...") from Al Jazeera's urgent wire and other sources are
-   collected in `lines.json`; at 07 and 17 Claude turns them into a briefing in the group's own format (topics
-   with short attributed statements), shown in the Bevægelser tab and ready to share.
+8. **Bevægelser:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line
+   statements) in `lines.json`; at 07 and 22 Claude translates all wire lines of the period into Danish, groups
+   them by topic in the group's own format and adds the edition on top of `moves.json` (earlier editions stay).
 9. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
    for the app's search) and `lines.json` on the `data` branch. The app (`public/`, published to GitHub Pages
-   by `pages.yml`) reads those files and Claude's `digest.json` from the `digest` branch.
+   by `pages.yml`) reads those files and Claude's `digest.json` and `moves.json` from the `digest` branch.
 
 ## Secrets and settings (GitHub)
 
