@@ -69,6 +69,7 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Busy Telegram channels show at most 6 lines a day; their alarm emoji and 'Breaking |' tags are removed.
 - Liveblog teasers ('følg med her', 'se med her') are filtered out.
 - Claude's overview is grouped by section with at least two Danish stories when there are any.
+- `scripts/rank_check.py` shows what each section would contain with the current settings, on live data.
 
 ### Changed
 
@@ -76,6 +77,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Quiet, short motion instead of the paper-and-ink effects: no opening animation, a neutral ring for
   pull-to-refresh, a calm confirmation pill, rows that rise in gently and a soft wash on new stories.
 - Clear words instead of symbols in the list: 'Stor historie', '7 medier', 'ubekræftet', 'oversat', 'delt'.
+
+### Fixed
+
+- Unrelated Arabic headlines were merged into false 'big stories' (the language model puts some Arabic texts
+  almost on top of each other); Arabic-only stories are no longer merged, and a story's card now comes from an
+  established outlet rather than a Telegram post whenever one carries it.
 
 ### Removed
 

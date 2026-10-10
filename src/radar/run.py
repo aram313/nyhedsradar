@@ -134,8 +134,9 @@ def clusters(emb, order, threshold, langs=None, strict=None):
         if centres:
             sims = np.array(centres) @ e
             j = int(sims.argmax())
-            # the model rates any two texts in some languages (Arabic) as rather alike,
-            # so a story made only of such texts needs a closer match
+            # the model rates any two texts in some languages (Arabic) as rather alike – some unrelated Arabic
+            # headlines land almost on top of each other – so a story made only of such texts needs a closer
+            # match (settings: same_story_strict; above 1 means such texts never join each other)
             need = strict.get(lang, threshold) if glang[j] == {lang} else threshold
             if sims[j] >= need:
                 glang[j].add(lang)
@@ -293,8 +294,9 @@ def main():
             it.pop(k, None)
 
     def story(members):
-        """One card for the members: a Danish/English article leads; foreign ones still count as outlets."""
-        lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['pct'], x['score']))
+        """One card for the members: a Danish/English article from an established outlet leads when there is
+        one (a channel post or a foreign-language article still counts as an outlet)."""
+        lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in channel, x['pct'], x['score']))
         n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
         n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
         for m in members:

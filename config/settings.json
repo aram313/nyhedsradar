@@ -25,7 +25,7 @@
     "read": 0.6
   },
   "same_story_strict": {
-    "ar": 0.86
+    "ar": 1.01
   },
   "max_important_per_source": 4,
   "big_story_min_global_percentile": 72,
