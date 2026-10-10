@@ -30,6 +30,14 @@ jobs:
             git archive FETCH_HEAD | tar -x -C state
           fi
 
+      - name: Get the editor's latest overview
+        run: |
+          mkdir -p .cache
+          if git ls-remote --exit-code --heads origin digest >/dev/null; then
+            git fetch --depth=1 origin digest
+            git show FETCH_HEAD:digest.json > .cache/digest.json || true
+          fi
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -54,6 +62,7 @@ jobs:
         env:
           PYTHONPATH: src
           RADAR_STATE: state
+          RADAR_DIGEST: .cache/digest.json
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
           VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
           VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
@@ -62,7 +71,7 @@ jobs:
 
       - name: Save state
         run: |
-          rm -f .cache/profile.jsonl
+          rm -f .cache/profile.jsonl .cache/digest.json
           cd state
           git init -q -b data
           git config user.name "radar-bot"

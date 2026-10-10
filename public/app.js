@@ -1,4 +1,5 @@
-// Nyhedsradar – phone app. Reads data.json written by the radar and shows it as a copy-friendly list.
+// Nyhedsradar – phone app. Reads data.json written by the radar (and digest.json written by the
+// Claude editor) and shows them as a copy-friendly list.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -8,11 +9,15 @@ const store = {
 };
 
 let data = { items: [], sources: {} };
+let digest = store.get('lastDigest', null);
 let tab = 'top', query = '';
-let copied = store.get('copied', {});
-let foreignMode = store.get('foreignMode', 'translate');   // translate | hide | original         // id -> {at, title, link, source, words}
+let copied = store.get('copied', {});                        // id -> {at, title, link, source, words}
+let foreignMode = store.get('foreignMode', 'translate');      // translate | hide | original
+let danish = store.get('danish', false);                      // show and copy in Danish
 const expanded = new Set();
-const focusId = new URLSearchParams(location.search).get('item');
+const params = new URLSearchParams(location.search);
+const focusId = params.get('item');
+let digestOpen = params.get('digest') === '1';
 
 // ---------------------------------------------------------------- learning from copies
 const STOP = new Set(('og i at det er en til på som de med for af ikke der har jeg om var vi kan man den så hvad men ved skal fra eller nu også have efter blev mod over efter mere siger sagt nye ' +
@@ -29,7 +34,7 @@ function likeCopied(item, sets) {
 function learnFrom(i) {
   if (!CFG.feedbackTopic) return;
   fetch('https://ntfy.sh/' + CFG.feedbackTopic, {
-    method: 'POST', body: JSON.stringify({ kind: 'up', id: i.id, title: i.title, summary: (i.summary || '').slice(0, 220) }),
+    method: 'POST', body: JSON.stringify({ kind: 'up', id: i.id, title: i.origTitle || i.title, summary: (i.origSummary || i.summary || '').slice(0, 220) }),
   }).catch(() => { /* offline: the local learning above still applies */ });
 }
 
@@ -49,14 +54,15 @@ function dayLabel(iso) {
   if (d.toDateString() === y.toDateString()) return 'I går';
   return d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
 }
-const isRtl = s => /[؀-ۿ]/.test(s || '');
+const clock = iso => new Date(iso).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
 
 // ---------------------------------------------------------------- data
+const bust = url => url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
 async function load(manual) {
   const btn = $('refresh');
   btn.classList.add('spin');
   try {
-    const r = await fetch(CFG.dataUrl + (CFG.dataUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+    const r = await fetch(bust(CFG.dataUrl), { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
     data = await r.json();
     store.set('lastData', data);
@@ -64,40 +70,62 @@ async function load(manual) {
     const cached = store.get('lastData', null);
     if (cached) data = cached;
     if (manual) toast('Kunne ikke hente nye nyheder');
-  } finally {
-    btn.classList.remove('spin');
   }
+  if (CFG.digestUrl) {
+    try {
+      const r = await fetch(bust(CFG.digestUrl), { cache: 'no-store' });
+      if (r.ok) { digest = await r.json(); store.set('lastDigest', digest); }
+    } catch { /* keep the last overview */ }
+  }
+  btn.classList.remove('spin');
   render();
 }
 
-// ---------------------------------------------------------------- render
-const LANG_NAME = { ar: 'arabisk', tr: 'tyrkisk' };
-// what the card shows: Danish/English as-is, other languages translated unless the user wants the original
+// ---------------------------------------------------------------- what a card shows
+const LANG_NAME = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk' };
+// Danish/English as-is; other languages translated unless the user wants the original;
+// with the Danish setting on, everything that has a Danish version is shown in Danish.
 function display(i) {
-  if (!i.foreign || foreignMode === 'original' || !i.title_tr) return i;
-  return { ...i, title: i.title_tr, summary: i.summary_tr || '', translatedFrom: LANG_NAME[i.lang] || i.lang };
+  let d = { ...i, origTitle: i.title, origSummary: i.summary };
+  if (i.foreign && foreignMode !== 'original' && i.title_tr) {
+    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', translatedFrom: LANG_NAME[i.lang] || i.lang };
+  }
+  if (danish && i.title_da && !(i.foreign && foreignMode === 'original')) {
+    d = { ...d, title: i.title_da, summary: i.summary_da || '', translatedFrom: d.translatedFrom || LANG_NAME[i.lang] || i.lang };
+  }
+  return d;
 }
 const readable = t => !/[؀-ۿ]/.test(t || '');
+function copyTextFor(d) {
+  if (!danish) return `${d.title}\n${d.link}`;
+  const first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '');
+  return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}`;
+}
+
 function visibleItems() {
   const sets = copiedWordSets();
-  let items = data.items.map(display)
-    .filter(i => !i.foreign || (foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr)))
+  let items = data.items
+    .filter(i => !i.foreign || foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr))
+    .map(display)
     .map(i => ({ ...i, learned: !i.important && likeCopied(i, sets) }));
   if (tab === 'top') items = items.filter(i => i.important || i.learned);
   if (tab === 'copied') items = Object.entries(copied).sort((a, b) => b[1].at - a[1].at)
-    .map(([id, c]) => data.items.find(i => i.id === id) || { id, title: c.title, link: c.link, source: c.source, found: new Date(c.at).toISOString(), summary: '', also: [] });
+    .map(([id, c]) => { const x = data.items.find(i => i.id === id); return x ? display(x) : { id, title: c.title, link: c.link, source: c.source, found: new Date(c.at).toISOString(), summary: '', also: [] }; });
   if (query) {
     const q = query.toLowerCase();
-    items = items.filter(i => (i.title + ' ' + i.summary + ' ' + i.source).toLowerCase().includes(q));
+    items = items.filter(i => (i.title + ' ' + i.summary + ' ' + i.source + ' ' + (i.origTitle || '')).toLowerCase().includes(q));
   }
   return items;
 }
 
+// ---------------------------------------------------------------- render
 function card(i) {
   const badges = [];
   if (i.big) badges.push(`<span class="badge big">Stor historie · ${i.outlets} medier</span>`);
   else if (i.important) badges.push('<span class="badge top">Meget relevant</span>');
   else if (i.learned) badges.push('<span class="badge top">Ligner det du kopierer</span>');
+  if (i.confirmed === 0) badges.push('<span class="badge warn">Ubekræftet · kun Telegram/YouTube</span>');
+  else if (i.confirmed >= 2 && !i.big) badges.push(`<span class="badge ok">Bekræftet af ${i.confirmed} medier</span>`);
   if (i.translatedFrom) badges.push(`<span class="badge">Oversat fra ${esc(i.translatedFrom)}</span>`);
   const isCopied = !!copied[i.id];
   const also = i.also || [];
@@ -115,14 +143,36 @@ function card(i) {
   </article>`;
 }
 
+// the Claude editor's overview, shown at the top of "Vigtigste" for 12 hours
+function digestCard() {
+  if (!digest || !digest.created || Date.now() - new Date(digest.created) > 12 * 3600e3) return '';
+  const items = digest.items || [];
+  return `<article class="card digest" id="digest">
+    <div class="meta"><span class="src">Dagens overblik · ${esc(digest.period || '')}</span><span>kl. ${clock(digest.created)}</span><span class="badge">Skrevet af Claude</span></div>
+    ${digest.intro ? `<p class="summary intro">${esc(digest.intro)}</p>` : ''}
+    <ol class="digest-list${digestOpen ? '' : ' short'}">${items.map(x =>
+      `<li><b>${esc(x.headline)}</b>${x.text ? ` – ${esc(x.text)}` : ''} <a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.source || 'Læs')}</a></li>`).join('')}</ol>
+    <div class="actions">
+      <button class="copy" data-copy-digest="1">Kopiér hele overblikket</button>
+      <button class="open" data-toggle-digest="1">${digestOpen ? 'Vis mindre' : 'Vis alle'}</button>
+    </div>
+  </article>`;
+}
+
+function staleBanner() {
+  if (!data.updated) return '';
+  const mins = (Date.now() - new Date(data.updated)) / 60000;
+  return mins > 60 ? `<p class="stale">Radaren har ikke opdateret siden kl. ${clock(data.updated)}. Nyhederne herunder kan være forældede.</p>` : '';
+}
+
 function render() {
   $('updated').textContent = data.updated ? 'Opdateret ' + ago(data.updated) : 'Henter …';
   const items = visibleItems();
+  let html = staleBanner() + (tab === 'top' && !query ? digestCard() : '');
   if (!items.length) {
-    $('list').innerHTML = `<p class="empty">${tab === 'copied' ? 'Du har ikke kopieret noget endnu.' : query ? 'Ingen nyheder matcher søgningen.' : 'Ingen nyheder lige nu.'}</p>`;
-    return;
+    html += `<p class="empty">${tab === 'copied' ? 'Du har ikke kopieret noget endnu.' : query ? 'Ingen nyheder matcher søgningen.' : 'Ingen nyheder lige nu.'}</p>`;
   }
-  let html = '', last = '';
+  let last = '';
   for (const i of items) {
     const d = dayLabel(i.published || i.found);
     if (d !== last && tab !== 'copied') { html += `<div class="day">${d}</div>`; last = d; }
@@ -152,12 +202,17 @@ function toast(msg) {
 
 $('list').addEventListener('click', async e => {
   const c = e.target.closest('[data-copy]'), m = e.target.closest('[data-more]'), a = e.target.closest('[data-copy-also]');
-  if (c) {
+  if (e.target.closest('[data-copy-digest]')) {
+    const text = digest.whatsapp || (digest.items || []).map(x => `*${x.headline}*\n${x.text || ''}\n${x.link}`).join('\n\n');
+    if (await copyText(text)) toast('Overblikket er kopieret');
+  } else if (e.target.closest('[data-toggle-digest]')) {
+    digestOpen = !digestOpen; render();
+  } else if (c) {
     const raw = data.items.find(x => x.id === c.dataset.copy);
     const i = raw ? display(raw) : (copied[c.dataset.copy] && { id: c.dataset.copy, ...copied[c.dataset.copy] });
     if (!i) return;
-    if (await copyText(`${i.title}\n${i.link}`)) {
-      copied[i.id] = { at: Date.now(), title: i.title, link: i.link, source: i.source, words: words(i.title) };
+    if (await copyText(copyTextFor(i))) {
+      copied[i.id] = { at: Date.now(), title: i.title, link: i.link, source: i.source, words: words(i.origTitle || i.title) };
       store.set('copied', copied);
       c.classList.add('done'); c.textContent = 'Kopieret ✓';
       toast('Kopieret – klar til WhatsApp');
@@ -203,10 +258,10 @@ async function refreshPushInfo() {
   if (!reg) { info.textContent = 'Notifikationer kan ikke slås til i denne browser. Åbn appen fra hjemmeskærmen på din iPhone.'; return; }
   const sub = await reg.pushManager.getSubscription();
   if (sub && Notification.permission === 'granted') {
-    info.textContent = 'Notifikationer er slået til på denne telefon. Du får besked ved store historier og de allervigtigste nyheder (højst ca. 15 om dagen, ikke mellem kl. 23 og 7).';
+    info.textContent = 'Notifikationer er slået til på denne telefon. Du får besked ved store historier, de allervigtigste nyheder og dagens overblik kl. 7 og 17 (højst ca. 15 om dagen, ikke mellem kl. 23 og 7).';
     showCode(sub);
   } else {
-    info.textContent = 'Få besked ved store historier og de allervigtigste nyheder – højst ca. 15 om dagen og aldrig mellem kl. 23 og 7.';
+    info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og dagens overblik – højst ca. 15 om dagen og aldrig mellem kl. 23 og 7.';
     btn.hidden = false;
   }
 }
@@ -239,9 +294,11 @@ document.querySelectorAll('input[name="foreign"]').forEach(r => {
   r.checked = r.value === foreignMode;
   r.addEventListener('change', () => { foreignMode = r.value; store.set('foreignMode', foreignMode); render(); });
 });
+$('danish').checked = danish;
+$('danish').addEventListener('change', e => { danish = e.target.checked; store.set('danish', danish); render(); });
 $('closeSettings').addEventListener('click', () => $('settings').close());
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-const cached = store.get('lastData', null);
-if (cached) { data = cached; render(); }
+const cachedData = store.get('lastData', null);
+if (cachedData) { data = cachedData; render(); }
 load();

@@ -25,5 +25,6 @@
   },
   "same_story_strict": {
     "ar": 0.86
-  }
+  },
+  "max_important_per_source": 4
 }

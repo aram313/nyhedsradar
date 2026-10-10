@@ -30,7 +30,8 @@
  {
   "name": "Ekstra Bladet",
   "lang": "da",
-  "url": "https://ekstrabladet.dk/rssfeed/all/"
+  "url": "https://ekstrabladet.dk/rssfeed/all/",
+  "outlet": "Ekstra Bladet"
  },
  {
   "name": "Berlingske",
@@ -40,7 +41,8 @@
  {
   "name": "Politiken",
   "lang": "da",
-  "url": "https://politiken.dk/rss/senestenyt.rss"
+  "url": "https://politiken.dk/rss/senestenyt.rss",
+  "outlet": "Politiken"
  },
  {
   "name": "Information",
@@ -291,5 +293,65 @@
   "channel": "UCUbujDfkdxYP3LGk-rvRw_A",
   "max_age_hours": 336,
   "community": true
+ },
+ {
+  "name": "DR Indland",
+  "lang": "da",
+  "outlet": "DR",
+  "url": "https://www.dr.dk/nyheder/service/feeds/indland"
+ },
+ {
+  "name": "DR Regionale",
+  "lang": "da",
+  "outlet": "DR",
+  "url": "https://www.dr.dk/nyheder/service/feeds/regionale"
+ },
+ {
+  "name": "Politiken Indland",
+  "lang": "da",
+  "outlet": "Politiken",
+  "url": "https://politiken.dk/rss/indland.rss"
+ },
+ {
+  "name": "Politiken Udland",
+  "lang": "da",
+  "outlet": "Politiken",
+  "url": "https://politiken.dk/rss/udland.rss"
+ },
+ {
+  "name": "Ekstra Bladet Nyheder",
+  "lang": "da",
+  "outlet": "Ekstra Bladet",
+  "url": "https://ekstrabladet.dk/rssfeed/nyheder/"
+ },
+ {
+  "name": "TV 2 Øst",
+  "lang": "da",
+  "url": "https://www.tv2east.dk/rss"
+ },
+ {
+  "name": "TV 2 Fyn",
+  "lang": "da",
+  "url": "https://www.tv2fyn.dk/rss"
+ },
+ {
+  "name": "TV 2 Nord",
+  "lang": "da",
+  "url": "https://www.tv2nord.dk/rss"
+ },
+ {
+  "name": "TV 2 Østjylland",
+  "lang": "da",
+  "url": "https://www.tv2ostjylland.dk/rss"
+ },
+ {
+  "name": "TV Midtvest",
+  "lang": "da",
+  "url": "https://www.tvmidtvest.dk/rss"
+ },
+ {
+  "name": "TV Syd",
+  "lang": "da",
+  "url": "https://www.tvsyd.dk/rss"
  }
 ]

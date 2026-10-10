@@ -62,3 +62,4 @@ temp/
 public/config.js
 public/data.json
 state/
+public/digest.json

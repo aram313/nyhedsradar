@@ -88,6 +88,19 @@ def relevance(e, m, w, k, item_ids=None, prof_ids=None):
 
 # ------------------------------------------------------------------ helpers
 
+# liveblogs, podcasts, videos, sport, celebrity and lifestyle never belong in the radar
+NOISE_TITLE = re.compile(r'^(live\b|live:|liveblog|watch\b|video\b|podcast\b|quiz\b|horoskop|se billederne)'
+                         r'|seneste nyt|\blive blog\b|\bliveblog\b|\blive updates\b', re.I)
+NOISE_URL = re.compile(r'/(sport|sports|fodbold|football|soccer|haandbold|cykling|tennis|golf|formel-1|kendte|celebrity|'
+                       r'underholdning|entertainment|livsstil|lifestyle|horoskop|vejret|weather|quiz|games|podcasts?|'
+                       r'travel|rejser|mad|food|recipes|opskrifter|bolig|motor|biler|tv-guide|musik|music|film-og-serier)(/|-|$)', re.I)
+
+
+def is_noise(item):
+    return bool(NOISE_TITLE.search(item['title'].strip()) or NOISE_URL.search(item['link']))
+
+
+
 def norm_title(t):
     return re.sub(r'\W+', ' ', t.lower()).strip()[:90]
 
@@ -162,12 +175,16 @@ def main():
     outlet_of = {f['name']: f.get('outlet', f['name']) for f in feeds}
     max_age = {f['name']: f.get('max_age_hours', s['max_age_hours']) for f in feeds}
     community = {f['name'] for f in feeds if f.get('community')}
+    # Telegram and YouTube channels are fast but unverified; everything else is an established outlet
+    channel = {f['name'] for f in feeds if f.get('type') in ('telegram', 'youtube')}
 
     items = load(STATE / 'items.json', {})          # id -> every scored item from the last keep_hours
     seen = load(STATE / 'seen.json', {})            # id -> first seen; stops dropped items coming back
     learned = load(STATE / 'learned.json', [])      # what the radar taught itself: {id, t, at, why}
     pushes = load(STATE / 'pushes.json', {'sent': [], 'pending': [], 'notified': []})
     relay = load(STATE / 'relay.json', {'since': None})
+    health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
+    digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
     emb_store = {}
     if (STATE / 'emb.npz').exists():
         z = np.load(STATE / 'emb.npz', allow_pickle=False)
@@ -175,6 +192,7 @@ def main():
     first_run = len(items) < 300
 
     fetched, status = fetch_all(feeds)
+    health = {name: 0 if st['ok'] else health.get(name, 0) + 1 for name, st in status.items()}
 
     # 1. keep fresh, unseen, de-duplicated items (same link, or same headline from two feeds)
     known_titles = {norm_title(i['title']) for i in items.values()}
@@ -184,7 +202,7 @@ def main():
         if pub > NOW + timedelta(hours=1) or NOW - pub > timedelta(hours=max_age.get(it['source'], 48)):
             continue
         nt = norm_title(it['title'])
-        if len(nt.split()) < 4:  # section pages and teasers like 'MENA' or 'The Daily Edition'
+        if len(nt.split()) < 4 or is_noise(it):  # section pages, teasers, liveblogs, sport, celebrity …
             continue
         if it['id'] in seen or it['id'] in items or nt in known_titles:
             continue
@@ -249,7 +267,8 @@ def main():
     recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36)),
                     key=lambda k: items[k]['found'])
     for it in items.values():
-        it.update(lead=True, outlets=1, also=[], big=False, important=False)
+        it.update(lead=True, outlets=1, also=[], big=False, important=False,
+                  confirmed=0 if it['source'] in channel else 1)
         it.pop('cluster_pct', None)
     if recent:
         emb = np.array([emb_store[k] for k in recent])
@@ -259,16 +278,18 @@ def main():
             # prefer a Danish/English article as the card; foreign ones still count as outlets
             lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['pct'], x['score']))
             n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
+            n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
             for m in members:
                 m['lead'] = m is lead
                 m['outlets'] = n_out
+                m['confirmed'] = n_est
             lead['also'] = [{'source': m['source'], 'title': m['title'], 'link': m['link']}
                             for m in sorted(members, key=lambda x: -x['pct']) if m is not lead][:8]
             lead['cluster_pct'] = max(m['pct'] for m in members)
 
     shown = []
-    for it in items.values():
-        if not it['lead'] or 'pct' not in it:
+    for it in sorted(items.values(), key=lambda x: -x.get('cluster_pct', x.get('pct', 0))):
+        if not it['lead'] or 'pct' not in it or is_noise(it):
             continue
         cpct = it.get('cluster_pct', it['pct'])
         it['big'] = it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
@@ -276,11 +297,21 @@ def main():
         it['foreign'] = it.get('lang') not in READABLE
         if cpct >= s['show_percentile'] or it['big']:
             shown.append(it)
+    # balance: one prolific source may fill at most a few 'Vigtigste' slots per day (big stories exempt)
+    per_source = {}
+    for it in shown:  # already sorted best first
+        if it['important'] and not it['big'] and ts(it['found']) >= NOW - timedelta(hours=24):
+            per_source[it['source']] = per_source.get(it['source'], 0) + 1
+            if per_source[it['source']] > s.get('max_important_per_source', 4):
+                it['important'] = False
+    for it in shown:
+        cpct = it.get('cluster_pct', it['pct'])
         if it['big'] and cpct >= s['learn_big_min_percentile'] and it['id'] not in learned_ids:
             learned.append({'id': it['id'], 't': text(it), 'at': NOW.isoformat(), 'why': 'big'})
             learned_ids.add(it['id'])
 
-    # foreign-language cards (no Danish/English version of the story): translate to English once
+    # foreign-language cards (no Danish/English version of the story): translate to English once,
+    # then every card gets a Danish version for the app's "Dansk" setting
     translator = Translator(CACHE)
     for lang in {it['lang'] for it in shown if it['foreign'] and 'title_tr' not in it}:
         todo = [it for it in shown if it['lang'] == lang and it['foreign'] and 'title_tr' not in it]
@@ -289,6 +320,13 @@ def main():
         for it, t, sm in zip(todo, titles, sums):
             if t:
                 it['title_tr'], it['summary_tr'] = t, (sm or '') if it['summary'] else ''
+    todo = [it for it in shown if 'title_da' not in it and it['lang'] != 'da' and (it['lang'] == 'en' or it.get('title_tr'))]
+    if todo:
+        en_title = [it.get('title_tr') or it['title'] for it in todo]
+        en_sum = [(it.get('summary_tr') if it['foreign'] else it['summary']) or '' for it in todo]
+        for it, t, sm in zip(todo, translator(en_title, 'en', 'da'), translator(en_sum, 'en', 'da')):
+            if t:
+                it['title_da'], it['summary_da'] = tidy(t), tidy(sm or '')
 
     for it in shown:  # also tidies translations stored by earlier versions
         if it.get('title_tr'):
@@ -329,18 +367,27 @@ def main():
             pushes['sent'].append(NOW.isoformat())
             notified += [{'id': p['id'], 'at': NOW.isoformat()} for p in batch]
             pending = []
+    # the editor's daily overview gets its own notification as soon as it appears
+    if digest.get('created') and digest['created'] > pushes.get('digest_sent', '')             and NOW - ts(digest['created']) < timedelta(hours=3) and not in_quiet_hours(s):
+        first = (digest.get('items') or [{}])[0].get('headline', '')
+        result = push.send({'title': f"Dagens overblik · {digest.get('period', '')}".strip(' ·'),
+                            'body': digest.get('intro') or first, 'url': './?digest=1', 'tag': 'digest'})
+        print('digest push:', result)
+        pushes['digest_sent'] = digest['created']
+
     pushes.update(pending=pending, notified=notified,
                   sent=[x for x in pushes['sent'] if ts(x) >= NOW - timedelta(days=2)])
 
     # 7. write state + the public file the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
-                     'pct', 'big', 'important', 'outlets', 'also', 'foreign', 'title_tr', 'summary_tr')
+                     'pct', 'big', 'important', 'outlets', 'confirmed', 'also', 'foreign',
+                     'title_tr', 'summary_tr', 'title_da', 'summary_da')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {
         'updated': NOW.isoformat(),
         'items': [{k: it.get(k) for k in public_fields} for it in shown],
-        'sources': {k: {'ok': v['ok'], 'items': v['items']} for k, v in status.items()},
+        'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
     })
@@ -349,6 +396,7 @@ def main():
     save(STATE / 'learned.json', learned)
     save(STATE / 'pushes.json', pushes)
     save(STATE / 'relay.json', relay)
+    save(STATE / 'health.json', health)
     keep = list(emb_store)
     np.savez_compressed(STATE / 'emb.npz', ids=np.array(keep, dtype='U32'),
                         m=np.array([emb_store[k] for k in keep], dtype=np.float16) if keep else np.zeros((0, 384), np.float16))

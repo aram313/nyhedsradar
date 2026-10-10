@@ -98,3 +98,13 @@ textarea { width: 100%; font: 12px ui-monospace, Menlo, monospace; background: v
 .radio { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--surface-1); border-radius: 10px; margin-bottom: 6px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
 .radio input { margin-top: 3px; accent-color: var(--accent); }
 .radio b { color: var(--text-primary); }
+.badge.ok { color: var(--good); }
+.badge.warn { color: var(--big); }
+.stale { background: var(--surface-2); border-left: 4px solid var(--big); padding: 10px 12px; border-radius: 8px; font-size: 14px; color: var(--text-secondary); margin: 4px 0 12px; }
+.card.digest { border: 2px solid var(--accent); }
+.digest .intro { -webkit-line-clamp: unset; display: block; margin-top: 8px; color: var(--text-primary); }
+.digest-list { margin: 10px 0 0; padding-left: 22px; font-size: 15px; color: var(--text-secondary); }
+.digest-list li { margin-bottom: 8px; }
+.digest-list b { color: var(--text-primary); }
+.digest-list a { color: var(--accent); text-decoration: none; font-size: 13px; white-space: nowrap; }
+.digest-list.short li:nth-child(n+4) { display: none; }

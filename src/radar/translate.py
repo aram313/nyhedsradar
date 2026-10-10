@@ -1,4 +1,4 @@
-"""Offline translation of Arabic and Turkish headlines into English.
+"""Offline translation: Arabic and Turkish headlines into English, English into Danish.
 
 Uses the free Argos Translate models (OPUS-MT, CTranslate2 format) directly, without the
 argostranslate package, which would pull in several gigabytes of PyTorch. Nothing is sent
@@ -11,8 +11,9 @@ import zipfile
 from pathlib import Path
 
 MODELS = {
-    'ar': 'https://argos-net.com/v1/translate-ar_en-1_0.argosmodel',
-    'tr': 'https://argos-net.com/v1/translate-tr_en-1_5.argosmodel',
+    ('ar', 'en'): 'https://argos-net.com/v1/translate-ar_en-1_0.argosmodel',
+    ('tr', 'en'): 'https://argos-net.com/v1/translate-tr_en-1_5.argosmodel',
+    ('en', 'da'): 'https://argos-net.com/v1/translate-en_da-1_9.argosmodel',
 }
 
 
@@ -29,34 +30,35 @@ class Translator:
         self.dir = Path(cache_dir) / 'argos'
         self.loaded = {}
 
-    def _load(self, lang):
-        if lang in self.loaded:
-            return self.loaded[lang]
+    def _load(self, pair):
+        if pair in self.loaded:
+            return self.loaded[pair]
         import ctranslate2
         import sentencepiece
-        target = self.dir / lang
+        target = self.dir / f'{pair[0]}_{pair[1]}'
         if not (target / 'ready').exists():
-            req = urllib.request.Request(MODELS[lang], headers={'User-Agent': 'Mozilla/5.0 (Nyhedsradar)'})
+            req = urllib.request.Request(MODELS[pair], headers={'User-Agent': 'Mozilla/5.0 (Nyhedsradar)'})
             with urllib.request.urlopen(req, timeout=180) as r:
                 zipfile.ZipFile(io.BytesIO(r.read())).extractall(target)
             (target / 'ready').write_text('ok')
         root = next(p.parent for p in target.rglob('sentencepiece.model'))
         model = (ctranslate2.Translator(str(root / 'model'), device='cpu', inter_threads=2),
                  sentencepiece.SentencePieceProcessor(model_file=str(root / 'sentencepiece.model')))
-        self.loaded[lang] = model
+        self.loaded[pair] = model
         return model
 
-    def __call__(self, texts, lang):
+    def __call__(self, texts, lang, to='en'):
         """Translate a list of short texts. Returns None for each text that could not be translated."""
-        if lang not in MODELS or not texts:
+        pair = (lang, to)
+        if pair not in MODELS or not texts:
             return [None] * len(texts)
         try:
-            tr, sp = self._load(lang)
+            tr, sp = self._load(pair)
             # separators and emoji are unknown to the model and come back as '⁇'
             prep = [re.sub(r'\s+', ' ', re.sub(r'[|•⭕🔴⚡️🆘📌‼️⁉️]+', ' ', t[:600])).strip(' :-–') for t in texts]
             toks = [sp.encode(t, out_type=str) for t in prep]
             res = tr.translate_batch(toks, beam_size=2, max_decoding_length=200)
             return [tidy(sp.decode(r.hypotheses[0])) if t else '' for r, t in zip(res, prep)]
         except Exception as e:  # translation is a bonus; the radar must keep running
-            print(f'translate {lang}: failed: {type(e).__name__}: {e}')
+            print(f'translate {lang}->{to}: failed: {type(e).__name__}: {e}')
             return [None] * len(texts)
