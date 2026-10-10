@@ -97,6 +97,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- One recap a day instead of an overview that grew three times a day: at 21:00 the editor writes 'Resumé'
+  (up to 25 short 'Who: what' lines covering the day since 21:00 the evening before), it replaces the previous
+  one under 'Vigtigst i dag' (now 8 stories) and the phones are told right away. Owner's request: news on the
+  front page that the overview did not have looked odd.
 - The overview is now one overview per day at the bottom of the front page, titled with the date ('Overblik
   10. oktober'): the day's most important movements as short 'Who: what' lines in the style of Al Jazeera's
   breaking wire, grouped by topic with the time at the left, newest first. The editor adds to it at 07, 15 and

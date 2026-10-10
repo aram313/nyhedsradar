@@ -5,11 +5,10 @@ The app is called **Khabar** (خبر, "news"). The repository and folder keep th
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
 *Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and **Verden**.
-Headlines set the names of people, parties and places in bold. The front page opens with 'Vigtigst lige nu'
-(the radar's strongest stories right now) and closes with Claude's **overview of the day**, titled with the date:
+Headlines set the names of people, parties and places in bold. The front page opens with 'Vigtigst i dag'
+(the radar's strongest stories today) and closes with Claude's **recap of the day** ('Resumé', written at 21:00):
 the day's most important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire,
-grouped by topic and added to at 07, 15 and 22; after midnight the next update starts a new day, and earlier
-days stay in an archive below it. The fifth tab, **Seneste**, shows everything as it comes in. Every story has a small picture; opening it shows a short summary, how Danish, Western,
+grouped by topic; each recap replaces the one before, and earlier days stay in an archive below it. The fifth tab, **Seneste**, shows everything as it comes in. Every story has a small picture; opening it shows a short summary, how Danish, Western,
 Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is
 one tap away) or copy. Big stories and the most relevant news also trigger a notification.
 
@@ -46,7 +45,7 @@ one tap away) or copy. Big stories and the most relevant news also trigger a not
    same story, or the article page's share image – shrunk to a few kilobytes (`src/radar/thumbs.py`, files in
    `t/` on the data branch). Telegram channels never lend a picture.
 9. **The overview of the day:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other
-   one-line statements) in `lines.json`. At 07, 15 and 22 a Claude routine runs `scripts/editor.py input` (the
+   one-line statements) in `lines.json`. At 21:00 a Claude routine runs `scripts/editor.py input` (the
    day so far, plus the stories and wire lines since the last update), writes the most important new movements
    as short Danish 'Who: what' lines under the day's topics and runs `scripts/editor.py publish`, which checks
    them, fills in links, sources and times, adds them to the day (a new day after midnight) and writes

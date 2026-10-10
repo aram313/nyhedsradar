@@ -1,19 +1,20 @@
-"""Tools for the Claude editor, who keeps Khabar's overview of the day.
+"""Tools for the Claude editor, who writes Khabar's recap of the day.
 
-One overview per day (Danish time): the day's most important movements as short lines in the style of Al Jazeera's
-breaking wire and the group's own 'Politiske nyheder' posts – 'Who: what', one sentence each, grouped by topic. The
-editor adds to it at 07, 15 and 22; the first update after midnight starts the next day. The app shows the day at
-the bottom of its front page; earlier days stay in an archive.
+One recap per day, written at 21:00 Danish time: the most important movements since the previous recap (normally
+21:00 the evening before) as short lines in the style of Al Jazeera's breaking wire and the group's own 'Politiske
+nyheder' posts – 'Who: what', one sentence each, grouped by topic. The newest recap replaces the previous one on
+the app's front page, under 'Vigtigst i dag'; earlier days stay in an archive.
 
-    python3 scripts/editor.py input              -> /tmp/editor/input.md: the day so far, the stories and every
-                                                    Al Jazeera wire line since the last update, and the format
-    python3 scripts/editor.py publish FILE       -> checks Claude's additions, fills in links, sources and times,
-            [--push] [--out DIR]                    adds them to the day and writes digest.json (the day, with its
-                                                    share text) and moves.json (the last 30 days, newest first);
-                                                    --push commits both to the digest branch
+    python3 scripts/editor.py input              -> /tmp/editor/input.md: the stories and every Al Jazeera wire
+                                                    line since the previous recap, and the format to write
+    python3 scripts/editor.py publish FILE       -> checks Claude's recap, fills in links, sources and times and
+            [--push] [--out DIR]                    writes digest.json (the recap, with its share text) and
+                                                    moves.json (the last 30 days, newest first); --push commits
+                                                    both to the digest branch. Run again the same day, it
+                                                    replaces that day's recap.
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
-Options for test runs: --now ISO, --period morgen|eftermiddag|aften."""
+Options for test runs: --now ISO."""
 import argparse
 import json
 import os
@@ -28,7 +29,7 @@ DAYS = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'
 MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober',
           'november', 'december']
 KEEP = 30        # days in the archive
-MAX_NEW = 14     # lines one update may add: the most important movements, not everything
+MAX_NEW = 25     # lines in a recap: the day's most important movements, not everything
 MAX_TEXT = 220   # characters in a line: one short sentence
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
@@ -60,19 +61,11 @@ def period_of(now):
     return 'morgen' if h < 12 else 'eftermiddag' if h < 17 else 'aften'
 
 
-def window_start(now, period, times=()):
-    """Where the update's stories begin: at the newest earlier update (less than 20 hours old), so an update never
-    repeats the one before; without one, at the usual time before it (Danish time): morning since 22:00 the evening
-    before, afternoon since 07:00, evening since 15:00."""
-    earlier = [ts(t) for t in times if t and timedelta(0) < now - ts(t) < timedelta(hours=20)]
-    if earlier:
-        return max(earlier)
-    local = dk(now)
-    if period == 'morgen':
-        start = (local - timedelta(days=1)).replace(hour=22, minute=0, second=0, microsecond=0)
-    else:
-        start = local.replace(hour=7 if period == 'eftermiddag' else 15, minute=0, second=0, microsecond=0)
-    return start.astimezone(timezone.utc)
+def window_start(now, times=()):
+    """Where the recap's material begins: at the previous recap (less than 30 hours old), so nothing falls between
+    two days; without one, 24 hours back."""
+    earlier = [ts(t) for t in times if t and timedelta(0) < now - ts(t) < timedelta(hours=30)]
+    return max(earlier) if earlier else now - timedelta(hours=24)
 
 
 # ------------------------------------------------------------------ the day and the archive
@@ -149,6 +142,11 @@ def material(args):
     return data, lines, migrate(read(args, 'origin/digest', 'moves.json', {'days': []}), data, lines)
 
 
+def before(moves, now):
+    """The archive without today's recap: a second run the same day replaces it and must see the same material."""
+    return {**moves, 'days': [d for d in moves.get('days') or [] if d['date'] != dk(now).date().isoformat()]}
+
+
 def today_of(moves, now):
     days = moves.get('days') or []
     return days[0] if days and days[0]['date'] == dk(now).date().isoformat() else None
@@ -172,44 +170,29 @@ def uncovered(lines, moves):
 
 TEMPLATE = {
     'topics': [{
-        'name': "<today's topic name to continue it, or a new short, concrete Danish heading>",
+        'name': '<a short, concrete Danish heading: one event, conflict, negotiation, place or Danish issue>',
         'section': 'dk | me | world',
         'lines': [{'who': '<who says or reports it>', 'text': '<one short Danish sentence: what happened or was said>',
                    'story': '<the story id, when the line tells a story from the list>',
                    'ids': ['<the wire line id, when it comes from the wire>', '<a second id when two lines say the same>']}],
     }],
-    'order': ["<every topic name of the day, today's and new, the most important first>"],
-    'drop': ["<optional, rare: ids of today's lines that turned out to be wrong>"],
+    'order': ['<every topic name, the most important of the day first>'],
 }
 
 
 def cmd_input(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
-    period = args.period or period_of(now)
     data, lines, moves = material(args)
-    day = today_of(moves, now)
-    start = window_start(now, period, update_times(moves))
-    told = {x['id'] for tp in (day or {}).get('topics', []) for x in tp['lines'] if x.get('kind') == 's'}
-    stories = [i for i in data.get('items', []) if ts(i.get('found') or i['published']) >= start   # found: a gap must not hide it
-               and i['id'] not in told]
+    moves = before(moves, now)
+    start = window_start(now, update_times(moves))
+    stories = [i for i in data.get('items', []) if ts(i.get('found') or i['published']) >= start]   # found: a gap must not hide it
     stories.sort(key=lambda i: -(i.get('rank') or 0))
     wire = uncovered(lines, moves)
-    out = [f'# Material for the {dk(now).hour}:00 update of the overview · {date_da(now, True)} kl. {dk(now):%H.%M} '
-           '(Danish time)', '']
-    if day:
-        n = sum(len(tp['lines']) for tp in day['topics'])
-        out += [f"## Today's overview so far ({date_da(now)}) – {n} lines in {len(day['topics'])} topics", '',
-                'Continue a topic by writing its name exactly as here. Lines, newest first: [id] Danish time · who: text', '']
-        for tp in day['topics']:
-            out.append(f"### {tp['name']} ({tp['section']})")
-            out += [f"[{x['id']}] {dk(ts(x['at'])):%H.%M} · {x['who'] + ': ' if x['who'] else ''}{x['text']}" for x in tp['lines']]
-            out.append('')
-    else:
-        out += ["## Today's overview so far – nothing yet", '', f'This update starts the overview of {date_da(now)}.', '']
+    out = [f'# Material for the recap of {date_da(now, True)} · written kl. {dk(now):%H.%M} (Danish time)', '']
     out += [f'## Stories since {dk(start):%H.%M} {date_da(start)} – {len(stories)}, strongest first', '',
             'Fields: id · section · rank · big (many outlets) · outlets, by kind of media · confirmed (established '
             'outlets; 0 = only Telegram/YouTube channels, so unconfirmed)', '']
-    for i in stories[:90]:
+    for i in stories[:120]:
         cover = ', '.join(f'{n} {k}' for k, n in (i.get('cover') or {}).items())
         flags = ' · big' if i.get('big') else ''
         tr = i.get('title_tr')
@@ -232,7 +215,7 @@ def cmd_input(args):
             json.dumps(TEMPLATE, ensure_ascii=False, indent=1)]
     WORK.mkdir(parents=True, exist_ok=True)
     (WORK / 'input.md').write_text('\n'.join(out), encoding='utf-8')
-    print(f'{WORK / "input.md"}: {"day so far, " if day else "a new day, "}{len(stories)} stories since '
+    print(f'{WORK / "input.md"}: {len(stories)} stories since '
           f'{dk(start):%H.%M}, {len(wire)} wire lines')
 
 
@@ -255,7 +238,7 @@ def push_text(day):
     if not new:
         return None
     body = f"{new[0]['who']}: {new[0]['text']}" if new[0]['who'] else new[0]['text']
-    return {'title': f"Khabar · overblik kl. {dk(ts(day['created'])).hour}",
+    return {'title': f"Khabar · dagens resumé, {dk(ts(day['created'])).day}. {MONTHS[dk(ts(day['created'])).month - 1]}",
             'body': body + (f'  (+{len(new) - 1} mere)' if len(new) > 1 else '')}
 
 
@@ -263,8 +246,8 @@ def build(draft, data, lines, moves, now):
     """Today's overview with Claude's additions, or a list of problems to fix."""
     problems = []
     stamp = now.isoformat(timespec='seconds')
-    old = today_of(moves, now)
-    day = json.loads(json.dumps(old)) if old else new_day(now)
+    moves = before(moves, now)
+    day = new_day(now)
     by_id = {i['id']: i for i in data.get('items', [])}
     wire = {v['i']: v for v in uncovered(lines, moves)}
     told = {x['id'] for tp in day['topics'] for x in tp['lines'] if x.get('kind') == 's'}
@@ -316,17 +299,12 @@ def build(draft, data, lines, moves, now):
                 adds.append((name, section, {'who': who, 'text': text, 'link': first['u'], 'source': 'Al Jazeera',
                                              'at': first['p'], 'added': stamp, 'id': first['i'], 'kind': 'w'}))
     if len(adds) > MAX_NEW:
-        problems.append(f'{len(adds)} new lines – at most {MAX_NEW}: keep only the most important movements')
-    drop = set(draft.get('drop') or [])
-    have = {x['id'] for tp in day['topics'] for x in tp['lines']}
-    problems += [f"drop: {i!r} is no line in today's overview" for i in sorted(drop - have)]
+        problems.append(f'{len(adds)} lines – at most {MAX_NEW}: keep only the most important movements')
     names = {key(tp['name']) for tp in day['topics']} | {key(n) for n, _, _ in adds}
     order = [n for n in draft.get('order') or [] if str(n).strip()]
     problems += [f'order: {n!r} is no topic of the day' for n in order if key(n) not in names]
     if problems:
         return None, problems
-    for tp in day['topics']:
-        tp['lines'] = [x for x in tp['lines'] if x['id'] not in drop]
     for name, section, line in adds:
         topic_of(day, name, section)['lines'].append(line)
     for tp in day['topics']:
@@ -384,7 +362,7 @@ def main(argv=None):
     p.add_argument('--out', help='write the files here (default /tmp/editor/out)')
     p.add_argument('--push', action='store_true', help='commit the files to the digest branch')
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')
-    p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'])
+    p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'], help=argparse.SUPPRESS)
     args = p.parse_args(argv)
     (cmd_input if args.command == 'input' else cmd_publish)(args)
 

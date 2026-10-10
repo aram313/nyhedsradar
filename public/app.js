@@ -1,7 +1,7 @@
 // Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
-// by the radar every few minutes) and digest.json (the editor's overview of the day, added to at 7, 15 and 22: the
-// day's most important movements as short 'Who: what' lines by topic, in the style of Al Jazeera's breaking wire).
-// Front page = what matters right now, then the overview of the day; a tab per section – Danmark, Mellemøsten,
+// by the radar every few minutes) and digest.json (the editor's recap of the day, written at 21: the day's most
+// important movements as short 'Who: what' lines by topic, in the style of Al Jazeera's breaking wire).
+// Front page = today's most important stories, then the latest recap; a tab per section – Danmark, Mellemøsten,
 // Verden – and 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
@@ -246,15 +246,13 @@ function coverage(i) {
 }
 
 // ---------------------------------------------------------------- the overview of the day
-// One per day: the day's most important movements as short lines – 'Who: what', in the style of Al Jazeera's
-// breaking wire and the group's own 'Politiske nyheder' posts – grouped by topic, newest first. The editor adds to
-// it at 7, 15 and 22; after midnight the next update starts a new day. It closes the front page; earlier days wait
-// in the archive below it.
+// One recap per day, written at 21: the day's most important movements as short lines – 'Who: what', in the style
+// of Al Jazeera's breaking wire and the group's own 'Politiske nyheder' posts – grouped by topic, newest first. It
+// closes the front page and replaces the day before; earlier days wait in the archive below it.
 const SHOW = 4;   // lines a topic shows before '+ n mere'
 const ymd = iso => new Date(iso).toLocaleDateString('sv-SE');   // the local date as 2026-10-10
 const dateDa = (ymdStr, weekday) => new Date(ymdStr + 'T12:00:00').toLocaleDateString('da-DK',
   weekday ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long' });
-const listDa = xs => xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' og ' + xs[xs.length - 1];
 // a day from the editor; an edition from before days existed (an old copy in the phone's memory) becomes one
 function dayOf(d) {
   if (!d || !d.created) return null;
@@ -289,22 +287,21 @@ function dayTopic(day, tp) {
 }
 function dayBody(day) {
   return `<div class="ov-body" data-day="${esc(day.date)}">${day.topics.map(tp => dayTopic(day, tp)).join('')}
-    <div class="ov-acts"><button data-day-share><svg><use href="#i-share"/></svg>Del overblik</button></div></div>`;
+    <div class="ov-acts"><button data-day-share><svg><use href="#i-share"/></svg>Del resumé</button></div></div>`;
 }
 // the share text, in the format members post themselves (digest.json brings it ready for the newest day)
 function dayText(day) {
   if (digest && digest.date === day.date && digest.created === day.created && digest.whatsapp) return digest.whatsapp;
   return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`)].join('\n\n');
 }
+// the newest recap (written at 21, it covers the day since 21 the evening before) replaces the one before
 function overview() {
-  const day = dayOf(digest), today = ymd(new Date().toISOString());
-  if (!day || Date.now() - new Date(day.created) > 36 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-h"><h2>Overblik</h2><p>Dagens vigtigste bevægelser – kommer kl. 7, 15 og 22.</p></div></section>`;
+  const day = dayOf(digest);
+  if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
+    return `<section class="ov" id="overview"><div class="ov-h"><h2>Resumé</h2><p>Dagens vigtigste bevægelser – kommer kl. 21.</p></div></section>`;
   }
-  const hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
-  const next = day.date === today ? [7, 15, 22].find(h => h > Math.max(...hrs)) : null;
-  return `<section class="ov" id="overview"><div class="ov-h"><h2>Overblik <span>${dateDa(day.date)}</span></h2>
-    <p>Opdateret kl. ${listDa(hrs)}${next ? ` · næste kl. ${next}` : ''}</p></div>${dayBody(day)}</section>`;
+  return `<section class="ov" id="overview"><div class="ov-h"><h2>Resumé <span>${dateDa(day.date, true)}</span></h2>
+    <p>Dagens vigtigste bevægelser · lavet kl. ${clock(day.created)}</p></div>${dayBody(day)}</section>`;
 }
 async function loadArchive() {
   if (archiveState === 'loading') return;
@@ -336,7 +333,7 @@ function archive() {
 }
 
 // ---------------------------------------------------------------- render: pages
-// headings: a block ('Vigtigst lige nu') is a large title; a day ('I dag', 'I går') is a coloured marker
+// headings: a block ('Vigtigst i dag') is a large title; a day ('I dag', 'I går') is a coloured marker
 // that stays at the top while its stories scroll past
 const blockHead = (title, more) => `<div class="block-h"><h2><i class="live"></i>${title}</h2>${more || ''}</div>`;
 function timeline(list, opts, n0 = 0) {
@@ -348,12 +345,12 @@ function timeline(list, opts, n0 = 0) {
   });
   return html;
 }
-// the front page: what matters right now (all sections), then the overview of the day, then earlier days
+// the front page: today's most important stories (all sections), then the latest recap of a day, then earlier days
 function home(all, opts) {
-  let cands = all.filter(i => hours(i) < 6);
-  if (cands.length < 6) cands = all.filter(i => hours(i) < 18);
-  const now = pick(cands, 6);
-  let html = `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
+  let cands = all.filter(i => hours(i) < 12);
+  if (cands.length < 8) cands = all.filter(i => hours(i) < 24);
+  const now = pick(cands, 8);
+  let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
@@ -367,7 +364,7 @@ function sectionPage(sec, all, opts) {
   const imp = list.filter(i => hours(i) < 24 && i.important);
   const top = imp.length >= 2 ? pick(imp, 5) : pick(list.filter(i => hours(i) < 24), 3);
   const ids = new Set(top.map(i => i.id));
-  const html = top.length ? `<section class="block">${blockHead('Vigtigst lige nu')}${top.map((i, n) => story(i, n, opts)).join('')}</section>` : '';
+  const html = top.length ? `<section class="block">${blockHead('Vigtigst i dag')}${top.map((i, n) => story(i, n, opts)).join('')}</section>` : '';
   return html + timeline(list.filter(i => !ids.has(i.id)), opts, top.length);
 }
 // everything as it comes in, all sections mixed, newest first
@@ -757,10 +754,10 @@ async function refreshPushInfo() {
   if (!reg) { info.textContent = 'Notifikationer kan kun slås til i appen på hjemmeskærmen.'; return; }
   const sub = await reg.pushManager.getSubscription();
   if (sub && Notification.permission === 'granted') {
-    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og nyt i overblikket kl. 7, 15 og 22. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
+    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og dagens resumé kl. 21. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
     showCode(sub);
   } else {
-    info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og overblikket.';
+    info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og dagens resumé.';
     btn.hidden = false;
   }
 }
