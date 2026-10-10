@@ -1,0 +1,29 @@
+name: Push test
+
+# Sends one test notification to every phone in PUSH_SUBS. Run it by hand from the Actions tab
+# (or `gh workflow run push-test.yml`) whenever a phone has been (re)connected.
+on:
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pywebpush==2.0.3
+      - name: Send
+        env:
+          PYTHONPATH: src
+          PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: |
+          python -c "
+          from radar import push
+          r = push.send({'title': 'Nyhedsradar', 'body': 'Det virker! Du får nu besked ved store historier og de vigtigste nyheder.', 'url': './', 'tag': 'test'})
+          print(r)
+          assert r.get('sent'), r
+          "
