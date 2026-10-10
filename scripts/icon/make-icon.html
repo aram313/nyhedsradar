@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><title>icon-export</title>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&display=block" rel="stylesheet">
+<style>body{margin:0;background:#888;display:flex;gap:16px;padding:16px;align-items:flex-start}canvas{border-radius:22%}</style></head>
+<body><script>
+// "Varmt papir": warm paper with grain, black Lalezar خبر, red dot over the خ (drawn as ح + dot)
+function draw(size) {
+  const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d'), k = size / 512;
+  x.fillStyle = '#efe5d1'; x.fillRect(0, 0, size, size);
+  // paper grain: soft grey speckle, a little coarser than pixel noise
+  const img = x.getImageData(0, 0, size, size), d = img.data; let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < d.length; i += 4) { const n = (rnd() - .5) * 26; d[i] += n; d[i + 1] += n; d[i + 2] += n * .9; }
+  x.putImageData(img, 0, 0);
+  x.font = `${430 * k}px "Lalezar"`; x.direction = 'rtl'; x.textAlign = 'center';
+  const m = x.measureText('حبر'), asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent;
+  const cx = 256 * k, cy = 320 * k, base = cy + (asc - desc) / 2, top = base - asc;
+  const left = cx - m.actualBoundingBoxLeft, right = cx + m.actualBoundingBoxRight;
+  x.fillStyle = '#111111'; x.fillText('حبر', cx, base);
+  x.fillStyle = '#e10600'; x.beginPath(); x.arc(left + (right - left) * .86, top - 48 * k, 38 * k, 0, Math.PI * 2); x.fill();
+  return c;
+}
+document.fonts.load('430px "Lalezar"', 'حبر').then(async () => {
+  for (const s of [512, 192, 180]) {
+    const c = draw(s); document.body.append(c);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const res = await fetch(`http://127.0.0.1:8766/icon-${s}.png`, { method: 'POST', body: blob });
+    document.title += ' ' + (await res.text());
+  }
+  document.title += ' DONE';
+});
+</script></body></html>

@@ -8,19 +8,21 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Khabar">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#efe5d1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1712" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap">
 <link rel="stylesheet" href="style.css">
 <script>
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
     const q = new URLSearchParams(location.search), d = document.documentElement;
-    const tone = q.get('tone') || JSON.parse(localStorage.getItem('tone') || '"klassisk"');
+    const tone = q.get('tone') || JSON.parse(localStorage.getItem('tone') || '"papir"');
     const mode = q.get('theme') || JSON.parse(localStorage.getItem('mode') || '"auto"');
-    if (tone !== 'klassisk') d.dataset.tone = tone;
+    if (tone !== 'papir') d.dataset.tone = tone;
     if (mode !== 'auto') d.dataset.theme = mode;
   } catch (e) {}
 </script>
@@ -42,7 +44,7 @@
 </svg>
 
 <header class="top" id="top">
-  <div class="brand"><span class="beat" id="beat" aria-hidden="true"></span><span id="brandName">Khabar</span></div>
+  <div class="brand" aria-label="Khabar"><span class="logo" dir="rtl" aria-hidden="true">حبر<span class="beat" id="beat"></span></span><span class="wordmark" id="brandName">Khabar</span></div>
   <button class="status" id="status" aria-label="Opdater">henter …</button>
 </header>
 
@@ -90,7 +92,7 @@
     <p class="hint">Tryk på en overskrift for resumé og flere kilder. Swipe til højre eller tryk på ikonet for at kopiere.</p>
 
     <h3>Udseende</h3>
-    <div class="tones" id="toneSeg" role="radiogroup" aria-label="Tone"><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-dk:#000000;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="blod" style="--c-bg:#f7f7f5;--c-dk:#121212;--c-ac:#d9261c"><i></i>Blød</button><button role="radio" data-tone="papir" style="--c-bg:#f8f5ef;--c-dk:#15130f;--c-ac:#c8322a"><i></i>Papir</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-dk:#0e1115;--c-ac:#d62d30"><i></i>Kølig</button><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-dk:#1c1c1d;--c-ac:#b8403a"><i></i>Dæmpet</button></div>
+    <div class="tones" id="toneSeg" role="radiogroup" aria-label="Tone"><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-dk:#1a1712;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-dk:#000000;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="blod" style="--c-bg:#f7f7f5;--c-dk:#121212;--c-ac:#d9261c"><i></i>Blød</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-dk:#0e1115;--c-ac:#d62d30"><i></i>Kølig</button><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-dk:#1c1c1d;--c-ac:#b8403a"><i></i>Dæmpet</button></div>
     <div class="seg" id="modeSeg" role="radiogroup" aria-label="Lys eller mørk">
       <button role="radio" data-v="auto">Automatisk</button>
       <button role="radio" data-v="light">Lys</button>

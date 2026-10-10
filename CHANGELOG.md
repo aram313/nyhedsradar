@@ -36,6 +36,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Appearance settings: five tones of the same look (Klassisk default, Blød, Papir, Kølig, Dæmpet), each with
   light and dark versions, plus Automatisk / Lys / Mørk. Applied before first paint, so no flash.
 - Swipe background now only shows while swiping (no red hairlines between lines).
+- New default look "Papir": warm paper colour with a fine grain, black ink and red, in light and dark.
+  The other tones (Klassisk, Blød, Kølig, Dæmpet) remain in 'Mere'.
+- New icon and logo: the word خبر in Lalezar on warm paper with the red dot over the خ; in the app the dot
+  is the live pulse. Icon renderer kept in scripts/icon/.
 - Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
   Danish stories (e.g. northern lights) no longer qualify.
 

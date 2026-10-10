@@ -428,10 +428,10 @@ $('foreignSeg').addEventListener('click', e => {
 paintSeg();
 
 // appearance: five tones of the same look, and automatic / light / dark
-let tone = store.get('tone', 'klassisk'), mode = store.get('mode', 'auto');
+let tone = store.get('tone', 'papir'), mode = store.get('mode', 'auto');
 function applyLook() {
   const d = document.documentElement;
-  tone === 'klassisk' ? delete d.dataset.tone : d.dataset.tone = tone;
+  tone === 'papir' ? delete d.dataset.tone : d.dataset.tone = tone;
   mode === 'auto' ? delete d.dataset.theme : d.dataset.theme = mode;
   document.querySelectorAll('#toneSeg [data-tone]').forEach(b => b.setAttribute('aria-checked', b.dataset.tone === tone));
   document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
