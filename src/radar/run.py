@@ -262,6 +262,7 @@ def main():
             ranked[lang] = np.sort(np.array(sc, dtype=np.float32))
     for k in ids:
         items[k]['pct'] = percentile(ranked.get(items[k].get('lang', ''), ranked['']), items[k]['score'])
+        items[k]['gpct'] = percentile(ranked[''], items[k]['score'])  # across all languages
 
     # 5. same story from several outlets -> one card; many outlets -> "big story"
     recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36)),
@@ -270,6 +271,7 @@ def main():
         it.update(lead=True, outlets=1, also=[], big=False, important=False,
                   confirmed=0 if it['source'] in channel else 1)
         it.pop('cluster_pct', None)
+        it.pop('cluster_gpct', None)
     if recent:
         emb = np.array([emb_store[k] for k in recent])
         for g in clusters(emb, range(len(recent)), s['same_story_similarity'],
@@ -286,13 +288,18 @@ def main():
             lead['also'] = [{'source': m['source'], 'title': m['title'], 'link': m['link']}
                             for m in sorted(members, key=lambda x: -x['pct']) if m is not lead][:8]
             lead['cluster_pct'] = max(m['pct'] for m in members)
+            lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
 
     shown = []
     for it in sorted(items.values(), key=lambda x: -x.get('cluster_pct', x.get('pct', 0))):
         if not it['lead'] or 'pct' not in it or is_noise(it):
             continue
         cpct = it.get('cluster_pct', it['pct'])
-        it['big'] = it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
+        # a big story must matter to the group across all languages, so a widely covered but off-topic
+        # Danish story (weather, northern lights) never qualifies through the Danish-only ranking
+        gpct = it.get('cluster_gpct', it.get('gpct', 0))
+        it['big'] = (it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
+                     and gpct >= s.get('big_story_min_global_percentile', 72))
         it['important'] = it['big'] or cpct >= s['important_percentile']
         it['foreign'] = it.get('lang') not in READABLE
         if cpct >= s['show_percentile'] or it['big']:

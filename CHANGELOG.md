@@ -27,6 +27,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Renamed the app to Nabd with a pulse icon; compact, text-first, minimal list design (headline + one meta line
   with small indicators, relevance bar, tap to expand, copy icon and swipe-to-copy).
 - Big stories now also need clear relevance (80th percentile) before they are shown or learned from.
+- Thumb-first layout following Apple's HIG: bottom tab bar (Vigtigste, Alle, Kopieret, Søg, Mere), search field
+  above the keyboard, 44pt+ touch targets, 'Mere' sheet with drag-to-close and a bottom 'Færdig'.
+- Purposeful motion: ECG-line pull-to-refresh, gliding tab indicator, height-animated expand, copy icon morph,
+  wash on newly arrived lines, '↑ N nye' pill, staggered first paint; all off under Reduce Motion.
+- 'ny' marker for lines that arrived since the last visit.
+- Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
+  Danish stories (e.g. northern lights) no longer qualify.
 
 ---
 

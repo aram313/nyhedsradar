@@ -26,5 +26,6 @@
   "same_story_strict": {
     "ar": 0.86
   },
-  "max_important_per_source": 4
+  "max_important_per_source": 4,
+  "big_story_min_global_percentile": 72
 }

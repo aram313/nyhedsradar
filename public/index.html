@@ -21,83 +21,93 @@
   <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="12" rx="2.5"/><path d="M15.5 8.5V6.5A2.5 2.5 0 0 0 13 4H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></g></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></symbol>
-  <symbol id="i-more" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></g></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></g></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 13h4.5l2-4 3 9 3-12 2.5 7H22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-saved" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="12" rx="2.5"/><path d="M15.5 8.5V6.5A2.5 2.5 0 0 0 13 4H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/><path d="m11.5 14.5 1.8 1.8 3.4-3.6" stroke-linecap="round"/></g></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 6h14M5 10.5h14M5 15h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <header class="top" id="top">
-  <div class="brand-row">
-    <div class="brand"><span class="pulse" id="pulse" aria-hidden="true"></span>Nabd</div>
-    <span class="status" id="status">henter …</span>
-    <button class="icon" id="searchBtn" aria-label="Søg"><svg><use href="#i-search"/></svg></button>
-    <button class="icon" id="openSettings" aria-label="Indstillinger"><svg><use href="#i-more"/></svg></button>
-  </div>
-  <nav class="tabs" id="tabs" role="tablist" aria-label="Visning">
-    <button role="tab" data-tab="top" aria-selected="true">Vigtigste <i id="n-top"></i></button>
-    <button role="tab" data-tab="all" aria-selected="false">Alle <i id="n-all"></i></button>
-    <button role="tab" data-tab="copied" aria-selected="false">Kopieret <i id="n-copied"></i></button>
-  </nav>
-  <div class="searchbar" id="searchbar" hidden>
-    <svg><use href="#i-search"/></svg>
-    <input id="search" type="search" placeholder="Søg i overskrifter og kilder" aria-label="Søg" autocomplete="off">
-    <button class="icon" id="searchClose" aria-label="Luk søgning"><svg><use href="#i-x"/></svg></button>
-  </div>
+  <div class="brand"><span class="beat" id="beat" aria-hidden="true"></span><span>Nabd</span></div>
+  <button class="status" id="status" aria-label="Opdater">henter …</button>
 </header>
+
+<div class="ptr" id="ptr" aria-hidden="true">
+  <svg viewBox="0 0 120 24"><path id="ptrPath" d="M2 14h30l5-9 7 16 8-20 6 13h60" pathLength="100"/></svg>
+</div>
+
+<button class="fresh-pill" id="freshPill" hidden><svg><use href="#i-up"/></svg><span></span></button>
 
 <main id="list" aria-live="polite"></main>
 
-<div class="toast" id="toast" role="status"></div>
+<div class="dock" id="dock">
+  <div class="searchbar" id="searchbar" hidden>
+    <svg><use href="#i-search"/></svg>
+    <input id="search" type="search" enterkeyhint="search" placeholder="Søg i overskrifter og kilder" aria-label="Søg" autocomplete="off">
+    <button id="searchClear" aria-label="Ryd"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <nav class="tabbar" id="tabbar" role="tablist" aria-label="Visning">
+    <span class="tab-ind" id="tabInd" aria-hidden="true"></span>
+    <button role="tab" data-tab="top" aria-selected="true"><svg><use href="#i-pulse"/></svg><span>Vigtigste</span></button>
+    <button role="tab" data-tab="all" aria-selected="false"><svg><use href="#i-list"/></svg><span>Alle</span></button>
+    <button role="tab" data-tab="copied" aria-selected="false"><svg><use href="#i-saved"/></svg><span>Kopieret</span><em id="copiedBadge" hidden></em></button>
+    <button role="tab" data-tab="search" aria-selected="false"><svg><use href="#i-search"/></svg><span>Søg</span></button>
+    <button id="openSettings" aria-label="Mere"><svg><use href="#i-more"/></svg><span>Mere</span></button>
+  </nav>
+</div>
 
-<dialog id="settings" class="sheet">
-  <div class="sheet-head"><h2>Indstillinger</h2><button class="done" id="closeSettings">Færdig</button></div>
+<div class="toast" id="toast" role="status"><svg><use href="#i-check"/></svg><span id="toastText"></span></div>
 
-  <section>
-    <h3>Tegn</h3>
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Mere" hidden>
+  <div class="sheet-grip" id="sheetGrip"><i></i></div>
+  <div class="sheet-scroll" id="sheetScroll">
+    <h2>Mere</h2>
+
+    <h3>Tegn i listen</h3>
     <dl class="legend">
       <dt><span class="heat-demo"></span></dt><dd>Stregen til venstre: jo stærkere, jo mere relevant for gruppen</dd>
       <dt class="hot">●6</dt><dd>Stor historie, dækket af 6 medier</dd>
       <dt>✓3</dt><dd>Bekræftet af 3 etablerede medier</dd>
       <dt>?</dt><dd>Ubekræftet: kun fra Telegram/YouTube</dd>
-      <dt>→da</dt><dd>Oversat (fra engelsk, arabisk eller tyrkisk)</dd>
-      <dt>⧉</dt><dd>Kopiér overskrift og link. Swipe til højre gør det samme</dd>
+      <dt>→da</dt><dd>Oversat</dd>
+      <dt class="hot">ny</dt><dd>Kommet til, siden du sidst kiggede</dd>
     </dl>
-  </section>
+    <p class="hint">Tryk på en overskrift for resumé og flere kilder. Swipe til højre eller tryk på ikonet for at kopiere.</p>
 
-  <section>
-    <h3>Notifikationer</h3>
-    <p id="pushInfo"></p>
-    <button class="link" id="enablePush" hidden>Slå notifikationer til</button>
-    <div id="pushCode" hidden>
-      <p>Kopiér koden og send den til Claude, så kobler Claude din telefon på.</p>
-      <textarea id="pushCodeText" readonly rows="3"></textarea>
-      <button class="link" id="copyPushCode">Kopiér kode</button>
-    </div>
-  </section>
-
-  <section>
     <h3>Sprog</h3>
-    <label class="opt"><input type="checkbox" id="danish"><span>Vis og kopiér på dansk<small>Engelske nyheder maskinoversættes. Kopier får fed overskrift, én sætning og linket.</small></span></label>
-  </section>
+    <label class="opt"><span>Vis og kopiér på dansk<small>Engelske nyheder maskinoversættes. Kopier får fed overskrift, én sætning og linket.</small></span><input type="checkbox" id="danish" class="switch"></label>
 
-  <section>
     <h3>Arabisk og tyrkisk</h3>
-    <label class="opt"><input type="radio" name="foreign" value="translate"><span>Oversæt<small>Historier, der kun findes på arabisk/tyrkisk, vises oversat</small></span></label>
-    <label class="opt"><input type="radio" name="foreign" value="hide"><span>Skjul<small>Bruges kun i baggrunden, fx til store historier</small></span></label>
-    <label class="opt"><input type="radio" name="foreign" value="original"><span>Vis original</span></label>
-  </section>
+    <div class="seg" id="foreignSeg" role="radiogroup">
+      <button role="radio" data-v="translate">Oversæt</button>
+      <button role="radio" data-v="hide">Skjul</button>
+      <button role="radio" data-v="original">Original</button>
+    </div>
+    <p class="hint">En dansk eller engelsk version af en historie vises altid først.</p>
 
-  <section>
+    <h3>Notifikationer</h3>
+    <p class="hint" id="pushInfo"></p>
+    <button class="wide" id="enablePush" hidden>Slå notifikationer til</button>
+    <div id="pushCode" hidden>
+      <p class="hint">Kopiér koden og send den til Claude, så kobler Claude din telefon på.</p>
+      <textarea id="pushCodeText" readonly rows="3"></textarea>
+      <button class="wide" id="copyPushCode">Kopiér kode</button>
+    </div>
+
     <h3>Sådan virker Nabd</h3>
-    <p>Nabd læser <b id="srcCount">–</b> kilder og sammenligner hver ny overskrift med de ca. 6.500 links, gruppen har delt. <b>Vigtigste</b> er de bedste ca. 5 % plus store historier. Samme historie fra flere medier samles i én linje.</p>
-    <p>Den tilpasser sig selv ud fra miljøets egne kilder, store historier og det, du kopierer. Claude skriver overblikket kl. 7 og 17 og tjekker Nabd hver morgen.</p>
-    <p class="muted" id="scanned"></p>
-  </section>
+    <p class="hint">Nabd læser <b id="srcCount">–</b> kilder og sammenligner hver ny overskrift med de ca. 6.500 links, gruppen har delt. <b>Vigtigste</b> er de bedste ca. 5 % plus store historier. Samme historie fra flere medier samles i én linje. Nabd tilpasser sig selv ud fra miljøets egne kilder, store historier og det, du kopierer. Claude skriver overblikket kl. 7 og 17 og tjekker Nabd hver morgen.</p>
+    <p class="hint" id="scanned"></p>
 
-  <section>
     <h3>Kilder</h3>
     <ul class="sources" id="sources"></ul>
-  </section>
-</dialog>
+  </div>
+  <button class="wide sheet-done" id="closeSheet">Færdig</button>
+</section>
 
 <script src="config.js"></script>
 <script src="app.js"></script>

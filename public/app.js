@@ -1,5 +1,5 @@
 // Nabd – phone app. Reads data.json written by the radar (and digest.json written by the Claude
-// editor) and shows them as a compact, text-first list. Plain JS, no libraries.
+// editor) and shows them as a compact, text-first list with thumb-reachable controls. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -7,6 +7,7 @@ const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let data = store.get('lastData', null);
 let digest = store.get('lastDigest', null);
@@ -14,9 +15,13 @@ let tab = 'top', query = '';
 let copied = store.get('copied', {});                        // id -> {at, title, link, source, words}
 let foreignMode = store.get('foreignMode', 'translate');      // translate | hide | original
 let danish = store.get('danish', false);                      // show and copy in Danish
-let overviewOpen = new URLSearchParams(location.search).get('digest') === '1';
+let overviewOpen = false;
 const expanded = new Set();
-const focusId = new URLSearchParams(location.search).get('item');
+const params = new URLSearchParams(location.search);
+const focusId = params.get('item');
+if (params.get('digest') === '1') overviewOpen = true;
+const lastSeen = store.get('lastSeen', 0);                     // items found after this get a small "ny"
+let shownIds = new Set();
 
 // ---------------------------------------------------------------- learning from copies
 const STOP = new Set(('og i at det er en til på som de med for af ikke der har jeg om var vi kan man den så hvad men ved skal fra eller nu også have efter blev mod over efter mere siger sagt nye ' +
@@ -42,8 +47,8 @@ function ago(iso) {
   const m = (Date.now() - new Date(iso)) / 60000, d = new Date(iso), y = new Date();
   y.setDate(y.getDate() - 1);
   if (m < 1) return 'nu';
-  if (m < 60) return Math.round(m) + 'm';
-  if (d.toDateString() === new Date().toDateString()) return Math.round(m / 60) + 't';
+  if (m < 60) return Math.round(m) + ' min';
+  if (d.toDateString() === new Date().toDateString()) return Math.round(m / 60) + ' t';
   if (d.toDateString() === y.toDateString()) return 'i går ' + clock(iso);
   return d.toLocaleDateString('da-DK', { weekday: 'short' }) + ' ' + clock(iso);
 }
@@ -59,40 +64,46 @@ const when = i => new Date(i.published || i.found).getTime();
 // ---------------------------------------------------------------- data
 const bust = url => url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
 async function load(manual) {
+  let changed = false;
   try {
     const r = await fetch(bust(CFG.dataUrl), { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
-    data = await r.json();
+    const fresh = await r.json();
+    changed = !data || fresh.updated !== data.updated;
+    data = fresh;
     store.set('lastData', data);
-    if (manual) toast('Opdateret');
   } catch (e) {
-    if (manual) toast('Kunne ikke hente nye nyheder');
+    if (manual) toast('Kunne ikke hente nye nyheder', false);
   }
   if (CFG.digestUrl) {
     try {
       const r = await fetch(bust(CFG.digestUrl), { cache: 'no-store' });
-      if (r.ok) { digest = await r.json(); store.set('lastDigest', digest); }
+      if (r.ok) {
+        const d = await r.json();
+        changed = changed || !digest || d.created !== digest.created;
+        digest = d; store.set('lastDigest', digest);
+      }
     } catch { /* keep the last overview */ }
   }
-  render();
+  if (changed || manual) render({ fresh: true });
+  else renderHeader();
 }
 
 // ---------------------------------------------------------------- what a line shows
-const LANG = { ar: 'ar', tr: 'tr', en: 'en' };
 // Danish/English as-is; other languages translated unless the user wants the original;
 // with the Danish setting on, everything that has a Danish version is shown in Danish.
 function display(i) {
   let d = { ...i, origTitle: i.title, origSummary: i.summary };
   if (i.foreign && foreignMode !== 'original' && i.title_tr) {
-    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: LANG[i.lang] || i.lang, to: 'en' };
+    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en' };
   }
   if (danish && i.title_da && !(i.foreign && foreignMode === 'original')) {
-    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || LANG[i.lang] || i.lang, to: 'da' };
+    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da' };
   }
   return d;
 }
 const readable = t => !/[؀-ۿ]/.test(t || '');
-function copyTextFor(d, withSummary = danish) {
+function copyTextFor(d, withSummary) {
   if (!withSummary) return `${d.title}\n${d.link}`;
   const first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '');
   return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}`;
@@ -105,56 +116,52 @@ function itemsFor(which) {
     .map(display)
     .map(i => ({ ...i, learned: !i.important && likeCopied(i, sets) }))
     .sort((a, b) => when(b) - when(a));
-  // 'Vigtigste' is about the last two days; 'Alle' keeps everything the radar still holds
+  // 'Vigtigste' is about the last two days; 'Alle' and search keep everything the radar still holds
   if (which === 'top') items = items.filter(i => (i.important || i.learned) && Date.now() - when(i) < 48 * 3600e3);
   if (which === 'copied') items = Object.entries(copied).sort((a, b) => b[1].at - a[1].at)
     .map(([id, c]) => { const x = data.items.find(i => i.id === id); return x ? display(x) : { id, title: c.title, link: c.link, source: c.source, found: new Date(c.at).toISOString(), summary: '', also: [] }; });
-  return items;
-}
-function visibleItems() {
-  let items = itemsFor(tab);
-  if (query) {
+  if (which === 'search') {
     const q = query.toLowerCase();
-    items = items.filter(i => (i.title + ' ' + i.summary + ' ' + i.source + ' ' + (i.origTitle || '')).toLowerCase().includes(q));
+    items = q ? items.filter(i => (i.title + ' ' + i.summary + ' ' + i.source + ' ' + (i.origTitle || '')).toLowerCase().includes(q)) : [];
   }
   return items;
 }
 
 // ---------------------------------------------------------------- render
 function heat(i) {
-  if (i.big) return 1;
   if (i.pct == null) return 0;
-  return i.pct >= 96 ? .7 : i.pct >= 90 ? .45 : i.learned ? .45 : i.pct >= 85 ? .25 : .1;
+  return i.pct >= 96 ? .75 : i.pct >= 90 || i.learned ? .45 : i.pct >= 85 ? .25 : .1;
 }
-function line(i) {
-  const done = !!copied[i.id];
-  const open = expanded.has(i.id);
+function meta(i) {
   const m = [`<span class="s">${esc(i.source)}</span>`, `<span>${ago(i.published || i.found)}</span>`];
+  if (lastSeen && i.found && new Date(i.found).getTime() > lastSeen && !copied[i.id]) m.unshift('<span class="new">ny</span>');
   if (i.big) m.push(`<span class="hot" title="Stor historie">●${i.outlets}</span>`);
   else if (i.confirmed >= 2) m.push(`<span class="ok" title="Bekræftet af ${i.confirmed} medier">✓${i.confirmed}</span>`);
   if (i.confirmed === 0) m.push('<span class="q" title="Ubekræftet: kun Telegram/YouTube">?</span>');
   if (i.to) m.push(`<span title="Oversat">${i.from === 'en' ? '' : esc(i.from)}→${i.to}</span>`);
-  if (done) m.push('<span class="cp">kopieret</span>');
-  const also = i.also || [];
-  return `<article class="item${done ? ' done' : ''}${i.big ? ' big' : ''}" id="c-${esc(i.id)}">
+  if ((i.also || []).length) m.push(`<span>+${i.also.length}</span>`);
+  return m.join('');
+}
+function line(i, n, opts) {
+  const done = !!copied[i.id], open = expanded.has(i.id), also = i.also || [];
+  const cls = ['item', done && 'done', i.big && 'big', open && 'open',
+    opts.stagger && n < 14 && 'enter', opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
+  return `<article class="${cls}" id="c-${esc(i.id)}" data-id="${esc(i.id)}" style="--i:${n}">
     <div class="swipe"><svg><use href="#i-copy"/></svg>Kopiér</div>
-    <div class="row" data-swipe="${esc(i.id)}">
+    <div class="row">
       <i class="heat" style="--heat:${heat(i)}"></i>
-      <div class="body">
-        <button class="h" data-open="${esc(i.id)}" dir="auto" aria-expanded="${open}">${esc(i.title)}</button>
-        <div class="m">${m.join('')}${also.length && !open ? `<span>+${also.length}</span>` : ''}</div>
-        ${open ? `<div class="x">
-          ${i.summary ? `<p dir="auto">${esc(i.summary)}</p>` : ''}
-          <div class="acts">
-            <a href="${esc(i.link)}" target="_blank" rel="noopener">Åbn artikel ↗</a>
-            <button data-copy="${esc(i.id)}">Kopiér</button>
-            <button data-copy-sum="${esc(i.id)}">Kopiér med resumé</button>
-          </div>
-          ${also.length ? `<ul class="also">${also.map((a, k) => `<li><span><b>${esc(a.source)}</b>${foreignMode === 'original' || readable(a.title) ? ` · <span dir="auto">${esc(a.title)}</span>` : ' · på arabisk'}</span><button data-copy-also="${esc(i.id)}:${k}" aria-label="Kopiér"><svg><use href="#i-copy"/></svg></button></li>`).join('')}</ul>` : ''}
-        </div>` : ''}
-      </div>
-      <button class="c" data-copy="${esc(i.id)}" aria-label="Kopiér"><svg><use href="#i-${done ? 'check' : 'copy'}"/></svg></button>
+      <button class="body" data-toggle aria-expanded="${open}"><span class="h" dir="auto">${esc(i.title)}</span><span class="m">${meta(i)}</span></button>
+      <button class="c" data-copy aria-label="Kopiér overskrift og link"><svg class="cp"><use href="#i-copy"/></svg><svg class="ck"><use href="#i-check"/></svg></button>
     </div>
+    <div class="x"><div class="x-in"><div class="x-pad">
+      ${i.summary ? `<p dir="auto">${esc(i.summary)}</p>` : ''}
+      <div class="acts">
+        <a class="act" href="${esc(i.link)}" target="_blank" rel="noopener"><svg><use href="#i-open"/></svg>Åbn</a>
+        <button class="act" data-copy-sum><svg><use href="#i-text"/></svg>Med resumé</button>
+        <button class="act primary" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
+      </div>
+      ${also.length ? `<div class="also-h">Også hos</div><ul class="also">${also.map((a, k) => `<li><span><b>${esc(a.source)}</b>${foreignMode === 'original' || readable(a.title) ? ` · <span dir="auto">${esc(a.title)}</span>` : ' · på arabisk'}</span><button data-copy-also="${k}" aria-label="Kopiér"><svg><use href="#i-copy"/></svg></button></li>`).join('')}</ul>` : ''}
+    </div></div></div>
   </article>`;
 }
 
@@ -162,45 +169,55 @@ function line(i) {
 function overview() {
   if (!digest || !digest.created || Date.now() - new Date(digest.created) > 12 * 3600e3) return '';
   const items = digest.items || [];
-  return `<section class="ov${overviewOpen ? '' : ' short'}">
-    <div class="ov-head">Overblik <span>${esc(digest.period || '')} · ${clock(digest.created)}</span><button data-copy-ov>Kopiér</button></div>
+  return `<section class="ov${overviewOpen ? '' : ' short'}" id="ov">
+    <div class="ov-head">Overblik <span>${esc(digest.period || '')} · kl. ${clock(digest.created)} · Claude</span></div>
     ${digest.intro && overviewOpen ? `<p class="ov-intro">${esc(digest.intro)}</p>` : ''}
-    <ol>${items.map(x => `<li><div><a href="${esc(x.link)}" target="_blank" rel="noopener"><b>${esc(x.headline)}</b></a>${x.text ? `<small>${esc(x.text)}</small>` : ''}</div><em>${esc(x.source || '')}</em></li>`).join('')}</ol>
-    <button class="ov-more" data-toggle-ov>${overviewOpen ? 'Vis kort' : 'Vis med tekst'}</button>
+    <ol>${(overviewOpen ? items : items.slice(0, 4)).map(x => `<li><a href="${esc(x.link)}" target="_blank" rel="noopener"><div><b>${esc(x.headline)}</b>${x.text ? `<small>${esc(x.text)}</small>` : ''}</div><em>${esc(x.source || '')}</em></a></li>`).join('')}</ol>
+    <div class="acts">
+      <button class="act" data-toggle-ov><svg><use href="#i-text"/></svg>${overviewOpen ? 'Kort' : items.length > 4 ? `Alle ${items.length} med tekst` : 'Med tekst'}</button>
+      <button class="act primary" data-copy-ov><svg><use href="#i-copy"/></svg>Kopiér overblik</button>
+    </div>
   </section>`;
 }
 
 const isStale = () => data && data.updated && (Date.now() - new Date(data.updated)) / 60000 > 60;
 function renderHeader() {
   const stale = isStale();
-  $('pulse').classList.toggle('stale', !!stale);
+  $('beat').classList.toggle('stale', !!stale);
   $('status').classList.toggle('stale', !!stale);
   const mins = data ? Math.round((Date.now() - new Date(data.updated)) / 60000) : 0;
   $('status').textContent = !data ? 'henter …' : stale ? 'ikke opdateret siden ' + clock(data.updated)
     : mins < 1 ? 'opdateret nu' : `opdateret for ${mins} min. siden`;
-  $('n-top').textContent = data ? itemsFor('top').length : '';
-  $('n-all').textContent = data ? itemsFor('all').length : '';
-  const n = Object.keys(copied).length;
-  $('n-copied').textContent = n || '';
+  const n = Object.values(copied).filter(c => Date.now() - c.at < 864e5).length;
+  $('copiedBadge').hidden = !n;
+  $('copiedBadge').textContent = n > 9 ? '9+' : n;
 }
 
-function render() {
+function render(opts = {}) {
   renderHeader();
-  if (!data) { $('list').innerHTML = '<p class="empty">Henter nyheder …</p>'; return; }
-  const items = visibleItems();
-  let html = isStale() ? `<p class="notice">Nabd har ikke hentet nyt siden ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
-  if (tab === 'top' && !query) html += overview();
-  if (!items.length) html += `<p class="empty">${tab === 'copied' ? 'Det, du kopierer, samles her.' : query ? 'Intet matcher søgningen.' : 'Ingen vigtige nyheder lige nu.'}</p>`;
-  let last = '';
-  for (const i of items) {
-    const d = dayLabel(i.published || i.found);
-    if (d !== last && tab !== 'copied') { html += `<div class="day">${d}</div>`; last = d; }
-    html += line(i);
+  if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(7); return; }
+  const items = itemsFor(tab);
+  let html = isStale() ? `<p class="notice">Nabd har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
+  if (tab === 'top') html += overview();
+  if (!items.length) {
+    const msg = { top: 'Ingen vigtige nyheder lige nu.<br>Nabd holder øje.', copied: 'Det, du kopierer, samles her.',
+      search: query ? 'Intet matcher søgningen.' : `Søg i ${itemsFor('all').length} nyheder fra de seneste tre døgn.`, all: 'Ingen nyheder endnu.' }[tab];
+    html += `<div class="empty"><svg viewBox="0 0 120 24"><path d="M2 14h30l5-9 7 16 8-20 6 13h60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>${msg}</div>`;
   }
-  $('list').innerHTML = html;
+  let last = '';
+  items.forEach((i, n) => {
+    const d = dayLabel(i.published || i.found);
+    if (d !== last && tab !== 'copied' && tab !== 'search') { html += `<div class="day">${d}</div>`; last = d; }
+    html += line(i, n, opts);
+  });
+  // new lines that arrived while the user was scrolled down: offer a pill instead of jumping
+  const newIds = opts.fresh && shownIds.size ? items.filter(i => !shownIds.has(i.id)).length : 0;
+  $('list').innerHTML = `<div class="${opts.anim && !reduceMotion ? 'view' : ''}">${html}</div>`;
+  shownIds = new Set(items.map(i => i.id));
+  if (newIds && scrollY > 240) { $('freshPill').querySelector('span').textContent = `${newIds} ${newIds === 1 ? 'ny' : 'nye'}`; $('freshPill').hidden = false; }
   if (focusId && !render.focused) {
     const el = $('c-' + focusId);
-    if (el) { render.focused = true; expanded.add(focusId); el.scrollIntoView({ block: 'center' }); }
+    if (el) { render.focused = true; expanded.add(focusId); el.classList.add('open'); el.scrollIntoView({ block: 'center' }); }
   }
 }
 
@@ -214,9 +231,11 @@ async function copyText(text) {
   }
 }
 let toastTimer;
-function toast(msg) {
-  $('toast').textContent = msg; $('toast').classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1500);
+function toast(msg, good = true) {
+  $('toastText').textContent = msg;
+  $('toast').querySelector('svg').style.display = good ? '' : 'none';
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1600);
 }
 async function copyItem(id, withSummary) {
   const raw = data && data.items.find(x => x.id === id);
@@ -224,40 +243,43 @@ async function copyItem(id, withSummary) {
   if (!i || !(await copyText(copyTextFor(i, withSummary || danish)))) return;
   copied[id] = { at: Date.now(), title: i.title, link: i.link, source: i.source, words: words(i.origTitle || i.title) };
   store.set('copied', copied);
-  render();
-  toast('Kopieret');
+  const el = $('c-' + id);
+  if (el) { el.classList.add('done'); el.querySelector('.new')?.remove(); }
+  renderHeader();
+  toast(withSummary || danish ? 'Kopieret med resumé' : 'Kopieret');
   learnFrom(i);
 }
 
 $('list').addEventListener('click', async e => {
-  const t = e.target;
-  const hit = sel => t.closest(sel);
-  if (hit('[data-copy-ov]')) {
+  const t = e.target, el = t.closest('[data-id]'), id = el && el.dataset.id;
+  if (t.closest('[data-copy-ov]')) {
     const text = digest.whatsapp || (digest.items || []).map(x => `*${x.headline}*\n${x.text || ''}\n${x.link}`).join('\n\n');
     if (await copyText(text)) toast('Overblikket er kopieret');
-  } else if (hit('[data-toggle-ov]')) {
-    overviewOpen = !overviewOpen; render();
-  } else if (hit('[data-copy-sum]')) {
-    copyItem(hit('[data-copy-sum]').dataset.copySum, true);
-  } else if (hit('[data-copy]')) {
-    copyItem(hit('[data-copy]').dataset.copy);
-  } else if (hit('[data-copy-also]')) {
-    const [id, k] = hit('[data-copy-also]').dataset.copyAlso.split(':');
-    const x = data.items.find(i => i.id === id).also[+k];
+  } else if (t.closest('[data-toggle-ov]')) {
+    overviewOpen = !overviewOpen;
+    $('ov').outerHTML = overview();
+  } else if (t.closest('[data-copy-sum]')) {
+    copyItem(id, true);
+  } else if (t.closest('[data-copy]')) {
+    copyItem(id);
+  } else if (t.closest('[data-copy-also]')) {
+    const x = data.items.find(i => i.id === id).also[+t.closest('[data-copy-also]').dataset.copyAlso];
     if (await copyText(`${x.title}\n${x.link}`)) toast('Kopieret');
-  } else if (hit('[data-open]')) {
-    const id = hit('[data-open]').dataset.open;
-    expanded.has(id) ? expanded.delete(id) : expanded.add(id);
-    render();
+  } else if (t.closest('[data-toggle]')) {
+    const open = el.classList.toggle('open');
+    open ? expanded.add(id) : expanded.delete(id);
+    el.querySelector('[data-toggle]').setAttribute('aria-expanded', open);
   }
 });
+$('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
+addEventListener('scroll', () => { if (scrollY < 120) $('freshPill').hidden = true; }, { passive: true });
 
 // ---------------------------------------------------------------- swipe right to copy
 let sw = null;
 $('list').addEventListener('touchstart', e => {
-  const row = e.target.closest('[data-swipe]');
+  const row = e.target.closest('.row');
   if (!row || e.touches.length > 1) return;
-  sw = { row, id: row.dataset.swipe, x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0, mode: null };
+  sw = { row, item: row.closest('[data-id]'), x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0, mode: null };
 }, { passive: true });
 $('list').addEventListener('touchmove', e => {
   if (!sw) return;
@@ -269,55 +291,141 @@ $('list').addEventListener('touchmove', e => {
   }
   if (sw.mode !== 'swipe') return;
   sw.dx = Math.max(0, dx);
-  sw.row.style.transform = `translateX(${sw.dx < 80 ? sw.dx : 80 + (sw.dx - 80) * 0.3}px)`;
+  sw.row.style.transform = `translateX(${sw.dx < 90 ? sw.dx : 90 + (sw.dx - 90) * 0.3}px)`;
+  sw.item.classList.toggle('armed', sw.dx > 90);
 }, { passive: true });
 $('list').addEventListener('touchend', () => {
   if (!sw) return;
-  const { row, id, dx, mode } = sw;
+  const { row, item, dx, mode } = sw;
   sw = null;
   if (mode !== 'swipe') return;
   row.classList.remove('dragging');
   row.style.transform = '';
-  if (dx > 80) copyItem(id);
+  item.classList.remove('armed');
+  if (dx > 90) copyItem(item.dataset.id);
 });
 
-// ---------------------------------------------------------------- pull down to refresh (status line shows it)
+// ---------------------------------------------------------------- pull down to refresh: the pulse line draws itself
 let pull = null;
-addEventListener('touchstart', e => { if (scrollY <= 0 && !e.target.closest('dialog')) pull = { y: e.touches[0].clientY, d: 0 }; }, { passive: true });
+addEventListener('touchstart', e => {
+  if (scrollY <= 0 && !e.target.closest('.sheet, .dock')) pull = { y: e.touches[0].clientY, d: 0 };
+}, { passive: true });
 addEventListener('touchmove', e => {
   if (!pull) return;
   pull.d = e.touches[0].clientY - pull.y;
-  if (scrollY > 0) { pull = null; return; }
-  if (pull.d > 70) $('status').textContent = 'slip for at opdatere';
+  if (pull.d <= 0 || scrollY > 0) { $('list').style.transform = ''; return; }
+  const k = Math.min(1, pull.d / 90);
+  $('list').classList.add('pulling');
+  $('list').style.transform = `translateY(${Math.min(110, pull.d * 0.5)}px)`;
+  $('ptr').style.opacity = k;
+  $('ptr').style.setProperty('--draw', 100 - k * 100);
 }, { passive: true });
-addEventListener('touchend', () => {
+addEventListener('touchend', async () => {
   if (!pull) return;
-  const go = pull.d > 70;
+  const go = pull.d > 90;
   pull = null;
-  if (go) { $('status').textContent = 'opdaterer …'; load(true); }
+  $('list').classList.remove('pulling');
+  if (go) {
+    $('list').style.transform = 'translateY(52px)';
+    $('ptr').classList.add('beating');
+    await Promise.all([load(true), new Promise(r => setTimeout(r, 900))]);
+    $('ptr').classList.remove('beating');
+  }
+  $('list').style.transform = '';
+  $('ptr').style.opacity = 0;
 });
 
-// ---------------------------------------------------------------- header controls
-$('tabs').addEventListener('click', e => {
-  const b = e.target.closest('[data-tab]'); if (!b) return;
-  if (b.dataset.tab === tab) { scrollTo({ top: 0, behavior: 'smooth' }); return; }
-  tab = b.dataset.tab;
-  document.querySelectorAll('#tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x === b));
-  render(); scrollTo(0, 0);
-});
-$('searchBtn').addEventListener('click', () => {
-  $('tabs').hidden = true; $('searchbar').hidden = false; $('search').focus();
-});
-$('searchClose').addEventListener('click', () => {
-  query = ''; $('search').value = ''; $('searchbar').hidden = true; $('tabs').hidden = false; render();
-});
+// ---------------------------------------------------------------- tab bar + search
+function moveIndicator() {
+  const b = document.querySelector(`.tabbar [data-tab="${tab}"]`);
+  $('tabInd').style.transform = `translateX(${b.offsetLeft + b.offsetWidth / 2}px)`;
+}
+function setTab(next) {
+  if (next === tab) { scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); return; }
+  tab = next;
+  document.querySelectorAll('.tabbar [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
+  moveIndicator();
+  $('searchbar').hidden = tab !== 'search';
+  if (tab === 'search') setTimeout(() => $('search').focus(), 60);
+  else $('search').blur();
+  $('freshPill').hidden = true;
+  render({ anim: true, stagger: true });
+  scrollTo(0, 0);
+}
+$('tabbar').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
 $('search').addEventListener('input', e => { query = e.target.value.trim(); render(); });
+$('searchClear').addEventListener('click', () => { query = ''; $('search').value = ''; $('search').focus(); render(); });
 $('status').addEventListener('click', () => { $('status').textContent = 'opdaterer …'; load(true); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+
+// keep the dock (search field + tabs) right above the keyboard, and tell the layout how tall it is
+const vv = window.visualViewport;
+if (vv) vv.addEventListener('resize', () => {
+  const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop);
+  document.documentElement.style.setProperty('--kb', kb + 'px');
+});
+new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
+addEventListener('resize', moveIndicator);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) store.set('lastSeen', Date.now());
+  else load();
+});
 setInterval(() => { if (!document.hidden) load(); }, 120000);
 setInterval(renderHeader, 30000);
 
-// ---------------------------------------------------------------- settings + notifications
+// ---------------------------------------------------------------- "Mere" sheet: slides up, drag down to close
+function openSheet() {
+  const src = Object.entries((data && data.sources) || {});
+  $('srcCount').textContent = src.length || '–';
+  const L = (data && data.learned) || {};
+  $('scanned').textContent = data && data.scanned_24h ? `Seneste døgn: ${data.scanned_24h.toLocaleString('da-DK')} nye nyheder vurderet. Lært af ${(L.community || 0).toLocaleString('da-DK')} indlæg fra miljøets kilder, ${L.big || 0} store historier og ${L.copied || 0} kopieringer.` : '';
+  $('sources').innerHTML = src.sort((a, b) => a[0].localeCompare(b[0], 'da')).map(([n, v]) => `<li class="${v.ok ? '' : 'bad'}">${esc(n)}</li>`).join('');
+  $('sheet').hidden = false;
+  $('sheetScroll').scrollTop = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => { $('sheet').classList.add('on'); $('scrim').classList.add('on'); }));
+  refreshPushInfo();
+}
+function closeSheet() {
+  $('sheet').classList.remove('on', 'dragging');
+  $('sheet').style.removeProperty('--drag');
+  $('scrim').classList.remove('on');
+  setTimeout(() => { if (!$('sheet').classList.contains('on')) $('sheet').hidden = true; }, 460);
+}
+$('openSettings').addEventListener('click', openSheet);
+$('scrim').addEventListener('click', closeSheet);
+$('closeSheet').addEventListener('click', closeSheet);
+let drag = null;
+$('sheet').addEventListener('touchstart', e => {
+  const onGrip = e.target.closest('#sheetGrip');
+  if (onGrip || $('sheetScroll').scrollTop <= 0) drag = { y: e.touches[0].clientY, d: 0, t: Date.now(), grip: !!onGrip };
+}, { passive: true });
+$('sheet').addEventListener('touchmove', e => {
+  if (!drag) return;
+  drag.d = e.touches[0].clientY - drag.y;
+  if (drag.d <= 0 || (!drag.grip && $('sheetScroll').scrollTop > 0)) { drag.d = 0; return; }
+  $('sheet').classList.add('dragging');
+  $('sheet').style.setProperty('--drag', drag.d + 'px');
+}, { passive: true });
+$('sheet').addEventListener('touchend', () => {
+  if (!drag) return;
+  const fast = drag.d > 40 && Date.now() - drag.t < 250;
+  const close = drag.d > 120 || fast;
+  drag = null;
+  $('sheet').classList.remove('dragging');
+  if (close) closeSheet(); else $('sheet').style.removeProperty('--drag');
+});
+
+// settings
+$('danish').checked = danish;
+$('danish').addEventListener('change', e => { danish = e.target.checked; store.set('danish', danish); render(); });
+function paintSeg() { document.querySelectorAll('#foreignSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === foreignMode)); }
+$('foreignSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-v]'); if (!b) return;
+  foreignMode = b.dataset.v; store.set('foreignMode', foreignMode); paintSeg(); render();
+});
+paintSeg();
+
+// notifications
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function b64ToBytes(s) {
   const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/'));
@@ -349,33 +457,16 @@ function showCode(sub) {
 $('enablePush').addEventListener('click', async () => {
   try {
     const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { toast('Notifikationer blev ikke tilladt'); return; }
+    if (perm !== 'granted') { toast('Notifikationer blev ikke tilladt', false); return; }
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.vapidPublicKey) });
     showCode(sub); $('enablePush').hidden = true;
     $('pushInfo').textContent = 'Næsten færdig – send koden herunder til Claude.';
-  } catch (e) { toast('Det lykkedes ikke: ' + e.message); }
+  } catch (e) { toast('Det lykkedes ikke: ' + e.message, false); }
 });
 $('copyPushCode').addEventListener('click', async () => { if (await copyText($('pushCodeText').value)) toast('Koden er kopieret'); });
-$('openSettings').addEventListener('click', () => {
-  const src = Object.entries((data && data.sources) || {});
-  $('srcCount').textContent = src.length || '–';
-  const L = (data && data.learned) || {};
-  $('scanned').textContent = data && data.scanned_24h ? `Seneste døgn: ${data.scanned_24h.toLocaleString('da-DK')} nye nyheder vurderet. Lært af ${(L.community || 0).toLocaleString('da-DK')} indlæg fra miljøets kilder, ${L.big || 0} store historier og ${L.copied || 0} kopieringer.` : '';
-  $('sources').innerHTML = src.sort((a, b) => a[0].localeCompare(b[0], 'da'))
-    .map(([n, v]) => `<li class="${v.ok ? '' : 'bad'}">${esc(n)}</li>`).join('');
-  $('settings').showModal();
-  refreshPushInfo();
-});
-$('settings').addEventListener('click', e => { if (e.target === $('settings')) $('settings').close(); });
-document.querySelectorAll('input[name="foreign"]').forEach(r => {
-  r.checked = r.value === foreignMode;
-  r.addEventListener('change', () => { foreignMode = r.value; store.set('foreignMode', foreignMode); render(); });
-});
-$('danish').checked = danish;
-$('danish').addEventListener('change', e => { danish = e.target.checked; store.set('danish', danish); render(); });
-$('closeSettings').addEventListener('click', () => $('settings').close());
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-render();
+moveIndicator();
+render({ stagger: true });
 load();
