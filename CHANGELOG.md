@@ -24,6 +24,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Claude editor routine writes 'Dagens overblik' at 07 and 17 to the `digest` branch; the app shows it and notifies.
 - Claude caretaker routine checks the radar daily, repairs or disables broken sources, logs to docs/radar-status.md.
 - Stale-data warning in the app; per-source failure counts; manual push-test workflow.
+- Renamed the app to Nabd with a pulse icon; compact, text-first, minimal list design (headline + one meta line
+  with small indicators, relevance bar, tap to expand, copy icon and swipe-to-copy).
+- Big stories now also need clear relevance (80th percentile) before they are shown or learned from.
 
 ---
 

@@ -21,8 +21,8 @@ self.addEventListener('fetch', e => {
 
 self.addEventListener('push', e => {
   let p = {};
-  try { p = e.data.json(); } catch { p = { title: 'Nyhedsradar', body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(p.title || 'Nyhedsradar', {
+  try { p = e.data.json(); } catch { p = { title: 'Nabd', body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(p.title || 'Nabd', {
     body: p.body || '', tag: p.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: p.url || './' },
   }));
 });

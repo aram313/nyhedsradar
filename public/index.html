@@ -3,86 +3,100 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nyhedsradar</title>
+<title>Nabd</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Radar">
-<meta name="theme-color" content="#f4f3f0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="Nabd">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top">
-  <div class="bar">
-    <div>
-      <h1>Nyhedsradar</h1>
-      <div class="updated" id="updated">Henter …</div>
-    </div>
-    <div class="icons">
-      <button class="icon-btn" id="refresh" aria-label="Opdater">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-      </button>
-      <button class="icon-btn" id="openSettings" aria-label="Indstillinger">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-      </button>
-    </div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="12" rx="2.5"/><path d="M15.5 8.5V6.5A2.5 2.5 0 0 0 13 4H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></g></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="top" id="top">
+  <div class="brand-row">
+    <div class="brand"><span class="pulse" id="pulse" aria-hidden="true"></span>Nabd</div>
+    <span class="status" id="status">henter …</span>
+    <button class="icon" id="searchBtn" aria-label="Søg"><svg><use href="#i-search"/></svg></button>
+    <button class="icon" id="openSettings" aria-label="Indstillinger"><svg><use href="#i-more"/></svg></button>
   </div>
-  <div class="tabs" role="tablist">
-    <button role="tab" data-tab="top" aria-selected="true">Vigtigste</button>
-    <button role="tab" data-tab="all" aria-selected="false">Alle</button>
-    <button role="tab" data-tab="copied" aria-selected="false">Kopieret</button>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Visning">
+    <button role="tab" data-tab="top" aria-selected="true">Vigtigste <i id="n-top"></i></button>
+    <button role="tab" data-tab="all" aria-selected="false">Alle <i id="n-all"></i></button>
+    <button role="tab" data-tab="copied" aria-selected="false">Kopieret <i id="n-copied"></i></button>
+  </nav>
+  <div class="searchbar" id="searchbar" hidden>
+    <svg><use href="#i-search"/></svg>
+    <input id="search" type="search" placeholder="Søg i overskrifter og kilder" aria-label="Søg" autocomplete="off">
+    <button class="icon" id="searchClose" aria-label="Luk søgning"><svg><use href="#i-x"/></svg></button>
   </div>
-  <input class="search" id="search" type="search" placeholder="Søg i nyhederne …" aria-label="Søg">
 </header>
 
 <main id="list" aria-live="polite"></main>
 
 <div class="toast" id="toast" role="status"></div>
 
-<dialog id="settings">
-  <div class="sheet">
-    <div class="sheet-head"><h2>Indstillinger</h2><button class="close" id="closeSettings" aria-label="Luk">Færdig</button></div>
+<dialog id="settings" class="sheet">
+  <div class="sheet-head"><h2>Indstillinger</h2><button class="done" id="closeSettings">Færdig</button></div>
 
-    <section>
-      <h3>Notifikationer</h3>
-      <p class="muted" id="pushInfo"></p>
-      <button class="primary" id="enablePush" hidden>Slå notifikationer til</button>
-      <div id="pushCode" hidden>
-        <p class="muted">Kopiér koden og send den til Claude. Så kobler Claude din telefon på.</p>
-        <textarea id="pushCodeText" readonly rows="4"></textarea>
-        <button class="primary" id="copyPushCode">Kopiér kode</button>
-      </div>
-    </section>
+  <section>
+    <h3>Tegn</h3>
+    <dl class="legend">
+      <dt><span class="heat-demo"></span></dt><dd>Stregen til venstre: jo stærkere, jo mere relevant for gruppen</dd>
+      <dt class="hot">●6</dt><dd>Stor historie, dækket af 6 medier</dd>
+      <dt>✓3</dt><dd>Bekræftet af 3 etablerede medier</dd>
+      <dt>?</dt><dd>Ubekræftet: kun fra Telegram/YouTube</dd>
+      <dt>→da</dt><dd>Oversat (fra engelsk, arabisk eller tyrkisk)</dd>
+      <dt>⧉</dt><dd>Kopiér overskrift og link. Swipe til højre gør det samme</dd>
+    </dl>
+  </section>
 
-    <section>
-      <h3>Dansk</h3>
-      <label class="radio"><input type="checkbox" id="danish"> <span><b>Vis og kopiér på dansk</b> – engelske nyheder oversættes til dansk, og når du kopierer, får du en fed overskrift, en kort sætning og linket, klar til WhatsApp. Oversættelsen er maskinlavet og kan være lidt kantet.</span></label>
-    </section>
+  <section>
+    <h3>Notifikationer</h3>
+    <p id="pushInfo"></p>
+    <button class="link" id="enablePush" hidden>Slå notifikationer til</button>
+    <div id="pushCode" hidden>
+      <p>Kopiér koden og send den til Claude, så kobler Claude din telefon på.</p>
+      <textarea id="pushCodeText" readonly rows="3"></textarea>
+      <button class="link" id="copyPushCode">Kopiér kode</button>
+    </div>
+  </section>
 
-    <section>
-      <h3>Arabisk og tyrkisk</h3>
-      <p class="muted">Når en historie også findes på dansk eller engelsk, vises den version altid. De arabiske og tyrkiske kilder tæller stadig med, fx i "Stor historie".</p>
-      <label class="radio"><input type="radio" name="foreign" value="translate"> <span><b>Oversæt</b> – vis historier, der kun findes på arabisk/tyrkisk, oversat til engelsk</span></label>
-      <label class="radio"><input type="radio" name="foreign" value="hide"> <span><b>Skjul</b> – brug dem kun i baggrunden</span></label>
-      <label class="radio"><input type="radio" name="foreign" value="original"> <span><b>Vis original</b> – på arabisk/tyrkisk</span></label>
-    </section>
+  <section>
+    <h3>Sprog</h3>
+    <label class="opt"><input type="checkbox" id="danish"><span>Vis og kopiér på dansk<small>Engelske nyheder maskinoversættes. Kopier får fed overskrift, én sætning og linket.</small></span></label>
+  </section>
 
-    <section>
-      <h3>Sådan vælges nyhederne</h3>
-      <p class="muted">Radaren læser <b id="srcCount">–</b> kilder hvert 5.–15. minut og sammenligner hver ny overskrift med de ca. 6.500 links, gruppen har delt. <b>Vigtigste</b> er de bedste ca. 5 % plus "store historier", som mange medier skriver om på én gang. Samme historie fra flere medier vises som ét kort.</p>
-      <p class="muted">Den tilpasser sig helt af sig selv: det, miljøets egne kilder (fx Stand 4 Palestine, QudsN, DOAM, HT, 5Pillars, Middle East Eye) begynder at skrive om, store historier og det, du kopierer, bliver løbende en del af profilen – og glider ud igen efter ca. 30 dage.</p>
-      <p class="muted" id="scanned"></p>
-    </section>
+  <section>
+    <h3>Arabisk og tyrkisk</h3>
+    <label class="opt"><input type="radio" name="foreign" value="translate"><span>Oversæt<small>Historier, der kun findes på arabisk/tyrkisk, vises oversat</small></span></label>
+    <label class="opt"><input type="radio" name="foreign" value="hide"><span>Skjul<small>Bruges kun i baggrunden, fx til store historier</small></span></label>
+    <label class="opt"><input type="radio" name="foreign" value="original"><span>Vis original</span></label>
+  </section>
 
-    <section>
-      <h3>Kilder</h3>
-      <ul class="sources" id="sources"></ul>
-    </section>
-  </div>
+  <section>
+    <h3>Sådan virker Nabd</h3>
+    <p>Nabd læser <b id="srcCount">–</b> kilder og sammenligner hver ny overskrift med de ca. 6.500 links, gruppen har delt. <b>Vigtigste</b> er de bedste ca. 5 % plus store historier. Samme historie fra flere medier samles i én linje.</p>
+    <p>Den tilpasser sig selv ud fra miljøets egne kilder, store historier og det, du kopierer. Claude skriver overblikket kl. 7 og 17 og tjekker Nabd hver morgen.</p>
+    <p class="muted" id="scanned"></p>
+  </section>
+
+  <section>
+    <h3>Kilder</h3>
+    <ul class="sources" id="sources"></ul>
+  </section>
 </dialog>
 
 <script src="config.js"></script>

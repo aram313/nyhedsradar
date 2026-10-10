@@ -1,4 +1,6 @@
-# Nyhedsradar
+# Nabd (Nyhedsradar)
+
+The app is called **Nabd** (نبض, "pulse"). The repository and folder keep the working name `nyhedsradar`.
 
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 50
 news sources around the clock. It picks out the stories that match what the WhatsApp group

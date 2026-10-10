@@ -368,9 +368,11 @@ def main():
             notified += [{'id': p['id'], 'at': NOW.isoformat()} for p in batch]
             pending = []
     # the editor's daily overview gets its own notification as soon as it appears
-    if digest.get('created') and digest['created'] > pushes.get('digest_sent', '')             and NOW - ts(digest['created']) < timedelta(hours=3) and not in_quiet_hours(s):
+    if digest.get('created') and digest['created'] > pushes.get('digest_sent', '') and in_quiet_hours(s):
+        pushes['digest_sent'] = digest['created']  # written at night (e.g. a test run): show it, never buzz about it
+    if digest.get('created') and digest['created'] > pushes.get('digest_sent', '')             and NOW - ts(digest['created']) < timedelta(hours=3):
         first = (digest.get('items') or [{}])[0].get('headline', '')
-        result = push.send({'title': f"Dagens overblik · {digest.get('period', '')}".strip(' ·'),
+        result = push.send({'title': f"Nabd · overblik {digest.get('period', '')}".strip(),
                             'body': digest.get('intro') or first, 'url': './?digest=1', 'tag': 'digest'})
         print('digest push:', result)
         pushes['digest_sent'] = digest['created']
