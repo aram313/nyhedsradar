@@ -93,6 +93,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Fixed
 
+- Machine translation of Arabic got names wrong ("Island correspondent" for Al Jazeera, "Trimpe", "Butin"); a name
+  glossary fixes them before and after translating.
+- A new Bevægelser briefing now shows even when the overview itself is unchanged.
 - Unrelated Arabic headlines were merged into false 'big stories' (the language model puts some Arabic texts
   almost on top of each other); Arabic-only stories are no longer merged, and a story's card now comes from an
   established outlet rather than a Telegram post whenever one carries it.
