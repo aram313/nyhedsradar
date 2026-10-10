@@ -1,8 +1,8 @@
 // Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
-// by the radar every few minutes) and digest.json (the editor's overview at 7, 15 and 22: the most important stories by
-// topic, and under each topic what the actors say, translated from Al Jazeera's Arabic breaking wire).
-// Front page = that overview + what matters right now; a tab per section – Danmark, Mellemøsten, Verden – and
-// 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
+// by the radar every few minutes) and digest.json (the editor's overview of the day, added to at 7, 15 and 22: the
+// day's most important movements as short 'Who: what' lines by topic, in the style of Al Jazeera's breaking wire).
+// Front page = what matters right now, then the overview of the day; a tab per section – Danmark, Mellemøsten,
+// Verden – and 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -31,8 +31,6 @@ let shared = store.get('shared', null) || store.get('copied', {});   // id -> {a
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
 let danish = store.get('danish', false);                                 // show and share in Danish
 const expanded = new Set();                                              // opened stories
-const tpOpen = new Set();                                                // opened topics: '<edition>|<index>'
-const edOpen = new Set();                                                // opened earlier overviews
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
 let lastSeen = store.get('lastSeen', 0);                                 // stories found later get a small dot
@@ -40,7 +38,8 @@ const seenTab = store.get('seenTab', {});                                // when
 let shownIds = new Set();
 const scrollPos = {};                                                    // each tab remembers where you were
 let searchIndex = null, searchState = 'idle';
-let moves = null, archiveState = 'idle';                                 // earlier overviews, fetched on request
+let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
+let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
 const readSent = new Set(store.get('readSent', []));
 
@@ -76,7 +75,6 @@ function dayLabel(iso) {
   if (d.toDateString() === y.toDateString()) return 'I går';
   return d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
 }
-const dayShort = iso => { const d = dayLabel(iso); return d === 'I dag' || d === 'I går' ? d.toLowerCase() : d; };
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const when = i => new Date(i.published || i.found).getTime();
 const hours = i => Math.max(0, (Date.now() - when(i)) / 3600e3);
@@ -105,7 +103,7 @@ async function load(manual) {
       const r = await fetch(CFG.digestUrl, { cache: 'no-cache' });
       if (r.ok) {
         const d = await r.json();
-        const stamp = x => x && `${x.created}|${(x.topics || []).length}|${(x.items || []).length}`;
+        const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}`;
         if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; digest = d; store.set('lastDigest', digest); }
       }
     } catch { /* keep the last overview */ }
@@ -247,77 +245,66 @@ function coverage(i) {
     ? `<div class="cov-more">+ ${more} ${more === 1 ? 'medie' : 'medier'} mere</div>` : ''}</div>`;
 }
 
-// ---------------------------------------------------------------- the overview
-// An edition at 7, 15 and 22: the most important stories grouped by topic, each with a short summary,
-// and under each topic what the actors say – every line of Al Jazeera's Arabic breaking wire since the
-// edition before, translated into Danish. Topics with articles come first; topics with only statements follow.
-function edition(d) {
+// ---------------------------------------------------------------- the overview of the day
+// One per day: the day's most important movements as short lines – 'Who: what', in the style of Al Jazeera's
+// breaking wire and the group's own 'Politiske nyheder' posts – grouped by topic, newest first. The editor adds to
+// it at 7, 15 and 22; after midnight the next update starts a new day. It closes the front page; earlier days wait
+// in the archive below it.
+const SHOW = 4;   // lines a topic shows before '+ n mere'
+const ymd = iso => new Date(iso).toLocaleDateString('sv-SE');   // the local date as 2026-10-10
+const dateDa = (ymdStr, weekday) => new Date(ymdStr + 'T12:00:00').toLocaleDateString('da-DK',
+  weekday ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long' });
+const listDa = xs => xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' og ' + xs[xs.length - 1];
+// a day from the editor; an edition from before days existed (an old copy in the phone's memory) becomes one
+function dayOf(d) {
   if (!d || !d.created) return null;
-  if (d.topics) return d;
-  // an overview from before topics existed: one topic per story
-  return { ...d, topics: (d.items || []).map(x => ({ name: SECTIONS[x.section] || 'Nyheder', section: x.section, stories: [x], lines: [] })) };
+  if (d.date) return d;
+  const at = d.created;
+  return { date: ymd(at), created: at, updates: [at], title: d.title || 'Politiske nyheder', topics: (d.topics || []).map(tp => ({
+    name: tp.name, section: tp.section, lines: [
+      ...(tp.stories || []).map(s => ({ who: '', text: s.headline, link: s.link, source: s.source, at, added: at, id: s.id, kind: 's', confirmed: s.confirmed })),
+      ...(tp.lines || []).map(l => ({ who: l.who, text: l.text, link: l.link, source: 'Al Jazeera', at, added: at, id: l.id, kind: 'w' }))] })) };
 }
-const countOf = (ed, what) => ed.topics.reduce((s, tp) => s + (tp[what] || []).length, 0);
-function edOf(el) {
-  const c = el.closest('[data-ed]').dataset.ed, d = edition(digest);
-  return d && d.created === c ? d : edition(((moves && moves.briefs) || []).find(e => e.created === c));
+const lineCount = day => day.topics.reduce((s, tp) => s + tp.lines.length, 0);
+const dayOpen = new Set();     // topics opened beyond their first lines: '<date>|<name>'
+const daysOpen = new Set();    // earlier days opened in the archive
+function findDay(date) {
+  const d = dayOf(digest);
+  return d && d.date === date ? d : ((moves && moves.days) || []).map(dayOf).find(x => x && x.date === date);
 }
-// one line per topic: its name in bold, then the headline; a small count of what the actors say at the right
-function topicRow(ed, tp, k) {
-  const key = `${ed.created}|${k}`, open = tpOpen.has(key), lead = tp.stories[0], n = (tp.lines || []).length;
-  return `<article class="tp${open ? ' open' : ''}" data-tp="${esc(key)}">
-    <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>${esc(tp.name)}</b> ${esc(lead.headline)}</span>${n
-      ? `<span class="tp-n"><svg aria-hidden="true"><use href="#i-quote"/></svg>${n}<span class="vh"> udtalelser</span></span>` : ''}</button>
-    <div class="x"><div><div class="x-in">${open ? topicBody(tp) : ''}</div></div></div></article>`;
+// one line: the time at the left (a line from before midnight says so), who in bold, then what – the whole line
+// opens the source; lines that came while the user was away get a small dot
+function lineHtml(l, day) {
+  const fresh = lastSeen && l.added && new Date(l.added).getTime() > lastSeen;
+  const time = `<time>${clock(l.at)}${ymd(l.at) < day.date ? '<small>i går</small>' : ''}</time>`;
+  const body = `<span>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}${l.confirmed === 0 ? ' <i>ubekræftet</i>' : ''}</span>`;
+  return `<li${fresh ? ' class="new"' : ''}>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener" data-line="${esc(l.id)}"${l.kind === 's' ? ' data-story="1"' : ''}>`
+    : '<span>'}${time}${body}${l.link ? '</a>' : '</span>'}</li>`;
 }
-function saidList(tp) {
-  return `<ul class="said">${tp.lines.map(l => `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul>`;
+function dayTopic(day, tp) {
+  const k = `${day.date}|${tp.name}`, all = tp.lines, open = dayOpen.has(k) || all.length <= SHOW + 1;
+  return `<div class="dt" data-sec="${esc(tp.section)}"><h3><i></i>${esc(tp.name)}</h3>
+    <ul class="dl">${(open ? all : all.slice(0, SHOW)).map(l => lineHtml(l, day)).join('')}</ul>${open ? ''
+    : `<button class="dt-more" data-day-more="${esc(k)}">+ ${all.length - SHOW} mere</button>`}</div>`;
 }
-function topicBody(tp) {
-  const st = (tp.stories || []).map((s, j) => `<div class="tp-story">${j ? `<b class="tp-h">${esc(s.headline)}</b>` : ''}
-      <p class="sum">${esc(s.text)}</p>
-      <div class="tp-links"><span>${esc(s.source)}${s.confirmed === 0 ? ' · ubekræftet' : ''}</span>
-        <a href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}">Læs<svg><use href="#i-open"/></svg></a>
-        <button data-tp-share="${j}">Del<svg><use href="#i-share"/></svg></button></div></div>`).join('');
-  return st + ((tp.lines || []).length ? `<div class="said-h">Det siger de</div>${saidList(tp)}` : '');
+function dayBody(day) {
+  return `<div class="ov-body" data-day="${esc(day.date)}">${day.topics.map(tp => dayTopic(day, tp)).join('')}
+    <div class="ov-acts"><button data-day-share><svg><use href="#i-share"/></svg>Del overblik</button></div></div>`;
 }
-// the topics with only statements share one line ('Også: Vestbredden, Yemen …'); it opens to all their statements
-function restRow(ed, rest) {
-  const key = `${ed.created}|rest`, open = tpOpen.has(key), n = rest.reduce((s, [tp]) => s + tp.lines.length, 0);
-  const names = rest.slice(0, 3).map(([tp]) => esc(tp.name)).join(', ') + (rest.length > 3 ? ` og ${rest.length - 3} andre` : '');
-  return `<article class="tp rest${open ? ' open' : ''}" data-tp="${esc(key)}">
-    <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>Også</b> ${names}</span>
-      <span class="tp-n"><svg aria-hidden="true"><use href="#i-quote"/></svg>${n}<span class="vh"> udtalelser</span></span></button>
-    <div class="x"><div><div class="x-in">${open ? restBody(rest) : ''}</div></div></div></article>`;
+// the share text, in the format members post themselves (digest.json brings it ready for the newest day)
+function dayText(day) {
+  if (digest && digest.date === day.date && digest.created === day.created && digest.whatsapp) return digest.whatsapp;
+  return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`)].join('\n\n');
 }
-const restBody = rest => rest.map(([tp]) => `<div class="said-h">${esc(tp.name)}</div>${saidList(tp)}`).join('');
-function briefCard(ed) {
-  const all = ed.topics.map((tp, k) => [tp, k]);
-  const main = all.filter(([tp]) => (tp.stories || []).length), rest = all.filter(([tp]) => !(tp.stories || []).length);
-  const when = dayShort(ed.created) === 'i dag' ? 'kl. ' + clock(ed.created) : `${dayShort(ed.created)} kl. ${clock(ed.created)}`;
-  return `<section class="brief" data-ed="${esc(ed.created)}">
-    <div class="brief-h"><b>Overblik</b><span>${esc(ed.period || '')} · ${when}</span></div>
-    ${ed.intro ? `<p class="intro">${esc(ed.intro)}</p>` : ''}
-    <div class="tps">${main.map(([tp, k]) => topicRow(ed, tp, k)).join('')}${rest.length ? restRow(ed, rest) : ''}</div>
-    <div class="brief-acts"><button data-ed-share="news"><svg><use href="#i-share"/></svg>Del overblik</button>${countOf(ed, 'lines')
-      ? '<button data-ed-share="lines"><svg><use href="#i-share"/></svg>Del udtalelser</button>' : ''}</div>
-  </section>`;
-}
-// the texts the share buttons send (digest.json brings them ready; earlier editions are rebuilt the same way)
-function overviewText(ed) {
-  if (ed.whatsapp) return ed.whatsapp;
-  const d = new Date(ed.created), out = [`*Dagens overblik – ${ed.period || ''}, ${d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}*`, '', ed.intro || '', ''];
-  let n = 0;
-  for (const [sec, name] of Object.entries(SECTIONS)) {
-    const mine = ed.topics.flatMap(tp => (tp.stories || []).map(s => ({ ...s, section: s.section || tp.section }))).filter(s => s.section === sec);
-    if (mine.length) out.push(name.toUpperCase(), '', ...mine.flatMap(s => [`${++n}. *${s.headline}*`, s.text, s.link, '']));
+function overview() {
+  const day = dayOf(digest), today = ymd(new Date().toISOString());
+  if (!day || Date.now() - new Date(day.created) > 36 * 3600e3) {
+    return `<section class="ov" id="overview"><div class="ov-h"><h2>Overblik</h2><p>Dagens vigtigste bevægelser – kommer kl. 7, 15 og 22.</p></div></section>`;
   }
-  return out.join('\n').trim();
-}
-function linesText(ed) {
-  if (ed.lines_whatsapp) return ed.lines_whatsapp;
-  return [ed.title || 'Politiske nyheder', ...ed.topics.filter(tp => (tp.lines || []).length)
-    .map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who}: ${l.text}`).join('\n\n')}`)].join('\n\n');
+  const hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
+  const next = day.date === today ? [7, 15, 22].find(h => h > Math.max(...hrs)) : null;
+  return `<section class="ov" id="overview"><div class="ov-h"><h2>Overblik <span>${dateDa(day.date)}</span></h2>
+    <p>Opdateret kl. ${listDa(hrs)}${next ? ` · næste kl. ${next}` : ''}</p></div>${dayBody(day)}</section>`;
 }
 async function loadArchive() {
   if (archiveState === 'loading') return;
@@ -330,20 +317,21 @@ async function loadArchive() {
   } catch { archiveState = 'error'; }
   if (tab === 'home') render();
 }
-function archive(latest) {
+// earlier days: one row each, opened in place
+function archive() {
   if (!moves) {
-    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'alle udgaver';
-    return `<div class="arch"><button class="arch-row" data-archive><span><b>Tidligere overblik</b><small>${note}</small></span><svg><use href="#i-chev"/></svg></button></div>`;
+    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'de seneste 30 dage';
+    return `<div class="arch"><button class="arch-row" data-archive><span><b>Tidligere dage</b><small>${note}</small></span><svg><use href="#i-chev"/></svg></button></div>`;
   }
-  const html = '<div class="arch-h">Tidligere overblik</div>';
-  const list = (moves.briefs || []).map(edition).filter(e => e && (!latest || e.created !== latest.created));
-  if (!list.length) return html + '<p class="explain pad">Hver udgave lægges her, når den næste kommer.</p>';
-  return html + list.map(ed => {
-    const open = edOpen.has(ed.created), nS = countOf(ed, 'stories'), nL = countOf(ed, 'lines');
-    return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(ed.created)}">
-      <button class="arch-row" data-arch-toggle aria-expanded="${open}"><span><b>${cap(dayShort(ed.created))} · ${esc(ed.period || 'overblik')}</b>
-      <small>kl. ${clock(ed.created)}${nS ? ` · ${nS} nyheder` : ''}${nL ? ` · ${nL} udtalelser` : ''}</small></span><svg><use href="#i-chev"/></svg></button>
-      ${open ? briefCard(ed) : ''}</article>`;
+  const current = dayOf(digest);
+  const list = (moves.days || []).map(dayOf).filter(d => d && d.topics.length && (!current || d.date !== current.date));
+  if (!list.length) return '<div class="arch-h">Tidligere dage</div><p class="explain pad">Hver dag lægges her, når den næste begynder.</p>';
+  return '<div class="arch-h">Tidligere dage</div>' + list.map(day => {
+    const open = daysOpen.has(day.date), n = lineCount(day);
+    return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(day.date)}">
+      <button class="arch-row" data-arch-toggle aria-expanded="${open}"><span><b>${cap(dateDa(day.date, true))}</b>
+      <small>${n} ${n === 1 ? 'linje' : 'linjer'} · ${day.topics.length} emner</small></span><svg><use href="#i-chev"/></svg></button>
+      ${open ? dayBody(day) : ''}</article>`;
   }).join('');
 }
 
@@ -360,20 +348,14 @@ function timeline(list, opts, n0 = 0) {
   });
   return html;
 }
-// the front page: the overview, then what matters right now (all sections), then earlier overviews
+// the front page: what matters right now (all sections), then the overview of the day, then earlier days
 function home(all, opts) {
-  const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
-  let html = fresh ? briefCard(ed)
-    : '<section class="brief"><div class="brief-h"><b>Overblik</b><span>kommer kl. 7, 15 og 22</span></div></section>';
-  // the overview's stories are told already – also when another outlet's article has since become their card
-  const told = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
-  const inBrief = i => told.has(i.id) || (i.also || []).some(a => told.has(a.id));
-  let cands = all.filter(i => !inBrief(i) && hours(i) < 6);
-  if (cands.length < 6) cands = all.filter(i => !inBrief(i) && hours(i) < 18);
+  let cands = all.filter(i => hours(i) < 6);
+  if (cands.length < 6) cands = all.filter(i => hours(i) < 18);
   const now = pick(cands, 6);
-  html += `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
+  let html = `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
-  html += `<section class="block">${archive(fresh && ed)}</section>`;
+  html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
   return html;
@@ -455,7 +437,7 @@ function render(opts = {}) {
     $('freshPill').querySelector('span').textContent = `${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`;
     $('freshPill').hidden = false;
   }
-  // a dot on a tab with something the user has not seen yet: a new overview, or an important story
+  // a dot on a tab with something the user has not seen yet: a new update of the overview, or an important story
   // (a tab's dot goes once the tab has been looked at)
   const since = name => Math.max(lastSeen, seenTab[name] || 0);
   document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
@@ -465,6 +447,10 @@ function render(opts = {}) {
       i.important && isNew(i) && secOf(i) === sec && new Date(i.found).getTime() > since(sec)));
   }
   if (focusId) openFocus(all);
+  if (goOverview && tab === 'home' && $('overview')) {
+    goOverview = false;
+    setTimeout(() => { const o = $('overview'); if (o) scrollTo(0, o.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8); }, 150);
+  }
 }
 // a notification opens the app on its story: find it, open it, show it
 function openFocus(all) {
@@ -503,28 +489,6 @@ function toggle(el) {
   }
   el.querySelector('.row').setAttribute('aria-expanded', open);
 }
-function toggleTopic(el) {
-  const key = el.dataset.tp, open = !el.classList.contains('open');
-  if (open) {
-    const ed = edOf(el), k = key.split('|')[1];
-    const body = !ed ? '' : k === 'rest' ? restBody(ed.topics.map((tp, j) => [tp, j]).filter(([tp]) => !(tp.stories || []).length))
-      : ed.topics[+k] ? topicBody(ed.topics[+k]) : '';
-    if (!body) return;
-    el.querySelector('.x-in').innerHTML = body;
-    tpOpen.add(key);
-    void el.offsetHeight;
-    el.classList.add('open');
-    keepInView(el);
-  } else {
-    el.classList.remove('open'); tpOpen.delete(key);
-  }
-  el.querySelector('[data-tp-toggle]').setAttribute('aria-expanded', open);
-}
-function topicStory(el) {
-  const tpEl = el.closest('[data-tp]'), ed = edOf(tpEl), tp = ed.topics[+tpEl.dataset.tp.split('|')[1]];
-  const at = el.closest('[data-tp-share], [data-tp-read]');
-  return tp.stories[+(at.dataset.tpShare ?? at.dataset.tpRead)];
-}
 
 // ---------------------------------------------------------------- share and copy
 async function copyText(text) {
@@ -561,12 +525,15 @@ async function share(text, i) {
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
-  if (t.closest('[data-tp-toggle]')) { toggleTopic(t.closest('[data-tp]')); return; }
-  if (t.closest('[data-tp-share]')) { const s = topicStory(t), r = findStory(s.id); share(`*${s.headline}*\n${s.text}\n${s.link}`, r); return; }
-  if (t.closest('[data-tp-read]')) { const r = findStory(topicStory(t).id); if (r) learnFrom(r, 'read'); return; }
-  if (t.closest('[data-ed-share]')) { const ed = edOf(t); share(t.closest('[data-ed-share]').dataset.edShare === 'lines' ? linesText(ed) : overviewText(ed)); return; }
+  if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
+  if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
+  if (t.closest('[data-line]')) {   // a line that tells a story: opening it says 'more like this', quietly
+    const a = t.closest('[data-line]'), r = a.dataset.story && findStory(a.dataset.line);
+    if (r) learnFrom(r, 'read');
+    return;
+  }
   if (t.closest('[data-archive]')) { loadArchive(); return; }
-  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; edOpen.has(c) ? edOpen.delete(c) : edOpen.add(c); render(); return; }
+  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; daysOpen.has(c) ? daysOpen.delete(c) : daysOpen.add(c); render(); return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
@@ -767,9 +734,20 @@ function b64ToBytes(s) {
   const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/'));
   return Uint8Array.from(b, c => c.charCodeAt(0));
 }
+// Android: Chrome offers to install Khabar once it qualifies; the settings keep that offer one tap away
+let installEvent = null;
+addEventListener('beforeinstallprompt', e => { installEvent = e; if (!$('sheet').hidden) refreshPushInfo(); });
+addEventListener('appinstalled', () => { installEvent = null; $('installApp').hidden = true; });
+$('installApp').addEventListener('click', async () => {
+  if (!installEvent) return;
+  installEvent.prompt();
+  try { await installEvent.userChoice; } catch { /* closed */ }
+  installEvent = null; refreshPushInfo();
+});
 async function refreshPushInfo() {
-  const info = $('pushInfo'), btn = $('enablePush');
+  const info = $('pushInfo'), btn = $('enablePush'), android = !standalone && /Android/.test(navigator.userAgent);
   btn.hidden = true;
+  $('installHint').hidden = !android; $('installApp').hidden = !(android && installEvent);
   if (!standalone && /iPhone|iPad/.test(navigator.userAgent)) {
     info.innerHTML = 'Læg først Khabar på hjemmeskærmen: <b>Del</b> → <b>Føj til hjemmeskærm</b> i Safari, og åbn den derfra.';
     return;
@@ -779,7 +757,7 @@ async function refreshPushInfo() {
   if (!reg) { info.textContent = 'Notifikationer kan kun slås til i appen på hjemmeskærmen.'; return; }
   const sub = await reg.pushManager.getSubscription();
   if (sub && Notification.permission === 'granted') {
-    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og overblikket kl. 7, 15 og 22. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
+    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og nyt i overblikket kl. 7, 15 og 22. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
     showCode(sub);
   } else {
     info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og overblikket.';

@@ -1,24 +1,28 @@
 {
   "name": "Khabar",
   "short_name": "Khabar",
-  "description": "Khabar – nyhederne der betyder noget for Debat/Nyheder Shabab, klar til at kopiere",
+  "description": "Dagens vigtigste nyheder fra Danmark, Mellemøsten og verden – og et kort overblik over dagen, klar til at dele.",
   "lang": "da",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#eeeeeb",
   "theme_color": "#eeeeeb",
+  "categories": ["news"],
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Danmark", "url": "./?tab=dk", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Mellemøsten", "url": "./?tab=me", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Seneste", "url": "./?tab=latest", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ],
+  "screenshots": [
+    { "src": "screens/forside.jpg", "sizes": "1080x1920", "type": "image/jpeg", "form_factor": "narrow", "label": "Vigtigst lige nu" },
+    { "src": "screens/overblik.jpg", "sizes": "1080x1920", "type": "image/jpeg", "form_factor": "narrow", "label": "Dagens overblik" }
   ]
 }

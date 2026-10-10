@@ -97,6 +97,17 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- The overview is now one overview per day at the bottom of the front page, titled with the date ('Overblik
+  10. oktober'): the day's most important movements as short 'Who: what' lines in the style of Al Jazeera's
+  breaking wire, grouped by topic with the time at the left, newest first. The editor adds to it at 07, 15 and
+  22 and the first update after midnight starts a new day; earlier days stay in an archive. The two-to-three
+  sentence summaries and the 'Også' row are gone; 'Vigtigst lige nu' opens the front page and no longer hides
+  stories the overview mentions. A notification about an update names its most important new line and opens
+  the app on the overview; an update that adds nothing sends none.
+- Android: icons that a round launcher mask cannot cut (maskable), a one-colour status-bar icon, screenshots and
+  shortcuts for Chrome's install window, a neutral app description, and an 'Installer Khabar' offer in the
+  settings when Chrome allows it.
+
 - Claude's overview now comes three times a day – 07, 15 and 22 – and each edition covers the stories since
   the previous one (no repeats between the 15 and the 22 edition); 45 editions are kept (about two weeks).
 - Default look: **Dæmpet** (soft grey) in light mode and **Notion** in dark mode, listed first in the

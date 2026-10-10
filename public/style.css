@@ -98,7 +98,7 @@ main { min-height: 70vh; }
    the headline in plain type with its names in bold, one quiet line below it (big story in red, a small dot for
    the section on mixed lists, outlet, time), a small picture at the right – or the outlet's initials */
 .story { position: relative; transition: background-color .25s; }
-.story + .story::before, .tp + .tp::before { content: ""; position: absolute; top: 0; left: 16px; right: 16px; border-top: .5px solid var(--line); }
+.story + .story::before { content: ""; position: absolute; top: 0; left: 16px; right: 16px; border-top: .5px solid var(--line); }
 .story.open { background-color: var(--fill); }
 .story.open::before, .story.open + .story::before { opacity: 0; }
 .row { position: relative; display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 11px 16px 12px; transition: background-color .15s; }
@@ -125,9 +125,9 @@ main { min-height: 70vh; }
 
 .x { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s var(--out); }
 .x > div { overflow: hidden; min-height: 0; }
-.story.open .x, .tp.open .x { grid-template-rows: 1fr; }
+.story.open .x { grid-template-rows: 1fr; }
 .x-in { padding: 0 16px 14px; opacity: 0; transition: opacity .2s; }
-.story.open .x-in, .tp.open .x-in { opacity: 1; transition-delay: .06s; }
+.story.open .x-in { opacity: 1; transition-delay: .06s; }
 .sum { margin: 0 0 12px; font-size: 15px; line-height: 1.47; color: var(--text-2); }
 .tr-note { margin: -6px 0 12px; font-size: 12.5px; color: var(--text-3); }
 .acts { display: flex; gap: 8px; }
@@ -148,53 +148,40 @@ main { min-height: 70vh; }
 .cov a i { font-style: normal; color: var(--text-3); }
 .cov a:active { opacity: .6; }
 
-/* ------------------------------------------------------------ Claude's overview, kept compact
-   one line per topic – its name in bold, then the headline – and a small count of what the actors say; tap for the
-   summary, the source and 'Det siger de'. Topics with only statements are one line of names under 'Også'. */
-.brief { margin: 10px 12px 2px; padding: 11px 0 2px; border-radius: 16px; background: var(--fill); }
-.brief-h { display: flex; align-items: baseline; gap: 8px; padding: 0 16px; }
-.brief-h b { font-size: 12px; font-weight: 780; letter-spacing: .07em; text-transform: uppercase; color: var(--text); }
-.brief-h span { font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
-.brief .intro { margin: 4px 16px 4px; font-size: 14.5px; line-height: 1.42; color: var(--text-2); text-wrap: pretty;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.tp { position: relative; transition: background-color .25s; }
-.tp-row { display: flex; align-items: flex-start; gap: 10px; width: 100%; min-height: 44px; padding: 10px 16px; text-align: left; }
-.tp-row:active { background-color: var(--fill-2); }
-.tp-t { flex: 1; min-width: 0; font-size: 15px; line-height: 1.37; color: var(--text); text-wrap: pretty;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tp-t b { font-weight: 700; }
-.tp.open .tp-t { display: block; }
-.tp-n { flex: none; display: flex; align-items: center; gap: 3px; margin-top: 1px; font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
-.tp-n svg { width: 14px; height: 14px; }
-.tp.open { background-color: color-mix(in srgb, var(--fill-2) 55%, var(--fill)); }
-.tp.open::before, .tp.open + .tp::before { opacity: 0; }
-.tp .x-in { padding-bottom: 10px; }
-.tp .sum { margin: 0 0 4px; font-size: 14.5px; }
-.tp-story + .tp-story { margin-top: 10px; padding-top: 10px; border-top: .5px solid var(--line); }
-.tp-h { display: block; margin-bottom: 3px; font-size: 15px; line-height: 1.35; font-weight: 680; }
-.tp-links { display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--text-3); }
-.tp-links span { flex: 1; min-width: 0; }
-.tp-links a, .tp-links button { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 0 8px; font-size: 14px;
-  font-weight: 620; color: var(--text); }
-.tp-links svg { width: 15px; height: 15px; }
-.tp-links a:active, .tp-links button:active { opacity: .55; }
-.said-h { margin: 8px 0 0; font-size: 11.5px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
-.said { list-style: none; margin: 0; padding: 0; }
-.said li > a, .said li > span { display: block; position: relative; padding: 5px 0 5px 12px; font-size: 14.5px; line-height: 1.42; color: var(--text-2); }
-.said li > a::before, .said li > span::before { content: ""; position: absolute; left: 1px; top: 13px; width: 4px; height: 4px; border-radius: 50%; background: var(--text-3); }
-.said b { color: var(--text); font-weight: 650; }
-.said li > a:active { opacity: .6; }
-.brief-acts { display: flex; justify-content: flex-end; gap: 2px; padding: 2px 6px 2px; }
-.brief-acts button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; font-size: 14px; font-weight: 620; color: var(--text-2); }
-.brief-acts svg { width: 16px; height: 16px; }
-.brief-acts button:active { opacity: .55; }
+/* ------------------------------------------------------------ the overview of the day: closes the front page
+   short lines – who in bold, then what – grouped by topic, newest first, with the time at the left like a wire */
+.ov { margin-top: 30px; }
+.ov-h { padding: 0 16px; }
+.ov-h h2 { margin: 0; font-size: 21px; font-weight: 780; letter-spacing: -.022em; }
+.ov-h h2 span { font-weight: 480; color: var(--text-2); }
+.ov-h p { margin: 2px 0 0; font-size: 13px; line-height: 1.4; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ov-body { margin: 10px 12px 2px; padding: 4px 0 0; border-radius: 16px; background: var(--fill); }
+.dt { padding: 10px 16px 4px; }
+.dt + .dt { border-top: .5px solid var(--line); }
+.dt h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 2px; font-size: 15px; line-height: 1.3; font-weight: 720; letter-spacing: -.01em; }
+.dt h3 i { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--sec); }
+.dl { list-style: none; margin: 0; padding: 0; }
+.dl li { position: relative; }
+.dl li > a, .dl li > span { display: flex; gap: 10px; padding: 5px 0; font-size: 14.5px; line-height: 1.42; color: var(--text-2); text-wrap: pretty; }
+.dl time { flex: none; width: 38px; padding-top: 1.5px; font-size: 12.5px; line-height: 1.5; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.dl time small { display: block; font-size: 11px; line-height: 1.2; }
+.dl b { color: var(--text); font-weight: 650; }
+.dl i { color: var(--text-3); }
+.dl li > a:active { opacity: .6; }
+.dl li.new::before { content: ""; position: absolute; left: -10px; top: 13px; width: 5px; height: 5px; border-radius: 50%; background: var(--pulse); }
+.dt-more { min-height: 36px; margin: -2px 0 4px; padding: 0 0 0 48px; font-size: 13.5px; font-weight: 620; color: var(--text-2); }
+.dt-more:active { opacity: .55; }
+.ov-acts { display: flex; justify-content: flex-end; padding: 0 6px 2px; border-top: .5px solid var(--line); }
+.ov-acts button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; font-size: 14px; font-weight: 620; color: var(--text-2); }
+.ov-acts svg { width: 16px; height: 16px; }
+.ov-acts button:active { opacity: .55; }
 .explain { margin: 6px 0 2px; font-size: 12.5px; line-height: 1.45; color: var(--text-3); }
 .explain.top { margin: 14px 18px 2px; font-size: 13.5px; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .cov-more { margin-top: 6px; font-size: 13px; color: var(--text-3); }
 .explain.pad { margin: 2px 16px 8px; font-size: 13.5px; }
 
-/* earlier overviews: one line each, opened in place */
+/* earlier days: one line each, opened in place */
 .arch { margin: 0 12px; border-top: .5px solid var(--line); }
 .arch-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 58px; padding: 8px 4px; }
 .arch-row span { flex: 1; min-width: 0; }
@@ -202,7 +189,7 @@ main { min-height: 70vh; }
 .arch-row small { display: block; margin-top: 2px; font-size: 13px; color: var(--text-3); }
 .arch-row svg { width: 16px; height: 16px; color: var(--text-3); transition: transform .25s var(--out); }
 .arch.open .arch-row svg { transform: rotate(90deg); }
-.arch .brief { margin: 0 0 14px; }
+.arch .ov-body { margin: 0 0 14px; }
 .arch-h { margin: 0 16px; padding: 4px 0 6px; font-size: 12px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
 .wide.soft { width: calc(100% - 32px); margin: 8px 16px; background: var(--fill); }
 

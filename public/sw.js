@@ -23,7 +23,10 @@ self.addEventListener('push', e => {
   let p = {};
   try { p = e.data.json(); } catch { p = { title: 'Khabar', body: e.data ? e.data.text() : '' }; }
   e.waitUntil(self.registration.showNotification(p.title || 'Khabar', {
-    body: p.body || '', tag: p.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: p.url || './' },
+    // badge: the small one-colour icon Android shows in the status bar; a new note with the same tag (the overview's
+    // next update) replaces the old one and still makes a sound
+    body: p.body || '', tag: p.tag, renotify: Boolean(p.tag), icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
+    data: { url: p.url || './' },
   }));
 });
 self.addEventListener('notificationclick', e => {
