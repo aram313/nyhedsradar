@@ -1,4 +1,4 @@
-# Sets up the 5-minute clock for Nabd: an Upstash QStash schedule that starts the radar workflow on GitHub.
+# Sets up the 5-minute clock for Khabar: an Upstash QStash schedule that starts the radar workflow on GitHub.
 # The owner runs this himself and pastes the keys when asked; they are sent only to GitHub and Upstash
 # and are never written to disk or shown on screen.
 $ErrorActionPreference = 'Stop'
@@ -6,7 +6,7 @@ $repo = 'aram313/nyhedsradar'
 $dispatch = "https://api.github.com/repos/$repo/actions/workflows/radar.yml/dispatches"
 
 Write-Host ''
-Write-Host 'Nabd – opsætning af vækkeur' -ForegroundColor Red
+Write-Host 'Khabar – opsætning af vækkeur' -ForegroundColor Red
 Write-Host ''
 
 $gh = Read-Host -AsSecureString '1/3  Indsæt din GitHub-nøgle (den du lige har lavet)'
