@@ -448,17 +448,20 @@ $('foreignSeg').addEventListener('click', e => {
 paintSeg();
 
 // appearance: five tones of the same look, and automatic / light / dark
-let tone = store.get('tone', 'papir'), mode = store.get('mode', 'auto');
+let tone = store.get('tone', 'papir'), mode = store.get('mode', 'auto'), dark = store.get('dark', 'grafit');
 function applyLook() {
   const d = document.documentElement;
   tone === 'papir' ? delete d.dataset.tone : d.dataset.tone = tone;
   mode === 'auto' ? delete d.dataset.theme : d.dataset.theme = mode;
+  dark === 'grafit' ? delete d.dataset.dark : d.dataset.dark = dark;
+  document.querySelectorAll('#darkSeg [data-dark]').forEach(b => b.setAttribute('aria-checked', b.dataset.dark === dark));
   document.querySelectorAll('#toneSeg [data-tone]').forEach(b => b.setAttribute('aria-checked', b.dataset.tone === tone));
   document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
   const meta = getComputedStyle(d).getPropertyValue('--bg').trim();
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', meta));
 }
 $('toneSeg').addEventListener('click', e => { const b = e.target.closest('[data-tone]'); if (b) { tone = b.dataset.tone; store.set('tone', tone); applyLook(); } });
+$('darkSeg').addEventListener('click', e => { const b = e.target.closest('[data-dark]'); if (b) { dark = b.dataset.dark; store.set('dark', dark); applyLook(); } });
 $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { mode = b.dataset.v; store.set('mode', mode); applyLook(); } });
 if (!new URLSearchParams(location.search).get('tone')) applyLook();
 

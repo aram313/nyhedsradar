@@ -44,6 +44,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   the logo flies into the header; lines printed in from an ink blur; a red 'KOPIERET' stamp when copying;
   pull-to-refresh as an ink drop that splashes into ripples; tabs slide in the direction of travel; lines unfold
   like paper; the overview rule draws itself; big-story markers throb once; the logo settles when scrolling.
+- Dark mode now uses proven palettes instead of the brown paper-dark: Varm grafit (default), Material, Apple and
+  Notion, chosen under Mere → Udseende → Mørk, independent of the light tone. Lighter secondary text.
 - Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
   Danish stories (e.g. northern lights) no longer qualify.
 
