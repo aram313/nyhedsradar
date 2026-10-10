@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
-SIZE = (360, 270)   # the picture fills the right of a story row and fades out; sharp on a 3x phone screen
+SIZE = (330, 300)   # the picture fills the right of a story row and fades out; sharp on a 3x phone screen
 SHARE_META = re.compile(r'<meta\b[^>]*(?:property|name)\s*=\s*["\'](?:og:image(?::secure_url|:url)?|twitter:image(?::src)?)["\'][^>]*>', re.I)
 CONTENT = re.compile(r'\bcontent\s*=\s*["\']([^"\']+)["\']', re.I)
 NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube\.com|youtu\.be)/', re.I)
@@ -21,8 +21,11 @@ NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube
 STAND_IN = re.compile(r'/(?:brands?|logos?)/|[/_-](?:logo|share|default|placeholder|fallback)[\w-]*\.(?:jpe?g|png|webp|gif)(?:[?#]|$)', re.I)
 
 
+CUT = 'face1'   # change it when pictures are cut differently: every card then gets a freshly made one
+
+
 def name_of(url):
-    return hashlib.sha1(url.encode()).hexdigest()[:16] + '.jpg'
+    return hashlib.sha1((CUT + url).encode()).hexdigest()[:16] + '.jpg'
 
 
 def share_image(page, base):
@@ -41,8 +44,39 @@ def get(url, limit, accept, timeout=8):
         return r.read(limit)
 
 
+def focus(im):
+    """Where the picture's subject is: the centre of its biggest face as fractions (x, y), or None. Uses OpenCV's
+    built-in face finder when it is installed (it is in the cloud); without it every picture is cut as before."""
+    try:
+        import cv2
+        import numpy as np
+    except ImportError:
+        return None
+    small = im.copy()
+    small.thumbnail((480, 480))
+    gray = cv2.cvtColor(np.asarray(small), cv2.COLOR_RGB2GRAY)
+    finder = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    side = max(24, min(gray.shape) // 12)   # tiny faces in a crowd are no subject
+    faces = finder.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=6, minSize=(side, side))
+    if len(faces) == 0:
+        return None
+    x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
+    return (x + w / 2) / gray.shape[1], (y + h / 2) / gray.shape[0]
+
+
+def crop_box(size, target, at):
+    """The largest box of the target's shape inside `size` that puts the point `at` (fractions) at the box's
+    horizontal middle and about a third from its top, as far as the picture's edges allow."""
+    (w, h), (tw, th) = size, target
+    bw, bh = (w, w * th / tw) if w / h < tw / th else (h * tw / th, h)
+    left = min(max(at[0] * w - bw / 2, 0), w - bw)
+    top = min(max(at[1] * h - bh * .36, 0), h - bh)
+    return round(left), round(top), round(left + bw), round(top + bh)
+
+
 def shrink(raw):
-    """A centred 4:3 JPEG, or None for what is no photo: icons, logos, banners, unreadable files."""
+    """A JPEG cut around the picture's subject (a face when there is one, else a little above the middle, where
+    news photos have it), or None for what is no photo: icons, logos, banners, unreadable files."""
     from PIL import Image, ImageOps
     try:
         im = Image.open(io.BytesIO(raw))
@@ -51,9 +85,9 @@ def shrink(raw):
             return None
         im.draft('RGB', (SIZE[0] * 2, SIZE[1] * 2))   # JPEGs decode straight at a smaller size
         im = ImageOps.exif_transpose(im).convert('RGB')
-        im = ImageOps.fit(im, SIZE, Image.LANCZOS, centering=(.5, .42))
+        im = im.crop(crop_box(im.size, SIZE, focus(im) or (.5, .4))).resize(SIZE, Image.LANCZOS)
         out = io.BytesIO()
-        im.save(out, 'JPEG', quality=68, optimize=True, progressive=True)
+        im.save(out, 'JPEG', quality=70, optimize=True, progressive=True)
         return out.getvalue()
     except Exception:  # noqa: BLE001 – a broken picture is no picture
         return None

@@ -127,6 +127,8 @@ main { min-height: 70vh; }
 .story.pic .th b { display: none; }
 .story.pic .th img { -webkit-mask-image: linear-gradient(to right, transparent, rgba(0, 0, 0, .25) 30%, rgba(0, 0, 0, .9) 72%, #000);
   mask-image: linear-gradient(to right, transparent, rgba(0, 0, 0, .25) 30%, rgba(0, 0, 0, .9) 72%, #000); }
+.story.pic .th img { filter: grayscale(1) contrast(1.06); transition: filter .4s; }   /* calm list; colour once opened */
+.story.pic.open .th img { filter: none; }
 .story.pic .tx { position: relative; padding-right: 30%; }
 .story.pic .h { text-shadow: 0 0 10px var(--bg), 0 0 2px var(--bg); }
 .story.pic.open .x { position: relative; }

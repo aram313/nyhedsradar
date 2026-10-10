@@ -97,6 +97,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Story pictures are cut around the biggest face (OpenCV's face finder, new dependency in the cloud only)
+  and shown in black and white in the lists; an opened story shows its picture in colour.
 - A story's picture now fills the right of its row and fades into the page instead of sitting in a box;
   the radar makes 360x270 pictures for it. Stories without a picture show no box.
 - After a tester found it hard to follow: the recap is one row that folds out; day bands say 'I dag · lørdag

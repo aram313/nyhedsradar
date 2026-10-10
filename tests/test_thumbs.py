@@ -81,3 +81,10 @@ def test_stand_ins_are_no_pictures(tmp_path, monkeypatch, photo):
     assert not list(tmp_path.iterdir())
     thumbs.attach(cards, {}, set(), tmp_path, memory)   # and stays so in the next run
     assert [c.get('thumb') for c in cards] == [None, None, None]
+
+
+def test_crop_keeps_the_subject_in_view():
+    # a tall portrait with the face near the top: the box starts at the top, not in the middle (the neck)
+    assert thumbs.crop_box((600, 1200), (330, 300), (.5, .15)) == (0, 0, 600, 545)
+    # a wide picture with the face at the right: the box slides right as far as the picture allows
+    assert thumbs.crop_box((1600, 900), (330, 300), (.85, .4)) == (610, 0, 1600, 900)
