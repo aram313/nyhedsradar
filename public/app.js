@@ -64,18 +64,19 @@ function ago(iso) {
   y.setDate(y.getDate() - 1);
   if (m < 1) return 'nu';
   if (m < 60) return Math.round(m) + ' min';
-  if (d.toDateString() === new Date().toDateString()) return Math.round(m / 60) + ' t';
-  if (d.toDateString() === y.toDateString()) return 'i går ' + clock(iso);
+  if (d.toDateString() === new Date().toDateString()) return 'kl. ' + clock(iso);
+  if (d.toDateString() === y.toDateString()) return 'i går kl. ' + clock(iso);
   return d.toLocaleDateString('da-DK', { weekday: 'short' }) + ' ' + clock(iso);
 }
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function dayLabel(iso) {
   const d = new Date(iso), t = new Date(), y = new Date(t);
   y.setDate(t.getDate() - 1);
-  if (d.toDateString() === t.toDateString()) return 'I dag';
-  if (d.toDateString() === y.toDateString()) return 'I går';
-  return d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
+  const full = d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
+  if (d.toDateString() === t.toDateString()) return 'I dag · ' + full;
+  if (d.toDateString() === y.toDateString()) return 'I går · ' + full;
+  return cap(full);
 }
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const when = i => new Date(i.published || i.found).getTime();
 const hours = i => Math.max(0, (Date.now() - when(i)) / 3600e3);
 const num = n => Number(n || 0).toLocaleString('da-DK');
@@ -295,13 +296,16 @@ function dayText(day) {
   return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`)].join('\n\n');
 }
 // the newest recap (written at 21, it covers the day since 21 the evening before) replaces the one before
+let recapOpen = false;
 function overview() {
   const day = dayOf(digest);
   if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-h"><h2>Resumé</h2><p>Dagens vigtigste bevægelser – kommer kl. 21.</p></div></section>`;
+    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer kl. 21</small></span></div></section>`;
   }
-  return `<section class="ov" id="overview"><div class="ov-h"><h2>Resumé <span>${dateDa(day.date, true)}</span></h2>
-    <p>Dagens vigtigste bevægelser · lavet kl. ${clock(day.created)}</p></div>${dayBody(day)}</section>`;
+  const n = lineCount(day);
+  return `<section class="ov${recapOpen ? ' open' : ''}" id="overview"><button class="ov-row" data-recap aria-expanded="${recapOpen}">
+    <span><b>Resumé · ${dateDa(day.date, true)}</b><small>Dagens vigtigste bevægelser · ${n} linjer · kl. ${clock(day.created)}</small></span>
+    <svg><use href="#i-chev"/></svg></button>${recapOpen ? dayBody(day) : ''}</section>`;
 }
 async function loadArchive() {
   if (archiveState === 'loading') return;
@@ -347,8 +351,9 @@ function timeline(list, opts, n0 = 0) {
 }
 // the front page: today's most important stories (all sections), then the latest recap of a day, then earlier days
 function home(all, opts) {
-  let cands = all.filter(i => hours(i) < 12);
-  if (cands.length < 8) cands = all.filter(i => hours(i) < 24);
+  const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
+  let cands = all.filter(today);
+  if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
   const now = pick(cands, 8);
   let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
@@ -446,6 +451,7 @@ function render(opts = {}) {
   if (focusId) openFocus(all);
   if (goOverview && tab === 'home' && $('overview')) {
     goOverview = false;
+    if (!recapOpen) { recapOpen = true; render(); }
     setTimeout(() => { const o = $('overview'); if (o) scrollTo(0, o.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8); }, 150);
   }
 }
@@ -522,6 +528,7 @@ async function share(text, i) {
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
+  if (t.closest('[data-recap]')) { recapOpen = !recapOpen; render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
   if (t.closest('[data-line]')) {   // a line that tells a story: opening it says 'more like this', quietly

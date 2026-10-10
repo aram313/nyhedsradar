@@ -97,6 +97,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- After a tester found it hard to follow: the recap is one row that folds out; day bands say 'I dag · lørdag
+  10. oktober' on a dark label; rows show the clock time ('kl. 14.05', 'i går kl. 22.10') instead of '5 t';
+  'Vigtigst i dag' holds today's stories; the selected tab sits on a pill and the tab bar has a clear edge.
 - Notifications switch on with one tap: the app sends the phone's push address to the radar through the
   relay, the radar keeps the list encrypted (state/phones.bin, PROFILE_KEY), caps new phones at 30 a day and
   drops phones that switch off or disappear. No more NYHEDSRADAR-PUSH codes to copy and forward.

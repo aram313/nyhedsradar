@@ -84,7 +84,8 @@ main { min-height: 70vh; }
 .day { position: sticky; z-index: 5; top: calc(var(--top) + 50px); display: flex; align-items: center; gap: 10px; min-height: 34px;
   margin-top: 8px; padding: 6px 16px; font-size: 12px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--text);
   background: var(--bar); -webkit-backdrop-filter: saturate(170%) blur(20px); backdrop-filter: saturate(170%) blur(20px); }
-.day::after { content: ""; flex: 1; border-top: .5px solid var(--line); }
+.day span { padding: 3px 9px; border-radius: 7px; background: var(--text); color: var(--bg); letter-spacing: .05em; }
+.day::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
 .foot { padding: 26px 24px 8px; text-align: center; font-size: 13px; line-height: 1.5; color: var(--text-3); }
 .empty { padding: 56px 32px; text-align: center; font-size: 15px; line-height: 1.5; color: var(--text-3); }
 .skel { height: 68px; margin: 0 16px; position: relative; overflow: hidden; }
@@ -150,7 +151,14 @@ main { min-height: 70vh; }
 
 /* ------------------------------------------------------------ the overview of the day: closes the front page
    short lines – who in bold, then what – grouped by topic, newest first, with the time at the left like a wire */
-.ov { margin-top: 30px; }
+.ov { margin: 26px 12px 0; border-radius: 16px; background: var(--fill); }
+.ov-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 64px; padding: 12px 14px 12px 16px; text-align: left; }
+.ov-row span { flex: 1; min-width: 0; }
+.ov-row b { display: block; font-size: 17px; font-weight: 720; letter-spacing: -.012em; }
+.ov-row small { display: block; margin-top: 2px; font-size: 13px; line-height: 1.35; color: var(--text-3); }
+.ov-row svg { width: 18px; height: 18px; color: var(--text-3); transform: rotate(90deg); transition: transform .25s var(--out); }
+.ov.open .ov-row svg { transform: rotate(-90deg); }
+.ov .ov-body { margin: 0; border-top: .5px solid var(--line); border-radius: 0 0 16px 16px; }
 .ov-h { padding: 0 16px; }
 .ov-h h2 { margin: 0; font-size: 21px; font-weight: 780; letter-spacing: -.022em; }
 .ov-h h2 span { font-weight: 480; color: var(--text-2); }
@@ -223,14 +231,15 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
 /* ------------------------------------------------------------ bottom dock: sections in the thumb zone */
 .dock { position: fixed; z-index: 30; left: 0; right: 0; bottom: var(--kb); padding-bottom: var(--bottom);
   background: var(--bar); -webkit-backdrop-filter: saturate(170%) blur(20px); backdrop-filter: saturate(170%) blur(20px);
-  box-shadow: 0 -.5px 0 var(--line); }
+  box-shadow: 0 -1px 0 var(--line), 0 -6px 18px rgba(0, 0, 0, .05); }
 .keyboard .dock { padding-bottom: 0; }
 .tabs { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 640px; margin: 0 auto; }
 .tabs button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: 54px; padding-top: 2px; font-size: 10.5px; font-weight: 600; letter-spacing: .01em; color: var(--text-3); transition: color .2s; }
-.tabs button svg { width: 25px; height: 25px; transition: transform .18s var(--out); }
+  min-height: 56px; padding-top: 3px; font-size: 11px; font-weight: 600; letter-spacing: .01em; color: var(--text-2); transition: color .2s; }
+.tabs button svg { width: 25px; height: 25px; padding: 1px 0; border-radius: 13px; box-sizing: content-box; transition: transform .18s var(--out), background-color .2s; }
+.tabs button[aria-selected="true"] svg { width: 25px; padding: 1px 16px; background: var(--fill-2); }
 .tabs button:active svg { transform: scale(.88); }
-.tabs button[aria-selected="true"] { color: var(--text); }
+.tabs button[aria-selected="true"] { color: var(--text); font-weight: 750; }
 .tab-dot { position: absolute; top: 6px; left: calc(50% + 8px); width: 7px; height: 7px; border-radius: 50%; background: var(--pulse);
   box-shadow: 0 0 0 2px var(--bg); transform: scale(0); transition: transform .3s var(--out); }
 .tabs button.has-new .tab-dot { transform: scale(1); }
