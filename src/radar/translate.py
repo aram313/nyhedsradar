@@ -2,7 +2,8 @@
 
 Uses the free Argos Translate models (OPUS-MT, CTranslate2 format) directly, without the
 argostranslate package, which would pull in several gigabytes of PyTorch. Nothing is sent
-to an online service."""
+to an online service. Packages come with one of two word splitters: a SentencePiece model
+(Arabic, Turkish) or Moses tokenisation plus subword BPE codes (English-Danish)."""
 import html
 import io
 import re
@@ -25,6 +26,35 @@ def tidy(text):
     return re.sub(r'\s{2,}', ' ', text).strip(' :-–')
 
 
+class SentencePieceSplitter:
+    def __init__(self, path):
+        import sentencepiece
+        self.sp = sentencepiece.SentencePieceProcessor(model_file=str(path))
+
+    def encode(self, text):
+        return self.sp.encode(text, out_type=str)
+
+    def decode(self, tokens):
+        return self.sp.decode(tokens)
+
+
+class MosesBpeSplitter:
+    def __init__(self, codes, src, tgt):
+        from sacremoses import MosesDetokenizer, MosesTokenizer
+        from subword_nmt.apply_bpe import BPE
+        self.tok, self.detok = MosesTokenizer(lang=src), MosesDetokenizer(lang=tgt)
+        with open(codes, encoding='utf-8') as f:
+            self.bpe = BPE(f)
+
+    def encode(self, text):
+        words = self.tok.tokenize(text, aggressive_dash_splits=True, escape=True)
+        return self.bpe.segment_tokens(words)
+
+    def decode(self, tokens):
+        words = ' '.join(tokens).replace('@@ ', '').removesuffix('@@').split()
+        return self.detok.detokenize(words, unescape=True)
+
+
 class Translator:
     def __init__(self, cache_dir):
         self.dir = Path(cache_dir) / 'argos'
@@ -34,16 +64,18 @@ class Translator:
         if pair in self.loaded:
             return self.loaded[pair]
         import ctranslate2
-        import sentencepiece
         target = self.dir / f'{pair[0]}_{pair[1]}'
         if not (target / 'ready').exists():
             req = urllib.request.Request(MODELS[pair], headers={'User-Agent': 'Mozilla/5.0 (Nyhedsradar)'})
             with urllib.request.urlopen(req, timeout=180) as r:
                 zipfile.ZipFile(io.BytesIO(r.read())).extractall(target)
             (target / 'ready').write_text('ok')
-        root = next(p.parent for p in target.rglob('sentencepiece.model'))
-        model = (ctranslate2.Translator(str(root / 'model'), device='cpu', inter_threads=2),
-                 sentencepiece.SentencePieceProcessor(model_file=str(root / 'sentencepiece.model')))
+        root = next(p.parent.parent for p in target.rglob('model.bin'))
+        if (root / 'sentencepiece.model').exists():
+            splitter = SentencePieceSplitter(root / 'sentencepiece.model')
+        else:
+            splitter = MosesBpeSplitter(root / 'bpe.model', *pair)
+        model = (ctranslate2.Translator(str(root / 'model'), device='cpu', inter_threads=2), splitter)
         self.loaded[pair] = model
         return model
 

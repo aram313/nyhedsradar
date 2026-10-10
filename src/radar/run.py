@@ -171,7 +171,7 @@ def in_quiet_hours(settings):
 
 def main():
     s = load(CONFIG / 'settings.json', {})
-    feeds = load(CONFIG / 'feeds.json', [])
+    feeds = [f for f in load(CONFIG / 'feeds.json', []) if not f.get('disabled')]  # the caretaker can switch a dead source off
     outlet_of = {f['name']: f.get('outlet', f['name']) for f in feeds}
     max_age = {f['name']: f.get('max_age_hours', s['max_age_hours']) for f in feeds}
     community = {f['name'] for f in feeds if f.get('community')}
