@@ -1,5 +1,5 @@
 """Small square pictures for the cards. Each card takes its own feed image, else another outlet's image of the
-same story, else the article page's share image (og:image), shrunk to a 144 px JPEG of a few kilobytes that the
+same story, else the article page's share image (og:image), shrunk to a 216 px JPEG of a few kilobytes that the
 app loads from the data branch (t/<name>.jpg). Telegram channels never lend a picture: their photos are often
 raw war footage. Pictures that cannot be fetched, icons and banners are skipped and remembered for a few days."""
 import hashlib
@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
-SIZE = 144
+SIZE = 216   # sharp at 76 px on a 3x phone screen
 SHARE_META = re.compile(r'<meta\b[^>]*(?:property|name)\s*=\s*["\'](?:og:image(?::secure_url|:url)?|twitter:image(?::src)?)["\'][^>]*>', re.I)
 CONTENT = re.compile(r'\bcontent\s*=\s*["\']([^"\']+)["\']', re.I)
 NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube\.com|youtu\.be)/', re.I)
