@@ -24,12 +24,12 @@ NAMES_AR = [('مراسل الجزيرة', 'Al Jazeera correspondent'), ('الج�
             ('الجزيرة', 'Al Jazeera'), ('ترمب', 'Trump'), ('ترامب', 'Trump'), ('بوتين', 'Putin'), ('زيلينسكي', 'Zelensky'),
             ('نتنياهو', 'Netanyahu'), ('الكرملين', 'the Kremlin'), ('باب المندب', 'Bab al-Mandab'), ('أنصار الله', 'Ansar Allah'),
             ('الحوثيين', 'the Houthis'), ('الحوثي', 'Houthi'), ('ويتكوف', 'Witkoff'), ('روبيو', 'Rubio'), ('عراقجي', 'Araghchi'),
-            ('الشرع', 'al-Sharaa'), ('أردوغان', 'Erdogan'), ('السيسي', 'Sisi'), ('شهيدان', 'two killed'), ('شهداء', 'killed'),
-            ('شهيد', 'one killed')]
+            ('الشرع', 'al-Sharaa'), ('أردوغان', 'Erdogan'), ('السيسي', 'Sisi'), ('مستشفى شهداء الأقصى', 'Al-Aqsa Martyrs Hospital'),
+            ('شهداء الأقصى', 'Al-Aqsa Martyrs'), ('شهيدان', 'two killed'), ('شهداء', 'killed'), ('شهيد', 'one killed')]
 FIXES = [(re.compile(r'\bTrimpe?\b|\bTramp\b'), 'Trump'), (re.compile(r'\bButin\b'), 'Putin'),
          (re.compile(r'\b[Ii]sland correspondent\b'), 'Al Jazeera correspondent'), (re.compile(r'\b[Tt]he Island\b'), 'Al Jazeera'),
          (re.compile(r'\bShaheed\b'), 'killed'), (re.compile(r'\b(the )?door of Al-?Mand[aei]b\b', re.I), 'Bab al-Mandab')]
-VERSION = 2   # bump when the glossary changes, so kept translations are made again
+VERSION = 3   # bump when the glossary changes, so kept translations are made again
 
 
 def names_first(text):
