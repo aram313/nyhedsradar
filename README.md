@@ -4,8 +4,9 @@ The app is called **Khabar** (خبر, "news"). The repository and folder keep th
 
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
-*Debat/Nyheder Shabab* and sorts them into three sections, each with its own colour: **Danmark** (blue),
-**Mellemøsten** (green) and **Verden** (purple). The front page opens with Claude's **overview** (07 and 22):
+*Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and **Verden**.
+Headlines set the names of people, parties and places in bold. The front page opens with Claude's compact
+**overview** (07 and 22):
 the most important stories grouped by topic, each with a short summary, and under each topic what the actors
 say – every line of Al Jazeera's Arabic breaking wire, translated into Danish. Below it 'Vigtigst lige nu'
 (the radar's strongest stories since) and the earlier overviews. The fifth tab, **Seneste**, shows everything as

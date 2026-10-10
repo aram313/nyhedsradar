@@ -121,15 +121,27 @@ const TAGS = new RegExp('^(?:[\\u2190-\\u2bff\\u{1f000}-\\u{1faff}\\ufe0f\\u200d
   + '|(?:gaza|west bank|lebanon|syria|yemen|iran|israeli|hebrew|palestinian) sources\\s+(?!say|said|report|told|claim))+', 'iu');
 const tidy = t => (t || '').replace(TAGS, '') || t;
 function display(i) {
-  let d = { ...i, origTitle: i.title, origSummary: i.summary };
+  let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [] };
   if (i.foreign && foreignMode !== 'original' && i.title_tr) {
-    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en' };
+    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en', kw: i.kw_tr || [] };
   }
   if (danish && i.title_da && !(i.foreign && foreignMode === 'original')) {
-    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da' };
+    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [] };
   }
   d.title = tidy(d.title);
   return d;
+}
+// the words that say who and where (the radar finds them) in bold; the rest of the headline stays plain
+function bold(text, words = []) {
+  const at = [];
+  for (const w of words) {
+    let i = text.indexOf(w);
+    while (i >= 0 && at.some(([a, b]) => i < b && i + w.length > a)) i = text.indexOf(w, i + 1);
+    if (w && i >= 0) at.push([i, i + w.length]);
+  }
+  let out = '', p = 0;
+  for (const [a, b] of at.sort((x, y) => x[0] - y[0])) { out += esc(text.slice(p, a)) + '<b>' + esc(text.slice(a, b)) + '</b>'; p = b; }
+  return out + esc(text.slice(p));
 }
 const readable = t => !/[؀-ۿ]/.test(t || '');
 const visible = i => !i.foreign || foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr);
@@ -164,8 +176,8 @@ function shareText(d) {
 }
 
 // ---------------------------------------------------------------- render: one story
-// a row: what kind of story (section, big) above the headline, the outlet and time below, a small picture
-// at the right – or the outlet's initials where no picture exists
+// a row: the headline with its names in bold, one quiet line below (big story, section, outlet, time),
+// a small picture at the right – or the outlet's initials where no picture exists
 // DR, BT, TV2, BBC as written; QudsN → QN; Al Jazeera → AJ; Politiken → P
 function monogram(name) {
   const w = String(name || '').replace(/\(.*?\)/g, '').split(/[\s\-–]+/).filter(x => x && !/^(the|of|og|and|for)$/i.test(x));
@@ -179,15 +191,12 @@ function thumb(source, file) {
   return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${file
     ? `<img src="${esc(THUMBS + file)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
 }
-function kicker(i, tag) {
-  const k = [];
-  if (tag) k.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);
-  if (i.big) k.push('<span class="big">Stor historie</span>');
-  return k.length ? `<span class="kick">${k.join('')}</span>` : '';
-}
 function meta(i, opts = {}) {
-  const m = [`<span class="src">${esc(i.source)}</span>`, `<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`];
-  if (i.outlets >= 3) m.push(`<span>${i.outlets} medier</span>`);
+  const m = [];
+  if (i.big) m.push('<span class="big">Stor historie</span>');
+  if (opts.tag) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);   // mixed lists say where it belongs
+  m.push(`<span class="src">${esc(i.source)}</span>`, `<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`);
+  if (i.outlets >= 3 && !opts.tag) m.push(`<span>${i.outlets} medier</span>`);
   if (i.confirmed === 0) m.push('<span class="warn">ubekræftet</span>');
   if (shared[i.id]) m.push('<span class="done">delt</span>');
   return m.join('');
@@ -197,7 +206,7 @@ function story(i, n, opts = {}) {
   const cls = ['story', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''} style="--i:${n}">
-    <button class="row" data-toggle aria-expanded="${open}"><span class="tx">${kicker(i, opts.tag)}<span class="h" dir="auto">${esc(i.title)}</span><span class="m">${meta(i, opts)}</span></span>${thumb(i.source, i.thumb)}</button>
+    <button class="row" data-toggle aria-expanded="${open}"><span class="tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, opts)}</span></span>${thumb(i.source, i.thumb)}</button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
 function detail(i) {
@@ -243,44 +252,45 @@ function edOf(el) {
   const c = el.closest('[data-ed]').dataset.ed, d = edition(digest);
   return d && d.created === c ? d : edition(((moves && moves.briefs) || []).find(e => e.created === c));
 }
+// one line per topic: its name in bold, then the headline; a small count of what the actors say at the right
 function topicRow(ed, tp, k) {
-  const key = `${ed.created}|${k}`, open = tpOpen.has(key);
-  const lead = (tp.stories || [])[0], said = tp.lines || [];
-  const nS = (tp.stories || []).length;
-  const counts = [nS > 1 && `${nS} artikler`, said.length && `${said.length} ${said.length === 1 ? 'udtalelse' : 'udtalelser'}`];
-  const head = lead ? `<span class="h">${esc(lead.headline)}</span>`
-    : `<span class="q"><b>${esc(said[0].who)}:</b> ${esc(said[0].text)}</span>`;
-  const m = [lead && `<span class="src">${esc(lead.source)}</span>`, ...counts.filter(Boolean).map(c => `<span>${c}</span>`)].filter(Boolean).join('');
-  const radar = lead && find(lead.id);
-  return `<article class="tp${lead ? '' : ' said-only'}${open ? ' open' : ''}" data-tp="${esc(key)}" data-sec="${esc(tp.section)}">
-    <button class="row" data-tp-toggle aria-expanded="${open}"><span class="tx"><span class="kick"><span class="sec"><i></i>${esc(tp.name)}</span></span>${head}<span class="m">${m}</span></span>${lead ? thumb(lead.source, radar && radar.thumb) : ''}</button>
+  const key = `${ed.created}|${k}`, open = tpOpen.has(key), lead = tp.stories[0], n = (tp.lines || []).length;
+  return `<article class="tp${open ? ' open' : ''}" data-tp="${esc(key)}">
+    <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>${esc(tp.name)}</b> ${esc(lead.headline)}</span>${n
+      ? `<span class="tp-n" aria-label="${n} udtalelser"><svg><use href="#i-quote"/></svg>${n}</span>` : ''}</button>
     <div class="x"><div><div class="x-in">${open ? topicBody(tp) : ''}</div></div></div></article>`;
 }
-function topicBody(tp) {
-  const st = (tp.stories || []).map((s, j) => `<div class="tp-story">
-      ${j ? `<a class="tp-h" href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}">${esc(s.headline)}</a>` : ''}
-      <p class="sum">${esc(s.text)}</p>
-      <div class="tp-acts"><span class="src">${esc(s.source)}${s.confirmed === 0 ? ' · <i>ubekræftet</i>' : ''}</span>
-        <a class="act sm primary" href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}"><svg><use href="#i-open"/></svg>Læs</a>
-        <button class="act sm" data-tp-share="${j}"><svg><use href="#i-share"/></svg>Del</button></div></div>`).join('');
-  const said = (tp.lines || []).length ? `<div class="said-h">Det siger de</div><ul class="said">${tp.lines.map(l =>
-    `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul>` : '';
-  return st + said;
+function saidList(tp) {
+  return `<ul class="said">${tp.lines.map(l => `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul>`;
 }
-function briefCard(ed, opts = {}) {
+function topicBody(tp) {
+  const st = (tp.stories || []).map((s, j) => `<div class="tp-story">${j ? `<b class="tp-h">${esc(s.headline)}</b>` : ''}
+      <p class="sum">${esc(s.text)}</p>
+      <div class="tp-links"><span>${esc(s.source)}${s.confirmed === 0 ? ' · ubekræftet' : ''}</span>
+        <a href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}">Læs<svg><use href="#i-open"/></svg></a>
+        <button data-tp-share="${j}">Del<svg><use href="#i-share"/></svg></button></div></div>`).join('');
+  return st + ((tp.lines || []).length ? `<div class="said-h">Det siger de</div>${saidList(tp)}` : '');
+}
+// the topics with only statements share one line ('Også: Vestbredden, Yemen …'); it opens to all their statements
+function restRow(ed, rest) {
+  const key = `${ed.created}|rest`, open = tpOpen.has(key), n = rest.reduce((s, [tp]) => s + tp.lines.length, 0);
+  const names = rest.slice(0, 3).map(([tp]) => esc(tp.name)).join(', ') + (rest.length > 3 ? ` og ${rest.length - 3} andre` : '');
+  return `<article class="tp rest${open ? ' open' : ''}" data-tp="${esc(key)}">
+    <button class="tp-row" data-tp-toggle aria-expanded="${open}"><span class="tp-t"><b>Også</b> ${names}</span>
+      <span class="tp-n" aria-label="${n} udtalelser"><svg><use href="#i-quote"/></svg>${n}</span></button>
+    <div class="x"><div><div class="x-in">${open ? restBody(rest) : ''}</div></div></div></article>`;
+}
+const restBody = rest => rest.map(([tp]) => `<div class="said-h">${esc(tp.name)}</div>${saidList(tp)}`).join('');
+function briefCard(ed) {
   const all = ed.topics.map((tp, k) => [tp, k]);
   const main = all.filter(([tp]) => (tp.stories || []).length), rest = all.filter(([tp]) => !(tp.stories || []).length);
-  const nLines = countOf(ed, 'lines');
+  const when = dayShort(ed.created) === 'i dag' ? 'kl. ' + clock(ed.created) : `${dayShort(ed.created)} kl. ${clock(ed.created)}`;
   return `<section class="brief" data-ed="${esc(ed.created)}">
-    <div class="brief-h"><b>Overblik${ed.period ? ' · ' + esc(ed.period) : ''}</b><span>Claude · ${dayShort(ed.created)} kl. ${clock(ed.created)}</span></div>
+    <div class="brief-h"><b>Overblik</b><span>${esc(ed.period || '')} · ${when}</span></div>
     ${ed.intro ? `<p class="intro">${esc(ed.intro)}</p>` : ''}
-    ${main.length ? `<div class="tps">${main.map(([tp, k]) => topicRow(ed, tp, k)).join('')}</div>` : ''}
-    ${rest.length ? `<div class="tps-h">Flere udtalelser</div><div class="tps">${rest.map(([tp, k]) => topicRow(ed, tp, k)).join('')}</div>` : ''}
-    <div class="acts">
-      <button class="act primary" data-ed-share="news"><svg><use href="#i-share"/></svg>Del overblik</button>
-      ${nLines ? '<button class="act" data-ed-share="lines"><svg><use href="#i-share"/></svg>Del udtalelser</button>' : ''}
-    </div>
-    ${opts.explain ? `<p class="explain">Claude vælger de vigtigste nyheder kl. 7 og 22 og oversætter alt fra Al Jazeeras arabiske breaking-kanal${ed.from ? ` – denne gang fra kl. ${clock(ed.from)} til ${clock(ed.until || ed.created)}` : ''}. Tryk på et emne for resumé, kilder og hvad de siger.</p>` : ''}
+    <div class="tps">${main.map(([tp, k]) => topicRow(ed, tp, k)).join('')}${rest.length ? restRow(ed, rest) : ''}</div>
+    <div class="brief-acts"><button data-ed-share="news"><svg><use href="#i-share"/></svg>Del overblik</button>${countOf(ed, 'lines')
+      ? '<button data-ed-share="lines"><svg><use href="#i-share"/></svg>Del udtalelser</button>' : ''}</div>
   </section>`;
 }
 // the texts the share buttons send (digest.json brings them ready; earlier editions are rebuilt the same way)
@@ -311,13 +321,13 @@ async function loadArchive() {
   if (tab === 'home') render();
 }
 function archive(latest) {
-  let html = '<div class="block-h"><h2>Tidligere overblik</h2></div>';
   if (!moves) {
-    const label = archiveState === 'loading' ? 'Henter …' : archiveState === 'error' ? 'Kunne ikke hente – prøv igen' : 'Vis tidligere overblik';
-    return html + `<button class="wide soft" data-archive>${label}</button>`;
+    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'alle Claudes udgaver';
+    return `<div class="arch"><button class="arch-row" data-archive><span><b>Tidligere overblik</b><small>${note}</small></span><svg><use href="#i-chev"/></svg></button></div>`;
   }
+  const html = '<div class="arch-h">Tidligere overblik</div>';
   const list = (moves.briefs || []).map(edition).filter(e => e && (!latest || e.created !== latest.created));
-  if (!list.length) return html + '<p class="explain pad">Hver ny udgave lægges her, når den næste kommer.</p>';
+  if (!list.length) return html + '<p class="explain pad">Hver udgave lægges her, når den næste kommer.</p>';
   return html + list.map(ed => {
     const open = edOpen.has(ed.created), nS = countOf(ed, 'stories'), nL = countOf(ed, 'lines');
     return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(ed.created)}">
@@ -343,8 +353,8 @@ function timeline(list, opts, n0 = 0) {
 // the front page: Claude's overview, then what matters right now (all sections), then earlier overviews
 function home(all, opts) {
   const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
-  let html = fresh ? briefCard(ed, { explain: true })
-    : '<section class="brief"><div class="brief-h"><b>Overblik</b></div><p class="explain">Claudes overblik kommer kl. 7 og 22.</p></section>';
+  let html = fresh ? briefCard(ed)
+    : '<section class="brief"><div class="brief-h"><b>Overblik</b><span>kommer kl. 7 og 22</span></div></section>';
   const inBrief = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
   let cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 6);
   if (cands.length < 6) cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 18);
@@ -466,9 +476,11 @@ function toggle(el) {
 function toggleTopic(el) {
   const key = el.dataset.tp, open = !el.classList.contains('open');
   if (open) {
-    const ed = edOf(el), tp = ed && ed.topics[+key.split('|')[1]];
-    if (!tp) return;
-    el.querySelector('.x-in').innerHTML = topicBody(tp);
+    const ed = edOf(el), k = key.split('|')[1];
+    const body = !ed ? '' : k === 'rest' ? restBody(ed.topics.map((tp, j) => [tp, j]).filter(([tp]) => !(tp.stories || []).length))
+      : ed.topics[+k] ? topicBody(ed.topics[+k]) : '';
+    if (!body) return;
+    el.querySelector('.x-in').innerHTML = body;
     tpOpen.add(key);
     void el.offsetHeight;
     el.classList.add('open');
@@ -476,7 +488,7 @@ function toggleTopic(el) {
   } else {
     el.classList.remove('open'); tpOpen.delete(key);
   }
-  el.querySelector('.row').setAttribute('aria-expanded', open);
+  el.querySelector('[data-tp-toggle]').setAttribute('aria-expanded', open);
 }
 function topicStory(el) {
   const tpEl = el.closest('[data-tp]'), ed = edOf(tpEl), tp = ed.topics[+tpEl.dataset.tp.split('|')[1]];
@@ -505,7 +517,7 @@ function markShared(i) {
   for (const [k, v] of Object.entries(shared)) if (Date.now() - v.at > 30 * 864e5) delete shared[k];
   store.set('shared', shared);
   const el = $('s-' + i.id);
-  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { clock: el.dataset.clock === '1' }); }
+  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { tag: el.dataset.tag === '1', clock: el.dataset.clock === '1' }); }
   learnFrom(i, 'share');
 }
 // the phone's own share sheet (WhatsApp is one tap away there); copying is the fallback
@@ -628,9 +640,9 @@ setInterval(renderHeader, 30000);
 function howText() {
   const src = Object.keys((data && data.sources) || {}).length || 61, L = (data && data.learned) || {};
   return `<p>Khabar læser <b>${src} kilder</b> hvert femte minut: danske, vestlige, arabiske og israelske medier og miljøets egne kanaler.${data && data.scanned_24h ? ` Det seneste døgn er ${num(data.scanned_24h)} nyheder vurderet.` : ''}</p>
-    <p><b>Forsiden</b> har Claudes <b>overblik</b> øverst. Kl. 7 og 22 vælger Claude de vigtigste nyheder, skriver et kort resumé af hver artikel og samler dem i emner. Under hvert emne står, hvad aktørerne siger – alle linjer fra Al Jazeeras arabiske breaking-kanal siden sidst, oversat til dansk. <b>Del udtalelser</b> sender dem i samme form, som gruppen kender fra »Politiske nyheder«. Ældre udgaver ligger under <b>Tidligere overblik</b>.</p>
+    <p><b>Forsiden</b> har Claudes <b>overblik</b> øverst. Kl. 7 og 22 vælger Claude de vigtigste nyheder, skriver et kort resumé af hver artikel og samler dem i emner – én linje pr. emne; tryk for resumé og kilder. Under hvert emne står, hvad aktørerne siger (<svg class="inline"><use href="#i-quote"/></svg> og antal) – alle linjer fra Al Jazeeras arabiske breaking-kanal siden sidst, oversat til dansk. Emner med kun udtalelser står under <b>Også</b>. <b>Del udtalelser</b> sender dem i samme form, som gruppen kender fra »Politiske nyheder«. Ældre udgaver ligger under <b>Tidligere overblik</b>.</p>
     <p>Under overblikket viser <b>Vigtigst lige nu</b> det, radaren har fundet siden – og fanen <b>Seneste</b> viser alt, nyeste først.</p>
-    <p><b>Farver.</b> <span class="c-dk">Danmark</span>, <span class="c-me">Mellemøsten</span> og <span class="c-world">Verden</span> har hver sin farve, så du kan se, hvor en historie hører til. Rød betyder en stor historie, som mange medier dækker.</p>
+    <p><b>Fed skrift</b> i overskrifterne viser, hvem og hvor det handler om – personer, partier, steder og organisationer. På de blandede lister viser en lille prik sektionen: <span class="c-dk">●</span> Danmark, <span class="c-me">●</span> Mellemøsten, <span class="c-world">●</span> Verden. Rødt betyder en stor historie, som mange medier dækker.</p>
     <p><b>Rækkefølge.</b> Tre ting tæller: hvor meget historien ligner det, gruppen har delt (ca. 6.500 links), hvor mange medier der dækker den, og om den handler om kerneemnerne – politik, Palæstina, islam og muslimer, krig og magt. Dansk politik får et ekstra løft, fordi gruppens links mest handler om udlandet. Vejr, sport, kongehus og lokale ulykker trækkes ned.</p>
     <p><b>Samme historie</b> fra flere medier samles på én linje. Åbn den og se, hvordan danske, vestlige, arabiske og israelske medier dækker den. <b>Ubekræftet</b> betyder, at den kun findes på Telegram eller YouTube indtil videre.</p>
     <p><b>Khabar lærer af sig selv</b> – fra miljøets egne kilder (${num(L.community)}), store historier (${num(L.big)}) og det, du deler (${num(L.copied)}) og læser (${num(L.read)}). Claude tjekker kilderne hver morgen.</p>`;

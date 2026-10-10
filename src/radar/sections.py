@@ -6,6 +6,16 @@ import re
 import numpy as np
 
 ARABIC = re.compile(r'[؀-ۿ]')
+# words that open many headlines without saying who: never bold on their own
+PLAIN = {'danmark', 'dansk', 'danske', 'danskere', 'denmark', 'danish', 'danes'}
+NOT_A_SPEAKER = re.compile(r'^(?:analyse|analysis|kommentar|leder|opinion|debat|interview|live|video|watch|breaking|'
+                           r'update|opdatering|nyt|se|explainer|guide|quiz|podcast)\b', re.I)
+CAPITALISED = re.compile(r"^[A-ZÆØÅÄÖÜ][\w'’.-]*$")
+# capitalised small words that never belong to a name next to them
+SMALL = {'a', 'an', 'the', 'en', 'et', 'den', 'det', 'de', 'i', 'in', 'on', 'at', 'to', 'for', 'med', 'til', 'om', 'på',
+         'af', 'og', 'and', 'efter', 'after', 'som', 'han', 'hun', 'da', 'når', 'nu', 'her'}
+# English headlines in Title Case capitalise these; sentence case never does (outside the first word)
+TITLE_CASE = re.compile(r'(?<!^)\b(?:With|From|Into|After|Over|About|Says|Will|That|This|Amid|Against|Under|Their)\b')
 
 
 class Lexicon:
@@ -52,6 +62,63 @@ class Sections:
         out['trivia'] = bool(self.trivia.hits(title))
         out['local'] = bool(self.local.hits(title))
         return out
+
+    def keywords(self, title, most=3):
+        """The words that say who and where in a headline, for the app to set in bold: the speaker of a
+        'Who: what' headline, and the places, parties, people and organisations of the section word lists,
+        widened to whole words and to the capitalised words next to them (Pia Olsen Dyhr, Gaza City)."""
+        title = title or ''
+        title_case = bool(TITLE_CASE.search(title))
+        spans = []
+        m = re.match(r'^([^:]{2,60}):\s+\S', title)
+        who = m.group(1).split() if m else []
+        if (who and len(who) <= 5 and not NOT_A_SPEAKER.match(m.group(1))   # 'Yaqoub Ali: …', 'Kreml: …'
+                and all(CAPITALISED.match(w) or w.lower() in ('og', 'and', 'of', 'al', 'bin', 'el') for w in who)):
+            spans.append((0, len(m.group(1)), 2))
+        hits = []
+        for k in self.keys:
+            for rx in self.lex[k].patterns:
+                for hit in rx.finditer(title):
+                    a, b = hit.span()
+                    while b < len(title) and (title[b].isalnum() or title[b] == '-'):
+                        b += 1
+                    hits.append((a, b))
+        starts = {a for a, _ in hits}
+        for a, b in hits:
+            if not title_case:   # the capitalised words around a name belong to it (not the next name)
+                a, b = self._widen(title, a, b, starts)
+            if title[a:b].lower() not in PLAIN:
+                spans.append((a, b, 1 + (' ' in title[a:b])))
+        spans.sort(key=lambda s: (s[0], -s[1]))
+        merged = []
+        for a, b, w in spans:
+            if merged and a < merged[-1][1]:
+                pa, pb, pw = merged[-1]
+                merged[-1] = (pa, max(pb, b), max(pw, w))
+                continue
+            merged.append((a, b, w))
+        out, seen = [], set()
+        for a, b, w in sorted(merged, key=lambda s: (-s[2], s[0])):   # speakers and longer names first
+            if title[a:b].lower() not in seen and len(out) < most:
+                seen.add(title[a:b].lower())
+                out.append((a, b))
+        return [title[a:b] for a, b in sorted(out)]
+
+    @staticmethod
+    def _widen(title, a, b, starts, most=4):
+        def name_word(w):
+            return CAPITALISED.match(w) and w.lower().strip('.') not in SMALL
+        while len(title[a:b].split()) < most:
+            m = re.search(r"([\w'’-]+)\s+$", title[:a])
+            if not m or not name_word(m.group(1)) or m.start(1) in starts:
+                break
+            a = m.start(1)
+        while len(title[a:b].split()) < most:
+            m = re.match(r"\s+([\w'’-]+)", title[b:])
+            if not m or not name_word(m.group(1)) or b + m.start(1) in starts:
+                break
+            b += m.end(1)
+        return a, b
 
     def place(self, stories, emb, hint):
         """stories: list of member lists (dicts with 'source', 'lang', 'sig'); emb: one vector per story.

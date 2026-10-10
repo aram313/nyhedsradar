@@ -467,6 +467,11 @@ def main():
     for it in shown:  # also tidies translations stored by earlier versions
         if it.get('title_tr'):
             it['title_tr'], it['summary_tr'] = tidy(it['title_tr']), tidy(it.get('summary_tr') or '')
+    # the words that say who and where, which the app sets in bold – for each version of the headline
+    for it in shown:
+        it['kw'] = sections.keywords(it['title']) if it.get('lang') in READABLE else []
+        it['kw_tr'] = sections.keywords(it['title_tr']) if it.get('title_tr') else []
+        it['kw_da'] = sections.keywords(it['title_da']) if it.get('title_da') else []
 
     # the other outlets' Arabic and Turkish headlines on shown stories, so the coverage view can show how
     # Arab media tell a story (headlines only; translated once and kept)
@@ -576,7 +581,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb')
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'kw', 'kw_tr', 'kw_da')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {

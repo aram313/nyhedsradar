@@ -124,3 +124,14 @@ def test_wire_lines_feed_the_briefing_but_never_become_cards(tmp_path, monkeypat
     assert len(wire) == 1 and wire[0]['s'] == 'Wire breaking' and wire[0]['tr'].startswith('[en]'), wire
     assert any(x['k'] == 'h' and x['t'].startswith('Zelenskiy says') for x in lines), lines
     assert data['sources'].get('Wire', {}).get('label', 'Wire breaking') == 'Wire breaking'
+
+
+def test_keywords_say_who_and_where():
+    kw = SEC.keywords
+    assert kw('Studerende er skuffede over Pia Olsen Dyhr: \'Dobbeltmoralsk!\'') == ['Pia Olsen Dyhr']
+    assert kw('Yaqoub Ali: Det bedste, muslimerne kunne gøre for sig selv, er at holde islam uden for') == ['Yaqoub Ali']
+    assert kw('Efter skyderi: 19-årig mand sigtet') == []                   # no speaker, no name
+    assert kw('Danmark burde være stolt af hijab-bærende statsadvokat') == []  # too common to stand out
+    assert kw('Putin told Trump Kyiv scuttled negotiations') == ['Putin', 'Trump', 'Kyiv']   # three names, not one
+    assert 'Gaza City' in kw('Residents west of Gaza City were hit.')        # no full stop in bold
+    assert len(kw('Israeli settlers attack Palestinian farmers near Ramallah as Gaza and Lebanon burn')) == 3

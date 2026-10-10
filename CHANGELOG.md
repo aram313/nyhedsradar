@@ -86,8 +86,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   page's share image, shrunk by the radar to a 144 px JPEG of a few kilobytes (`t/` on the data branch,
   `src/radar/thumbs.py`). Telegram channels never lend a picture, and a site's logo or default picture (one
   picture for several stories) never counts. Where there is none, the outlet's initials.
-- One colour per section – Danmark blue, Mellemøsten green, Verden purple – on the story kicker, the day
-  markers, the topic names and the selected tab; red stays the signal for a big story.
+- Bold keywords: the words in a headline that say who and where – people, parties, places, organisations, and
+  the speaker of a 'Who: what' headline – are set in bold (at most three; `Sections.keywords`, sent as `kw`,
+  `kw_tr`, `kw_da` for each version of the headline). Colour stays minimal: a small dot for the section on
+  mixed lists, red only for a big story and 'live'.
 - **Seneste** (fifth tab): everything Khabar picked, newest first, all sections mixed, with the time of day.
 - `scripts/editor.py` for the Claude editor: `input` lists the period's stories and every Al Jazeera wire line
   no edition has covered yet; `publish` checks the edition (no wire line may be missing or used twice), adds
@@ -95,17 +97,18 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
-- **Overblik and Bevægelser are one edition** (07 and 22): the most important stories grouped by topic, each
-  with a short summary, and under each topic 'Det siger de' – the Al Jazeera wire lines on it, translated by
-  Claude. Topics with only statements follow under 'Flere udtalelser'. 'Del overblik' shares the stories,
-  'Del udtalelser' the statements in the group's 'Politiske nyheder' format. Earlier editions stay under
-  'Tidligere overblik' on the front page.
+- **Overblik and Bevægelser are one edition** (07 and 22), kept compact: one line per topic – its name in bold,
+  then the headline, and a small count of statements; tap for the summary, the source (Læs, Del) and 'Det siger
+  de' – the Al Jazeera wire lines on it, translated by Claude. Topics with only statements share one line
+  ('Også …'). 'Del overblik' shares the stories, 'Del udtalelser' the statements in the group's 'Politiske
+  nyheder' format. Earlier editions stay under 'Tidligere overblik' on the front page.
 - Front page = the overview, then 'Vigtigst lige nu' (the radar's six strongest stories of the last hours that
   the overview does not already have) and the earlier overviews – no longer one endless mixed list.
 - Headings that cannot be confused: a block ('Vigtigst lige nu') is a large title with a red live dot; a day
-  ('I dag', 'I går') is a coloured marker in the section's colour that stays at the top while its stories pass.
-- Story rows: section and 'Stor historie' above the headline, outlet and time below; '2 medier' and 'oversat'
-  are no longer in the list (the coverage and the translation note are in the opened story).
+  ('I dag', 'I går') is a slim band that stays under the top bar while its stories pass.
+- Story rows: the headline in plain type with its keywords in bold and one quiet line below ('Stor historie' in
+  red, the section, outlet, time); '2 medier' and 'oversat' are no longer in the list (the coverage and the
+  translation note are in the opened story).
 - Telegram posts in another language than their channel's (Turkish on an English channel) are recognised and
   translated instead of being shown as they are.
 

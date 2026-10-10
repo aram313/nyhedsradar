@@ -82,9 +82,10 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   sources, big stories and silent share/copy/open signals only.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- The front page stays finite (overview, 'Vigtigst lige nu', earlier overviews); the full mixed list lives in
-  'Seneste'. Section colours (--dk blue, --me green, --world purple) mark where a story belongs; red is only for
-  big stories and 'live'. Block titles and day markers must never look alike (the owner could not tell them apart).
+- The front page stays finite and compact (overview with one line per topic, 'Vigtigst lige nu', earlier
+  overviews); the full mixed list lives in 'Seneste'. Colour is minimal (the owner found section-coloured labels
+  'in your face'): a small section dot on mixed lists, red only for big stories and 'live'. Headlines guide the eye
+  with bold keywords (who and where) instead. Block titles and day markers must never look alike.
 - Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
   tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
   copy of the live state, no fetching or embedding) and compare what each section would show.
