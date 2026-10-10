@@ -2,7 +2,7 @@
 // by the radar every few minutes) and digest.json (the editor's recap of the day, written at 21: the day's most
 // important movements as short 'Who: what' lines by topic, in the style of Al Jazeera's breaking wire).
 // Front page = today's most important stories, then the latest recap; a tab per section – Danmark, Mellemøsten,
-// Verden – and 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
+// Verden – and 'Live feed', everything as it comes in, compact like a ticker. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -20,7 +20,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar', latest: 'Seneste', search: 'Søg' };
+const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg' };
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
@@ -203,7 +203,8 @@ function meta(i, opts = {}) {
   const m = [];
   if (i.big && !opts.top) m.push('<span class="big">Topnyhed</span>');   // under 'Vigtigst i dag' it goes without saying
   if (opts.tag) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);   // mixed lists say where it belongs
-  m.push(`<span class="src">${esc(i.source)}</span>`, `<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`);
+  m.push(`<span class="src">${esc(i.source)}</span>`);
+  if (!opts.tick) m.push(`<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`);   // the ticker has its own time column
   if (i.outlets >= 3 && !opts.tag) m.push(`<span>${i.outlets} medier</span>`);
   if (i.confirmed === 0) m.push('<span class="warn">ubekræftet</span>');
   if (shared[i.id]) m.push('<span class="done">delt</span>');
@@ -212,10 +213,10 @@ function meta(i, opts = {}) {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', i.thumb && 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
+  const cls = ['story', opts.tick ? 'tick' : i.thumb && 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''} style="--i:${n}">
-    <button class="row" data-toggle aria-expanded="${open}"><span class="tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, opts)}</span></span>${thumb(i.source, i.thumb)}</button>
+    <button class="row" data-toggle aria-expanded="${open}">${opts.tick ? `<time class="tt">${clock(i.published || i.found)}</time>` : ''}<span class="tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
 // the day's lead story: its own picture big (the outlet's original, else our small copy), headline on top of it
@@ -368,7 +369,7 @@ function home(all, opts) {
   // the strongest of the first three with a picture opens the page big
   const lead = now.slice(0, 3).find(i => i.thumb);
   if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
-  let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Seneste<svg><use href="#i-chev"/></svg></button>')}
+  let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
@@ -388,7 +389,7 @@ function sectionPage(sec, all, opts) {
 // everything as it comes in, all sections mixed, newest first
 function latestPage(all, opts) {
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = timeline(recent, { ...opts, tag: true, clock: true });
+  let html = timeline(recent, { ...opts, tag: true, tick: true });
   if (recent.length < all.length) html += `<button class="wide soft" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -527,7 +528,7 @@ function markShared(i) {
   for (const [k, v] of Object.entries(shared)) if (Date.now() - v.at > 30 * 864e5) delete shared[k];
   store.set('shared', shared);
   const el = $('s-' + i.id);
-  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { tag: el.dataset.tag === '1', clock: el.dataset.clock === '1', top: el.dataset.top === '1' }); }
+  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { tag: el.dataset.tag === '1', clock: el.dataset.clock === '1', top: el.dataset.top === '1', tick: el.classList.contains('tick') }); }
   learnFrom(i, 'share');
 }
 // the phone's own share sheet (WhatsApp is one tap away there); copying is the fallback
