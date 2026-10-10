@@ -47,6 +47,10 @@ Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-g
 - GitHub's own `*/5` schedule is unreliable (it ran once in a whole night). The real clock is an external
   scheduler (Upstash QStash or cron-job.org, set up by the owner) calling the workflow_dispatch API with a
   fine-grained token limited to Actions on this repo. GitHub's schedule stays as a fallback.
+- **Temporary clock (2026-10-10):** Windows Task Scheduler task `Nabd vaekkeur` runs `scripts/pc-clock.vbs` every
+  5 minutes while the PC is on (uses the PC's own `gh` login; logs to `.cache/pc-clock.log`). Remove it with
+  `Unregister-ScheduledTask -TaskName 'Nabd vaekkeur' -Confirm:$false` once `scripts/setup-clock.ps1` (QStash) has
+  been run by the owner. Note: `gh` logins made from Claude's sandboxed Bash are not visible to Windows tasks.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
   - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,15,16 UTC, works only at 07/17 Danish time,
     writes `digest.json` to the orphan `digest` branch.
