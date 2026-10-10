@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from radar import feedback, push
-from radar.translate import Translator, tidy
+from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all
 from radar.sections import Sections
 
@@ -499,12 +499,13 @@ def main():
         return 'h' if v.get('lang') == 'en' and SAYS.match(v['title']) else None
     statements = [v for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=s['lines_hours'])
                   and not is_noise(v) and kind(v)]
-    todo = [v for v in statements if v.get('lang') not in READABLE and 'title_tr' not in v]
+    todo = [v for v in statements if v.get('lang') not in READABLE and v.get('tr_v') != TR_VERSION]
     for lang in {v['lang'] for v in todo}:
         part = [v for v in todo if v['lang'] == lang]
         for v, t in zip(part, translator([v['title'] for v in part], lang)):
             if t:
-                v['title_tr'] = tidy(t)
+                v.update(title_tr=tidy(t), tr_v=TR_VERSION)
+                v.pop('title_da', None)   # made again from the new English below
     todo = [v for v in statements if v.get('lang') != 'da' and 'title_da' not in v
             and (v.get('lang') == 'en' or v.get('title_tr'))]
     for v, t in zip(todo, translator([v.get('title_tr') or v['title'] for v in todo], 'en', 'da')):
