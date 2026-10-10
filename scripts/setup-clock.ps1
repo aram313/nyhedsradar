@@ -10,7 +10,7 @@ Write-Host 'Khabar – opsætning af vækkeur' -ForegroundColor Red
 Write-Host ''
 
 $gh = Read-Host -AsSecureString '1/3  Indsæt din GitHub-nøgle (den du lige har lavet)'
-$ghToken = (ConvertFrom-SecureString $gh -AsPlainText).Trim()
+$ghToken = (ConvertFrom-SecureString $gh -AsPlainText).Trim().Trim('"', "'", ' ')
 
 Write-Host '     Tester GitHub-nøglen ...'
 try {
@@ -24,10 +24,10 @@ try {
     exit 1
 }
 
-$url = (Read-Host '2/3  Indsæt QSTASH_URL fra Upstash (fx https://qstash-eu-central-1.upstash.io)').Trim().TrimEnd('/')
+$url = (Read-Host '2/3  Indsæt QSTASH_URL fra Upstash (fx https://qstash-eu-central-1.upstash.io)').Trim().Trim('"', "'", ' ').TrimEnd('/')
 if (-not $url) { $url = 'https://qstash-eu-central-1.upstash.io' }
 $qs = Read-Host -AsSecureString '3/3  Indsæt QSTASH_TOKEN fra Upstash'
-$qsToken = (ConvertFrom-SecureString $qs -AsPlainText).Trim()
+$qsToken = (ConvertFrom-SecureString $qs -AsPlainText).Trim().Trim('"', "'", ' ')
 
 Write-Host '     Opretter vækkeuret (hvert 5. minut) ...'
 try {
