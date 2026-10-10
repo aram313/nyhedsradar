@@ -97,6 +97,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- Claude's overview now comes three times a day – 07, 15 and 22 – and each edition covers the stories since
+  the previous one (no repeats between the 15 and the 22 edition); 45 editions are kept (about two weeks).
 - Default look: **Dæmpet** (soft grey) in light mode and **Notion** in dark mode, listed first in the
   settings; every phone starts there once (an earlier tone choice is reset once), then chooses freely.
 - **Overblik and Bevægelser are one edition** (07 and 22), kept compact: one line per topic – its name in bold,

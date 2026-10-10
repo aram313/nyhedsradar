@@ -6,7 +6,7 @@ A phone app (a full-screen web page added to the iPhone home screen) that watche
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
 *Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and **Verden**.
 Headlines set the names of people, parties and places in bold. The front page opens with Claude's compact
-**overview** (07 and 22):
+**overview** (07, 15 and 22):
 the most important stories grouped by topic, each with a short summary, and under each topic what the actors
 say – every line of Al Jazeera's Arabic breaking wire, translated into Danish. Below it 'Vigtigst lige nu'
 (the radar's strongest stories since) and the earlier overviews. The fifth tab, **Seneste**, shows everything as
@@ -47,10 +47,10 @@ one tap away) or copy. Big stories and the most relevant news also trigger a not
    same story, or the article page's share image – shrunk to a few kilobytes (`src/radar/thumbs.py`, files in
    `t/` on the data branch). Telegram channels never lend a picture.
 9. **The overview:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line
-   statements) in `lines.json`. At 07 and 22 a Claude routine runs `scripts/editor.py input`, picks the
+   statements) in `lines.json`. At 07, 15 and 22 a Claude routine runs `scripts/editor.py input`, picks the
    period's 6–8 most important stories, summarises each article, translates every wire line no earlier edition
    has covered, groups both by topic and runs `scripts/editor.py publish`, which checks that no line is missing
-   and writes `digest.json` (the newest edition) and `moves.json` (all editions, 30 kept) to the digest branch.
+   and writes `digest.json` (the newest edition) and `moves.json` (all editions, 45 kept) to the digest branch.
 10. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
    for the app's search) and `lines.json` on the `data` branch. The app (`public/`, published to GitHub Pages
    by `pages.yml`) reads those files and Claude's `digest.json` and `moves.json` from the `digest` branch.

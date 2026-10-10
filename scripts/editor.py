@@ -1,4 +1,4 @@
-"""Tools for the Claude editor, which writes Khabar's overview twice a day (07 and 22 Danish time).
+"""Tools for the Claude editor, which writes Khabar's overview three times a day (07, 15 and 22 Danish time).
 
 One edition = the period's most important stories, each with a short summary, grouped by topic, and under
 each topic what the actors say: every line of Al Jazeera's Arabic breaking wire since the previous edition,
@@ -8,7 +8,7 @@ translated into Danish. The app shows the newest edition on its front page; earl
                                                     line no edition has covered yet, and the format to write
     python3 scripts/editor.py publish FILE       -> checks Claude's edition, adds links, sources and the share
             [--push] [--out DIR]                    texts, writes digest.json (newest edition) and moves.json
-                                                    (all editions, newest first, 30 kept, earlier ones never
+                                                    (all editions, newest first, 45 kept, earlier ones never
                                                     changed); --push commits both to the digest branch
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
@@ -26,7 +26,7 @@ SECTIONS = {'dk': 'DANMARK', 'me': 'MELLEMØSTEN', 'world': 'VERDEN'}
 DAYS = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag']
 MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober',
           'november', 'december']
-KEEP = 30
+KEEP = 45   # three editions a day: about two weeks
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -67,13 +67,18 @@ def period_of(now):
     return 'morgen' if h < 12 else 'eftermiddag' if h < 17 else 'aften'
 
 
-def window_start(now, period):
-    """Morning: since 22:00 the evening before. Afternoon and evening: since 07:00 today (Danish time)."""
+def window_start(now, period, editions=()):
+    """Where the period's stories begin: at the newest earlier edition (less than 20 hours old), so the 15 and 22
+    editions do not repeat the one before; without one, at the usual time before it (Danish time): morning since
+    22:00 the evening before, afternoon since 07:00, evening since 15:00."""
+    earlier = [ts(e['created']) for e in editions if e.get('created') and timedelta(0) < now - ts(e['created']) < timedelta(hours=20)]
+    if earlier:
+        return max(earlier)
     local = dk(now)
     if period == 'morgen':
         start = (local - timedelta(days=1)).replace(hour=22, minute=0, second=0, microsecond=0)
     else:
-        start = local.replace(hour=7, minute=0, second=0, microsecond=0)
+        start = local.replace(hour=7 if period == 'eftermiddag' else 15, minute=0, second=0, microsecond=0)
     return start.astimezone(timezone.utc)
 
 
@@ -125,8 +130,8 @@ TEMPLATE = {
 def cmd_input(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
     period = args.period or period_of(now)
-    start = window_start(now, period)
     data, lines, moves = material(args)
+    start = window_start(now, period, moves.get('briefs', []))
     stories = [i for i in data.get('items', []) if ts(i.get('published') or i['found']) >= start]
     stories.sort(key=lambda i: -(i.get('rank') or 0))
     wire = uncovered(lines, moves.get('briefs', []))
@@ -247,7 +252,7 @@ def build(draft, data, lines, moves, now, period):
     if problems:
         return None, problems
     covered = [wire[i] for i in used]
-    first = min((ts(v['p']) for v in covered), default=window_start(now, period))
+    first = min((ts(v['p']) for v in covered), default=window_start(now, period, moves.get('briefs', [])))
     last = max((ts(v['p']) for v in covered), default=now)
     ed = {'created': now.isoformat(timespec='seconds'), 'period': period, 'intro': draft['intro'].strip(),
           'title': f'Politiske nyheder – {span_da(first, last)}', 'from': first.isoformat(timespec='seconds'),

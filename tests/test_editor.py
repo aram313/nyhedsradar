@@ -23,7 +23,9 @@ def folder(tmp_path, monkeypatch):
     d.mkdir()
     (d / 'data.json').write_text(json.dumps({'items': [
         {'id': 's1', 'title': 'Regeringen strammer reglerne', 'summary': '', 'link': 'https://dr.test/1', 'source': 'DR',
-         'sec': 'dk', 'rank': 90, 'confirmed': 3, 'published': '2026-10-10T09:00:00+00:00', 'found': '2026-10-10T09:01:00+00:00'},
+         'sec': 'dk', 'rank': 90, 'confirmed': 3, 'published': '2026-10-10T12:00:00+00:00', 'found': '2026-10-10T12:01:00+00:00'},
+        {'id': 's3', 'title': 'Already in the 13.35 edition', 'summary': '', 'link': 'https://x.test/3', 'source': 'BBC',
+         'sec': 'world', 'rank': 95, 'published': '2026-10-10T09:00:00+00:00', 'found': '2026-10-10T09:01:00+00:00'},
         {'id': 's2', 'title': 'Old story', 'summary': '', 'link': 'https://x.test/2', 'source': 'BBC', 'sec': 'world',
          'rank': 99, 'published': '2026-10-09T09:00:00+00:00', 'found': '2026-10-09T09:01:00+00:00'}]}), encoding='utf-8')
     (d / 'lines.json').write_text(json.dumps({'items': [
@@ -39,7 +41,7 @@ def test_input_lists_every_uncovered_line(folder):
     editor.main(['input', '--dir', str(folder), '--now', NOW])
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
     assert '[w2]' in text and '[w3]' in text and '[w4]' in text and '[w1]' not in text and '[h1]' not in text
-    assert '[s1]' in text and '[s2]' not in text   # only the period's stories (since 07.00)
+    assert '[s1]' in text and '[s2]' not in text and '[s3]' not in text   # only what came after the last edition
     assert 'aften' in text
 
 
@@ -82,3 +84,13 @@ def test_dates():
     assert editor.span_da(t('2026-10-09T20:30:00+00:00'), t('2026-10-10T05:00:00+00:00')) == '9. og 10. oktober 2026'
     assert editor.span_da(t('2026-10-31T20:00:00+00:00'), t('2026-11-01T06:00:00+00:00')) == '31. oktober og 1. november 2026'
     assert editor.period_of(t('2026-10-10T05:01:00+00:00')) == 'morgen'
+
+
+def test_window_starts_at_the_last_edition():
+    t = editor.ts
+    now = t('2026-10-10T13:01:00+00:00')   # 15.01 Danish time
+    assert editor.window_start(now, 'eftermiddag', [{'created': '2026-10-10T05:02:00+00:00'}]) == t('2026-10-10T05:02:00+00:00')
+    assert editor.window_start(now, 'eftermiddag', []) == t('2026-10-10T05:00:00+00:00')          # 07.00 Danish time
+    assert editor.window_start(t('2026-10-10T20:01:00+00:00'), 'aften', []) == t('2026-10-10T13:00:00+00:00')   # 15.00
+    old = [{'created': '2026-10-08T20:00:00+00:00'}]          # too old to count: the usual start
+    assert editor.window_start(now, 'eftermiddag', old) == t('2026-10-10T05:00:00+00:00')

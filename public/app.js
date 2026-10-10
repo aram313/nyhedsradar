@@ -1,5 +1,5 @@
 // Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
-// by the radar every few minutes) and digest.json (the editor's overview at 7 and 22: the most important stories by
+// by the radar every few minutes) and digest.json (the editor's overview at 7, 15 and 22: the most important stories by
 // topic, and under each topic what the actors say, translated from Al Jazeera's Arabic breaking wire).
 // Front page = that overview + what matters right now; a tab per section – Danmark, Mellemøsten, Verden – and
 // 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
@@ -354,7 +354,7 @@ function timeline(list, opts, n0 = 0) {
 function home(all, opts) {
   const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
   let html = fresh ? briefCard(ed)
-    : '<section class="brief"><div class="brief-h"><b>Overblik</b><span>kommer kl. 7 og 22</span></div></section>';
+    : '<section class="brief"><div class="brief-h"><b>Overblik</b><span>kommer kl. 7, 15 og 22</span></div></section>';
   const inBrief = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
   let cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 6);
   if (cands.length < 6) cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 18);
@@ -726,7 +726,7 @@ async function refreshPushInfo() {
   if (!reg) { info.textContent = 'Notifikationer kan kun slås til i appen på hjemmeskærmen.'; return; }
   const sub = await reg.pushManager.getSubscription();
   if (sub && Notification.permission === 'granted') {
-    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og overblikket kl. 7 og 22. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
+    info.textContent = 'Slået til: store historier, de allervigtigste nyheder og overblikket kl. 7, 15 og 22. Højst ca. 15 om dagen, aldrig mellem kl. 23 og 7.';
     showCode(sub);
   } else {
     info.textContent = 'Få besked ved store historier, de allervigtigste nyheder og overblikket.';
