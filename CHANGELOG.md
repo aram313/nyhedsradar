@@ -32,6 +32,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Purposeful motion: ECG-line pull-to-refresh, gliding tab indicator, height-animated expand, copy icon morph,
   wash on newly arrived lines, '↑ N nye' pill, staggered first paint; all off under Reduce Motion.
 - 'ny' marker for lines that arrived since the last visit.
+- Renamed the app to **Khabar** (خبر, "news") with a bold K icon; black/white/red look.
+- Appearance settings: five tones of the same look (Klassisk default, Blød, Papir, Kølig, Dæmpet), each with
+  light and dark versions, plus Automatisk / Lys / Mørk. Applied before first paint, so no flash.
+- Swipe background now only shows while swiping (no red hairlines between lines).
 - Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
   Danish stories (e.g. northern lights) no longer qualify.
 

@@ -23,7 +23,7 @@ jobs:
         run: |
           python -c "
           from radar import push
-          r = push.send({'title': 'Nabd', 'body': 'Det virker! Du får nu besked ved store historier og de vigtigste nyheder.', 'url': './', 'tag': 'test'})
+          r = push.send({'title': 'Khabar', 'body': 'Det virker! Du får nu besked ved store historier og de vigtigste nyheder.', 'url': './', 'tag': 'test'})
           print(r)
           assert r.get('sent'), r
           "

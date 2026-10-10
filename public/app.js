@@ -1,4 +1,4 @@
-// Nabd – phone app. Reads data.json written by the radar (and digest.json written by the Claude
+// Khabar – phone app. Reads data.json written by the radar (and digest.json written by the Claude
 // editor) and shows them as a compact, text-first list with thumb-reachable controls. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
@@ -8,6 +8,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 
 let data = store.get('lastData', null);
 let digest = store.get('lastDigest', null);
@@ -197,10 +198,10 @@ function render(opts = {}) {
   renderHeader();
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(7); return; }
   const items = itemsFor(tab);
-  let html = isStale() ? `<p class="notice">Nabd har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
+  let html = isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
   if (tab === 'top') html += overview();
   if (!items.length) {
-    const msg = { top: 'Ingen vigtige nyheder lige nu.<br>Nabd holder øje.', copied: 'Det, du kopierer, samles her.',
+    const msg = { top: 'Ingen vigtige nyheder lige nu.<br>Khabar holder øje.', copied: 'Det, du kopierer, samles her.',
       search: query ? 'Intet matcher søgningen.' : `Søg i ${itemsFor('all').length} nyheder fra de seneste tre døgn.`, all: 'Ingen nyheder endnu.' }[tab];
     html += `<div class="empty"><svg viewBox="0 0 120 24"><path d="M2 14h30l5-9 7 16 8-20 6 13h60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>${msg}</div>`;
   }
@@ -287,7 +288,7 @@ $('list').addEventListener('touchmove', e => {
   if (!sw.mode) {
     if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
     sw.mode = dx > 0 && Math.abs(dx) > Math.abs(dy) * 1.4 ? 'swipe' : 'scroll';
-    if (sw.mode === 'swipe') sw.row.classList.add('dragging');
+    if (sw.mode === 'swipe') { sw.row.classList.add('dragging'); sw.item.classList.add('swiping'); }
   }
   if (sw.mode !== 'swipe') return;
   sw.dx = Math.max(0, dx);
@@ -302,6 +303,7 @@ $('list').addEventListener('touchend', () => {
   row.classList.remove('dragging');
   row.style.transform = '';
   item.classList.remove('armed');
+  setTimeout(() => item.classList.remove('swiping'), 420);   // after the row has slid back
   if (dx > 90) copyItem(item.dataset.id);
 });
 
@@ -425,6 +427,21 @@ $('foreignSeg').addEventListener('click', e => {
 });
 paintSeg();
 
+// appearance: five tones of the same look, and automatic / light / dark
+let tone = store.get('tone', 'klassisk'), mode = store.get('mode', 'auto');
+function applyLook() {
+  const d = document.documentElement;
+  tone === 'klassisk' ? delete d.dataset.tone : d.dataset.tone = tone;
+  mode === 'auto' ? delete d.dataset.theme : d.dataset.theme = mode;
+  document.querySelectorAll('#toneSeg [data-tone]').forEach(b => b.setAttribute('aria-checked', b.dataset.tone === tone));
+  document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
+  const meta = getComputedStyle(d).getPropertyValue('--bg').trim();
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', meta));
+}
+$('toneSeg').addEventListener('click', e => { const b = e.target.closest('[data-tone]'); if (b) { tone = b.dataset.tone; store.set('tone', tone); applyLook(); } });
+$('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { mode = b.dataset.v; store.set('mode', mode); applyLook(); } });
+if (!new URLSearchParams(location.search).get('tone')) applyLook();
+
 // notifications
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function b64ToBytes(s) {
@@ -435,7 +452,7 @@ async function refreshPushInfo() {
   const info = $('pushInfo'), btn = $('enablePush');
   btn.hidden = true;
   if (!standalone && /iPhone|iPad/.test(navigator.userAgent)) {
-    info.innerHTML = 'Læg først Nabd på hjemmeskærmen: <b>Del</b> → <b>Føj til hjemmeskærm</b> i Safari, og åbn den derfra.';
+    info.innerHTML = 'Læg først Khabar på hjemmeskærmen: <b>Del</b> → <b>Føj til hjemmeskærm</b> i Safari, og åbn den derfra.';
     return;
   }
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) { info.textContent = 'Denne browser understøtter ikke notifikationer.'; return; }

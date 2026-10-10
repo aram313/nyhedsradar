@@ -379,7 +379,7 @@ def main():
         pushes['digest_sent'] = digest['created']  # written at night (e.g. a test run): show it, never buzz about it
     if digest.get('created') and digest['created'] > pushes.get('digest_sent', '')             and NOW - ts(digest['created']) < timedelta(hours=3):
         first = (digest.get('items') or [{}])[0].get('headline', '')
-        result = push.send({'title': f"Nabd · overblik {digest.get('period', '')}".strip(),
+        result = push.send({'title': f"Khabar · overblik {digest.get('period', '')}".strip(),
                             'body': digest.get('intro') or first, 'url': './?digest=1', 'tag': 'digest'})
         print('digest push:', result)
         pushes['digest_sent'] = digest['created']
