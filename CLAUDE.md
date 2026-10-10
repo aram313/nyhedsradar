@@ -6,7 +6,7 @@ project.
 
 ## What this project is
 
-Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-gruppen, med kopiér-knap og notifikationer
+Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-gruppen, delt i Danmark, Mellemøsten og Verden, med deling til WhatsApp og notifikationer
 
 <!-- Expand: the purpose, the users, the constraints that are not obvious from the
      code. This is the context you would want if you were picking this up cold. -->
@@ -31,7 +31,11 @@ Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-g
 ## Architecture
 
 - `src/radar/feeds.py` fetches and parses every source type (rss, gnews, telegram, youtube). Stdlib only.
-- `src/radar/run.py` is one radar run: dedupe → embed → self-learn → score → cluster → notify → write state.
+- `src/radar/run.py` is one radar run: dedupe → embed → self-learn → score → cluster (+ second look at cards)
+  → sections and rank → show/important/big → translate → notify → write state, `data.json` and `search.json`.
+- `src/radar/sections.py` places stories in dk / me / world and gives the word signals (core, core_dk, trivia,
+  local, named) used by the rank; the word lists live in `config/sections.json` (format explained in its `_help`).
+  Every source in `config/feeds.json` has a media `group` (dk, west, mena, il, channel) and some a section hint `sec`.
 - `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
 - `public/` is the PWA. `config.js` and `data.json` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js`.
@@ -62,7 +66,12 @@ Telefon-app der automatisk finder nyheder, der passer til Debat/Nyheder Shabab-g
 ## Project-specific conventions
 
 - The owner wants it **fully automatic**: no feedback buttons. Adaptation comes from community
-  sources, big stories and silent copy taps only.
+  sources, big stories and silent share/copy/open signals only.
+- Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
+  and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
+- Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
+  tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
+  copy of the live state, no fetching or embedding) and compare what each section would show.
 - The profile contains no names or message authors. Keep it that way, and keep it encrypted. The repo is public.
 - Facebook, Instagram, TikTok and X cannot be followed. Do not add scrapers for them without the owner's explicit decision (cost/ToS risk).
 - Tests use `tests/fake_embed.py` instead of the real model, so they run offline without fastembed.

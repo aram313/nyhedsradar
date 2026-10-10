@@ -48,6 +48,39 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   Notion, chosen under Mere → Udseende → Mørk, independent of the light tone. Lighter secondary text.
 - Big stories must also clear a cross-language relevance bar (72nd percentile), so widely covered off-topic
   Danish stories (e.g. northern lights) no longer qualify.
+- **Sections.** Every story is placed in Danmark, Mellemøsten or Verden from the places, parties and people it
+  names (config/sections.json); stories without telling words follow the closest placed stories, their language
+  and their source. The app's tabs are now Forside · Danmark · Mellemøsten · Verden · Søg.
+- **New ranking.** A story's rank = the group's taste + up to 20 for the number of established outlets + a lift
+  for the group's core subjects, biggest for Danish politics, Islam/Muslims and immigration (Danish politics was
+  being cut because the group's links are mostly about other countries). Weather, sport, royals and everyday
+  crime are pushed down; headlines that name nothing lose a little. Each section shows its own top ~15 %.
+- Danish stories must touch politics, Islam/Muslims or immigration (or lead most Danish front pages) to be shown.
+- A political story carried by most Danish outlets counts as a big story ("Stor historie i Danmark").
+- The same story told by a Danish and an English outlet now becomes one card (second look at the cards).
+- Coverage view: an opened story shows how Danish, Western, Arab/Muslim and Israeli media and the channels
+  each tell it, one article per outlet, with counts per kind of media.
+- Front page: 'Netop nu' (big and very fresh important stories), Claude's overview, and the best 4 stories of
+  each section (at most one per source, unconfirmed channel posts last).
+- Section pages: 'Vigtigst lige nu' then everything else by day.
+- Search covers everything the radar read in the last two days (search.json), not only the shown stories.
+- Sharing uses the phone's own share sheet (WhatsApp is one tap away), with copy as a second button;
+  opening and sharing silently teach the radar (opening counts less).
+- Busy Telegram channels show at most 6 lines a day; their alarm emoji and 'Breaking |' tags are removed.
+- Liveblog teasers ('følg med her', 'se med her') are filtered out.
+- Claude's overview is grouped by section with at least two Danish stories when there are any.
+
+### Changed
+
+- Sharing is one action among three (Læs, Del, Kopiér) inside an opened story instead of the centre of the app.
+- Quiet, short motion instead of the paper-and-ink effects: no opening animation, a neutral ring for
+  pull-to-refresh, a calm confirmation pill, rows that rise in gently and a soft wash on new stories.
+- Clear words instead of symbols in the list: 'Stor historie', '7 medier', 'ubekræftet', 'oversat', 'delt'.
+
+### Removed
+
+- The 'Kopieret' tab, swipe-to-copy, the red 'KOPIERET' stamp, the ink-drop pull-to-refresh, the splash
+  animation, the relevance bar and the guessed 'learned' lines (word overlap with earlier copies).
 
 ---
 

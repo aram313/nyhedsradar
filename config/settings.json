@@ -3,7 +3,7 @@
   "keep_hours": 72,
   "top_k": 10,
   "show_percentile": 85,
-  "important_percentile": 95,
+  "important_percentile": 97,
   "notify_percentile": 98.5,
   "big_story_sources": 4,
   "big_story_min_percentile": 80,
@@ -21,11 +21,19 @@
   "learn_weights": {
     "community": 0.8,
     "big": 0.6,
-    "copied": 1.5
+    "copied": 1.5,
+    "read": 0.6
   },
   "same_story_strict": {
     "ar": 0.86
   },
   "max_important_per_source": 4,
-  "big_story_min_global_percentile": 72
+  "big_story_min_global_percentile": 72,
+  "rank_per_outlet": 4,
+  "rank_core": 8,
+  "rank_core_dk": 18,
+  "rank_floor": 60,
+  "big_dk_outlets": 5,
+  "max_channel_per_day": 6,
+  "same_story_merge": 0.76
 }

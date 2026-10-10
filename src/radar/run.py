@@ -13,6 +13,7 @@ import numpy as np
 from radar import feedback, push
 from radar.translate import Translator, tidy
 from radar.feeds import fetch_all
+from radar.sections import Sections
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / 'config'
@@ -90,7 +91,8 @@ def relevance(e, m, w, k, item_ids=None, prof_ids=None):
 
 # liveblogs, podcasts, videos, sport, celebrity and lifestyle never belong in the radar
 NOISE_TITLE = re.compile(r'^(live\b|live:|liveblog|watch\b|video\b|podcast\b|quiz\b|horoskop|se billederne)'
-                         r'|seneste nyt|\blive blog\b|\bliveblog\b|\blive updates\b|\blive:', re.I)
+                         r'|seneste nyt|\blive blog\b|\bliveblog\b|\blive updates\b|\blive:'
+                         r'|følg (med|udviklingen)|se med her', re.I)
 NOISE_URL = re.compile(r'/(sport|sports|fodbold|football|soccer|haandbold|cykling|tennis|golf|formel-1|kendte|celebrity|'
                        r'underholdning|entertainment|livsstil|lifestyle|horoskop|vejret|weather|quiz|games|podcasts?|'
                        r'travel|rejser|mad|food|recipes|opskrifter|bolig|motor|biler|tv-guide|musik|music|film-og-serier)(/|-|$)', re.I)
@@ -109,6 +111,15 @@ def percentile(scores_sorted, s):
     if len(scores_sorted) == 0:
         return 50
     return int(100 * np.searchsorted(scores_sorted, s, side='left') / len(scores_sorted))
+
+
+def top_share(scores_sorted, s):
+    """Where a story stands in its section, 0 (last) to 100 (first); ties share the better place, so the
+    best story of a small section still reaches the top."""
+    n = len(scores_sorted)
+    if n <= 1:
+        return 100
+    return int(100 * (np.searchsorted(scores_sorted, s, side='right') - 1) / (n - 1))
 
 
 def clusters(emb, order, threshold, langs=None, strict=None):
@@ -177,6 +188,11 @@ def main():
     community = {f['name'] for f in feeds if f.get('community')}
     # Telegram and YouTube channels are fast but unverified; everything else is an established outlet
     channel = {f['name'] for f in feeds if f.get('type') in ('telegram', 'youtube')}
+    # which kind of media each source is (Danish, Western, Arab/Muslim, Israeli, channel), shown with every story
+    group_of = {f['name']: f.get('group') or ('channel' if f['name'] in channel else 'dk' if f.get('lang') == 'da' else 'west')
+                for f in feeds}
+    hint = {f['name']: f['sec'] for f in feeds if f.get('sec')}   # where a source's stories usually belong
+    sections = Sections(load(CONFIG / 'sections.json', {}))
 
     items = load(STATE / 'items.json', {})          # id -> every scored item from the last keep_hours
     seen = load(STATE / 'seen.json', {})            # id -> first seen; stops dropped items coming back
@@ -234,15 +250,18 @@ def main():
             learned.append({'id': it['id'], 't': text(it), 'at': it['found'], 'why': 'community'})
             learned_ids.add(it['id'])
     taps, relay['since'] = feedback.pull(relay['since'])
-    for tap in taps:
-        learned = [l for l in learned if not (l['id'] == tap['id'] and l['why'] == 'copied')]
-        learned.append({'id': tap['id'], 't': f"{tap['title']}. {tap['summary'][:220]}", 'at': NOW.isoformat(), 'why': 'copied'})
+    for tap in taps:   # shared or copied = strong "more like this"; opened to read = a milder one
+        why = 'read' if tap['kind'] == 'read' else 'copied'
+        if why == 'read' and any(l['id'] == tap['id'] and l['why'] == 'copied' for l in learned):
+            continue
+        learned = [l for l in learned if not (l['id'] == tap['id'] and l['why'] in (why, 'read'))]
+        learned.append({'id': tap['id'], 't': f"{tap['title']}. {tap['summary'][:220]}", 'at': NOW.isoformat(), 'why': why})
         learned_ids.add(tap['id'])
 
     base, base_w = load_profile(embed)
     l_emb = load_learned_embeddings(embed, learned)
     l_age = np.array([(NOW - ts(l['at'])).total_seconds() / 86400 for l in learned], dtype=np.float32)
-    l_w = np.array([s['learn_weights'][l['why']] for l in learned], dtype=np.float32) \
+    l_w = np.array([s['learn_weights'].get(l['why'], 0.5) for l in learned], dtype=np.float32) \
         * np.clip(1 - l_age / s['learn_days'], 0.1, 1)
     profile = np.vstack([base, l_emb]) if learned else base
     weights = np.concatenate([base_w, l_w]) if learned else base_w
@@ -270,52 +289,145 @@ def main():
     for it in items.values():
         it.update(lead=True, outlets=1, also=[], big=False, important=False,
                   confirmed=0 if it['source'] in channel else 1)
-        it.pop('cluster_pct', None)
-        it.pop('cluster_gpct', None)
+        for k in ('cluster_pct', 'cluster_gpct', 'sec', 'secs', 'rank', 'spct', 'cover'):
+            it.pop(k, None)
+
+    def story(members):
+        """One card for the members: a Danish/English article leads; foreign ones still count as outlets."""
+        lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['pct'], x['score']))
+        n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
+        n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
+        for m in members:
+            m.update(lead=m is lead, outlets=n_out, confirmed=n_est, also=[])
+            m.pop('cluster_pct', None)
+            m.pop('cluster_gpct', None)
+        # the other outlets, one article each, taking turns between kinds of media so a story shows how
+        # Danish, Western, Arab/Muslim and Israeli media and the channels each tell it
+        by_kind, seen_outlets = {}, {outlet_of.get(lead['source'], lead['source'])}
+        for m in sorted(members, key=lambda x: -x['pct']):
+            o = outlet_of.get(m['source'], m['source'])
+            if m is not lead and o not in seen_outlets:
+                seen_outlets.add(o)
+                by_kind.setdefault(group_of.get(m['source'], 'west'), []).append(m)
+        others = []
+        while len(others) < 10 and any(by_kind.values()):
+            for kind in ('dk', 'west', 'mena', 'il', 'channel'):
+                if by_kind.get(kind) and len(others) < 10:
+                    others.append(by_kind[kind].pop(0))
+        lead['also'] = [{'source': m['source'], 'title': m['title'], 'link': m['link'], 'lang': m.get('lang'),
+                         'group': group_of.get(m['source'], 'west')} for m in others]
+        lead['cluster_pct'] = max(m['pct'] for m in members)
+        lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
+        return [lead] + [m for m in members if m is not lead]
+
+    stories = []   # each story: its members, the card (lead) first
     if recent:
         emb = np.array([emb_store[k] for k in recent])
-        for g in clusters(emb, range(len(recent)), s['same_story_similarity'],
-                          [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {})):
-            members = [items[recent[i]] for i in g]
-            # prefer a Danish/English article as the card; foreign ones still count as outlets
-            lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['pct'], x['score']))
-            n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
-            n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
-            for m in members:
-                m['lead'] = m is lead
-                m['outlets'] = n_out
-                m['confirmed'] = n_est
-            lead['also'] = [{'source': m['source'], 'title': m['title'], 'link': m['link']}
-                            for m in sorted(members, key=lambda x: -x['pct']) if m is not lead][:8]
-            lead['cluster_pct'] = max(m['pct'] for m in members)
-            lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
+        stories = [story([items[recent[i]] for i in g]) for g in
+                   clusters(emb, range(len(recent)), s['same_story_similarity'],
+                            [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {}))]
+        # second look: two cards whose headlines say the same thing (often one Danish, one English) become
+        # one story. Only the cards are compared, best story first, so different stories never chain together;
+        # Arabic cards are left alone because the model finds all Arabic headlines rather alike.
+        stories.sort(key=lambda st: -st[0]['cluster_pct'])
+        joined, keys, where = [], [], []
+        for st in stories:
+            lead = st[0]
+            if lead.get('lang') in READABLE and keys:
+                sims = np.array(keys) @ emb_store[lead['id']]
+                j = int(sims.argmax())
+                if sims[j] >= s['same_story_merge']:
+                    joined[where[j]] = story(joined[where[j]] + st)
+                    continue
+            joined.append(st)
+            if lead.get('lang') in READABLE:
+                keys.append(emb_store[lead['id']])
+                where.append(len(joined) - 1)
+        stories = joined
+    clustered = {m['id'] for st in stories for m in st}
+    stories += [[items[k]] for k in ids if k not in clustered]   # older than the story window: on their own
+
+    # 6. where each story belongs (Danmark / Mellemøsten / Verden) and how strongly it should rank.
+    # The group's taste comes first; then how many outlets carry the story and whether it is about the
+    # group's core subjects. Danish politics gets the biggest lift, because the links the group shares are
+    # mostly about other countries, so taste alone would bury it.
+    sig = {m['id']: sections.signals(m) for st in stories for m in st}
+    lead_emb = np.array([emb_store[st[0]['id']] for st in stories]) if stories else np.zeros((0, 384), np.float32)
+    placed = sections.place([[{'source': m['source'], 'lang': m.get('lang'), 'sig': sig[m['id']]} for m in st]
+                             for st in stories], lead_emb, hint)
+    ranks = {}
+    for st, secs in zip(stories, placed):
+        lead, ls = st[0], sig[st[0]['id']]
+        core = max(sig[m['id']]['core'] for m in st)
+        core_dk = max(sig[m['id']]['core_dk'] for m in st) if secs[0] == 'dk' else 0
+        est = lead['confirmed']
+        r = lead.get('cluster_pct', lead['pct']) + (s['rank_per_outlet'] * min(est - 1, 5) if est >= 2 else 0)
+        if core_dk:   # Danish politics, Islam and Muslims, immigration
+            r += s['rank_core_dk'] if core_dk >= 2 else s['rank_core_dk'] / 2
+        elif core:
+            r += s['rank_core'] if core >= 2 else s['rank_core'] / 2
+        if ls['trivia']:
+            r -= 20                                   # weather, royals, sport, celebrities …
+        if ls['local'] and not core_dk and secs[0] == 'dk':
+            r -= 10                                   # everyday crime and accidents
+        if not ls['named'] and core < 2:
+            r -= 10                                   # a headline that names no place, party or core subject
+        cover = {}
+        for m in st:
+            cover.setdefault(group_of.get(m['source'], 'west'), set()).add(outlet_of.get(m['source'], m['source']))
+        for m in st:
+            m['sec'] = secs[0]
+        lead.update(secs=secs, rank=round(r, 1), cover={g: len(v) for g, v in cover.items()})
+        lead['_core'], lead['_core_dk'], lead['_dk_outlets'] = max(core, core_dk), core_dk, len(cover.get('dk', ()))
+        ranks.setdefault(secs[0], []).append(r)
+    ranks = {k: np.sort(np.array(v, dtype=np.float32)) for k, v in ranks.items()}
 
     shown = []
-    for it in sorted(items.values(), key=lambda x: -x.get('cluster_pct', x.get('pct', 0))):
-        if not it['lead'] or 'pct' not in it or is_noise(it):
+    for st in sorted(stories, key=lambda st: -st[0]['rank']):
+        it = st[0]
+        if is_noise(it):
             continue
+        it['spct'] = top_share(ranks[it['sec']], it['rank'])   # place within its own section
         cpct = it.get('cluster_pct', it['pct'])
         # a big story must matter to the group across all languages, so a widely covered but off-topic
-        # Danish story (weather, northern lights) never qualifies through the Danish-only ranking
+        # Danish story (weather, northern lights) never qualifies through the Danish-only ranking …
         gpct = it.get('cluster_gpct', it.get('gpct', 0))
         it['big'] = (it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
                      and gpct >= s.get('big_story_min_global_percentile', 72))
-        it['important'] = it['big'] or cpct >= s['important_percentile']
+        # … but a political story most Danish media carry at once is big news in Denmark
+        if (it['sec'] == 'dk' and it['_dk_outlets'] >= s['big_dk_outlets'] and it['_core'] >= 2
+                and not sig[it['id']]['trivia']):
+            it['big'] = True
+        it['important'] = it['big'] or it['spct'] >= s['important_percentile']
         it['foreign'] = it.get('lang') not in READABLE
-        if cpct >= s['show_percentile'] or it['big']:
+        # Danish news has to touch politics, Islam and Muslims or immigration – or be on most Danish front pages
+        everyday = (it['sec'] == 'dk' and not it['_core_dk']
+                    and (it['_dk_outlets'] < s['big_dk_outlets'] - 1 or sig[it['id']]['trivia']))
+        if it['big'] or (it['spct'] >= s['show_percentile'] and it['rank'] >= s['rank_floor'] and not everyday):
             shown.append(it)
-    # balance: one prolific source may fill at most a few 'Vigtigste' slots per day (big stories exempt)
-    per_source = {}
+    # balance: one prolific source may fill at most a few important slots per day (big stories exempt),
+    # and a busy Telegram channel at most a handful of lines per day
+    per_source, per_channel, kept = {}, {}, []
     for it in shown:  # already sorted best first
         if it['important'] and not it['big'] and ts(it['found']) >= NOW - timedelta(hours=24):
             per_source[it['source']] = per_source.get(it['source'], 0) + 1
             if per_source[it['source']] > s.get('max_important_per_source', 4):
                 it['important'] = False
+        if it['source'] in channel and not it['big']:
+            day = (it['source'], int((NOW - ts(it['found'])).total_seconds() // 86400))   # per 24 hours back
+            per_channel[day] = per_channel.get(day, 0) + 1
+            if per_channel[day] > s['max_channel_per_day']:
+                continue
+        kept.append(it)
+    shown = kept
     for it in shown:
         cpct = it.get('cluster_pct', it['pct'])
         if it['big'] and cpct >= s['learn_big_min_percentile'] and it['id'] not in learned_ids:
             learned.append({'id': it['id'], 't': text(it), 'at': NOW.isoformat(), 'why': 'big'})
             learned_ids.add(it['id'])
+    for it in items.values():
+        for k in ('_core', '_core_dk', '_dk_outlets'):
+            it.pop(k, None)
 
     # foreign-language cards (no Danish/English version of the story): translate to English once,
     # then every card gets a Danish version for the app's "Dansk" setting
@@ -339,7 +451,7 @@ def main():
         if it.get('title_tr'):
             it['title_tr'], it['summary_tr'] = tidy(it['title_tr']), tidy(it.get('summary_tr') or '')
 
-    # 6. notifications: never twice for the same story, batched, capped, quiet at night
+    # 7. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}
     notified = [n for n in pushes.get('notified', []) if ts(n['at']) >= NOW - timedelta(hours=48) and n['id'] in emb_store]
     told = np.array([emb_store[n['id']] for n in notified]) if notified else np.zeros((0, 384), np.float32)
@@ -363,7 +475,8 @@ def main():
         lead = items[batch[0]['id']]
         headline = lead.get('title_tr') or lead['title']
         if len(batch) == 1:
-            title = f"Stor historie · {lead['outlets']} medier" if lead['big'] else lead['source']
+            where = ' i Danmark' if lead.get('sec') == 'dk' else ''
+            title = f"Stor historie{where} · {lead['outlets']} medier" if lead['big'] else lead['source']
             body = headline
         else:
             title = f'{len(batch)} vigtige nyheder'
@@ -377,7 +490,8 @@ def main():
     # the editor's daily overview gets its own notification as soon as it appears
     if digest.get('created') and digest['created'] > pushes.get('digest_sent', '') and in_quiet_hours(s):
         pushes['digest_sent'] = digest['created']  # written at night (e.g. a test run): show it, never buzz about it
-    if digest.get('created') and digest['created'] > pushes.get('digest_sent', '')             and NOW - ts(digest['created']) < timedelta(hours=3):
+    if (digest.get('created') and digest['created'] > pushes.get('digest_sent', '')
+            and NOW - ts(digest['created']) < timedelta(hours=3)):
         first = (digest.get('items') or [{}])[0].get('headline', '')
         result = push.send({'title': f"Khabar · overblik {digest.get('period', '')}".strip(),
                             'body': digest.get('intro') or first, 'url': './?digest=1', 'tag': 'digest'})
@@ -387,19 +501,29 @@ def main():
     pushes.update(pending=pending, notified=notified,
                   sent=[x for x in pushes['sent'] if ts(x) >= NOW - timedelta(days=2)])
 
-    # 7. write state + the public file the app reads
+    # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
-                     'pct', 'big', 'important', 'outlets', 'confirmed', 'also', 'foreign',
-                     'title_tr', 'summary_tr', 'title_da', 'summary_da')
+                     'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {
         'updated': NOW.isoformat(),
-        'items': [{k: it.get(k) for k in public_fields} for it in shown],
-        'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0)} for k, v in status.items()},
+        'sections': sections.names,
+        'items': [{**{k: it.get(k) for k in public_fields}, 'group': group_of.get(it['source'], 'west')} for it in shown],
+        'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0),
+                        'group': group_of.get(k, 'west')} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
     })
+    # everything the radar saw in the last days, for the app's search (loaded only when someone searches)
+    on_card = {it['id'] for it in shown}
+    save(STATE / 'search.json', {'updated': NOW.isoformat(), 'items': [
+        {'i': v['id'], 't': v.get('title_tr') or v['title'], 's': v['source'], 'l': v.get('lang'), 'u': v['link'],
+         'p': v['published'], 'x': v.get('sec'), 'c': int(v['id'] in on_card)}
+        for v in sorted(items.values(), key=lambda v: v['published'], reverse=True)
+        if not is_noise(v) and (v.get('lang') in READABLE or v.get('title_tr'))
+        and ts(v['found']) >= NOW - timedelta(hours=48)][:3000]})
     save(STATE / 'items.json', items)
     save(STATE / 'seen.json', seen)
     save(STATE / 'learned.json', learned)

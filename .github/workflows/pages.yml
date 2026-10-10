@@ -30,6 +30,7 @@ jobs:
           window.RADAR_CONFIG = {
             dataUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/data.json",
             digestUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/digest.json",
+            searchUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/search.json",
             vapidPublicKey: "${{ vars.VAPID_PUBLIC }}",
             feedbackTopic: "${{ vars.FEEDBACK_TOPIC }}"
           };

@@ -63,6 +63,7 @@ public/config.js
 public/data.json
 state/
 public/digest.json
+public/search.json
 public/toner-preview.html
 public/ikoner.html
 public/ikoner2.html

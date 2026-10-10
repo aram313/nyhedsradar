@@ -1,0 +1,108 @@
+{
+  "_help": "Sections in the app and the words that place a story in them. A word matches at the start of a word (gaza matches gazas); a trailing = means the whole word only; a word with a capital letter is matched case-sensitively (Venstre = the party, not the direction); Arabic words match anywhere because prefixes attach to them. 'core' words mark the group's core subjects and lift a story; 'core_dk' words (Danish politics, Islam and Muslims, immigration) give a Danish story its bigger lift; 'trivia' words mark light news and 'local' words everyday crime and accidents; both push a story down (local only when no core word lifts it).",
+  "names": {
+    "dk": "Danmark",
+    "me": "Mellemøsten",
+    "world": "Verden"
+  },
+  "keywords": {
+    "dk": [
+      "danmark", "dansk", "danske", "danskere", "denmark", "danish", "danes=", "grønland", "færøerne", "københavn",
+      "copenhagen", "aarhus", "århus", "odense", "aalborg", "esbjerg", "randers", "kolding", "horsens", "vejle",
+      "roskilde", "herning", "silkeborg", "næstved", "fredericia", "viborg", "køge", "holstebro", "slagelse",
+      "hillerød", "sønderborg", "svendborg", "hjørring", "holbæk", "frederikshavn", "nørrebro", "vollsmose",
+      "gellerup", "mjølnerparken", "tingbjerg", "ishøj", "brøndby", "albertslund", "taastrup", "lolland",
+      "bornholm", "jylland", "sjælland", "fyn=", "fynsk", "christiansborg", "folketing", "dkpol", "regeringen",
+      "S-", "Socialdemokrat", "socialdemokratiet", "Venstre=", "Venstres=", "V-", "Moderaterne",
+      "dansk folkeparti", "DF=", "DF's", "SF=", "SF's", "socialistisk folkeparti", "enhedslisten", "Radikale",
+      "Konservative", "liberal alliance", "danmarksdemokrat", "alternativet", "nye borgerlige", "borgernes parti",
+      "mette frederiksen", "mette f.", "løkke", "troels lund", "støjberg", "messerschmidt", "vanopslagh",
+      "olsen dyhr", "dragsted", "lidegaard", "søren gade", "dybvad", "hummelgaard", "engel-schmidt", "wammen",
+      "heunicke", "tesfaye", "stoklund", "bødskov", "siddique", "skaarup", "finanslov", "finansforslag",
+      "åbningsdebat", "folketingsvalg", "kommunalvalg", "regionsrådsvalg", "grundlov", "udlænding",
+      "integrationsminist", "statsborgerskab", "indfødsret", "ghettolov", "parallelsamfund", "udlændingestyrelsen",
+      "rigspolitiet", "PET=", "kommune", "kommunal", "folkeskole", "gymnasie", "SU=", "SU'en", "dagpenge",
+      "kontanthjælp", "efterløn", "seniorpension", "tørklædeforbud", "koranlov", "koranafbrænding",
+      "hizb ut-tahrir", "byretten", "landsretten", "DSB=", "الدنمارك", "الدانمارك", "دنماركي", "كوبنهاغن",
+      "كوبنهاجن", "danimarka"
+    ],
+    "me": [
+      "gaza", "israel", "palæstin", "palestin", "hamas", "hizbollah", "hezbollah", "hizbullah", "vestbredde",
+      "west bank", "jerusalem", "al-aqsa", "aqsa", "netanyahu", "IDF=", "bosætter", "settler", "rafah",
+      "khan younis", "jenin", "nablus", "ramallah", "hebron", "tel aviv", "libanon", "lebanon", "lebanes",
+      "libanes", "beirut", "syrien", "syria", "syrisk", "syrer", "damask", "aleppo", "idlib", "al-sharaa",
+      "julani", "assad", "iran", "teheran", "tehran", "khamenei", "irak", "iraq", "baghdad", "bagdad", "kurd",
+      "yemen", "jemen", "houthi", "huthi", "saudi", "riyadh", "egypt", "kairo", "cairo", "sisi=", "jordan=",
+      "jordani", "amman=", "qatar", "doha=", "emirat", "UAE=", "dubai", "abu dhabi", "oman=", "kuwait", "bahrain",
+      "tyrki", "turkey", "turkish", "türkiye", "erdogan", "erdoğan", "ankara", "istanbul", "libya", "libyen",
+      "libysk", "tripoli", "sudan", "khartoum", "darfur", "tunesi", "tunisia", "algeri", "marokk", "morocc",
+      "mauretan", "mauritan", "mellemøst", "middle east", "mena=", "hormuz", "rødehavet", "red sea", "golfstat",
+      "gulf state", "arab", "غزة", "غزه", "إسرائيل", "اسرائيل", "الاحتلال", "فلسطين", "الفلسطيني", "الضفة",
+      "القدس", "الأقصى", "حماس", "حزب الله", "لبنان", "سوريا", "سورية", "السوري", "دمشق", "إيران", "ايران",
+      "الإيراني", "العراق", "بغداد", "اليمن", "الحوثي", "السعودية", "الرياض", "مصر", "المصري", "القاهرة", "الأردن",
+      "قطر", "الإمارات", "تركيا", "أردوغان", "ليبيا", "السودان", "تونس", "الجزائر", "المغرب", "موريتانيا",
+      "نتنياهو", "المستوطن", "الكويت", "البحرين", "gazze", "israil", "filistin", "suriye", "lübnan", "mısır",
+      "suudi", "ortadoğu", "kudüs", "mescid-i aksa"
+    ],
+    "world": [
+      "USA=", "US=", "U.S.", "amerika", "america", "trump", "washington", "white house", "det hvide hus",
+      "pentagon", "kongres", "congress", "senat", "biden", "vance=", "rusland", "russia", "russisk", "russer",
+      "putin", "kreml", "moskva", "moscow", "ukrain", "zelensk", "kyiv", "kiev", "kina", "china", "chinese",
+      "kinesisk", "beijing", "xi jinping", "taiwan", "hongkong", "hong kong", "japan", "korea", "NATO", "EU=",
+      "EU's", "european union", "europæiske union", "bruxelles", "brussels", "von der leyen", "frankrig", "france",
+      "french", "fransk", "macron", "paris", "tyskland", "germany", "german", "tysk", "berlin", "storbritannien",
+      "britain", "british", "britisk", "briter", "england", "london", "starmer", "sverige", "sweden", "svensk",
+      "swedish", "norge", "norway", "norsk", "nobel", "indien", "india", "indisk", "indian", "modi=", "pakistan",
+      "afghanistan", "taliban", "kabul", "bangladesh", "myanmar", "rohingya", "kashmir", "uigur", "uyghur",
+      "xinjiang", "indonesi", "malaysia", "venezuela", "maduro", "brasil", "brazil", "mexico", "argentin",
+      "canada", "australi", "afrika", "africa", "nigeria", "somali", "etiopi", "ethiopia", "kenya", "sahel",
+      "congo", "kongo", "sydafrika", "south africa", "FN=", "FN's", "UN=", "UN's", "united nations",
+      "forenede nationer", "ICC=", "straffedomstol", "criminal court", "haag", "hague", "G7", "G20", "أمريكا",
+      "الأمريكي", "واشنطن", "ترامب", "روسيا", "بوتين", "أوكرانيا", "الصين", "أوروبا", "الاتحاد الأوروبي", "فرنسا",
+      "بريطانيا", "ألمانيا", "الهند", "باكستان", "أفغانستان", "طالبان", "الأمم المتحدة", "ABD=", "rusya",
+      "ukrayna", "çin=", "avrupa", "almanya", "fransa", "ingiltere", "hindistan", "afganistan"
+    ]
+  },
+  "core": [
+    "muslim", "islam", "moské", "mosque", "imam", "koran", "quran", "tørklæde", "hijab", "niqab", "burka",
+    "halal", "ramadan", "ummah", "kalifat", "caliphate", "khilafah", "hizb ut-tahrir", "racisme", "racism",
+    "diskrimin", "folkedrab", "genocide", "krigsforbrydelse", "war crime", "besættelse", "occupation",
+    "flygtning", "refugee", "asyl", "asylum", "udvis", "deport", "terror", "sanktion", "sanction", "våbenhvile",
+    "ceasefire", "krig", "war=", "invasion", "angreb", "attack", "bomb", "dræbt", "killed", "massakre",
+    "massacre", "valg=", "election", "regering", "government", "parlament", "parliament", "lovforslag", "lov=",
+    "loven", "forbud", "ban=", "demonstration", "protest", "ytringsfrihed", "free speech", "udlænding",
+    "integration", "statsborgerskab", "indvandr", "immigra", "minister", "folketing", "finanslov", "SU=",
+    "Socialdemokrat", "Venstre=", "dansk folkeparti", "danmarksdemokrat", "støjberg", "mette frederiksen",
+    "mette f.", "politik", "politisk", "måling", "meningsmåling", "regeringen", "Moderaterne", "SF=",
+    "enhedslisten", "Radikale", "Konservative", "liberal alliance", "statsminister", "partileder", "løkke",
+    "troels lund", "messerschmidt", "vanopslagh", "olsen dyhr", "dragsted", "søren gade", "hummelgaard",
+    "dybvad", "finansforslag", "åbningsdebat", "kommunalvalg", "folketingsvalg", "indfødsret", "ghetto",
+    "parallelsamfund", "udvisning"
+  ],
+  "core_dk": [
+    "muslim", "islam", "moské", "imam", "koran", "tørklæde", "hijab", "niqab", "burka", "halal", "ramadan",
+    "hizb ut-tahrir", "racisme", "diskrimin", "ytringsfrihed", "flygtning", "asyl", "udvis", "indvandr",
+    "udlænding", "integration", "statsborgerskab", "indfødsret", "ghetto", "parallelsamfund", "valg=",
+    "folketingsvalg", "kommunalvalg", "regering", "minister", "statsminister", "folketing", "christiansborg",
+    "politik", "politisk", "politiker", "partileder", "måling", "meningsmåling", "lovforslag", "lov=", "loven",
+    "forbud", "finanslov", "finansforslag", "åbningsdebat", "SU=", "SU'en", "Socialdemokrat", "Venstre=",
+    "Venstres=", "Moderaterne", "SF=", "enhedslisten", "Radikale", "Konservative", "liberal alliance",
+    "dansk folkeparti", "danmarksdemokrat", "støjberg", "mette frederiksen", "mette f.", "løkke", "troels lund",
+    "messerschmidt", "vanopslagh", "olsen dyhr", "dragsted", "søren gade", "hummelgaard", "dybvad",
+    "demonstration", "terror", "dkpol", "opposition", "EU=", "EU's", "partistøtte", "ministerium", "retsforbeh",
+    "grundlov"
+  ],
+  "trivia": [
+    "vejret", "vejrudsigt", "regnvejr", "solskin", "hedebølge", "nordlys", "northern lights", "trafik",
+    "togtrafik", "motorvej", "kø på", "kongehus", "kongen", "dronning", "kronprins", "prinsesse", "royal",
+    "kendis", "reality", "x factor", "vild med dans", "opskrift", "recipe", "fodbold", "superliga", "landshold",
+    "håndbold", "cykelløb", "formel 1", "quiz", "horoskop", "lotto", "jackpot", "black friday", "koncert",
+    "festival", "netflix", "premiere", "celebrity", "box office", "premier league", "dyrepark", "zoo=", "byger",
+    "skybrud", "jubilæum", "fødselsdag", "halm="
+  ],
+  "local": [
+    "anholdt", "anholdelse", "sigtet", "tiltalt", "varetægt", "voldtægt", "drab", "drabsforsøg", "knivstik",
+    "skyderi", "røveri", "indbrud", "brand=", "brand i", "brand på", "ulykke", "trafikulykke", "færdselsuheld",
+    "omkom", "efterlys", "savnet", "narko", "spritkørsel", "fartbøde", "hærværk"
+  ]
+}

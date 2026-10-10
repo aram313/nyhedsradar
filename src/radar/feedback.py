@@ -1,4 +1,4 @@
-"""Collect the 'Kopiér' and 'Ikke relevant' taps from the phone.
+"""Collect what the owner shares, copies and opens in the app (silent signals, no buttons).
 
 The app posts each tap as a tiny message to a private ntfy.sh topic (a free message relay);
 every radar run picks up what arrived since last time. Only public headlines travel this way."""
@@ -31,7 +31,7 @@ def pull(since):
             body = json.loads(msg.get('message', ''))
         except json.JSONDecodeError:
             continue
-        if body.get('kind') in ('up', 'down') and body.get('title'):
+        if body.get('kind') in ('up', 'share', 'read') and body.get('title'):
             out.append({'id': str(body.get('id', ''))[:32], 'kind': body['kind'], 'title': str(body['title'])[:300],
                         'summary': str(body.get('summary', ''))[:300], 'at': msg.get('time')})
     return out, last

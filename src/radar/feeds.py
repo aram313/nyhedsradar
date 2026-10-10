@@ -93,6 +93,15 @@ TG_POST = re.compile(r'data-post="([\w]+/\d+)"')
 TG_TEXT = re.compile(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', re.S)
 PROMO = re.compile(r'(?:Join our|Follow us|Subscribe to|Read more:|📲|🔗\s*(?:WhatsApp|Telegram|Instagram|Website))', re.I)
 TG_TIME = re.compile(r'<time datetime="([^"]+)"')
+# channel posts open with alarm emoji and tags ('⚡️', 'Breaking |', 'عاجل |', 'Gaza sources'); a headline needs none
+POST_TAGS = re.compile(r'^(?:[←-⯿\U0001f000-\U0001faff️‍\s]'
+                       r'|(?:breaking|urgent|watch|video|update|just in|عاجل|متابعة|فيديو)\s*[|:\-–]\s*'
+                       r'|(?:gaza|west bank|lebanon|syria|yemen|iran|israeli|hebrew|palestinian) sources\s+(?!say|said|report|told|claim))+',
+                       re.I)
+
+
+def tidy_post(text):
+    return POST_TAGS.sub('', text).strip()
 
 
 def parse_telegram(page, feed):
@@ -104,7 +113,7 @@ def parse_telegram(page, feed):
         if not m:
             continue
         text = clean(re.sub(r'<br\s*/?>', ' ', m.group(1)))
-        text = PROMO.split(text)[0].strip()  # drop 'Join our platforms / Follow us' footers
+        text = tidy_post(PROMO.split(text)[0])  # drop 'Join our platforms / Follow us' footers and opening tags
         if len(text) < 20:
             continue
         cut = re.search(r'(?<=[.!?])\s', text[:160])
