@@ -72,8 +72,20 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Claude's overview is grouped by section with at least two Danish stories when there are any.
 - `scripts/rank_check.py` shows what each section would contain with the current settings, on live data.
 
+- **Bevægelser** (new tab): political movement in the format members of the group post themselves – topics with
+  short attributed statements ("Kremlin: ..."). Claude writes it at 07 and 17 from the radar's statement lines,
+  ready to share to WhatsApp; under it the newest lines from Al Jazeera's urgent wire, machine-translated.
+- New source: Al Jazeera's Arabic urgent wire (Telegram `ajanews`), the lines members translate for their
+  briefings. A wire line counts as an outlet on a story and feeds 'Bevægelser', but is never a card of its own.
+- `lines.json` on the data branch: one-line statements of the last 36 hours (wire lines, channel posts and
+  headlines that are one statement by a named actor), with English and Danish machine translations.
+- The taste profile now also learns from the ~900 statement lines in the briefings members posted without links
+  (no member names are kept); actors from those briefings added to the section words.
+- Arabic source names are shown in Latin script (Al Jazeera (arabisk), Sky News Arabia, BBC Arabic …).
+
 ### Changed
 
+- Search moved to a magnifier in the top bar; the fifth tab is now Bevægelser.
 - Sharing is one action among three (Læs, Del, Kopiér) inside an opened story instead of the centre of the app.
 - Quiet, short motion instead of the paper-and-ink effects: no opening animation, a neutral ring for
   pull-to-refresh, a calm confirmation pill, rows that rise in gently and a soft wash on new stories.

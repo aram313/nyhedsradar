@@ -41,14 +41,33 @@ class NoTranslation:
         return ['' for _ in texts]
 
 
-def main(per_section=25):
-    if not list((ROOT / '.cache').glob('profile-*.npz')):
+def profile_cache():
+    """A folder holding a profile and its embeddings. The current profile is used when its embeddings
+    are cached; otherwise the newest earlier snapshot (profile-<hash>.jsonl next to profile-<hash>.npz)."""
+    import hashlib
+    import shutil
+    cache = ROOT / '.cache'
+    current = cache / 'profile.jsonl'
+    if current.exists() and (cache / f"profile-{hashlib.sha1(current.read_bytes()).hexdigest()[:12]}.npz").exists():
+        return cache
+    pairs = sorted((p for p in cache.glob('profile-*.jsonl') if p.with_suffix('.npz').exists()),
+                   key=lambda p: p.stat().st_mtime, reverse=True)
+    if not pairs:
         sys.exit('No cached profile embeddings in .cache – the ranking would be meaningless.')
+    tmp = Path(tempfile.mkdtemp(prefix='khabar-profile-'))
+    shutil.copy(pairs[0], tmp / 'profile.jsonl')
+    shutil.copy(pairs[0].with_suffix('.npz'), tmp / pairs[0].with_suffix('.npz').name)
+    print(f'(using the earlier profile snapshot {pairs[0].name}; taste is close to, not exactly, today\'s)')
+    return tmp
+
+
+def main(per_section=25):
+    cache = profile_cache()
     state = Path(tempfile.mkdtemp(prefix='khabar-'))
     for name in FILES:
         with urllib.request.urlopen(RAW + name) as r:
             (state / name).write_bytes(r.read())
-    run.STATE, run.CACHE = state, ROOT / '.cache'
+    run.STATE, run.CACHE = state, cache
     run.Embedder, run.Translator = NoNewEmbeddings, NoTranslation
     run.feedback.pull = lambda since: ([], since)
     run.push.send = lambda payload: {'sent': 0}

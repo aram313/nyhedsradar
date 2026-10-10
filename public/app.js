@@ -34,6 +34,7 @@ let lastSeen = store.get('lastSeen', 0);                                 // stor
 let shownIds = new Set();
 const scrollPos = {};                                                    // each tab remembers where you were
 let searchIndex = null, searchState = 'idle';
+let lines = store.get('lastLines', null);                               // one-line statements for 'Bevægelser'
 const readSent = new Set(store.get('readSent', []));
 
 // ---------------------------------------------------------------- silent learning (no buttons)
@@ -98,6 +99,7 @@ async function load(manual) {
       }
     } catch { /* keep the last overview */ }
   }
+  if (tab === 'moves' && await loadLines()) changed = true;
   if (--busy === 0) document.body.classList.remove('loading');
   if (changed || manual) render({ fresh: true }); else renderHeader();
 }
@@ -260,6 +262,61 @@ function mark(text, terms) {
   for (const t of terms) if (t.length > 1) out = out.replace(new RegExp(esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`);
   return out;
 }
+// ---------------------------------------------------------------- 'Bevægelser': where things are moving
+// Claude's briefing in the group's own format (topics, then short attributed statements), followed by the
+// newest lines from Al Jazeera's urgent wire, machine-translated.
+async function loadLines() {
+  const url = CFG.linesUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'lines.json');
+  try {
+    const r = await fetch(bust(url), { cache: 'no-store' });
+    if (!r.ok) return false;
+    const fresh = await r.json();
+    const changed = !lines || fresh.updated !== lines.updated;
+    lines = fresh; store.set('lastLines', lines);
+    return changed;
+  } catch { return false; }
+}
+function said(text) {   // "Kremlin: the focus ..." -> the speaker in bold
+  const k = text.indexOf(':');
+  return k > 1 && k < 70 ? `<b>${esc(text.slice(0, k + 1))}</b>${esc(text.slice(k + 1))}` : esc(text);
+}
+function lineText(x) {
+  if (danish && x.da) return x.da;
+  if (x.l === 'ar' || x.l === 'tr') return foreignMode === 'original' ? x.t : x.tr;
+  return x.t;
+}
+function movesText() {
+  const m = digest.moves;
+  return [m.title, ...(m.topics || []).map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who}: ${l.text}`).join('\n\n')}`)].join('\n\n');
+}
+function movesPage() {
+  const m0 = digest && digest.moves, made = m0 && (m0.created || digest.created);
+  const m = m0 && Date.now() - new Date(made) < 30 * 3600e3 ? m0 : null;
+  let html = '';
+  if (m) {
+    const [head, ...rest] = (m.title || 'Politiske nyheder').split(/\s+[–-]\s+/);
+    html += `<section class="moves"><div class="digest-h"><b>${esc(head)}</b><span>Claude · kl. ${clock(made)}</span></div>
+      ${rest.length ? `<h2 class="moves-t">${esc(rest.join(' – '))}</h2>` : ''}
+      ${(m.topics || []).map(tp => `<div class="topic"><h3>${esc(tp.name)}</h3><ul>${tp.lines.map(l =>
+        `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul></div>`).join('')}
+      <div class="acts"><button class="act" data-moves-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
+      <button class="act primary" data-moves-share><svg><use href="#i-share"/></svg>Del</button></div></section>`;
+  } else {
+    html += '<p class="notice soft">Claude samler bevægelserne i et overblik kl. 7 og 17. Indtil da: de nyeste linjer herunder.</p>';
+  }
+  const since = m ? new Date(made).getTime() : 0;
+  const all = ((lines && lines.items) || []).filter(x => lineText(x));
+  let latest = all.filter(x => x.k === 'w' && new Date(x.p).getTime() > since);
+  let label = 'Seneste fra Al Jazeera breaking';
+  if (!latest.length) { latest = all.filter(x => x.k !== 'h' && new Date(x.p).getTime() > since); label = 'Seneste udtalelser'; }
+  if (!lines) html += '<p class="foot">Henter de nyeste linjer …</p>';
+  else if (latest.length) {
+    html += `<div class="label">${label}${m ? ' siden kl. ' + clock(made) : ''}</div>`
+      + latest.slice(0, 60).map(x => `<a class="line" href="${esc(x.u)}" target="_blank" rel="noopener"><span class="tm">${clock(x.p)}</span>`
+        + `<span class="tx" dir="auto">${said(lineText(x))}${x.l !== 'da' && x.l !== 'en' && foreignMode !== 'original' ? ' <i>oversat</i>' : ''}</span></a>`).join('');
+  }
+  return html || '<div class="empty">Ingen nye linjer endnu.</div>';
+}
 function searchPage(all) {
   const q = query.trim().toLowerCase();
   const total = searchIndex ? searchIndex.items.length : (data.scanned_24h || 0);
@@ -291,7 +348,8 @@ function render(opts = {}) {
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
   const all = stories();
   let html = isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
-  html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : sectionPage(tab, all, opts);
+  html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'moves' ? movesPage()
+    : sectionPage(tab, all, opts);
   $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
   const fresh = opts.fresh && shownIds.size ? all.filter(i => !shownIds.has(i.id)).length : 0;
@@ -301,6 +359,8 @@ function render(opts = {}) {
     $('freshPill').hidden = false;
   }
   // a dot on a section tab when it holds an important story the user has not seen yet
+  document.querySelector('.tabs [data-tab="moves"]').classList.toggle('has-new',
+    tab !== 'moves' && !!(digest && digest.moves && lastSeen && new Date(digest.moves.created || digest.created).getTime() > lastSeen));
   for (const sec of Object.keys(SECTIONS)) {
     document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i => i.important && isNew(i) && secOf(i) === sec));
   }
@@ -377,6 +437,8 @@ $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
   if (t.closest('[data-digest-share]')) { share(digestText()); return; }
+  if (t.closest('[data-moves-share]')) { share(digest.moves.whatsapp || movesText()); return; }
+  if (t.closest('[data-moves-copy]')) { if (await copyText(digest.moves.whatsapp || movesText())) toast('Kopieret'); return; }
   if (t.closest('[data-digest-toggle]')) { digestOpen = !digestOpen; $('digest').outerHTML = digestCard(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
@@ -431,11 +493,12 @@ function setTab(next, opts = {}) {
   scrollPos[tab] = scrollY;
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
-  const title = tab === 'home' ? 'Khabar' : tab === 'search' ? 'Søg' : SECTIONS[tab];
+  const title = { home: 'Khabar', search: 'Søg', moves: 'Bevægelser' }[tab] || SECTIONS[tab];
   $('title').textContent = title;
   $('title').classList.remove('swap'); void $('title').offsetWidth; $('title').classList.add('swap');
   $('searchbar').hidden = tab !== 'search';
   if (tab === 'search') { loadIndex(); setTimeout(() => $('search').focus(), 60); } else $('search').blur();
+  if (tab === 'moves') loadLines().then(fresh => { if (fresh && tab === 'moves') render(); });
   $('freshPill').hidden = true;
   render({ view: true });
   scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
@@ -454,6 +517,7 @@ async function loadIndex() {
   if (tab === 'search') render();
 }
 $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab, { top: b.dataset.tab === tab }); });
+$('openSearch').addEventListener('click', () => setTab('search', { top: true }));
 let typing;
 $('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 120); });
 $('search').addEventListener('keydown', e => { if (e.key === 'Enter') $('search').blur(); });
@@ -597,6 +661,6 @@ $('copyPushCode').addEventListener('click', async () => { if (await copyText($('
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 const startTab = params.get('tab');
-if (startTab && (SECTIONS[startTab] || startTab === 'search')) setTab(startTab, { top: true });
+if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'moves')) setTab(startTab, { top: true });
 else render({ enter: true });
 load();

@@ -35,5 +35,6 @@
   "rank_floor": 60,
   "big_dk_outlets": 5,
   "max_channel_per_day": 6,
-  "same_story_merge": 0.76
+  "same_story_merge": 0.76,
+  "lines_hours": 36
 }

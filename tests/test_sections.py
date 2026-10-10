@@ -87,3 +87,40 @@ def test_danish_politics_is_shown_and_everyday_news_is_not(tmp_path, monkeypatch
     assert all(i['sec'] in ('dk', 'me', 'world') and 'rank' in i for i in data['items'])
     search = json.loads((tmp_path / 'state' / 'search.json').read_text(encoding='utf-8'))
     assert any(x['t'].startswith('Vejret') for x in search['items']), 'search still finds what the lists leave out'
+
+
+def test_wire_lines_feed_the_briefing_but_never_become_cards(tmp_path, monkeypatch):
+    import importlib
+    import shutil
+    import radar.run as run
+    importlib.reload(run)
+    from fake_embed import FakeEmbedder
+    from test_run import NoTranslator, make_item
+    cfg = tmp_path / 'config'
+    shutil.copytree(ROOT / 'config', cfg)
+    feeds = json.loads((cfg / 'feeds.json').read_text(encoding='utf-8'))
+    feeds.append({'name': 'Wire', 'label': 'Wire breaking', 'lang': 'ar', 'type': 'telegram', 'channel': 'x',
+                  'official': True, 'wire': True, 'group': 'mena', 'sec': 'me'})
+    (cfg / 'feeds.json').write_text(json.dumps(feeds), encoding='utf-8')
+    monkeypatch.setattr(run, 'CONFIG', cfg)
+    monkeypatch.setattr(run, 'STATE', tmp_path / 'state')
+    monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
+    (tmp_path / 'cache').mkdir()
+    (tmp_path / 'cache' / 'profile.jsonl').write_text(
+        '\n'.join(json.dumps({'d': '2026-09-01', 't': t}) for t in ['Israel bomber Gaza igen', 'Iran truer Israel']),
+        encoding='utf-8')
+    monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
+    monkeypatch.setattr(run, 'Translator', NoTranslator)
+    monkeypatch.setattr(run.feedback, 'pull', lambda since: ([], since))
+    items = [make_item(1, 'الكرملين: التركيز على التسوية الأوكرانية جاء بطلب أمريكي', 'Wire', lang='ar'),
+             make_item(2, 'Zelenskiy says letting Russia sell diesel is an investment in war', 'Reuters', lang='en'),
+             make_item(3, 'Israel bomber Gaza igen i nat med mange dræbte', 'DR')]
+    monkeypatch.setattr(run, 'fetch_all', lambda f: (items, {}))
+    run.main()
+    data = json.loads((tmp_path / 'state' / 'data.json').read_text(encoding='utf-8'))
+    lines = json.loads((tmp_path / 'state' / 'lines.json').read_text(encoding='utf-8'))['items']
+    assert not any(i['source'] in ('Wire', 'Wire breaking') for i in data['items']), 'a wire line is no card'
+    wire = [x for x in lines if x['k'] == 'w']
+    assert len(wire) == 1 and wire[0]['s'] == 'Wire breaking' and wire[0]['tr'].startswith('[en]'), wire
+    assert any(x['k'] == 'h' and x['t'].startswith('Zelenskiy says') for x in lines), lines
+    assert data['sources'].get('Wire', {}).get('label', 'Wire breaking') == 'Wire breaking'

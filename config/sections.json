@@ -42,7 +42,9 @@
       "الإيراني", "العراق", "بغداد", "اليمن", "الحوثي", "السعودية", "الرياض", "مصر", "المصري", "القاهرة", "الأردن",
       "قطر", "الإمارات", "تركيا", "أردوغان", "ليبيا", "السودان", "تونس", "الجزائر", "المغرب", "موريتانيا",
       "نتنياهو", "المستوطن", "الكويت", "البحرين", "gazze", "israil", "filistin", "suriye", "lübnan", "mısır",
-      "suudi", "ortadoğu", "kudüs", "mescid-i aksa"
+      "suudi", "ortadoğu", "kudüs", "mescid-i aksa", "araghchi", "qalibaf", "pezeshkian", "sharaa", "bin salman",
+      "sinwar", "haniyeh", "nasrallah", "qassem", "barghouti", "عراقجي", "قاليباف", "بزشكيان", "الشرع", "الحوثيين",
+      "أنصار الله"
     ],
     "world": [
       "USA=", "US=", "U.S.", "amerika", "america", "trump", "washington", "white house", "det hvide hus",
@@ -60,7 +62,8 @@
       "forenede nationer", "ICC=", "straffedomstol", "criminal court", "haag", "hague", "G7", "G20", "أمريكا",
       "الأمريكي", "واشنطن", "ترامب", "روسيا", "بوتين", "أوكرانيا", "الصين", "أوروبا", "الاتحاد الأوروبي", "فرنسا",
       "بريطانيا", "ألمانيا", "الهند", "باكستان", "أفغانستان", "طالبان", "الأمم المتحدة", "ABD=", "rusya",
-      "ukrayna", "çin=", "avrupa", "almanya", "fransa", "ingiltere", "hindistan", "afganistan"
+      "ukrayna", "çin=", "avrupa", "almanya", "fransa", "ingiltere", "hindistan", "afganistan", "witkoff", "rubio",
+      "dmitriev", "lavrov", "peskov", "hegseth", "kellogg", "merz=", "ويتكوف", "الكرملين", "لافروف", "روبيو"
     ]
   },
   "core": [

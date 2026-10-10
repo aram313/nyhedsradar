@@ -190,6 +190,7 @@
  },
  {
   "name": "الجزيرة",
+  "label": "Al Jazeera (arabisk)",
   "lang": "ar",
   "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9",
   "group": "mena",
@@ -197,6 +198,7 @@
  },
  {
   "name": "BBC عربي",
+  "label": "BBC Arabic",
   "lang": "ar",
   "url": "https://feeds.bbci.co.uk/arabic/rss.xml",
   "group": "west",
@@ -204,6 +206,7 @@
  },
  {
   "name": "CNN بالعربية",
+  "label": "CNN Arabic",
   "lang": "ar",
   "url": "https://arabic.cnn.com/api/v1/rss/rss.xml",
   "group": "west",
@@ -211,6 +214,7 @@
  },
  {
   "name": "سكاي نيوز عربية",
+  "label": "Sky News Arabia",
   "lang": "ar",
   "url": "https://www.skynewsarabia.com/rss",
   "group": "mena",
@@ -218,11 +222,24 @@
  },
  {
   "name": "حزب التحرير",
+  "label": "Hizb ut-Tahrir (arabisk)",
   "lang": "ar",
   "max_age_hours": 240,
   "url": "https://www.hizb-ut-tahrir.info/ar/index.php?format=feed&type=rss",
   "community": true,
   "group": "mena"
+ },
+ {
+  "name": "الجزيرة عاجل",
+  "label": "Al Jazeera breaking",
+  "lang": "ar",
+  "type": "telegram",
+  "channel": "ajanews",
+  "outlet": "الجزيرة",
+  "official": true,
+  "wire": true,
+  "group": "mena",
+  "sec": "me"
  },
  {
   "name": "Reuters",
@@ -301,6 +318,7 @@
  },
  {
   "name": "شبكة قدس",
+  "label": "Quds News (arabisk)",
   "lang": "ar",
   "type": "telegram",
   "channel": "qudsn",

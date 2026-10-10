@@ -98,6 +98,14 @@ NOISE_URL = re.compile(r'/(sport|sports|fodbold|football|soccer|haandbold|cyklin
                        r'travel|rejser|mad|food|recipes|opskrifter|bolig|motor|biler|tv-guide|musik|music|film-og-serier)(/|-|$)', re.I)
 
 
+# a headline that is one attributed statement: "Kremlin: ...", "Trump: ...", "Det jordanske udenrigsministerium: ..."
+STATEMENT = re.compile(r'^(?!(?:analyse|analysis|kommentar|leder|opinion|debat|interview|explainer|guide|quiz|live|video|'
+                       r'watch|podcast|breaking|update|opdatering)\b)[^:\n]{2,60}:\s+\S.{10,}', re.I)
+
+# an English headline built around what someone said: "Zelenskiy says ...", "Iran warns ..."
+SAYS = re.compile(r'^\S.{0,60}?\b(says|said|warns|tells|vows|urges|calls on|claims|denies|confirms|announces|rejects)\b', re.I)
+
+
 def is_noise(item):
     return bool(NOISE_TITLE.search(item['title'].strip()) or NOISE_URL.search(item['link']))
 
@@ -187,8 +195,13 @@ def main():
     outlet_of = {f['name']: f.get('outlet', f['name']) for f in feeds}
     max_age = {f['name']: f.get('max_age_hours', s['max_age_hours']) for f in feeds}
     community = {f['name'] for f in feeds if f.get('community')}
-    # Telegram and YouTube channels are fast but unverified; everything else is an established outlet
-    channel = {f['name'] for f in feeds if f.get('type') in ('telegram', 'youtube')}
+    # Telegram and YouTube channels are fast but unverified (unless a news outlet runs them: `official`);
+    # everything else is an established outlet
+    channel = {f['name'] for f in feeds if f.get('type') in ('telegram', 'youtube') and not f.get('official')}
+    # wire sources post one-line statements ("Kremlin: ..."); they count as an outlet on a story and feed the
+    # 'Bevægelser' briefing, but never become a card of their own
+    wire = {f['name'] for f in feeds if f.get('wire')}
+    label_of = {f['name']: f.get('label', f['name']) for f in feeds}   # readable names (Arabic ones in Latin script)
     # which kind of media each source is (Danish, Western, Arab/Muslim, Israeli, channel), shown with every story
     group_of = {f['name']: f.get('group') or ('channel' if f['name'] in channel else 'dk' if f.get('lang') == 'da' else 'west')
                 for f in feeds}
@@ -316,7 +329,8 @@ def main():
             for kind in ('dk', 'west', 'mena', 'il', 'channel'):
                 if by_kind.get(kind) and len(others) < 10:
                     others.append(by_kind[kind].pop(0))
-        lead['also'] = [{'id': m['id'], 'source': m['source'], 'title': m['title'], 'link': m['link'], 'lang': m.get('lang'),
+        lead['also'] = [{'id': m['id'], 'source': label_of.get(m['source'], m['source']), 'title': m['title'],
+                         'link': m['link'], 'lang': m.get('lang'),
                          'group': group_of.get(m['source'], 'west'), 'title_tr': m.get('title_tr')} for m in others]
         lead['cluster_pct'] = max(m['pct'] for m in members)
         lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
@@ -381,13 +395,14 @@ def main():
             m['sec'] = secs[0]
         lead.update(secs=secs, rank=round(r, 1), cover={g: len(v) for g, v in cover.items()})
         lead['_core'], lead['_core_dk'], lead['_dk_outlets'] = max(core, core_dk), core_dk, len(cover.get('dk', ()))
-        ranks.setdefault(secs[0], []).append(r)
+        if lead['source'] not in wire:   # a lone wire line is no story, so it must not shift the section's bar
+            ranks.setdefault(secs[0], []).append(r)
     ranks = {k: np.sort(np.array(v, dtype=np.float32)) for k, v in ranks.items()}
 
     shown = []
     for st in sorted(stories, key=lambda st: -st[0]['rank']):
         it = st[0]
-        if is_noise(it):
+        if is_noise(it) or it['source'] in wire:
             continue
         it['spct'] = top_share(ranks[it['sec']], it['rank'])   # place within its own section
         cpct = it.get('cluster_pct', it['pct'])
@@ -468,6 +483,34 @@ def main():
             if items.get(a.get('id'), {}).get('title_tr'):
                 a['title_tr'] = items[a['id']]['title_tr']
 
+    # one-line statements ("Kremlin: ...") from the wire and elsewhere, for the 'Bevægelser' view and the
+    # editor's briefing: English and Danish versions made once and kept
+    def kind(v):
+        """'w' a wire line, 'c' a channel post or 'h' a headline that is one statement by a named actor"""
+        if v['source'] in wire:
+            return 'w'
+        if STATEMENT.match(v['title']):
+            who, words = v['title'].split(':', 1)[0], sig.get(v['id']) or sections.signals(v)
+            if len(who.split()) <= 6 and any(sections.lex[k].hits(who) for k in sections.keys):
+                if v['source'] in channel:
+                    return 'c'
+                if max(words['core'], words['core_dk']) >= 2:   # a colon headline counts only on core subjects
+                    return 'h'
+        return 'h' if v.get('lang') == 'en' and SAYS.match(v['title']) else None
+    statements = [v for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=s['lines_hours'])
+                  and not is_noise(v) and kind(v)]
+    todo = [v for v in statements if v.get('lang') not in READABLE and 'title_tr' not in v]
+    for lang in {v['lang'] for v in todo}:
+        part = [v for v in todo if v['lang'] == lang]
+        for v, t in zip(part, translator([v['title'] for v in part], lang)):
+            if t:
+                v['title_tr'] = tidy(t)
+    todo = [v for v in statements if v.get('lang') != 'da' and 'title_da' not in v
+            and (v.get('lang') == 'en' or v.get('title_tr'))]
+    for v, t in zip(todo, translator([v.get('title_tr') or v['title'] for v in todo], 'en', 'da')):
+        if t:
+            v['title_da'] = tidy(t)
+
     # 7. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}
     notified = [n for n in pushes.get('notified', []) if ts(n['at']) >= NOW - timedelta(hours=48) and n['id'] in emb_store]
@@ -493,7 +536,8 @@ def main():
         headline = lead.get('title_tr') or lead['title']
         if len(batch) == 1:
             where = ' i Danmark' if lead.get('sec') == 'dk' else ''
-            title = f"Stor historie{where} · {lead['outlets']} medier" if lead['big'] else lead['source']
+            title = (f"Stor historie{where} · {lead['outlets']} medier" if lead['big']
+                     else label_of.get(lead['source'], lead['source']))
             body = headline
         else:
             title = f'{len(batch)} vigtige nyheder'
@@ -527,16 +571,23 @@ def main():
     save(STATE / 'data.json', {
         'updated': NOW.isoformat(),
         'sections': sections.names,
-        'items': [{**{k: it.get(k) for k in public_fields}, 'group': group_of.get(it['source'], 'west')} for it in shown],
+        'items': [{**{k: it.get(k) for k in public_fields}, 'source': label_of.get(it['source'], it['source']),
+                   'group': group_of.get(it['source'], 'west')} for it in shown],
         'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0),
-                        'group': group_of.get(k, 'west')} for k, v in status.items()},
+                        'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
     })
+    save(STATE / 'lines.json', {'updated': NOW.isoformat(), 'items': [
+        {'i': v['id'], 't': v['title'], 'tr': v.get('title_tr'), 'da': v.get('title_da'),
+         's': label_of.get(v['source'], v['source']), 'l': v.get('lang'), 'p': v['published'], 'u': v['link'],
+         'x': v.get('sec'), 'k': kind(v)}
+        for v in sorted(statements, key=lambda v: v['published'], reverse=True)][:500]})
     # everything the radar saw in the last days, for the app's search (loaded only when someone searches)
     on_card = {it['id'] for it in shown}
     save(STATE / 'search.json', {'updated': NOW.isoformat(), 'items': [
-        {'i': v['id'], 't': v.get('title_tr') or v['title'], 's': v['source'], 'l': v.get('lang'), 'u': v['link'],
+        {'i': v['id'], 't': v.get('title_tr') or v['title'], 's': label_of.get(v['source'], v['source']),
+         'l': v.get('lang'), 'u': v['link'],
          'p': v['published'], 'x': v.get('sec'), 'c': int(v['id'] in on_card)}
         for v in sorted(items.values(), key=lambda v: v['published'], reverse=True)
         if not is_noise(v) and (v.get('lang') in READABLE or v.get('title_tr'))
