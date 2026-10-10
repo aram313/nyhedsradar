@@ -1,6 +1,8 @@
-// Khabar – phone app. Reads data.json (stories with their section, rank and coverage, written by the radar
-// every few minutes) and digest.json (the Claude editor's overview at 7 and 17). Shows a front page plus one
-// tab per section – Danmark, Mellemøsten, Verden – and a search over everything the radar has read. Plain JS.
+// Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
+// by the radar every few minutes) and digest.json (Claude's overview at 7 and 22: the most important stories by
+// topic, and under each topic what the actors say, translated from Al Jazeera's Arabic breaking wire).
+// Front page = that overview + what matters right now; a tab per section – Danmark, Mellemøsten, Verden – and
+// 'Seneste', everything as it comes in. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -18,6 +20,9 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
+const TITLES = { home: 'Khabar', latest: 'Seneste', search: 'Søg' };
+// the small pictures live next to data.json on the data branch
+const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
 let data = store.get('lastData', null);
 let digest = store.get('lastDigest', null);
@@ -25,16 +30,17 @@ let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
 let danish = store.get('danish', false);                                 // show and share in Danish
-let digestOpen = false;
-const expanded = new Set();
+const expanded = new Set();                                              // opened stories
+const tpOpen = new Set();                                                // opened topics: '<edition>|<index>'
+const edOpen = new Set();                                                // opened earlier overviews
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
-if (params.get('digest') === '1') digestOpen = true;
 let lastSeen = store.get('lastSeen', 0);                                 // stories found later get a small dot
 let shownIds = new Set();
 const scrollPos = {};                                                    // each tab remembers where you were
 let searchIndex = null, searchState = 'idle';
-let moves = store.get('lastMoves', null);                               // Claude's 'Bevægelser' editions
+let moves = null, archiveState = 'idle';                                 // earlier overviews, fetched on request
+let latestAll = false;
 const readSent = new Set(store.get('readSent', []));
 
 // ---------------------------------------------------------------- silent learning (no buttons)
@@ -69,6 +75,8 @@ function dayLabel(iso) {
   if (d.toDateString() === y.toDateString()) return 'I går';
   return d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
 }
+const dayShort = iso => { const d = dayLabel(iso); return d === 'I dag' || d === 'I går' ? d.toLowerCase() : d; };
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const when = i => new Date(i.published || i.found).getTime();
 const hours = i => Math.max(0, (Date.now() - when(i)) / 3600e3);
 const num = n => Number(n || 0).toLocaleString('da-DK');
@@ -94,13 +102,12 @@ async function load(manual) {
       const r = await fetch(bust(CFG.digestUrl), { cache: 'no-store' });
       if (r.ok) {
         const d = await r.json();
-        const stamp = x => x && `${x.created}|${x.moves ? x.moves.created : ''}`;   // the overview or the briefing changed
-        changed = changed || stamp(d) !== stamp(digest);
+        const stamp = x => x && `${x.created}|${(x.topics || []).length}|${(x.items || []).length}`;
+        if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; }
         digest = d; store.set('lastDigest', digest);
       }
     } catch { /* keep the last overview */ }
   }
-  if (tab === 'moves' && await loadMoves()) changed = true;
   if (--busy === 0) document.body.classList.remove('loading');
   if (changed || manual) render({ fresh: true }); else renderHeader();
 }
@@ -157,23 +164,40 @@ function shareText(d) {
 }
 
 // ---------------------------------------------------------------- render: one story
-function meta(i, tag) {
-  const m = [];
-  if (i.big) m.push('<span class="big">Stor historie</span>');
-  if (tag) m.push(`<span class="sec">${SECTIONS[secOf(i)]}</span>`);   // the mixed front page says where it belongs
-  m.push(`<span class="src">${esc(i.source)}</span>`, `<span>${ago(i.published || i.found)}</span>`);
-  if (i.outlets >= 2) m.push(`<span>${i.outlets} medier</span>`);
+// a row: what kind of story (section, big) above the headline, the outlet and time below, a small picture
+// at the right – or the outlet's initials where no picture exists
+// DR, BT, TV2, BBC as written; QudsN → QN; Al Jazeera → AJ; Politiken → P
+function monogram(name) {
+  const w = String(name || '').replace(/\(.*?\)/g, '').split(/[\s\-–]+/).filter(x => x && !/^(the|of|og|and|for)$/i.test(x));
+  if (!w.length) return '?';
+  if (/^[A-ZÆØÅ]{2,4}$/.test(w[0])) return w[0] + (/^\d+$/.test(w[1] || '') ? w[1] : '');
+  const caps = w[0].replace(/[^A-ZÆØÅ]/g, '');
+  if (w.length === 1) return caps.length > 1 ? caps.slice(0, 3) : w[0][0].toUpperCase();
+  return (w[0][0] + w[1][0]).toUpperCase();
+}
+function thumb(source, file) {
+  return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${file
+    ? `<img src="${esc(THUMBS + file)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
+}
+function kicker(i, tag) {
+  const k = [];
+  if (tag) k.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);
+  if (i.big) k.push('<span class="big">Stor historie</span>');
+  return k.length ? `<span class="kick">${k.join('')}</span>` : '';
+}
+function meta(i, opts = {}) {
+  const m = [`<span class="src">${esc(i.source)}</span>`, `<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`];
+  if (i.outlets >= 3) m.push(`<span>${i.outlets} medier</span>`);
   if (i.confirmed === 0) m.push('<span class="warn">ubekræftet</span>');
-  if (i.to) m.push('<span>oversat</span>');
-  if (shared[i.id]) m.push('<span>delt</span>');
+  if (shared[i.id]) m.push('<span class="done">delt</span>');
   return m.join('');
 }
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   const cls = ['story', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
-  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}"${opts.tag ? ' data-tag="1"' : ''} style="--i:${n}">
-    <button class="row" data-toggle aria-expanded="${open}"><span class="h" dir="auto">${esc(i.title)}</span><span class="m">${meta(i, opts.tag)}</span></button>
+  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''} style="--i:${n}">
+    <button class="row" data-toggle aria-expanded="${open}"><span class="tx">${kicker(i, opts.tag)}<span class="h" dir="auto">${esc(i.title)}</span><span class="m">${meta(i, opts)}</span></span>${thumb(i.source, i.thumb)}</button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
 function detail(i) {
@@ -204,41 +228,132 @@ function coverage(i) {
   return `<div class="cov"><div class="cov-h">Dækning · ${i.outlets} medier</div>${sum ? `<div class="cov-sum">${sum}</div>` : ''}${rows}</div>`;
 }
 
-// ---------------------------------------------------------------- render: the editor's overview
-// Claude's pick of the most important stories, each with a short summary of the article (at 7 and 22)
-function digestCard() {
-  if (!digest || !digest.created || Date.now() - new Date(digest.created) > 16 * 3600e3) return '';
-  const items = digest.items || [];
-  const shownN = digestOpen ? items.length : Math.min(4, items.length);
-  return `<section class="digest" id="digest">
-    <div class="digest-h"><b>Overblik${digest.period ? ' · ' + esc(digest.period) : ''}</b><span>Claude · kl. ${clock(digest.created)}</span></div>
-    <p class="explain">Claudes udvalg af de vigtigste nyheder, med et kort resumé af hver artikel. Nyt overblik kl. 7 og 22.</p>
-    ${digest.intro ? `<p class="intro">${esc(digest.intro)}</p>` : ''}
-    <ol>${items.slice(0, shownN).map(x => `<li><a href="${esc(x.link)}" target="_blank" rel="noopener"><div><b>${esc(x.headline)}</b>${x.text ? `<small>${esc(x.text)}</small>` : ''}<em>${SECTIONS[x.section] ? SECTIONS[x.section] + ' · ' : ''}${esc(x.source || '')}</em></div></a></li>`).join('')}</ol>
-    <div class="acts">
-      ${items.length > 4 ? `<button class="act" data-digest-toggle>${digestOpen ? 'Færre' : `Vis alle ${items.length}`}</button>` : ''}
-      <button class="act primary" data-digest-share><svg><use href="#i-share"/></svg>Del overblik</button>
-    </div></section>`;
+// ---------------------------------------------------------------- Claude's overview
+// One edition at 7 and one at 22: the most important stories grouped by topic, each with a short summary,
+// and under each topic what the actors say – every line of Al Jazeera's Arabic breaking wire since the
+// edition before, translated into Danish. Topics with articles come first; topics with only statements follow.
+function edition(d) {
+  if (!d || !d.created) return null;
+  if (d.topics) return d;
+  // an overview from before topics existed: one topic per story
+  return { ...d, topics: (d.items || []).map(x => ({ name: SECTIONS[x.section] || 'Nyheder', section: x.section, stories: [x], lines: [] })) };
 }
-function digestText() {
-  return digest.whatsapp || (digest.items || []).map(x => `*${x.headline}*\n${x.text || ''}\n${x.link}`).join('\n\n');
+const countOf = (ed, what) => ed.topics.reduce((s, tp) => s + (tp[what] || []).length, 0);
+function edOf(el) {
+  const c = el.closest('[data-ed]').dataset.ed, d = edition(digest);
+  return d && d.created === c ? d : edition(((moves && moves.briefs) || []).find(e => e.created === c));
+}
+function topicRow(ed, tp, k) {
+  const key = `${ed.created}|${k}`, open = tpOpen.has(key);
+  const lead = (tp.stories || [])[0], said = tp.lines || [];
+  const nS = (tp.stories || []).length;
+  const counts = [nS > 1 && `${nS} artikler`, said.length && `${said.length} ${said.length === 1 ? 'udtalelse' : 'udtalelser'}`];
+  const head = lead ? `<span class="h">${esc(lead.headline)}</span>`
+    : `<span class="q"><b>${esc(said[0].who)}:</b> ${esc(said[0].text)}</span>`;
+  const m = [lead && `<span class="src">${esc(lead.source)}</span>`, ...counts.filter(Boolean).map(c => `<span>${c}</span>`)].filter(Boolean).join('');
+  const radar = lead && find(lead.id);
+  return `<article class="tp${lead ? '' : ' said-only'}${open ? ' open' : ''}" data-tp="${esc(key)}" data-sec="${esc(tp.section)}">
+    <button class="row" data-tp-toggle aria-expanded="${open}"><span class="tx"><span class="kick"><span class="sec"><i></i>${esc(tp.name)}</span></span>${head}<span class="m">${m}</span></span>${lead ? thumb(lead.source, radar && radar.thumb) : ''}</button>
+    <div class="x"><div><div class="x-in">${open ? topicBody(tp) : ''}</div></div></div></article>`;
+}
+function topicBody(tp) {
+  const st = (tp.stories || []).map((s, j) => `<div class="tp-story">
+      ${j ? `<a class="tp-h" href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}">${esc(s.headline)}</a>` : ''}
+      <p class="sum">${esc(s.text)}</p>
+      <div class="tp-acts"><span class="src">${esc(s.source)}${s.confirmed === 0 ? ' · <i>ubekræftet</i>' : ''}</span>
+        <a class="act sm primary" href="${esc(s.link)}" target="_blank" rel="noopener" data-tp-read="${j}"><svg><use href="#i-open"/></svg>Læs</a>
+        <button class="act sm" data-tp-share="${j}"><svg><use href="#i-share"/></svg>Del</button></div></div>`).join('');
+  const said = (tp.lines || []).length ? `<div class="said-h">Det siger de</div><ul class="said">${tp.lines.map(l =>
+    `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul>` : '';
+  return st + said;
+}
+function briefCard(ed, opts = {}) {
+  const all = ed.topics.map((tp, k) => [tp, k]);
+  const main = all.filter(([tp]) => (tp.stories || []).length), rest = all.filter(([tp]) => !(tp.stories || []).length);
+  const nLines = countOf(ed, 'lines');
+  return `<section class="brief" data-ed="${esc(ed.created)}">
+    <div class="brief-h"><b>Overblik${ed.period ? ' · ' + esc(ed.period) : ''}</b><span>Claude · ${dayShort(ed.created)} kl. ${clock(ed.created)}</span></div>
+    ${ed.intro ? `<p class="intro">${esc(ed.intro)}</p>` : ''}
+    ${main.length ? `<div class="tps">${main.map(([tp, k]) => topicRow(ed, tp, k)).join('')}</div>` : ''}
+    ${rest.length ? `<div class="tps-h">Flere udtalelser</div><div class="tps">${rest.map(([tp, k]) => topicRow(ed, tp, k)).join('')}</div>` : ''}
+    <div class="acts">
+      <button class="act primary" data-ed-share="news"><svg><use href="#i-share"/></svg>Del overblik</button>
+      ${nLines ? '<button class="act" data-ed-share="lines"><svg><use href="#i-share"/></svg>Del udtalelser</button>' : ''}
+    </div>
+    ${opts.explain ? `<p class="explain">Claude vælger de vigtigste nyheder kl. 7 og 22 og oversætter alt fra Al Jazeeras arabiske breaking-kanal${ed.from ? ` – denne gang fra kl. ${clock(ed.from)} til ${clock(ed.until || ed.created)}` : ''}. Tryk på et emne for resumé, kilder og hvad de siger.</p>` : ''}
+  </section>`;
+}
+// the texts the share buttons send (digest.json brings them ready; earlier editions are rebuilt the same way)
+function overviewText(ed) {
+  if (ed.whatsapp) return ed.whatsapp;
+  const d = new Date(ed.created), out = [`*Dagens overblik – ${ed.period || ''}, ${d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}*`, '', ed.intro || '', ''];
+  let n = 0;
+  for (const [sec, name] of Object.entries(SECTIONS)) {
+    const mine = ed.topics.flatMap(tp => (tp.stories || []).map(s => ({ ...s, section: s.section || tp.section }))).filter(s => s.section === sec);
+    if (mine.length) out.push(name.toUpperCase(), '', ...mine.flatMap(s => [`${++n}. *${s.headline}*`, s.text, s.link, '']));
+  }
+  return out.join('\n').trim();
+}
+function linesText(ed) {
+  if (ed.lines_whatsapp) return ed.lines_whatsapp;
+  return [ed.title || 'Politiske nyheder', ...ed.topics.filter(tp => (tp.lines || []).length)
+    .map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who}: ${l.text}`).join('\n\n')}`)].join('\n\n');
+}
+async function loadArchive() {
+  if (archiveState === 'loading') return;
+  archiveState = 'loading'; render();
+  const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
+  try {
+    const r = await fetch(bust(url), { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    moves = await r.json(); archiveState = 'ok';
+  } catch { archiveState = 'error'; }
+  if (tab === 'home') render();
+}
+function archive(latest) {
+  let html = '<div class="block-h"><h2>Tidligere overblik</h2></div>';
+  if (!moves) {
+    const label = archiveState === 'loading' ? 'Henter …' : archiveState === 'error' ? 'Kunne ikke hente – prøv igen' : 'Vis tidligere overblik';
+    return html + `<button class="wide soft" data-archive>${label}</button>`;
+  }
+  const list = (moves.briefs || []).map(edition).filter(e => e && (!latest || e.created !== latest.created));
+  if (!list.length) return html + '<p class="explain pad">Hver ny udgave lægges her, når den næste kommer.</p>';
+  return html + list.map(ed => {
+    const open = edOpen.has(ed.created), nS = countOf(ed, 'stories'), nL = countOf(ed, 'lines');
+    return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(ed.created)}">
+      <button class="arch-row" data-arch-toggle aria-expanded="${open}"><span><b>${cap(dayShort(ed.created))} · ${esc(ed.period || 'overblik')}</b>
+      <small>kl. ${clock(ed.created)}${nS ? ` · ${nS} nyheder` : ''}${nL ? ` · ${nL} udtalelser` : ''}</small></span><svg><use href="#i-chev"/></svg></button>
+      ${open ? briefCard(ed) : ''}</article>`;
+  }).join('');
 }
 
 // ---------------------------------------------------------------- render: pages
-// the front page: Claude's overview on top, then every story as it comes in, all sections mixed
-function home(all, opts) {
-  let html = digestCard(), last = null, n = 0;
-  for (const i of [...all].sort((a, b) => when(b) - when(a))) {
+// headings: a block ('Vigtigst lige nu') is a large title; a day ('I dag', 'I går') is a coloured marker
+// that stays at the top while its stories scroll past
+const blockHead = (title, more) => `<div class="block-h"><h2><i class="live"></i>${title}</h2>${more || ''}</div>`;
+function timeline(list, opts, n0 = 0) {
+  let html = '', last = '', n = n0;
+  [...list].sort((a, b) => when(b) - when(a)).forEach(i => {
     const d = dayLabel(i.published || i.found);
-    if (d !== last) {
-      html += `<div class="label">${last === null ? 'Seneste nyheder' + (d === 'I dag' ? '' : ' · ' + d) : d}</div>`;
-      last = d;
-    }
-    html += story(i, n++, { ...opts, tag: true });
-  }
-  if (!all.length) html += '<div class="empty">Ingen nyheder endnu.</div>';
+    if (d !== last) { html += `<div class="day"><span>${d}</span></div>`; last = d; }
+    html += story(i, n++, opts);
+  });
+  return html;
+}
+// the front page: Claude's overview, then what matters right now (all sections), then earlier overviews
+function home(all, opts) {
+  const ed = edition(digest), fresh = ed && Date.now() - new Date(ed.created) < 48 * 3600e3;
+  let html = fresh ? briefCard(ed, { explain: true })
+    : '<section class="brief"><div class="brief-h"><b>Overblik</b></div><p class="explain">Claudes overblik kommer kl. 7 og 22.</p></section>';
+  const inBrief = new Set(fresh ? ed.topics.flatMap(tp => (tp.stories || []).map(s => s.id)) : []);
+  let cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 6);
+  if (cands.length < 6) cands = all.filter(i => !inBrief.has(i.id) && hours(i) < 18);
+  const now = pick(cands, 6);
+  html += `<section class="block">${blockHead('Vigtigst lige nu', '<button class="more" data-go="latest">Alle nyheder<svg><use href="#i-chev"/></svg></button>')}
+    ${now.map((i, n) => story(i, n, { ...opts, tag: true })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
+  html += `<section class="block">${archive(fresh && ed)}</section>`;
   const src = Object.keys(data.sources || {}).length;
-  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${all.length} ud til dig.</p>`;
+  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${all.length} ud.</p>`;
   return html;
 }
 function sectionPage(sec, all, opts) {
@@ -246,13 +361,15 @@ function sectionPage(sec, all, opts) {
   if (!list.length) return '<div class="empty">Ingen historier her endnu.</div>';
   const top = pick(list.filter(i => hours(i) < 24), 5);
   const ids = new Set(top.map(i => i.id));
-  let html = top.length ? '<div class="label">Vigtigst lige nu</div>' + top.map((i, n) => story(i, n, opts)).join('') : '';
-  let last = '', n = top.length;
-  list.filter(i => !ids.has(i.id)).sort((a, b) => when(b) - when(a)).forEach(i => {
-    const d = dayLabel(i.published || i.found);
-    if (d !== last) { html += `<div class="label">${d}</div>`; last = d; }
-    html += story(i, n++, opts);
-  });
+  const html = top.length ? `<section class="block">${blockHead('Vigtigst lige nu')}${top.map((i, n) => story(i, n, opts)).join('')}</section>` : '';
+  return html + timeline(list.filter(i => !ids.has(i.id)), opts, top.length);
+}
+// everything as it comes in, all sections mixed, newest first
+function latestPage(all, opts) {
+  const recent = latestAll ? all : all.filter(i => hours(i) < 24);
+  let html = '<p class="explain top">Alt, Khabar har valgt ud, nyeste først – Danmark, Mellemøsten og Verden blandet.</p>';
+  html += timeline(recent, { ...opts, tag: true, clock: true });
+  if (recent.length < all.length) html += `<button class="wide soft" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
 function mark(text, terms) {
@@ -260,58 +377,6 @@ function mark(text, terms) {
   for (const t of terms) if (t.length > 1) out = out.replace(new RegExp(esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`);
   return out;
 }
-// ---------------------------------------------------------------- 'Bevægelser': where things are moving
-// Al Jazeera's Arabic breaking wire, translated into Danish and ordered by topic by Claude at 7 and 22.
-// Every new edition is added on top; the earlier ones stay (moves.json on the digest branch).
-async function loadMoves() {
-  const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
-  try {
-    const r = await fetch(bust(url), { cache: 'no-store' });
-    if (!r.ok) return false;
-    const fresh = await r.json();
-    const changed = !moves || fresh.updated !== moves.updated;
-    moves = fresh; store.set('lastMoves', moves);
-    return changed;
-  } catch { return false; }
-}
-function briefs() {
-  const list = (moves && moves.briefs) || [];
-  if (list.length) return list;
-  // before the list existed the briefing lived inside the overview
-  return digest && digest.moves ? [{ ...digest.moves, created: digest.moves.created || digest.created }] : [];
-}
-const briefsOpen = new Set();
-const dayShort = iso => {
-  const d = dayLabel(iso);
-  return d === 'I dag' || d === 'I går' ? d.toLowerCase() : new Date(iso).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
-};
-function briefText(b) {
-  return [b.title, ...(b.topics || []).map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who}: ${l.text}`).join('\n\n')}`)].join('\n\n');
-}
-function briefCard(b, k) {
-  const open = k === 0 || briefsOpen.has(b.created);
-  const lines = (b.topics || []).reduce((s, tp) => s + tp.lines.length, 0);
-  const [head, ...rest] = (b.title || 'Politiske nyheder').split(/\s+[–-]\s+/);
-  const span = b.from ? `Breaking-linjer fra kl. ${clock(b.from)} til ${clock(b.until || b.created)}` : 'Breaking-linjer';
-  const body = open
-    ? (b.topics || []).map(tp => `<div class="topic"><h3>${esc(tp.name)}</h3><ul>${tp.lines.map(l =>
-        `<li>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">` : '<span>'}<b>${esc(l.who)}:</b> ${esc(l.text)}${l.link ? '</a>' : '</span>'}</li>`).join('')}</ul></div>`).join('')
-      + `<div class="acts"><button class="act" data-brief-copy><svg><use href="#i-copy"/></svg>Kopiér</button>`
-      + `<button class="act primary" data-brief-share><svg><use href="#i-share"/></svg>Del</button></div>`
-    : `<button class="brief-open" data-brief-open><span>${(b.topics || []).map(tp => esc(tp.name)).join(' · ')}</span><svg><use href="#i-chev"/></svg></button>`;
-  return `<section class="moves${open ? '' : ' shut'}" data-brief="${esc(b.created)}">
-    <div class="digest-h"><b>${esc(head)}</b><span>Claude · ${dayShort(b.created)} kl. ${clock(b.created)}</span></div>
-    ${rest.length ? `<h2 class="moves-t">${esc(rest.join(' – '))}</h2>` : ''}
-    <p class="explain">${span} · ${lines} linjer</p>${body}</section>`;
-}
-function movesPage() {
-  const list = briefs();
-  let html = '<p class="explain top">Al Jazeeras arabiske breaking-kanal, oversat til dansk og ordnet efter emne af Claude kl. 7 og 22. '
-    + 'Hver ny udgave lægges øverst – de tidligere bliver liggende.</p>';
-  if (!list.length) return html + `<div class="empty">${moves === null ? 'Henter …' : 'Den første udgave kommer kl. 7 eller 22.'}</div>`;
-  return html + list.map(briefCard).join('');
-}
-const findBrief = el => briefs().find(b => b.created === el.closest('[data-brief]').dataset.brief);
 function searchPage(all) {
   const q = query.trim().toLowerCase();
   const total = searchIndex ? searchIndex.items.length : (data.scanned_24h || 0);
@@ -319,11 +384,11 @@ function searchPage(all) {
   const terms = q.split(/\s+/).filter(Boolean);
   const hit = t => terms.every(w => t.includes(w));
   const inApp = all.filter(i => hit(`${i.title} ${i.summary || ''} ${i.source} ${i.origTitle || ''}`.toLowerCase())).sort((a, b) => when(b) - when(a));
-  let html = inApp.length ? `<div class="label">På Khabar · ${inApp.length}</div>` + inApp.slice(0, 40).map((i, n) => story(i, n)).join('') : '';
+  let html = inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '';
   if (searchIndex) {
     const onApp = new Set(data.items.map(i => i.id));
     const others = searchIndex.items.filter(x => !onApp.has(x.i) && hit(`${x.t} ${x.s}`.toLowerCase()));
-    if (others.length) html += `<div class="label">Andre nyheder · ${others.length}</div>` + others.slice(0, 60).map(x =>
+    if (others.length) html += `<div class="day"><span>Andre nyheder · ${others.length}</span></div>` + others.slice(0, 60).map(x =>
       `<a class="hit" href="${esc(x.u)}" target="_blank" rel="noopener"><b dir="auto">${mark(x.t, terms)}</b><span>${esc(x.s)} · ${ago(x.p)}</span></a>`).join('');
   } else {
     html += `<p class="foot">${searchState === 'error' ? 'Kunne ikke hente alle nyheder – viser kun dem på Khabar.' : 'Henter alle nyheder …'}</p>`;
@@ -340,10 +405,11 @@ function renderHeader() {
 }
 function render(opts = {}) {
   renderHeader();
+  $('list').dataset.sec = SECTIONS[tab] ? tab : '';   // a section's own page takes its colour
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
   const all = stories();
   let html = isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
-  html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'moves' ? movesPage()
+  html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'latest' ? latestPage(all, opts)
     : sectionPage(tab, all, opts);
   $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
@@ -353,9 +419,9 @@ function render(opts = {}) {
     $('freshPill').querySelector('span').textContent = `${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`;
     $('freshPill').hidden = false;
   }
-  // a dot on a section tab when it holds an important story the user has not seen yet
-  document.querySelector('.tabs [data-tab="moves"]').classList.toggle('has-new',
-    tab !== 'moves' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > lastSeen));   // made in the same run
+  // a dot on a tab with something the user has not seen yet: a new overview, or an important story
+  document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
+    tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > lastSeen));
   for (const sec of Object.keys(SECTIONS)) {
     document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i => i.important && isNew(i) && secOf(i) === sec));
   }
@@ -377,7 +443,13 @@ function openFocus(all) {
   }, 150);
 }
 
-// ---------------------------------------------------------------- open a story in place
+// ---------------------------------------------------------------- open a story or a topic in place
+function keepInView(el) {
+  setTimeout(() => {
+    const r = el.getBoundingClientRect(), limit = innerHeight - $('dock').offsetHeight - 12;
+    if (r.bottom > limit) scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
+  }, 320);
+}
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = find(id);
   if (open && i) {
@@ -385,15 +457,31 @@ function toggle(el) {
     expanded.add(id);
     void el.offsetHeight;   // lay out the closed state first, so the opening animates
     el.classList.add('open');
-    // keep the opened story's buttons in view
-    setTimeout(() => {
-      const r = el.getBoundingClientRect(), limit = innerHeight - $('dock').offsetHeight - 12;
-      if (r.bottom > limit) scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
-    }, 320);
+    keepInView(el);
   } else {
     el.classList.remove('open'); expanded.delete(id);
   }
   el.querySelector('.row').setAttribute('aria-expanded', open);
+}
+function toggleTopic(el) {
+  const key = el.dataset.tp, open = !el.classList.contains('open');
+  if (open) {
+    const ed = edOf(el), tp = ed && ed.topics[+key.split('|')[1]];
+    if (!tp) return;
+    el.querySelector('.x-in').innerHTML = topicBody(tp);
+    tpOpen.add(key);
+    void el.offsetHeight;
+    el.classList.add('open');
+    keepInView(el);
+  } else {
+    el.classList.remove('open'); tpOpen.delete(key);
+  }
+  el.querySelector('.row').setAttribute('aria-expanded', open);
+}
+function topicStory(el) {
+  const tpEl = el.closest('[data-tp]'), ed = edOf(tpEl), tp = ed.topics[+tpEl.dataset.tp.split('|')[1]];
+  const at = el.closest('[data-tp-share], [data-tp-read]');
+  return tp.stories[+(at.dataset.tpShare ?? at.dataset.tpRead)];
 }
 
 // ---------------------------------------------------------------- share and copy
@@ -417,7 +505,7 @@ function markShared(i) {
   for (const [k, v] of Object.entries(shared)) if (Date.now() - v.at > 30 * 864e5) delete shared[k];
   store.set('shared', shared);
   const el = $('s-' + i.id);
-  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, el.dataset.tag === '1'); }
+  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { clock: el.dataset.clock === '1' }); }
   learnFrom(i, 'share');
 }
 // the phone's own share sheet (WhatsApp is one tap away there); copying is the fallback
@@ -431,11 +519,13 @@ async function share(text, i) {
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
-  if (t.closest('[data-digest-share]')) { share(digestText()); return; }
-  if (t.closest('[data-brief-share]')) { const b = findBrief(t); share(b.whatsapp || briefText(b)); return; }
-  if (t.closest('[data-brief-copy]')) { const b = findBrief(t); if (await copyText(b.whatsapp || briefText(b))) toast('Kopieret'); return; }
-  if (t.closest('[data-brief-open]')) { briefsOpen.add(findBrief(t).created); render(); return; }
-  if (t.closest('[data-digest-toggle]')) { digestOpen = !digestOpen; $('digest').outerHTML = digestCard(); return; }
+  if (t.closest('[data-tp-toggle]')) { toggleTopic(t.closest('[data-tp]')); return; }
+  if (t.closest('[data-tp-share]')) { const s = topicStory(t), r = find(s.id); share(`*${s.headline}*\n${s.text}\n${s.link}`, r); return; }
+  if (t.closest('[data-tp-read]')) { const r = find(topicStory(t).id); if (r) learnFrom(r, 'read'); return; }
+  if (t.closest('[data-ed-share]')) { const ed = edOf(t); share(t.closest('[data-ed-share]').dataset.edShare === 'lines' ? linesText(ed) : overviewText(ed)); return; }
+  if (t.closest('[data-archive]')) { loadArchive(); return; }
+  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; edOpen.has(c) ? edOpen.delete(c) : edOpen.add(c); render(); return; }
+  if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
   else if (t.closest('[data-copy]')) { if (await copyText(shareText(i))) { toast('Kopieret'); markShared(i); } }
@@ -489,12 +579,10 @@ function setTab(next, opts = {}) {
   scrollPos[tab] = scrollY;
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
-  const title = { home: 'Khabar', search: 'Søg', moves: 'Bevægelser' }[tab] || SECTIONS[tab];
-  $('title').textContent = title;
+  $('title').textContent = TITLES[tab] || SECTIONS[tab];
   $('title').classList.remove('swap'); void $('title').offsetWidth; $('title').classList.add('swap');
   $('searchbar').hidden = tab !== 'search';
   if (tab === 'search') { loadIndex(); setTimeout(() => $('search').focus(), 60); } else $('search').blur();
-  if (tab === 'moves') loadMoves().then(fresh => { if (fresh && tab === 'moves') render(); });
   $('freshPill').hidden = true;
   render({ view: true });
   scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
@@ -540,16 +628,17 @@ setInterval(renderHeader, 30000);
 function howText() {
   const src = Object.keys((data && data.sources) || {}).length || 61, L = (data && data.learned) || {};
   return `<p>Khabar læser <b>${src} kilder</b> hvert femte minut: danske, vestlige, arabiske og israelske medier og miljøets egne kanaler.${data && data.scanned_24h ? ` Det seneste døgn er ${num(data.scanned_24h)} nyheder vurderet.` : ''}</p>
-    <p><b>Sektioner.</b> Hver historie lander i Danmark, Mellemøsten eller Verden ud fra de steder, partier og personer, den nævner. Kan ordene ikke afgøre det, ser Khabar på, hvor lignende historier hører til.</p>
+    <p><b>Forsiden</b> har Claudes <b>overblik</b> øverst. Kl. 7 og 22 vælger Claude de vigtigste nyheder, skriver et kort resumé af hver artikel og samler dem i emner. Under hvert emne står, hvad aktørerne siger – alle linjer fra Al Jazeeras arabiske breaking-kanal siden sidst, oversat til dansk. <b>Del udtalelser</b> sender dem i samme form, som gruppen kender fra »Politiske nyheder«. Ældre udgaver ligger under <b>Tidligere overblik</b>.</p>
+    <p>Under overblikket viser <b>Vigtigst lige nu</b> det, radaren har fundet siden – og fanen <b>Seneste</b> viser alt, nyeste først.</p>
+    <p><b>Farver.</b> <span class="c-dk">Danmark</span>, <span class="c-me">Mellemøsten</span> og <span class="c-world">Verden</span> har hver sin farve, så du kan se, hvor en historie hører til. Rød betyder en stor historie, som mange medier dækker.</p>
     <p><b>Rækkefølge.</b> Tre ting tæller: hvor meget historien ligner det, gruppen har delt (ca. 6.500 links), hvor mange medier der dækker den, og om den handler om kerneemnerne – politik, Palæstina, islam og muslimer, krig og magt. Dansk politik får et ekstra løft, fordi gruppens links mest handler om udlandet. Vejr, sport, kongehus og lokale ulykker trækkes ned.</p>
     <p><b>Samme historie</b> fra flere medier samles på én linje. Åbn den og se, hvordan danske, vestlige, arabiske og israelske medier dækker den. <b>Ubekræftet</b> betyder, at den kun findes på Telegram eller YouTube indtil videre.</p>
-    <p><b>Khabar lærer af sig selv</b> – fra miljøets egne kilder (${num(L.community)}), store historier (${num(L.big)}) og det, du deler (${num(L.copied)}) og læser (${num(L.read)}). Claude tjekker kilderne hver morgen.</p>
-    <p><b>Kl. 7 og 22</b> skriver Claude to ting på én gang: <b>Overblikket</b> øverst på forsiden – de vigtigste nyheder med et kort resumé af hver artikel – og en ny udgave af <b>Bevægelser</b>: Al Jazeeras arabiske breaking-kanal oversat til dansk og ordnet efter emne. Nye udgaver af Bevægelser lægges øverst, og de gamle bliver liggende.</p>`;
+    <p><b>Khabar lærer af sig selv</b> – fra miljøets egne kilder (${num(L.community)}), store historier (${num(L.big)}) og det, du deler (${num(L.copied)}) og læser (${num(L.read)}). Claude tjekker kilderne hver morgen.</p>`;
 }
 function openSheet() {
   $('how').innerHTML = howText();
   const by = {};
-  Object.entries((data && data.sources) || {}).forEach(([n, v]) => (by[v.group || 'west'] ||= []).push([n, v]));
+  Object.entries((data && data.sources) || {}).forEach(([n, v]) => (by[v.group || 'west'] ||= []).push([v.label || n, v]));
   $('sources').innerHTML = GROUP_ORDER.filter(g => by[g]).map(g => `<h4>${GROUPS[g]}</h4><ul>` + by[g].sort((a, b) => a[0].localeCompare(b[0], 'da'))
     .map(([n, v]) => `<li class="${v.ok ? '' : 'bad'}">${esc(n)}</li>`).join('') + '</ul>').join('');
   $('sheet').hidden = false;
@@ -658,6 +747,6 @@ $('copyPushCode').addEventListener('click', async () => { if (await copyText($('
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 const startTab = params.get('tab');
-if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'moves')) setTab(startTab, { top: true });
+if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'latest')) setTab(startTab, { top: true });
 else render({ enter: true });
 load();

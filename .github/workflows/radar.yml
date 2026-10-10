@@ -46,10 +46,19 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Cache language model and profile
+        id: models
         uses: actions/cache@v4
         with:
           path: .cache
           key: radar-${{ hashFiles('config/profile.enc', 'config/settings.json', 'requirements.txt', 'src/radar/translate.py') }}
+
+      # a fresh cache is saved at the end of this run, so it must hold every translation model, not only the
+      # ones this run happens to need (otherwise later runs download the missing one again and again)
+      - name: Fetch all translation models into a fresh cache
+        if: steps.models.outputs.cache-hit != 'true'
+        env:
+          PYTHONPATH: src
+        run: python -c "from radar.translate import MODELS, Translator; t = Translator('.cache'); [t._load(p) for p in MODELS]"
 
       - name: Unlock profile
         env:

@@ -82,8 +82,31 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - The taste profile now also learns from the ~900 statement lines in the briefings members posted without links
   (no member names are kept); actors from those briefings added to the section words.
 - Arabic source names are shown in Latin script (Al Jazeera (arabisk), Sky News Arabia, BBC Arabic …).
+- Small pictures on every card: the feed's own image, another outlet's picture of the same story or the article
+  page's share image, shrunk by the radar to a 144 px JPEG of a few kilobytes (`t/` on the data branch,
+  `src/radar/thumbs.py`). Telegram channels never lend a picture. Where there is none, the outlet's initials.
+- One colour per section – Danmark blue, Mellemøsten green, Verden purple – on the story kicker, the day
+  markers, the topic names and the selected tab; red stays the signal for a big story.
+- **Seneste** (fifth tab): everything Khabar picked, newest first, all sections mixed, with the time of day.
+- `scripts/editor.py` for the Claude editor: `input` lists the period's stories and every Al Jazeera wire line
+  no edition has covered yet; `publish` checks the edition (no wire line may be missing or used twice), adds
+  links, sources and the share texts, and writes `digest.json` and `moves.json` to the digest branch.
 
 ### Changed
+
+- **Overblik and Bevægelser are one edition** (07 and 22): the most important stories grouped by topic, each
+  with a short summary, and under each topic 'Det siger de' – the Al Jazeera wire lines on it, translated by
+  Claude. Topics with only statements follow under 'Flere udtalelser'. 'Del overblik' shares the stories,
+  'Del udtalelser' the statements in the group's 'Politiske nyheder' format. Earlier editions stay under
+  'Tidligere overblik' on the front page.
+- Front page = the overview, then 'Vigtigst lige nu' (the radar's six strongest stories of the last hours that
+  the overview does not already have) and the earlier overviews – no longer one endless mixed list.
+- Headings that cannot be confused: a block ('Vigtigst lige nu') is a large title with a red live dot; a day
+  ('I dag', 'I går') is a coloured marker in the section's colour that stays at the top while its stories pass.
+- Story rows: section and 'Stor historie' above the headline, outlet and time below; '2 medier' and 'oversat'
+  are no longer in the list (the coverage and the translation note are in the opened story).
+- Telegram posts in another language than their channel's (Turkish on an English channel) are recognised and
+  translated instead of being shown as they are.
 
 - Claude now works at 07 and 22 (was 07 and 17) and writes both things in the same run: the overview, where
   every story has a 2–3 sentence summary of the article (Claude reads the article when it can), and a new
@@ -104,6 +127,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Machine translation of Arabic got names wrong ("Island correspondent" for Al Jazeera, "Trimpe", "Butin"); a name
   glossary fixes them before and after translating.
 - A new Bevægelser briefing now shows even when the overview itself is unchanged.
+- Wire lines that reached the radar a few minutes before Claude's run but after Claude read the list fell
+  between two editions; every edition now records the lines it covered (`ids`), and the next one takes every
+  line no edition has covered.
 - Unrelated Arabic headlines were merged into false 'big stories' (the language model puts some Arabic texts
   almost on top of each other); Arabic-only stories are no longer merged, and a story's card now comes from an
   established outlet rather than a Telegram post whenever one carries it.
@@ -112,6 +138,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 - The 'Kopieret' tab, swipe-to-copy, the red 'KOPIERET' stamp, the ink-drop pull-to-refresh, the splash
   animation, the relevance bar and the guessed 'learned' lines (word overlap with earlier copies).
+- The separate Bevægelser tab (its content is now inside the overview) and the endless mixed list on the front
+  page (now the Seneste tab).
 
 ---
 

@@ -4,11 +4,14 @@ The app is called **Khabar** (خبر, "news"). The repository and folder keep th
 
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
-*Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and
-**Verden**, plus **Bevægelser**: where political movement is happening, as short attributed statements. The front page shows Claude's overview (07 and 22, a short summary of every article) on top and
-then every story as it comes in, all sections mixed. Opening a story shows a short summary, how Danish, Western, Arab/Muslim
-and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is one
-tap away) or copy. Big stories and the most relevant news also trigger a notification.
+*Debat/Nyheder Shabab* and sorts them into three sections, each with its own colour: **Danmark** (blue),
+**Mellemøsten** (green) and **Verden** (purple). The front page opens with Claude's **overview** (07 and 22):
+the most important stories grouped by topic, each with a short summary, and under each topic what the actors
+say – every line of Al Jazeera's Arabic breaking wire, translated into Danish. Below it 'Vigtigst lige nu'
+(the radar's strongest stories since) and the earlier overviews. The fifth tab, **Seneste**, shows everything as
+it comes in. Every story has a small picture; opening it shows a short summary, how Danish, Western,
+Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is
+one tap away) or copy. Big stories and the most relevant news also trigger a notification.
 
 ## Status
 
@@ -39,10 +42,15 @@ tap away) or copy. Big stories and the most relevant news also trigger a notific
    profile and fade out over 30 days.
 7. **Notifications:** at most one per story, batched, at least 20 minutes apart, at most
    15 per day, never between 23:00 and 07:00.
-8. **Bevægelser:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line
-   statements) in `lines.json`; at 07 and 22 Claude translates all wire lines of the period into Danish, groups
-   them by topic in the group's own format and adds the edition on top of `moves.json` (earlier editions stay).
-9. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
+8. **Pictures:** each card gets a small square picture – its own feed image, another outlet's picture of the
+   same story, or the article page's share image – shrunk to a few kilobytes (`src/radar/thumbs.py`, files in
+   `t/` on the data branch). Telegram channels never lend a picture.
+9. **The overview:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line
+   statements) in `lines.json`. At 07 and 22 a Claude routine runs `scripts/editor.py input`, picks the
+   period's 6–8 most important stories, summarises each article, translates every wire line no earlier edition
+   has covered, groups both by topic and runs `scripts/editor.py publish`, which checks that no line is missing
+   and writes `digest.json` (the newest edition) and `moves.json` (all editions, 30 kept) to the digest branch.
+10. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
    for the app's search) and `lines.json` on the `data` branch. The app (`public/`, published to GitHub Pages
    by `pages.yml`) reads those files and Claude's `digest.json` and `moves.json` from the `digest` branch.
 
@@ -67,6 +75,7 @@ Local copies are kept in `.env` and `.secrets/`, both of which are gitignored.
 | Rebuild the profile from a new chat export | `py scripts/build_profile.py <_chat.txt> .cache/profile.jsonl`, then encrypt (see CLAUDE.md) |
 | Run the radar by hand in the cloud | `gh workflow run radar.yml` |
 | See what each section would show with the current settings | `py scripts/rank_check.py` |
+| See what the editor would get / check an edition without publishing | `py scripts/editor.py input` · `py scripts/editor.py publish <file>` |
 
 ## Stack
 

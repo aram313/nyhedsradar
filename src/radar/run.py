@@ -483,6 +483,16 @@ def main():
             if items.get(a.get('id'), {}).get('title_tr'):
                 a['title_tr'] = items[a['id']]['title_tr']
 
+    # a small picture for each card: its own feed image, another outlet's, or the article page's share image
+    try:
+        from radar import thumbs
+        telegram = {f['name'] for f in feeds if f.get('type') == 'telegram' and not f.get('official')}
+        save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW))
+    except ImportError:   # no Pillow (local test runs): the cards simply have no pictures
+        pass
+    except Exception as e:  # noqa: BLE001 – pictures are a bonus; the radar must keep running
+        print(f'pictures failed: {type(e).__name__}: {e}')
+
     # one-line statements ("Kremlin: ...") from the wire and elsewhere, for the 'Bevægelser' view and the
     # editor's briefing: English and Danish versions made once and kept
     def kind(v):
@@ -566,7 +576,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da')
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {

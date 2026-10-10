@@ -30,6 +30,36 @@ def _text(el, *names):
     return (c.text or '').strip() if c is not None and c.text else ''
 
 
+IMG_EXT = re.compile(r'\.(?:jpe?g|png|webp)(?:[?#]|$)', re.I)
+IMG_TAG = re.compile(r'<img[^>]+src=["\'](https?://[^"\']+)["\']', re.I)
+
+
+def image(el):
+    """The item's own picture: the widest media:thumbnail, image media:content or image enclosure, else the
+    first <img> in its HTML. Empty when the feed has none (the radar may then use the article page's image)."""
+    found = []
+    for c in el.iter():
+        name, url, kind = _local(c.tag), c.get('url') or '', c.get('type') or ''
+        if not url.startswith('http'):
+            continue
+        if (name == 'thumbnail' or (name == 'content' and (c.get('medium') == 'image' or kind.startswith('image/')
+                                                         or (not kind and not c.get('medium') and IMG_EXT.search(url))))
+                or (name == 'enclosure' and kind.startswith('image/'))):
+            try:
+                width = int(c.get('width') or 600)
+            except ValueError:
+                width = 600
+            found.append((min(width, 1000), url))
+    if found:
+        return max(found)[1]
+    for name in ('encoded', 'description', 'summary'):
+        c = _child(el, name)
+        m = IMG_TAG.search(html.unescape(c.text)) if c is not None and c.text else None
+        if m:
+            return html.unescape(m.group(1))
+    return ''
+
+
 def clean(s, limit=None):
     s = html.unescape(TAG.sub(' ', html.unescape(s or '')))
     s = SPACE.sub(' ', s).strip()
@@ -85,6 +115,7 @@ def parse(xml_bytes, feed):
             'source': feed['name'],
             'lang': feed.get('lang', ''),
             'published': date.isoformat() if date else None,
+            'img': image(el),
         })
     return items
 
@@ -102,6 +133,27 @@ POST_TAGS = re.compile(r'^(?:[←-⯿\U0001f000-\U0001faff️‍\s]'
 
 def tidy_post(text):
     return POST_TAGS.sub('', text).strip()
+
+
+ARABIC = re.compile(r'[؀-ۿ]')
+TURKISH = re.compile(r'[ğışİĞŞ]')   # letters English and Danish never use
+ENGLISH = re.compile(r"\b(?:the|of|and|to|in|on|for|with|from|after|over|amid|says|said|is|are|was|has|have|by|at)\b", re.I)
+
+
+def sniff(text, lang):
+    """The channel's own language, unless one post is plainly in another: some channels mix English, Turkish
+    and Arabic posts, and a Turkish post filed as English would reach the owner untranslated."""
+    letters = sum(ch.isalpha() for ch in text)
+    if not letters:
+        return lang
+    arabic = len(ARABIC.findall(text)) / letters
+    if lang != 'ar' and arabic > .5:
+        return 'ar'
+    if lang == 'ar' and arabic < .1 and ENGLISH.search(text):
+        return 'en'
+    if lang == 'en' and not ENGLISH.search(text) and sum(1 for w in text.split() if TURKISH.search(w)) >= 2:
+        return 'tr'
+    return lang
 
 
 def parse_telegram(page, feed):
@@ -128,7 +180,7 @@ def parse_telegram(page, feed):
         items.append({
             'id': hashlib.sha1(link.encode()).hexdigest()[:16], 'title': title,
             'summary': clean(text[len(rest):], 280).strip(' -–:|'), 'link': link,
-            'source': feed['name'], 'lang': feed.get('lang', ''), 'published': date.isoformat() if date else None,
+            'source': feed['name'], 'lang': sniff(text, feed.get('lang', '')), 'published': date.isoformat() if date else None,
         })
     return items
 
