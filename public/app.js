@@ -1596,8 +1596,22 @@ $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.sto
 $('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
 
 // the middle mouse button on a PC scrolls the page, as browsers do on ordinary pages (they do not on our fixed pager):
-// hold it and move, or click it and move – the further from where it began, the faster; any click or Esc stops it
+// hold it and move, or click it and move – the further from where it began, the faster; any click or Esc stops it.
+// It works anywhere in the window, also beside the app's column on a wide screen, and so does the wheel.
 let auto = null, swallow = false;
+const ownScroller = el => {   // something under the mouse that scrolls by itself (a sheet, a box) – leave it be
+  for (; el && el !== document.body; el = el.parentElement) {
+    if (el.classList.contains('page')) return null;
+    if (el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY)) return el;
+  }
+  return null;
+};
+const pageFree = () => !$('scrim').classList.contains('on');
+addEventListener('wheel', e => {
+  if (e.ctrlKey || !pageFree() || e.target.closest('#list') || ownScroller(e.target)) return;   // the page under the mouse scrolls itself
+  const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerHeight : 1;
+  cur().scrollTop += e.deltaY * k;
+}, { passive: true });
 function stopAuto() { auto = null; document.documentElement.classList.remove('autoscroll'); }
 function autoStep() {
   if (!auto) return;
@@ -1607,10 +1621,10 @@ function autoStep() {
 }
 addEventListener('mousedown', e => {   // any button stops it, and that click does nothing else
   if (!auto) return;
-  stopAuto(); swallow = true; setTimeout(() => { swallow = false; }, 500); e.preventDefault(); e.stopImmediatePropagation();
+  stopAuto(); swallow = true; addEventListener('mouseup', () => setTimeout(() => { swallow = false; }), { once: true }); e.preventDefault(); e.stopImmediatePropagation();
 }, true);
-$('list').addEventListener('mousedown', e => {
-  if (e.button !== 1 || e.target.closest('a')) return;   // a link keeps 'open in a new tab'
+addEventListener('mousedown', e => {
+  if (e.button !== 1 || e.target.closest('a') || !pageFree() || ownScroller(e.target)) return;   // a link keeps 'open in a new tab'
   e.preventDefault();
   auto = { y0: e.clientY, y: e.clientY, moved: false, page: cur() };
   document.documentElement.classList.add('autoscroll');
