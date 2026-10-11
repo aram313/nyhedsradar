@@ -380,19 +380,58 @@ function timeline(list, opts, n0 = 0) {
   return html;
 }
 // the front page: today's most important stories (all sections), then the latest recap of a day, then earlier days
+// ---------------------------------------------------------------- the new front page (preview: ?forside=ny)
+const NEW_FRONT = params.get('forside') === 'ny';
+let wire = null, wireState = 'idle';   // the latest short lines (Al Jazeera urgent and outlets' headlines), in Danish
+async function loadWire() {
+  if (wireState !== 'idle') return;
+  wireState = 'loading';
+  try {
+    const url = CFG.linesUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'lines.json');
+    const r = await fetch(url, { cache: 'no-cache' });
+    wire = (await r.json()).items || [];
+  } catch { wire = []; }
+  wireState = 'done';
+  if (tab === 'home') render();
+}
+// 'Lige nu': the three newest lines from established outlets (no unverified channels), with their time
+function nowStrip() {
+  if (!wire) { setTimeout(loadWire, 0); return '<section class="now"><div class="now-h"><i></i>Lige nu</div><p class="now-wait">henter …</p></section>'; }
+  const last = wire.filter(v => (v.k === 'w' || v.k === 'h') && v.da).sort((a, b) => b.p.localeCompare(a.p)).slice(0, 3);
+  if (!last.length) return '';
+  return `<section class="now"><div class="now-h"><i></i>Lige nu</div><ul>${last.map(v =>
+    `<li><a href="${esc(v.u)}" target="_blank" rel="noopener"><time>${clock(v.p)}</time><span>${esc(v.da)}</span><em>${esc(v.s)}</em></a></li>`).join('')}</ul></section>`;
+}
+// 'Dagens citat': the editor's first chosen statement, large
+function quoteOfDay() {
+  const told = new Set((followTopic() || { lines: [] }).lines.map(l => l.who));   // not one the timeline already shows
+  const qs = notes().quotes || [], q = qs.find(x => !told.has(x.who)) || qs[0];
+  return q ? `<section class="qday" data-sec="${esc(q.sec || '')}"><div class="qday-h">Dagens citat</div>${quoteCard(q)}</section>` : '';
+}
+// 'Følg historien': the day's first topic from the recap as a small timeline, oldest first
+const followTopic = () => { const day = dayOf(digest); return day && day.topics.find(t => t.lines.filter(l => l.at).length >= 3); };
+function followStory() {
+  const tp = followTopic();
+  if (!tp) return '';
+  const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-5);
+  return `<section class="follow" data-sec="${esc(tp.section || '')}"><div class="follow-h">Følg historien</div><h3>${esc(tp.name)}</h3>
+    <ol>${lines.map(l => `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></section>`;
+}
 function home(all, opts) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
-  const now = withPicks(cands, 7);
+  const now = withPicks(cands, NEW_FRONT ? 5 : 7);
   // the strongest of the first three with a picture opens the page big
   const lead = now.slice(0, 3).find(i => i.thumb);
   if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
   // the day in one line from the editor, above everything
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
   let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
+  if (NEW_FRONT) html += nowStrip();
   html += `<section class="block top">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
+  if (NEW_FRONT) html += quoteOfDay() + followStory();
   // one glance into each section: its strongest story not shown above, a tap away
   const shown = new Set(now.map(i => i.id));
   const glance = Object.entries(SECTIONS).map(([sec, name]) => {
