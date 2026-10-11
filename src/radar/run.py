@@ -472,6 +472,9 @@ def main():
             r += s['rank_core_dk'] if core_dk >= 2 else s['rank_core_dk'] / 2
         elif core:
             r += s['rank_core'] if core >= 2 else s['rank_core'] / 2
+        lift = next(((owner.get('rank') or {})[m['id']]['v'] for m in st if m['id'] in (owner.get('rank') or {})), None)
+        if lift:                                      # the owner raised or lowered it in the app
+            r += s.get('owner_rank_step', 30) * (1 if lift == 'up' else -1)
         if ls['trivia']:
             r -= 20                                   # weather, royals, sport, celebrities …
         if ls['local'] and not core_dk and secs[0] == 'dk':
@@ -710,7 +713,9 @@ def main():
                         'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
-        'owner': {'quote': (owner.get('quote') or {}).get('key')},   # the quote the owner pinned on the front page
+        # the owner's front-page choices: quote, main story, raised/lowered stories
+        'owner': {'quote': (owner.get('quote') or {}).get('key'), 'lead': (owner.get('lead') or {}).get('id'),
+                  'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()}},
     })
     # every wire line of the window (Claude translates them all into 'Bevægelser'), plus the newest other statements
     newest = sorted(statements, key=lambda v: v['published'], reverse=True)

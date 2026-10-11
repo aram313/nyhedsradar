@@ -4,7 +4,8 @@ The app signs each action with the owner's admin code (HMAC-SHA256); the radar c
 secret, so a message posted to the public relay by anyone else does nothing. A removal is remembered in
 state/removed.json: the story leaves the app for everyone, stories very like an 'irrelevant' or 'not news' one
 stay out too, near ones rank lower, and the editor reads the list so it learns the owner's taste. Holding the front
-page's quote picks which statement it shows (data.json `owner.quote`, a short key the app computes from who and text)."""
+page's quote picks which statement it shows (data.json `owner.quote`, a short key the app computes from who and text);
+holding the main story picks another (`owner.lead`); any story can be raised or lowered (`owner.rank`, the rank moves)."""
 import hashlib
 import hmac
 import json
@@ -39,6 +40,10 @@ def valid(m, key, now):
         return m.get('sec') in SECS
     if m.get('act') == 'quote':   # the front page's quote: a quote's short key, or '' for the editor's own choice
         return bool(re.fullmatch(r'(?:[0-9a-f]{8})?', m.get('id', '')))
+    if m.get('act') == 'lead':    # the front page's main story: a story id, or '' for the automatic choice
+        return bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('id', '')))
+    if m.get('act') == 'rank':    # raise or lower a story ('' undoes it)
+        return bool(re.fullmatch(r'[0-9a-f]{16}', m.get('id', ''))) and m.get('why') in ('up', 'down', '')
     return m.get('act') == 'undo'
 
 
@@ -50,11 +55,16 @@ def apply(state, msgs, items, key, now, text):
         if not valid(m, key, now):
             continue
         sid, it = m['id'], items.get(m['id'])
-        if m['act'] == 'quote':
+        if m['act'] in ('quote', 'lead'):
             if sid:
-                state['quote'] = {'key': sid, 'at': now.isoformat()}
+                state[m['act']] = {'key' if m['act'] == 'quote' else 'id': sid, 'at': now.isoformat()}
             else:
-                state.pop('quote', None)
+                state.pop(m['act'], None)
+        elif m['act'] == 'rank':
+            if m['why']:
+                state.setdefault('rank', {})[sid] = {'v': m['why'], 'at': now.isoformat()}
+            else:
+                state.get('rank', {}).pop(sid, None)
         elif m['act'] == 'undo':
             state['removed'] = [r for r in state['removed'] if r['id'] != sid]
             state['moved'].pop(sid, None)
@@ -71,6 +81,10 @@ def apply(state, msgs, items, key, now, text):
 
 def prune(state, now, days):
     state['removed'] = [r for r in state['removed'] if datetime.fromisoformat(r['at']) >= now - timedelta(days=days)]
+    # a raised or lowered story and a chosen main story belong to the news of the moment: two days, one day
+    state['rank'] = {k: v for k, v in (state.get('rank') or {}).items() if datetime.fromisoformat(v['at']) >= now - timedelta(days=2)}
+    if state.get('lead') and datetime.fromisoformat(state['lead']['at']) < now - timedelta(days=1):
+        state.pop('lead')
     return state
 
 
@@ -80,6 +94,7 @@ def load(path):
     except (OSError, ValueError):
         st = {}
     out = {'removed': st.get('removed') or [], 'moved': st.get('moved') or {}}
-    if st.get('quote'):
-        out['quote'] = st['quote']
+    for k in ('quote', 'lead', 'rank'):
+        if st.get(k):
+            out[k] = st[k]
     return out

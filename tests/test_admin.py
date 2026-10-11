@@ -60,3 +60,16 @@ def test_the_owner_picks_the_front_page_quote():
     assert n == 0 and st['quote']['key'] == '0a1b2c3d'
     n, st = run([signed(act='quote', id='', why='', sec='')], st)   # back to the editor's choice
     assert n == 1 and 'quote' not in st
+
+
+def test_the_owner_picks_the_main_story_and_raises_or_lowers_stories():
+    sid = 'aaaabbbbccccdddd'
+    n, st = run([signed(act='lead', id=sid, why='', sec=''), signed(act='rank', id=sid, why='up', sec=''),
+                 signed(act='rank', id='1111222233334444', why='down', sec=''), signed(act='rank', id=sid, why='sideways', sec='')])
+    assert n == 3 and st['lead']['id'] == sid and st['rank'][sid]['v'] == 'up' and st['rank']['1111222233334444']['v'] == 'down'
+    n, st = run([signed(act='rank', id=sid, why='', sec=''), signed(act='lead', id='', why='', sec='')], st)
+    assert sid not in st['rank'] and 'lead' not in st
+    old = (NOW - timedelta(days=3)).isoformat()
+    st = {'removed': [], 'moved': {}, 'rank': {sid: {'v': 'up', 'at': old}}, 'lead': {'id': sid, 'at': old}}
+    st = admin.prune(st, NOW, 30)
+    assert st['rank'] == {} and 'lead' not in st

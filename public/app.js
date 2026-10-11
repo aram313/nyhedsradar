@@ -158,13 +158,31 @@ const visible = i => !gone(i) && (!i.foreign || foreignMode === 'original' || (f
 const notes = () => (digest && digest.editor) || { picks: [], moves: [], quotes: [] };
 const noteFor = (list, i) => list.find(x => x.id === i.id || (i.also || []).some(a => a.id === x.id));
 const secOf = i => (ownerMoved[i.id] || noteFor(notes().moves || [], i) || {}).sec || i.sec || (i.lang === 'da' ? 'dk' : 'world');
-const pickRank = i => { const p = notes().picks || [], k = p.findIndex(x => x.id === i.id || (i.also || []).some(a => a.id === x.id)); return k < 0 ? 99 : k; };
+// the owner's front-page choices: what the radar published (data.owner), overlaid by this phone's own actions until a
+// radar run newer than them has come in
+let ownerLocal = store.get('ownerLocal', { rank: {} });
+function owner() {
+  const pub = (data && data.owner) || {}, since = data ? Date.parse(data.updated) : 0, fresh = x => x && x.at > since;
+  const rank = { ...(pub.rank || {}) };
+  for (const [id, x] of Object.entries(ownerLocal.rank || {})) if (fresh(x)) { if (x.v) rank[id] = x.v; else delete rank[id]; }
+  return { quote: fresh(ownerLocal.quote) ? ownerLocal.quote.v : pub.quote || '', lead: fresh(ownerLocal.lead) ? ownerLocal.lead.v : pub.lead || '', rank };
+}
+const ownerRankOf = i => { const r = owner().rank; return r[i.id] || (i.also || []).map(a => r[a.id]).find(Boolean) || ''; };
+const pickRank = i => {
+  const o = ownerRankOf(i);
+  if (o === 'up') return -1;       // raised by the owner: before the editor's picks
+  if (o === 'down') return 99;     // lowered: no longer a pick
+  const p = notes().picks || [], k = p.findIndex(x => x.id === i.id || (i.also || []).some(a => a.id === x.id)); return k < 0 ? 99 : k;
+};
 // the editor's picks first (in its order), then the radar's strongest
 const withPicks = (list, n) => { const mine = list.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b));
   return [...mine, ...pick(list.filter(i => pickRank(i) === 99), n)].slice(0, n); };
 // a story the editor moved lives only in its new section; otherwise it may also show where the radar saw it
 const inSection = (i, sec) => ownerMoved[i.id] || noteFor(notes().moves || [], i) ? secOf(i) === sec : secOf(i) === sec || (i.secs || []).includes(sec);
-const rankOf = i => i.rank ?? i.pct ?? 0;
+const rankOf = i => {
+  const base = i.rank ?? i.pct ?? 0, x = (ownerLocal.rank || {})[i.id];
+  return data && x && x.at > Date.parse(data.updated) ? base + (x.v === 'up' ? 30 : x.v === 'down' ? -30 : 0) : base;
+};
 const hot = i => rankOf(i) - 1.5 * Math.min(48, hours(i)) - (i.confirmed === 0 ? 6 : 0);   // strong, recent, confirmed first
 // the best n stories, at most one per source, so one busy channel never fills a whole block
 function pick(list, n) {
@@ -407,14 +425,17 @@ function nowStrip() {
 const qkey = q => { let h = 0x811c9dc5; for (const c of q.who + '|' + q.text) h = Math.imul(h ^ c.codePointAt(0), 16777619) >>> 0; return h.toString(16).padStart(8, '0'); };
 function quoteChoices() {
   const day = dayOf(digest), seen = new Set(), out = [];
-  const add = (q, sec) => { if (!q.who || !q.text) return; const k = qkey(q); if (!seen.has(k)) { seen.add(k); out.push({ ...q, sec: q.sec || sec, key: k }); } };
+  // when it was said: the recap line's time, or that of the wire line the editor quoted (matched by link)
+  const when = new Map();
+  if (day) day.topics.forEach(tp => tp.lines.forEach(l => { if (l.link && l.at) when.set(l.link, l.at); }));
+  (wire || []).forEach(v => { if (v.u && !when.has(v.u)) when.set(v.u, v.p); });
+  const add = (q, sec) => { if (!q.who || !q.text) return; const k = qkey(q); if (!seen.has(k)) { seen.add(k); out.push({ ...q, sec: q.sec || sec, key: k, at: q.at || when.get(q.link) || '' }); } };
   (notes().quotes || []).forEach(q => add(q));
-  if (day) day.topics.forEach(tp => tp.lines.forEach(l => add(l, tp.section)));
+  if (day) day.topics.forEach(tp => tp.lines.filter(l => l.kind !== 's').forEach(l => add(l, tp.section)));   // statements, not headlines
   return out.slice(0, 16);
 }
-let ownerQuote = store.get('ownerQuote', null);   // this phone's pick, until the radar has caught up (half an hour)
 function pinnedQuote() {
-  const key = ownerQuote && Date.now() - ownerQuote.at < 30 * 60e3 ? ownerQuote.key : (data && data.owner && data.owner.quote) || '';
+  const key = owner().quote;
   return key ? quoteChoices().find(q => q.key === key) || null : null;
 }
 function quoteOfDay(pinned) {
@@ -455,11 +476,31 @@ function storyline(tp, n = 4) {
   return { lines, html: `<div class="follow pkg-f"><div class="pkg-h">Sådan udviklede det sig</div><ol>${lines.map(l =>
     `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></div>` };
 }
-function home(all, opts) {
+// today's strongest stories (the editor's picks and the owner's raised ones first)
+function frontCands(all, n = 12) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
-  const top = withPicks(cands, 12), pkg = mainPackage(top);
+  return withPicks(cands, n);
+}
+// the main story: the owner's choice, else the story of the recap's lead topic, else the strongest with a picture
+function packageFor(story) {
+  const day = dayOf(digest), st = stems([story.title, story.origTitle, story.title_da, ...(story.also || []).map(a => a.title)].join(' '));
+  let best = null, score = 1;
+  for (const tp of (day ? day.topics : []).filter(t => t.lines.filter(l => l.at).length >= 2)) {
+    const sc = overlap(topicStems(tp), st);
+    if (sc > score) { best = tp; score = sc; }
+  }
+  return { story, topic: best, ts: best ? topicStems(best) : st };
+}
+function mainChoice(top) {
+  const pin = owner().lead, chosen = pin && findStory(pin);
+  if (chosen) return packageFor(chosen);
+  return mainPackage(top);
+}
+const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(top); return pkg ? pkg.story : top.find(i => i.thumb) || top[0]; };
+function home(all, opts) {
+  const top = frontCands(all), pkg = mainChoice(top);
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
   let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
   const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
@@ -472,7 +513,7 @@ function home(all, opts) {
     const dk = lead.lang !== 'da' && (lead.also || []).find(a => a.group === 'dk');
     const shown = dk ? { ...lead, title: dk.title, source: dk.source, kw: [] } : lead;
     html += `<section class="block top pkg" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, hero: !!lead.thumb })}`;
-    if (pkg) {
+    if (pkg && pkg.topic) {
       const tl = storyline(pkg.topic);
       pq = pin ? null : packageQuote(pkg, new Set(tl.lines.map(l => l.who)));
       html += tl.html + (pq ? `<div class="pkg-q">${quoteCard(pq, true)}</div>` : '');
@@ -548,7 +589,7 @@ function sectionPage(sec, all, opts) {
   // the rest of the day's top folds away, so the latest news follow right after the pictures
   const fold = (lead || duo.length) && !topOpen.has(sec);
   if (!fold) html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('');
-  if (rest.length && (lead || duo.length)) html += `<button class="pill-more${fold ? '' : ' up'}" data-top-more="${sec}">${fold ? `Vis ${rest.length} mere fra døgnet` : 'Vis færre'}</button>`;
+  if (rest.length && (lead || duo.length)) html += `<div class="more-wrap"><button class="pill-more${fold ? '' : ' up'}" data-top-more="${sec}">${fold ? `Vis ${rest.length} mere fra døgnet` : 'Vis færre'}<svg aria-hidden="true"><use href="#i-chev"/></svg></button></div>`;
   html += '</section>';
   // the list, with a quote from the recap after every fifth story
   const ids = new Set(top.map(i => i.id)), quotes = quotesFor(sec);
@@ -924,7 +965,9 @@ $('list').addEventListener('pointerdown', e => {
   press = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
     press = null; pressed = true; setTimeout(() => { pressed = false; }, 900);
     if (navigator.vibrate) navigator.vibrate(12);
-    el.hasAttribute('data-pick') ? openQuotes() : openAct(findStory(el.dataset.id));
+    if (el.hasAttribute('data-pick')) openQuotes();
+    else if (el.closest('.pkg') && el.classList.contains('hero')) openLead();
+    else openAct(findStory(el.dataset.id));
   }, 550) };
 });
 $('list').addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
@@ -933,25 +976,36 @@ addEventListener('scroll', cancelPress, { passive: true });
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 $('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
-function openQuotes() {
-  const now = (pinnedQuote() || {}).key, list = quoteChoices();
-  $('actTitle').textContent = 'Vælg dagens citat';
-  $('actBtns').innerHTML = `<button class="wide pickq${now ? '' : ' on'}" data-a="quote:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
-    + list.map(q => `<button class="wide pickq${q.key === now ? ' on' : ''}" data-a="quote:${q.key}"><q>${esc(q.text)}</q><span>${esc(q.who)}</span></button>`).join('')
-    + '<button class="wide soft" data-a="">Annuller</button>';
-  actItem = null; $('act').hidden = false;
+function showOwnerSheet(title, html, item = null) {
+  $('actTitle').textContent = title;
+  $('actBtns').innerHTML = html + '<button class="wide soft" data-a="">Annuller</button>';
+  actItem = item; $('act').hidden = false; $('act').scrollTop = 0;
   requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
+}
+// the time a quote was said shows only here, to choose by; newest first
+function openQuotes() {
+  if (!wire) loadWire();
+  const now = (pinnedQuote() || {}).key, list = quoteChoices().sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  const when = q => (new Date(q.at).toDateString() === new Date().toDateString() ? 'kl. ' : 'i går kl. ') + clock(q.at);
+  showOwnerSheet('Vælg dagens citat', `<button class="wide pickq${now ? '' : ' on'}" data-a="quote:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
+    + list.map(q => `<button class="wide pickq${q.key === now ? ' on' : ''}" data-a="quote:${q.key}"><q>${esc(q.text)}</q><span>${esc(q.who)}${q.at ? ` · ${when(q)}` : ''}</span></button>`).join(''));
+}
+// the day's main story: today's strongest stories to choose from
+function openLead() {
+  const cur = mainStory(), list = [cur, ...frontCands(stories(), 11).filter(i => !cur || i.id !== cur.id)].filter(Boolean).slice(0, 10);   // the one shown now first
+  showOwnerSheet('Vælg dagens historie', `<button class="wide pickq${owner().lead ? '' : ' on'}" data-a="lead:"><b>Automatisk</b><span>Efter dagens resumé</span></button>`
+    + list.map(i => `<button class="wide pickq${cur && i.id === cur.id ? ' on' : ''}" data-a="lead:${esc(i.id)}"><b>${esc(i.title)}</b><span>${SECTIONS[secOf(i)]} · ${ago(i.published || i.found)}${i.outlets >= 2 ? ` · ${i.outlets} medier` : ''}</span></button>`).join('')
+    + (cur ? `<button class="wide" data-a="story:${esc(cur.id)}">Fjern, flyt eller prioriter denne historie</button>` : ''));
 }
 function openAct(i) {
   if (!i) return;
-  const here = secOf(i);
-  $('actTitle').textContent = i.title;
-  $('actBtns').innerHTML = [['hide:irrelevant', 'Fjern · irrelevant'], ['hide:noise', 'Fjern · ikke en nyhed'], ['hide:dup', 'Fjern · dublet'],
+  const here = secOf(i), lift = ownerRankOf(i);
+  const rank = [lift === 'up' ? ['rank:', 'Fortryd op'] : ['rank:up', 'Opprioriter'],
+                lift === 'down' ? ['rank:', 'Fortryd ned'] : ['rank:down', 'Nedprioriter']];
+  showOwnerSheet(i.title, `<div class="pair">${rank.map(([a, l]) => `<button class="wide" data-a="${a}">${esc(l)}</button>`).join('')}</div>`
+    + [['hide:irrelevant', 'Fjern · irrelevant'], ['hide:noise', 'Fjern · ikke en nyhed'], ['hide:dup', 'Fjern · dublet'],
     ...Object.entries(SECTIONS).filter(([k]) => k !== here).map(([k, n]) => ['move:' + k, 'Flyt til ' + n])]
-    .map(([a, l]) => `<button class="wide${a.startsWith('hide') ? ' warn' : ''}" data-a="${a}">${esc(l)}</button>`).join('')
-    + '<button class="wide soft" data-a="">Annuller</button>';
-  actItem = i; $('act').hidden = false;
-  requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
+    .map(([a, l]) => `<button class="wide${a.startsWith('hide') ? ' warn' : ''}" data-a="${a}">${esc(l)}</button>`).join(''), i);
 }
 function closeAct() {
   $('act').classList.remove('on'); $('scrim').classList.remove('on');
@@ -968,11 +1022,19 @@ $('act').addEventListener('click', async e => {
     return;
   }
   closeAct();
-  if (b.dataset.a.startsWith('quote:')) {
-    const key = b.dataset.a.slice(6);
-    ownerQuote = { key, at: Date.now() }; store.set('ownerQuote', ownerQuote); render();
-    const ok = await ownerAct('quote', { id: key });
-    toast(ok ? (key ? 'Citat valgt' : 'Citatet vælges automatisk igen') : 'Kunne ikke sende – prøv igen', ok);
+  const kind = b.dataset.a.split(':')[0], val = b.dataset.a.slice(kind.length + 1);
+  if (kind === 'story') { setTimeout(() => openAct(findStory(val)), 320); return; }
+  if (kind === 'quote' || kind === 'lead') {
+    ownerLocal[kind] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); render();
+    const ok = await ownerAct(kind, { id: val });
+    const said = kind === 'quote' ? (val ? 'Citat valgt' : 'Citatet vælges automatisk igen') : (val ? 'Dagens historie valgt' : 'Dagens historie vælges automatisk igen');
+    toast(ok ? said : 'Kunne ikke sende – prøv igen', ok);
+    return;
+  }
+  if (kind === 'rank' && i) {
+    (ownerLocal.rank ||= {})[i.id] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); render();
+    const ok = await ownerAct('rank', i, val);
+    toast(ok ? (val === 'up' ? 'Opprioriteret' : val === 'down' ? 'Nedprioriteret' : 'Prioritering fortrudt') : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
   if (!b.dataset.a || !i) return;
