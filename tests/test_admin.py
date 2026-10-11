@@ -51,3 +51,12 @@ def test_prune_forgets_old_removals():
     st = {'removed': [{'id': 'a', 'at': (NOW - timedelta(days=40)).isoformat()},
                       {'id': 'b', 'at': (NOW - timedelta(days=2)).isoformat()}], 'moved': {}}
     assert [r['id'] for r in admin.prune(st, NOW, 30)['removed']] == ['b']
+
+
+def test_the_owner_picks_the_front_page_quote():
+    n, st = run([signed(act='quote', id='0a1b2c3d', why='', sec='')])
+    assert n == 1 and st['quote']['key'] == '0a1b2c3d'
+    n, st = run([signed(act='quote', id='not-a-key', why='', sec='')], st)
+    assert n == 0 and st['quote']['key'] == '0a1b2c3d'
+    n, st = run([signed(act='quote', id='', why='', sec='')], st)   # back to the editor's choice
+    assert n == 1 and 'quote' not in st

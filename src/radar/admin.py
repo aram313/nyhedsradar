@@ -3,10 +3,12 @@
 The app signs each action with the owner's admin code (HMAC-SHA256); the radar checks it against the ADMIN_KEY
 secret, so a message posted to the public relay by anyone else does nothing. A removal is remembered in
 state/removed.json: the story leaves the app for everyone, stories very like an 'irrelevant' or 'not news' one
-stay out too, near ones rank lower, and the editor reads the list so it learns the owner's taste."""
+stay out too, near ones rank lower, and the editor reads the list so it learns the owner's taste. Holding the front
+page's quote picks which statement it shows (data.json `owner.quote`, a short key the app computes from who and text)."""
 import hashlib
 import hmac
 import json
+import re
 from datetime import datetime, timedelta, timezone
 
 WHYS = {'irrelevant': 'irrelevant', 'noise': 'ikke en nyhed', 'dup': 'dublet'}
@@ -35,6 +37,8 @@ def valid(m, key, now):
         return m.get('why') in WHYS
     if m.get('act') == 'move':
         return m.get('sec') in SECS
+    if m.get('act') == 'quote':   # the front page's quote: a quote's short key, or '' for the editor's own choice
+        return bool(re.fullmatch(r'(?:[0-9a-f]{8})?', m.get('id', '')))
     return m.get('act') == 'undo'
 
 
@@ -46,7 +50,12 @@ def apply(state, msgs, items, key, now, text):
         if not valid(m, key, now):
             continue
         sid, it = m['id'], items.get(m['id'])
-        if m['act'] == 'undo':
+        if m['act'] == 'quote':
+            if sid:
+                state['quote'] = {'key': sid, 'at': now.isoformat()}
+            else:
+                state.pop('quote', None)
+        elif m['act'] == 'undo':
             state['removed'] = [r for r in state['removed'] if r['id'] != sid]
             state['moved'].pop(sid, None)
         elif m['act'] == 'move':
@@ -70,4 +79,7 @@ def load(path):
         st = json.loads(path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         st = {}
-    return {'removed': st.get('removed') or [], 'moved': st.get('moved') or {}}
+    out = {'removed': st.get('removed') or [], 'moved': st.get('moved') or {}}
+    if st.get('quote'):
+        out['quote'] = st['quote']
+    return out

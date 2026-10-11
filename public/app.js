@@ -402,10 +402,25 @@ function nowStrip() {
     `<li><a href="${esc(v.u)}" target="_blank" rel="noopener"><time>${clock(v.p)}</time><span>${esc(v.da)}</span><em>${esc(v.s)}</em></a></li>`).join('')}</ul></section>`;
 }
 // 'Dagens citat': the editor's first chosen statement, large
-function quoteOfDay() {
+// The owner can hold the front page's quote and pick another: the editor's chosen statements and today's recap lines.
+// A short key (from who and text) travels to the radar, which publishes it for everyone (data.json owner.quote).
+const qkey = q => { let h = 0x811c9dc5; for (const c of q.who + '|' + q.text) h = Math.imul(h ^ c.codePointAt(0), 16777619) >>> 0; return h.toString(16).padStart(8, '0'); };
+function quoteChoices() {
+  const day = dayOf(digest), seen = new Set(), out = [];
+  const add = (q, sec) => { if (!q.who || !q.text) return; const k = qkey(q); if (!seen.has(k)) { seen.add(k); out.push({ ...q, sec: q.sec || sec, key: k }); } };
+  (notes().quotes || []).forEach(q => add(q));
+  if (day) day.topics.forEach(tp => tp.lines.forEach(l => add(l, tp.section)));
+  return out.slice(0, 16);
+}
+let ownerQuote = store.get('ownerQuote', null);   // this phone's pick, until the radar has caught up (half an hour)
+function pinnedQuote() {
+  const key = ownerQuote && Date.now() - ownerQuote.at < 30 * 60e3 ? ownerQuote.key : (data && data.owner && data.owner.quote) || '';
+  return key ? quoteChoices().find(q => q.key === key) || null : null;
+}
+function quoteOfDay(pinned) {
   const told = new Set((followTopic() || { lines: [] }).lines.map(l => l.who));   // not one the timeline already shows
-  const qs = notes().quotes || [], q = qs.find(x => !told.has(x.who)) || qs[0];
-  return q ? `<section class="qday" data-sec="${esc(q.sec || '')}"><div class="qday-h">Dagens citat</div>${quoteCard(q)}</section>` : '';
+  const qs = notes().quotes || [], q = pinned || qs.find(x => !told.has(x.who)) || qs[0];
+  return q ? `<section class="qday" data-sec="${esc(q.sec || '')}"><div class="qday-h">Dagens citat</div>${quoteCard(q, true)}</section>` : '';
 }
 // 'Følg historien': the day's first topic from the recap as a small timeline, oldest first
 const followTopic = () => { const day = dayOf(digest); return day && day.topics.find(t => t.lines.filter(l => l.at).length >= 3); };
@@ -450,6 +465,7 @@ function home(all, opts) {
   const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
   // the package's other stories about the same thing stay out of the lists below
   const same = i => pkg && i !== lead && overlap(stems([i.title, i.origTitle, i.title_da].join(' ')), pkg.ts) >= 3;
+  const pin = pinnedQuote();
   let pq = null;
   if (lead) {
     // a Danish outlet's headline for the package when the story has one
@@ -458,15 +474,15 @@ function home(all, opts) {
     html += `<section class="block top pkg" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, hero: !!lead.thumb })}`;
     if (pkg) {
       const tl = storyline(pkg.topic);
-      pq = packageQuote(pkg, new Set(tl.lines.map(l => l.who)));
-      html += tl.html + (pq ? `<div class="pkg-q">${quoteCard(pq)}</div>` : '');
+      pq = pin ? null : packageQuote(pkg, new Set(tl.lines.map(l => l.who)));
+      html += tl.html + (pq ? `<div class="pkg-q">${quoteCard(pq, true)}</div>` : '');
     }
     html += '</section>';
   }
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 4);
   html += `<section class="block">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
-  if (!pq) html += quoteOfDay();   // no statement from the main story: the day's quote stands on its own
+  if (!pq) html += quoteOfDay(pin);   // no statement from the main story (or the owner picked one): the day's quote
   html += nowStrip().replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
   const shown = new Set([lead, ...rest].filter(Boolean).map(i => i.id));
   const glance = Object.entries(SECTIONS).map(([sec, name]) => {
@@ -514,7 +530,7 @@ function quotesFor(sec) {
   const day = dayOf(digest);
   return day ? day.topics.filter(tp => tp.section === sec).flatMap(tp => tp.lines.filter(l => l.who)) : [];
 }
-const quoteCard = l => `<a class="quote" href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;
+const quoteCard = (l, pick) => `<a class="quote"${pick ? ' data-pick' : ''} href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;
 function sectionPage(sec, all, opts) {
   const list = all.filter(i => inSection(i, sec));
   if (!list.length) return '<div class="empty">Ingen historier her endnu.</div>';
@@ -903,12 +919,12 @@ function openCode() {
 let press = null, pressed = false, actItem = null;
 const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
 $('list').addEventListener('pointerdown', e => {
-  const el = adminKey && e.target.closest('.story[data-id]');
+  const el = adminKey && (e.target.closest('[data-pick]') || e.target.closest('.story[data-id]'));
   if (!el) return;
   press = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
     press = null; pressed = true; setTimeout(() => { pressed = false; }, 900);
     if (navigator.vibrate) navigator.vibrate(12);
-    openAct(findStory(el.dataset.id));
+    el.hasAttribute('data-pick') ? openQuotes() : openAct(findStory(el.dataset.id));
   }, 550) };
 });
 $('list').addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
@@ -916,7 +932,16 @@ for (const ev of ['pointerup', 'pointercancel']) $('list').addEventListener(ev, 
 addEventListener('scroll', cancelPress, { passive: true });
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-$('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story')) e.preventDefault(); });
+$('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
+function openQuotes() {
+  const now = (pinnedQuote() || {}).key, list = quoteChoices();
+  $('actTitle').textContent = 'Vælg dagens citat';
+  $('actBtns').innerHTML = `<button class="wide pickq${now ? '' : ' on'}" data-a="quote:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
+    + list.map(q => `<button class="wide pickq${q.key === now ? ' on' : ''}" data-a="quote:${q.key}"><q>${esc(q.text)}</q><span>${esc(q.who)}</span></button>`).join('')
+    + '<button class="wide soft" data-a="">Annuller</button>';
+  actItem = null; $('act').hidden = false;
+  requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
+}
 function openAct(i) {
   if (!i) return;
   const here = secOf(i);
@@ -943,6 +968,13 @@ $('act').addEventListener('click', async e => {
     return;
   }
   closeAct();
+  if (b.dataset.a.startsWith('quote:')) {
+    const key = b.dataset.a.slice(6);
+    ownerQuote = { key, at: Date.now() }; store.set('ownerQuote', ownerQuote); render();
+    const ok = await ownerAct('quote', { id: key });
+    toast(ok ? (key ? 'Citat valgt' : 'Citatet vælges automatisk igen') : 'Kunne ikke sende – prøv igen', ok);
+    return;
+  }
   if (!b.dataset.a || !i) return;
   const [act, arg] = b.dataset.a.split(':');
   if (act === 'hide') ownerGone[i.id] = { at: Date.now() }; else ownerMoved[i.id] = { at: Date.now(), sec: arg };

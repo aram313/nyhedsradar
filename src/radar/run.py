@@ -710,6 +710,7 @@ def main():
                         'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
+        'owner': {'quote': (owner.get('quote') or {}).get('key')},   # the quote the owner pinned on the front page
     })
     # every wire line of the window (Claude translates them all into 'Bevægelser'), plus the newest other statements
     newest = sorted(statements, key=lambda v: v['published'], reverse=True)
