@@ -31,6 +31,7 @@
   .tabs button { min-height: 44px; border: 0; border-radius: 10px; background: none; color: var(--text-2); font: 650 16px var(--sans); cursor: pointer; }
   .tabs button[aria-selected="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
   ol { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  li.step:not(:has(.phone)) { grid-template-columns: 1fr; padding: 13px 16px; }   /* text only; a picture where it matters */
   li.step { counter-increment: step; display: grid; grid-template-columns: 1fr 132px; gap: 14px; align-items: center;
     padding: 16px; margin-bottom: 12px; border-radius: 16px; background: var(--card); }
   .step h2 { margin: 0 0 4px; font-size: 17px; line-height: 1.3; letter-spacing: -.01em; }
@@ -105,58 +106,34 @@
   </div>
 
   <ol id="ios">
-    <li class="step"><div><h2>Åbn khabar.nu i Safari</h2><p>Skriv <b>khabar.nu</b> i Safari. Kommer du fra et link i WhatsApp, så åbn det i <b>Safari</b>.</p></div>
-      <div class="phone"><div class="scr"><div class="lines" style="margin-top:14px"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bottom" style="padding-bottom:10px"><div class="bar" style="margin:0;flex:1"><svg><use href="#lock"/></svg><i>khabar.nu</i></div></div>
-        <span class="ring" style="left:16px;bottom:4px;width:86px;height:26px;border-radius:9px"></span></div></div></li>
+    <li class="step"><div><h2>Åbn khabar.nu i Safari</h2><p>Skriv <b>khabar.nu</b> i Safari. Kommer du fra et link i WhatsApp, så åbn det i <b>Safari</b>.</p></div></li>
 
-    <li class="step"><div><h2>Tryk på Del-knappen</h2><p>Firkanten med pilen op, <b>nederst</b> i Safari (på iPad øverst).</p></div>
-      <div class="phone"><div class="scr"><div class="lines" style="margin-top:14px"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bottom"><svg><use href="#dots"/></svg><svg><use href="#share"/></svg><svg><use href="#plus"/></svg></div>
-        <span class="ring" style="left:43px;bottom:2px;width:32px;height:32px"></span></div></div></li>
+    <li class="step"><div><h2>Tryk på Del-knappen</h2><p>Firkanten med pilen op, <b>nederst</b> i Safari (på iPad øverst).</p></div></li>
 
     <li class="step"><div><h2>Vælg »Føj til hjemmeskærm«</h2><p>Rul lidt ned i listen, tryk <b>Føj til hjemmeskærm</b> og derefter <b>Tilføj</b> øverst til højre.</p></div>
       <div class="phone"><div class="scr"><div class="lines" style="margin-top:14px"><span></span><span></span></div>
         <div class="sheet"><div>Kopiér <svg style="width:11px;height:11px"><use href="#share"/></svg></div><div><b>Føj til hjemmeskærm</b> <svg style="width:11px;height:11px"><use href="#plus"/></svg></div><div>Tilføj bogmærke</div></div>
         <span class="ring" style="left:6px;bottom:42px;width:106px;height:26px;border-radius:9px"></span></div></div></li>
 
-    <li class="step"><div><h2>Åbn Khabar fra ikonet</h2><p>Det sorte ikon med <b>خبر</b> og den røde prik ligger nu på din hjemmeskærm.</p></div>
-      <div class="phone"><div class="scr"><div class="home"><span></span><span></span><span></span><img src="icons/icon-180.png" alt=""><span></span><span></span><span></span><span></span></div>
-        <span class="ring" style="left:85px;top:16px;width:34px;height:34px;border-radius:10px"></span></div></div></li>
+    <li class="step"><div><h2>Åbn Khabar fra ikonet</h2><p>Det sorte ikon med <b>خبر</b> og den røde prik ligger nu på din hjemmeskærm.</p></div></li>
 
     <li class="step"><div><h2>Slå notifikationer til</h2><p>Tryk på <b>indstillinger</b> (skyderne øverst til højre) → <b>Slå notifikationer til</b> → <b>Tillad</b>. Færdig.</p>
-      <p class="note">Det virker kun fra ikonet, ikke inde i Safari.</p></div>
-      <div class="phone"><div class="scr"><div class="app"><div class="top"><span class="logo">خبر</span><svg style="width:14px;height:14px"><use href="#gear"/></svg></div></div>
-        <span class="btn">Slå notifikationer til</span>
-        <div class="dialog"><b>»Khabar« vil gerne sende dig notifikationer</b><div><span>Tillad ikke</span><span><b>Tillad</b></span></div></div>
-        <span class="ring" style="right:4px;top:4px;width:26px;height:26px"></span></div></div></li>
+      <p class="note">Det virker kun fra ikonet, ikke inde i Safari.</p></div></li>
   </ol>
 
   <ol id="android" hidden>
-    <li class="step"><div><h2>Åbn khabar.nu i Chrome</h2><p>Skriv <b>khabar.nu</b> i Chrome. Åbner linket inde i WhatsApp, så tryk <b>⋮</b> → <b>Åbn i Chrome</b>.</p></div>
-      <div class="phone"><div class="scr"><div class="bar"><svg><use href="#lock"/></svg><i>khabar.nu</i><svg><use href="#dots"/></svg></div>
-        <div class="lines"><span></span><span></span><span></span><span></span><span></span></div>
-        <span class="ring" style="left:6px;top:4px;width:84px;height:26px;border-radius:9px"></span></div></div></li>
+    <li class="step"><div><h2>Åbn khabar.nu i Chrome</h2><p>Skriv <b>khabar.nu</b> i Chrome. Åbner linket inde i WhatsApp, så tryk <b>⋮</b> → <b>Åbn i Chrome</b>.</p></div></li>
 
-    <li class="step"><div><h2>Tryk på ⋮ øverst til højre</h2><p>De tre prikker i Chromes adresselinje.</p></div>
-      <div class="phone"><div class="scr"><div class="bar"><svg><use href="#lock"/></svg><i>khabar.nu</i><svg><use href="#dots"/></svg></div>
-        <div class="lines"><span></span><span></span><span></span><span></span><span></span></div>
-        <span class="ring" style="right:5px;top:5px;width:24px;height:24px"></span></div></div></li>
+    <li class="step"><div><h2>Tryk på ⋮ øverst til højre</h2><p>De tre prikker i Chromes adresselinje.</p></div></li>
 
     <li class="step"><div><h2>Vælg »Installer app«</h2><p>Tryk <b>Installer app</b> og så <b>Installer</b>. Står der i stedet <b>Føj til startskærm</b>, så tag den.</p></div>
       <div class="phone"><div class="scr"><div class="bar"><svg><use href="#lock"/></svg><i>khabar.nu</i><svg><use href="#dots"/></svg></div>
         <div class="menu"><div>Ny fane</div><div>Bogmærker</div><div><b>Installer app</b></div><div>Del …</div></div>
         <span class="ring" style="right:2px;top:78px;width:100px;height:24px;border-radius:9px"></span></div></div></li>
 
-    <li class="step"><div><h2>Åbn Khabar fra startskærmen</h2><p>Det sorte ikon med <b>خبر</b> og den røde prik.</p></div>
-      <div class="phone"><div class="scr"><div class="home"><span></span><span></span><span></span><img src="icons/maskable-192.png" alt="" style="border-radius:50%"><span></span><span></span><span></span><span></span></div>
-        <span class="ring" style="left:85px;top:16px;width:34px;height:34px"></span></div></div></li>
+    <li class="step"><div><h2>Åbn Khabar fra startskærmen</h2><p>Det sorte ikon med <b>خبر</b> og den røde prik.</p></div></li>
 
-    <li class="step"><div><h2>Slå notifikationer til</h2><p>Tryk på <b>indstillinger</b> (skyderne øverst til højre) → <b>Slå notifikationer til</b> → <b>Tillad</b>. Færdig.</p></div>
-      <div class="phone"><div class="scr"><div class="app"><div class="top"><span class="logo">خبر</span><svg style="width:14px;height:14px"><use href="#gear"/></svg></div></div>
-        <span class="btn">Slå notifikationer til</span>
-        <div class="dialog"><b>Vil du tillade, at Khabar sender dig notifikationer?</b><div><span>Tillad ikke</span><span><b>Tillad</b></span></div></div>
-        <span class="ring" style="right:4px;top:4px;width:26px;height:26px"></span></div></div></li>
+    <li class="step"><div><h2>Slå notifikationer til</h2><p>Tryk på <b>indstillinger</b> (skyderne øverst til højre) → <b>Slå notifikationer til</b> → <b>Tillad</b>. Færdig.</p></div></li>
   </ol>
 
   <div class="done"><strong>Det var det.</strong><p>Du får besked ved topnyheder, de vigtigste nyheder og dagens resumé kl. 21 – aldrig mellem kl. 23 og 7.<br><a href="./">Åbn Khabar →</a></p></div>

@@ -2,6 +2,9 @@
 import json
 import sys
 from pathlib import Path
+from datetime import date as _date, timedelta as _td  # noqa: E402
+SHARED = (_date.today() - _td(days=38)).isoformat()   # a share about five weeks old, whatever day the tests run
+
 
 import numpy as np
 
@@ -64,7 +67,7 @@ def test_danish_politics_is_shown_and_everyday_news_is_not(tmp_path, monkeypatch
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
     (tmp_path / 'cache').mkdir()
     (tmp_path / 'cache' / 'profile.jsonl').write_text(
-        '\n'.join(json.dumps({'d': '2026-09-01', 't': t}) for t in
+        '\n'.join(json.dumps({'d': SHARED, 't': t}) for t in
                   ['Regeringen strammer reglerne for statsborgerskab', 'Gaza Israel', 'Iran truer Israel']), encoding='utf-8')
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)
@@ -107,7 +110,7 @@ def test_wire_lines_feed_the_briefing_but_never_become_cards(tmp_path, monkeypat
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
     (tmp_path / 'cache').mkdir()
     (tmp_path / 'cache' / 'profile.jsonl').write_text(
-        '\n'.join(json.dumps({'d': '2026-09-01', 't': t}) for t in ['Israel bomber Gaza igen', 'Iran truer Israel']),
+        '\n'.join(json.dumps({'d': SHARED, 't': t}) for t in ['Israel bomber Gaza igen', 'Iran truer Israel']),
         encoding='utf-8')
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)

@@ -4,6 +4,9 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from datetime import date as _date, timedelta as _td  # noqa: E402
+SHARED = (_date.today() - _td(days=38)).isoformat()   # a share about five weeks old, whatever day the tests run
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -29,7 +32,7 @@ def test_run(tmp_path, monkeypatch):
     monkeypatch.setenv('RADAR_CACHE', str(tmp_path / 'cache'))
     (tmp_path / 'cache').mkdir()
     (tmp_path / 'cache' / 'profile.jsonl').write_text(
-        '\n'.join(json.dumps({'d': '2026-09-01', 't': t}) for t in
+        '\n'.join(json.dumps({'d': SHARED, 't': t}) for t in
                   ['Israel bomber Gaza igen', 'Hizb ut-Tahrir demonstration i København', 'Iran truer Israel']),
         encoding='utf-8')
     import importlib
@@ -75,7 +78,7 @@ def test_notifies_once_per_story_and_learns(tmp_path, monkeypatch):
     monkeypatch.setattr(run, 'STATE', tmp_path / 'state')
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
     (tmp_path / 'cache').mkdir()
-    (tmp_path / 'cache' / 'profile.jsonl').write_text(json.dumps({'d': '2026-09-01', 't': 'Israel bomber Gaza igen'}), encoding='utf-8')
+    (tmp_path / 'cache' / 'profile.jsonl').write_text(json.dumps({'d': SHARED, 't': 'Israel bomber Gaza igen'}), encoding='utf-8')
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)
     sent = []
@@ -112,7 +115,7 @@ def test_noise_trust_balance_and_danish(tmp_path, monkeypatch):
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
     (tmp_path / 'cache').mkdir()
     (tmp_path / 'cache' / 'profile.jsonl').write_text(
-        '\n'.join(json.dumps({'d': '2026-09-01', 't': t}) for t in
+        '\n'.join(json.dumps({'d': SHARED, 't': t}) for t in
                   ['Israel bomber Gaza igen', 'Iran truer Israel', 'Hizb ut-Tahrir demonstration']), encoding='utf-8')
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)
@@ -153,7 +156,7 @@ def _setup(tmp_path, monkeypatch):
     monkeypatch.setattr(run, 'STATE', tmp_path / 'state')
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
     (tmp_path / 'cache').mkdir()
-    (tmp_path / 'cache' / 'profile.jsonl').write_text(json.dumps({'d': '2026-09-01', 't': 'Israel bomber Gaza igen'}), encoding='utf-8')
+    (tmp_path / 'cache' / 'profile.jsonl').write_text(json.dumps({'d': SHARED, 't': 'Israel bomber Gaza igen'}), encoding='utf-8')
     monkeypatch.setattr(run, 'Embedder', FakeEmbedder)
     monkeypatch.setattr(run, 'Translator', NoTranslator)
     monkeypatch.setattr(run.feedback, 'pull', lambda since: ([], since))
