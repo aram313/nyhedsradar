@@ -333,12 +333,14 @@ function findDay(date) {
 }
 // one line: the time at the left (a line from before midnight says so), who in bold, then what – the whole line
 // opens the source; lines that came while the user was away get a small dot
+const liveIdOf = l => { const i = l.id && findStory(l.id); return i ? i.id : ''; };
 function lineHtml(l, day) {
   const fresh = lastSeen && l.added && new Date(l.added).getTime() > lastSeen;
   const time = `<time>${clock(l.at)}${ymd(l.at) < day.date ? '<small>i går</small>' : ''}</time>`;
   const body = `<span>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}${l.confirmed === 0 ? ' <i>ubekræftet</i>' : ''}</span>`;
-  return `<li${fresh ? ' class="new"' : ''}>${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener" data-line="${esc(l.id)}"${l.kind === 's' ? ' data-story="1"' : ''}>`
-    : '<span>'}${time}${body}${l.link ? '</a>' : '</span>'}</li>`;
+  const live = liveIdOf(l);   // a story the app has opens in Live; anything else at its source
+  return `<li${fresh ? ' class="new"' : ''}>${l.link || live ? `<a href="${esc(l.link || '#')}" target="_blank" rel="noopener" data-line="${esc(l.id)}"${l.kind === 's' ? ' data-story="1"' : ''}${live ? ` data-live="${esc(live)}"` : ''}>`
+    : '<span>'}${time}${body}${l.link || live ? '</a>' : '</span>'}</li>`;
 }
 function dayTopic(day, tp) {
   const k = `${day.date}|${tp.name}`, all = tp.lines, open = dayOpen.has(k) || all.length <= SHOW + 1;
@@ -489,10 +491,13 @@ function packageQuote(pkg, told) {
   qs.sort((a, b) => b.sc - a.sc);
   return qs[0] ? qs[0].q : null;
 }
+// a step that is a story in the app opens it in Live; a statement only on the wire opens its source
+const stepHtml = (l, extra = '') => { const live = liveIdOf(l), at = live ? ` class="go" data-live="${esc(live)}"` : l.link ? ` class="src" data-src="${esc(l.link)}"` : '';
+  return `<li${at}>${extra}<time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`; };
 function storyline(tp, n = 4) {
   const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-n);
   return { lines, html: `<div class="follow pkg-f"><div class="pkg-h">Sådan udviklede det sig</div><ol>${lines.map(l =>
-    `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></div>` };
+    stepHtml(l)).join('')}</ol></div>` };
 }
 // today's strongest stories (the editor's picks and the owner's raised ones first)
 function frontCands(all, n = 12) {
@@ -691,7 +696,7 @@ function threadCard(t) {
   if (open) for (const l of t.lines) {
     const d = dayWord(l.at);
     if (d !== day) { day = d; steps += `<li class="thr-day">${esc(d)}</li>`; }
-    steps += `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`;
+    steps += stepHtml(l);
   }
   return `<article class="thr${open ? ' open' : ''}" id="thr-${t.key}" data-sec="${esc(t.section || '')}">
     <button class="thr-head" data-thr="${t.key}" aria-expanded="${open}"><span class="thr-meta"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>
@@ -827,6 +832,16 @@ function foldOthers(keep) {
   if (shift) scrollBy(0, shift);
   requestAnimationFrame(() => others.forEach(o => o.classList.remove('snap')));
 }
+// every story's root is Live's chronological list: references elsewhere open the story there, opened and in view
+function openInLive(id) {
+  const i = findStory(id);
+  if (!i) return;
+  if (!latestAll && hours(i) >= 24) latestAll = true;
+  expanded.clear(); expanded.add(i.id);
+  if (tab === 'latest') render(); else setTab('latest', { top: true });
+  const at = $('s-' + i.id);   // the page is laid out by now: straight there, headline just below the top bar
+  if (at) scrollTo(0, at.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8);
+}
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = find(id);
   if (open) foldOthers(el);
@@ -884,13 +899,9 @@ $('list').addEventListener('click', async e => {
     return;
   }
   const live = t.closest('[data-live]');
-  if (live) {   // a story from 'Lige nu': open it where it lives, in Live
-    const id = live.dataset.live;
-    expanded.add(id);
-    setTab('latest', { top: true });
-    requestAnimationFrame(() => { const at = $('s-' + id); if (at) scrollTo(0, at.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8); });
-    return;
-  }
+  if (live) { e.preventDefault(); openInLive(live.dataset.live); return; }   // 'Lige nu', a development's step, a recap line
+  const src = t.closest('[data-src]');
+  if (src) { window.open(src.dataset.src, '_blank', 'noopener'); return; }
   const follow = t.closest('[data-follow]');
   if (follow) {
     threadOpen = follow.dataset.follow;
@@ -905,7 +916,7 @@ $('list').addEventListener('click', async e => {
   if (t.closest('[data-recap]')) { recapOpen = !recapOpen; if (recapOpen) { expanded.clear(); daysOpen.clear(); } render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
-  if (t.closest('[data-line]')) {   // a line that tells a story: opening it says 'more like this', quietly
+  if (t.closest('[data-line]') && !t.closest('[data-live]')) {   // a line that tells a story: opening it says 'more like this', quietly
     const a = t.closest('[data-line]'), r = a.dataset.story && findStory(a.dataset.line);
     if (r) learnFrom(r, 'read');
     return;

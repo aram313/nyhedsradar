@@ -610,3 +610,8 @@ html.searching .searchbar { position: fixed; z-index: 19; left: 0; right: 0; top
 html.searching #list { position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh, 58px) + 56px);
   bottom: calc(var(--kb) + var(--dock)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; min-height: 0; }
 html.searching, html.searching body { overflow: hidden; }
+/* a step that is a story in the app: a tap opens it in Live */
+li.go, li.src { cursor: pointer; }
+li.go p::after { content: "›"; margin-left: 5px; font-weight: 700; color: var(--text-3); }
+li.src p::after { content: "↗"; margin-left: 5px; font-size: .85em; color: var(--text-3); }
+li.go:active, li.src:active { opacity: .6; }
