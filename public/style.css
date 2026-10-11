@@ -394,3 +394,10 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .quote + .story::before { display: none; }
 .story.card:not(.open) .card-row .h { -webkit-line-clamp: 3; }
 .card-row .m > span:nth-child(n+3) { display: none; }   /* a card's foot: outlet and time only */
+
+/* 'Vigtigst i dag' sits on its own soft panel, so the chosen stories read apart from the running list below */
+.block.top { margin: 14px 8px 18px; padding: 4px 0 6px; border-radius: 20px; background: color-mix(in srgb, var(--fill) 55%, var(--bg)); }
+.block.top .block-h { padding-left: 12px; }
+.block.top .story.hero { margin-left: 6px; margin-right: 6px; }
+.block.top .duo { margin-left: 6px; margin-right: 6px; }
+#list[data-sec] .block.top .block-h { margin: 0 12px 10px; }

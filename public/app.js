@@ -158,7 +158,8 @@ const pickRank = i => { const p = notes().picks || [], k = p.findIndex(x => x.id
 // the editor's picks first (in its order), then the radar's strongest
 const withPicks = (list, n) => { const mine = list.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b));
   return [...mine, ...pick(list.filter(i => pickRank(i) === 99), n)].slice(0, n); };
-const inSection = (i, sec) => secOf(i) === sec || (i.secs || []).includes(sec);
+// a story the editor moved lives only in its new section; otherwise it may also show where the radar saw it
+const inSection = (i, sec) => noteFor(notes().moves || [], i) ? secOf(i) === sec : secOf(i) === sec || (i.secs || []).includes(sec);
 const rankOf = i => i.rank ?? i.pct ?? 0;
 const hot = i => rankOf(i) - 1.5 * Math.min(48, hours(i)) - (i.confirmed === 0 ? 6 : 0);   // strong, recent, confirmed first
 // the best n stories, at most one per source, so one busy channel never fills a whole block
@@ -378,7 +379,7 @@ function home(all, opts) {
   // the strongest of the first three with a picture opens the page big
   const lead = now.slice(0, 3).find(i => i.thumb);
   if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
-  let html = `<section class="block">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
+  let html = `<section class="block top">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
@@ -412,7 +413,7 @@ function sectionPage(sec, all, opts) {
   const withPic = top.filter(i => i.thumb);
   const lead = withPic[0], duo = withPic.slice(1, 3).length === 2 ? withPic.slice(1, 3) : [];
   const rest = top.filter(i => i !== lead && !duo.includes(i));
-  let html = `<section class="block">${blockHead('Vigtigst i dag')}`;
+  let html = `<section class="block top">${blockHead('Vigtigst i dag')}`;
   if (lead) html += heroStory(lead, 0, { ...opts, top: true, tag: false });
   if (duo.length) html += `<div class="duo">${duo.map((i, n) => cardStory(i, n + 1, opts)).join('')}</div>`;
   html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('') + '</section>';
