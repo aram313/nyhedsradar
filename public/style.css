@@ -698,11 +698,7 @@ html.intro-skip .intro { display: none; }
 .fol .now-more:active { background: var(--fill); }
 /* a card's picture lies over its initials tile (shown only where the picture is missing) */
 .card-pic img { position: relative; }
-/* the Udvikling page: one view at a time – Forløb or Dag for dag */
 .seg.two { grid-template-columns: repeat(2, 1fr); }
-.ud-seg { position: sticky; z-index: 6; top: var(--barh); margin: 0 16px 8px; padding-top: 0;
-  box-shadow: 0 -8px 0 8px var(--bg), 0 8px 0 0 var(--bg); }   /* stays under the top bar while the page scrolls */
-.ud-seg + .ov { margin-top: 12px; }
 /* the top bar is solid: over the pages (each scrolling on its own) iPhone does not blur what passes under it, and
    headlines showed plainly under the logo */
 .bar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -714,3 +710,22 @@ html.intro-skip .intro { display: none; }
   width: 100%; color: inherit; text-decoration: none; text-align: left; -webkit-tap-highlight-color: transparent; }
 /* scrolling with the middle mouse button */
 html.autoscroll, html.autoscroll * { cursor: ns-resize !important; }
+/* the Udvikling page: the day (its topics, newest line first), the developments of the last days, the earlier days */
+.ud-top { display: flex; align-items: center; gap: 12px; margin: 16px 16px 12px; }
+.ud-top span { flex: 1; min-width: 0; }
+.ud-top b { display: block; font-size: calc(24px * var(--ts, 1)); font-weight: 780; letter-spacing: -.024em; }
+.ud-top small { display: block; margin-top: 2px; font-size: calc(13px * var(--ts, 1)); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ud-share { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px; border-radius: 18px;
+  background: var(--fill); font-size: calc(14px * var(--ts, 1)); font-weight: 620; color: var(--text-2); }
+.ud-share svg { width: 16px; height: 16px; }
+.ud-share:active { opacity: .55; }
+div.thr-head { padding-right: 14px; }
+.ud-steps li:last-child::before { background: var(--fill); }   /* newest first: the newest step is the filled one */
+.ud-steps li:not(.thr-day):first-child::before, .ud-steps li.thr-day:first-child + li::before { background: var(--sec); }
+.ud-steps li.new::after { content: ""; position: absolute; left: -8px; top: 11px; width: 5px; height: 5px; border-radius: 50%; background: var(--pulse); }
+.ud-more { display: block; min-height: 40px; margin: -8px 0 0; padding: 0 14px 4px 78px; font-size: calc(13.5px * var(--ts, 1));
+  font-weight: 620; color: var(--text-2); text-align: left; }
+.ud-more:active { opacity: .55; }
+.ud-h { margin-top: 24px; }
+.ud-all { margin: 2px 12px 0; width: calc(100% - 24px); }
+.ud-arch { margin-top: 24px; }

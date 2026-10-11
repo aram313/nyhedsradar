@@ -49,7 +49,7 @@ let searchIndex = null, searchState = 'idle';
 let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
-let threadOpen = params.get('forlob') || null; // the development opened on the Følg udviklingen tab
+const udOpen = new Set(params.get('forlob') ? [params.get('forlob')] : []);   // developments unfolded on the Udvikling page
 const readSent = new Set(store.get('readSent', []));
 
 // ---------------------------------------------------------------- silent learning (no buttons)
@@ -408,19 +408,6 @@ function dayText(day) {
   if (digest && digest.date === day.date && digest.created === day.created && digest.whatsapp) return digest.whatsapp + '\n\nvia khabar.nu';
   return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`), 'via khabar.nu'].join('\n\n');
 }
-// the newest recap (written at 21, it covers the day since 21 the evening before) replaces the one before
-let recapOpen = false;
-function overview() {
-  const day = dayOf(digest);
-  if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – opdateres løbende fra morgen til aften</small></span></div></section>`;
-  }
-  const n = lineCount(day), hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
-  const said = hrs.length < 2 ? hrs.join('') : hrs.slice(0, -1).join(', ') + ' og ' + hrs[hrs.length - 1];
-  return `<section class="ov${recapOpen ? ' open' : ''}" id="overview"><button class="ov-row" data-recap aria-expanded="${recapOpen}">
-    <span><b>Resumé · ${dateDa(day.date, true)}</b><small>Dagens vigtigste bevægelser · ${n} linjer · opdateret kl. ${said}</small></span>
-    <svg><use href="#i-chev"/></svg></button>${recapOpen ? dayBody(day) : ''}</section>`;
-}
 async function loadArchive() {
   if (archiveState === 'loading') return;
   archiveState = 'loading';
@@ -543,11 +530,11 @@ function packageQuote(pkg, told) {
 }
 // a step that is a story in the app opens it in Live; a statement only on the wire opens its source. The step is a
 // real button or link: iPhone does not always pass a tap on plain text on to the page.
-const stepHtml = (l, extra = '') => {
+const stepHtml = (l, extra = '', cls = '') => {
   const live = liveIdOf(l), inner = `<time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p>`;
-  if (live) return `<li class="go">${extra}<button class="step" data-live="${esc(live)}">${inner}</button></li>`;
-  if (l.link) return `<li class="src">${extra}<a class="step" href="${esc(l.link)}" target="_blank" rel="noopener">${inner}</a></li>`;
-  return `<li>${extra}${inner}</li>`;
+  if (live) return `<li class="go ${cls}">${extra}<button class="step" data-live="${esc(live)}">${inner}</button></li>`;
+  if (l.link) return `<li class="src ${cls}">${extra}<a class="step" href="${esc(l.link)}" target="_blank" rel="noopener">${inner}</a></li>`;
+  return `<li class="${cls}">${extra}${inner}</li>`;
 };
 function storyline(tp, n = 4) {
   const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-n);
@@ -582,7 +569,7 @@ const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(to
 function followStrip(skip) {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
   const list = threads().filter(t => !skip || t.name.trim().toLowerCase() !== skip.name.trim().toLowerCase()).slice(0, 3);
-  const all = '<button class="now-more" data-go="threads">Alle forløb og dagens resumé<svg><use href="#i-chev"/></svg></button>';
+  const all = '<button class="now-more" data-go="threads">Hele dagen og alle udviklinger<svg><use href="#i-chev"/></svg></button>';
   if (!list.length) return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${all}</section>`;
   return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${list.map(t => { const l = t.lines[t.lines.length - 1];
     return `<button class="fol-row" data-follow="${t.key}" data-sec="${esc(t.section || '')}"><span class="fol-m"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>`
@@ -714,14 +701,15 @@ function mark(text, terms) {
 // ---------------------------------------------------------------- Følg udviklingen
 // A development is one of the editor's recap topics followed across the days it ran (the editor continues a topic
 // by its exact name): its headline is the topic's name, its steps the recap's 'Who: what' lines, oldest first.
-function threads() {
+const thrKey = name => qkey({ who: 'tråd', text: name.trim().toLowerCase() });
+function allThreads() {
   const days = [dayOf(digest), ...((moves && moves.days) || [])].filter(Boolean), seenDay = new Set(), by = new Map();
   for (const d of days) {
     if (seenDay.has(d.date)) continue;
     seenDay.add(d.date);
     for (const tp of d.topics) {
       const k = tp.name.trim().toLowerCase();
-      const t = by.get(k) || { key: qkey({ who: 'tråd', text: k }), name: tp.name, section: tp.section, lines: [] };
+      const t = by.get(k) || { key: thrKey(k), name: tp.name, section: tp.section, lines: [] };
       t.lines.push(...tp.lines.filter(l => l.at));
       by.set(k, t);
     }
@@ -732,8 +720,9 @@ function threads() {
       .sort((a, b) => a.at.localeCompare(b.at));
     t.last = t.lines.length ? t.lines[t.lines.length - 1].at : '';
     return t;
-  }).filter(t => t.lines.length >= 2).sort((a, b) => b.last.localeCompare(a.last));
+  }).filter(t => t.lines.length).sort((a, b) => b.last.localeCompare(a.last));
 }
+const threads = () => allThreads().filter(t => t.lines.length >= 2);   // a development has at least two steps
 // the development a story belongs to: one of its lines is the story, or it shares enough words with it
 function threadFor(i) {
   const ids = new Set([i.id, ...(i.also || []).map(a => a.id)]), list = threads();
@@ -750,30 +739,57 @@ function threadFor(i) {
 }
 const dayWord = iso => { const d = new Date(iso), y = new Date(); y.setDate(y.getDate() - 1);
   return d.toDateString() === new Date().toDateString() ? 'I dag' : d.toDateString() === y.toDateString() ? 'I går' : cap(dateDa(ymd(iso), true)); };
-function threadCard(t) {
-  const open = threadOpen === t.key, last = t.lines[t.lines.length - 1];
-  let steps = '', day = '';
-  if (open) for (const l of t.lines) {
+// The Udvikling page holds the editor's lines once (the recap and the developments were two views of the same lines;
+// the owner had them merged, 2026-10-11): the day's topics in the editor's order, each a card with the day's lines,
+// newest first, that unfolds into the whole development across the days; below, the developments the day has not
+// touched; at the bottom the earlier days as whole recaps, to read or share.
+const newestFirst = ls => [...ls].filter(l => l.at).sort((a, b) => b.at.localeCompare(a.at));
+const lineNew = l => lastSeen && l.added && new Date(l.added).getTime() > lastSeen;
+function udSteps(lines, marks) {
+  let html = '', day = '';
+  for (const l of lines) {
     const d = dayWord(l.at);
-    if (d !== day) { day = d; steps += `<li class="thr-day">${esc(d)}</li>`; }
-    steps += stepHtml(l);
+    if (marks && d !== day) { day = d; html += `<li class="thr-day">${esc(d)}</li>`; }
+    html += stepHtml(l, '', lineNew(l) ? 'new' : '');
   }
-  return `<article class="thr${open ? ' open' : ''}" id="thr-${t.key}" data-sec="${esc(t.section || '')}">
-    <button class="thr-head" data-thr="${t.key}" aria-expanded="${open}"><span class="thr-meta"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>
-      <h3>${esc(t.name)}</h3>${open ? '' : `<p class="thr-last">${last.who ? `<b>${esc(last.who)}:</b> ` : ''}${esc(last.text)}</p>`}<svg><use href="#i-chev"/></svg></button>
-    ${open ? `<ol class="thr-steps">${steps}</ol>` : ''}</article>`;
+  return `<ol class="thr-steps ud-steps">${html}</ol>`;
 }
-// the Udvikling page shows the editor's lines one way at a time: story by story across the days ('Forløb'), or day by
-// day – the day's recap, ready to share, then the earlier days ('Dag for dag'). The same lines, never twice on one page.
-let udView = 'forlob';
+// one development; `tp` is its topic in the day shown at the top, whose lines show before it is unfolded
+function udCard(t, tp) {
+  const open = udOpen.has(t.key), all = newestFirst(t.lines), days = new Set(all.map(l => ymd(l.at))).size;
+  const today = tp ? newestFirst(tp.lines) : [], first = today.slice(0, SHOW);
+  const hidden = tp ? all.length - first.length : all.length - 1, last = all[0];
+  const meta = `<span class="thr-meta"><i></i>${SECTIONS[t.section] || ''} · ${tp ? `${today.length} ${today.length === 1 ? 'linje' : 'linjer'}`
+    : `senest ${ago(t.last)}`}${days > 1 ? ` · fulgt i ${days} dage` : ''}</span>`;
+  const body = open ? udSteps(all, days > 1) : tp ? udSteps(first, false) : '';
+  const more = !hidden ? '' : open ? 'Vis mindre' : days > 1 ? `Hele forløbet · ${days} dage` : `+ ${hidden} mere`;
+  const head = `${meta}<h3>${esc(t.name)}</h3>${!tp && !open && last ? `<p class="thr-last">${last.who ? `<b>${esc(last.who)}:</b> ` : ''}${esc(last.text)}</p>` : ''}`;
+  return `<article class="thr ud${open ? ' open' : ''}" id="thr-${t.key}" data-sec="${esc(t.section || '')}">${hidden
+    ? `<button class="thr-head" data-thr="${t.key}" aria-expanded="${open}">${head}<svg><use href="#i-chev"/></svg></button>` : `<div class="thr-head">${head}</div>`}
+    ${body}${more && (open || tp) ? `<button class="ud-more" data-thr="${t.key}">${more}</button>` : ''}</article>`;
+}
+let udAll = false;
 function threadsPage() {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);
-  const seg = `<div class="seg two ud-seg" role="radiogroup" aria-label="Vis">${[['forlob', 'Forløb'], ['dage', 'Resumé']].map(([v, l]) =>
-    `<button role="radio" data-ud="${v}" aria-checked="${udView === v}">${l}</button>`).join('')}</div>`;
-  if (udView === 'dage') return seg + overview() + `<section class="block">${archive()}</section>`;
-  const list = threads();
-  return seg + '<p class="thr-intro">Hver historie for sig – trin for trin, som redaktøren har fulgt den, også over flere dage.</p>'
-    + (list.length ? list.map(threadCard).join('') : '<p class="explain pad">Ingen forløb at følge endnu.</p>');
+  const day = dayOf(digest), shown = day && day.topics.length && Date.now() - new Date(day.created) < 48 * 3600e3 ? day : null;
+  const by = new Map(allThreads().map(t => [t.key, t]));
+  let html;
+  if (shown) {
+    const n = lineCount(shown), today = shown.date === new Date().toLocaleDateString('sv-SE');
+    html = `<header class="ud-top" data-day="${esc(shown.date)}"><span><b>${today ? 'I dag' : cap(dateDa(shown.date, true))}</b>`
+      + `<small>${n} ${n === 1 ? 'linje' : 'linjer'} · opdateret kl. ${clock(shown.created)}</small></span>`
+      + '<button class="ud-share" data-day-share><svg><use href="#i-share"/></svg>Del resumé</button></header>'
+      + shown.topics.map(tp => { const t = by.get(thrKey(tp.name)); return t ? udCard(t, tp) : ''; }).join('');
+  } else {
+    html = '<header class="ud-top"><span><b>Udvikling</b><small>Dagens vigtigste bevægelser – opdateres løbende fra morgen til aften</small></span></header>';
+  }
+  const todays = new Set(shown ? shown.topics.map(tp => thrKey(tp.name)) : []);
+  const rest = threads().filter(t => !todays.has(t.key));
+  if (rest.length) html += `<div class="arch-h ud-h">${shown ? 'Fulgt de seneste dage' : 'Udviklinger'}</div>`
+    + (udAll ? rest : rest.slice(0, 8)).map(t => udCard(t, null)).join('')
+    + (rest.length > 8 && !udAll ? `<button class="wide soft ud-all" data-ud-all>Vis flere (${rest.length - 8})</button>` : '');
+  if (!shown && !rest.length) html += '<p class="explain pad">Ingen udviklinger at følge endnu.</p>';
+  return html + `<section class="block ud-arch">${archive()}</section>`;
 }
 // search suggestions: the names and places in today's headlines and the developments, completing what one types
 function searchWords(all) {
@@ -883,9 +899,7 @@ function render(opts = {}) {
   if (focusId) openFocus(all);
   if (goOverview && data) {   // a notification about the recap: open it, on the Udvikling page
     goOverview = false;
-    recapOpen = true; udView = 'dage';
-    if (tab !== 'threads') setTab('threads', { top: true }); else render();
-    setTimeout(() => scrollToEl(pg$('overview')), 150);
+    if (tab !== 'threads') setTab('threads', { top: true }); else { render(); cur().scrollTop = 0; }
   }
 }
 // a dot on a tab with something the user has not seen yet: a new update of the overview, or an important story
@@ -1036,7 +1050,7 @@ async function share(text, i) {
 
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
-  if (t.closest('[data-go]')) { const go = t.closest('[data-go]').dataset.go; if (go === 'threads') udView = 'forlob'; setTab(go, { top: true }); return; }
+  if (t.closest('[data-go]')) { const go = t.closest('[data-go]').dataset.go; setTab(go, { top: true }); return; }
   if (t.closest('[data-cov]') && el) {
     covOpen.has(el.dataset.id) ? covOpen.delete(el.dataset.id) : covOpen.add(el.dataset.id);
     const i2 = find(el.dataset.id) || findStory(el.dataset.id), box = el.querySelector('.x-in');
@@ -1047,20 +1061,23 @@ $('list').addEventListener('click', async e => {
   if (live) { e.preventDefault(); openInLive(live.dataset.live); return; }   // 'Lige nu', a development's step, a recap line
   const src = t.closest('[data-src]');
   if (src) { window.open(src.dataset.src, '_blank', 'noopener'); return; }
-  const ud = t.closest('[data-ud]');
-  if (ud) { udView = ud.dataset.ud; if (udView === 'dage') recapOpen = true; render(); cur().scrollTop = 0; return; }
   const follow = t.closest('[data-follow]');
   if (follow) {
-    threadOpen = follow.dataset.follow; udView = 'forlob';
+    udOpen.add(follow.dataset.follow);
     if (tab === 'threads') render(); else setTab('threads', { top: true });
-    scrollToEl(pg$('thr-' + threadOpen), 12);
+    scrollToEl(pg$('thr-' + follow.dataset.follow), 12);
     return;
   }
   const thr = t.closest('[data-thr]');
-  if (thr) { threadOpen = threadOpen === thr.dataset.thr ? null : thr.dataset.thr; render(); return; }
+  if (thr) {   // unfold a development; folding it back keeps its card where the finger was
+    const k = thr.dataset.thr, card = pg$('thr-' + k), was = udOpen.has(k);
+    was ? udOpen.delete(k) : udOpen.add(k); render();
+    if (was && card && card.getBoundingClientRect().top < 0) scrollToEl(pg$('thr-' + k), 12);
+    return;
+  }
+  if (t.closest('[data-ud-all]')) { udAll = true; render(); return; }
   const chip = t.closest('[data-q]');
   if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus({ preventScroll: true }); render(); cur().scrollTop = 0; return; }
-  if (t.closest('[data-recap]')) { recapOpen = !recapOpen; if (recapOpen) { expanded.clear(); daysOpen.clear(); } render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
   if (t.closest('[data-line]') && !t.closest('[data-live]')) {   // a line that tells a story: opening it says 'more like this', quietly
@@ -1072,8 +1089,8 @@ $('list').addEventListener('click', async e => {
   if (t.closest('[data-arch-all]')) { archAll = true; render(); return; }
   const more = t.closest('[data-top-more]');
   if (more) { const k = more.dataset.topMore; topOpen.has(k) ? topOpen.delete(k) : topOpen.add(k); render(); return; }
-  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); recapOpen = false; } render();
-    if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8 + (cur().querySelector('.ud-seg') || { offsetHeight: 0 }).offsetHeight + 8);   // the opened day starts at the top
+  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); } render();
+    if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
