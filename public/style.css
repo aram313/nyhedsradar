@@ -710,3 +710,6 @@ html.intro-skip .intro { display: none; }
 /* the top bar is solid: over the pages (each scrolling on its own) iPhone does not blur what passes under it, and
    headlines showed plainly under the logo */
 .bar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* searching: the results scroll in their own box under the search field, so their group bands stick to its top */
+.page[data-tab="search"] .day { top: 0; }
+.day { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }   /* solid, like the top bar */
