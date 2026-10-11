@@ -20,7 +20,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg', threads: 'Udvikling' };
+const TITLES = { home: 'Khabar.nu', latest: 'Live feed', search: 'Søg', threads: 'Udvikling' };
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
