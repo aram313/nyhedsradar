@@ -20,7 +20,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg' };
+const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg', threads: 'Følg udviklingen' };
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
@@ -41,6 +41,8 @@ let searchIndex = null, searchState = 'idle';
 let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
+const DRAFT = params.get('udkast') === '1';   // the draft of 'Følg udviklingen' and search suggestions
+let threadOpen = params.get('forlob') || null; // the development opened on the Følg udviklingen tab
 const readSent = new Set(store.get('readSent', []));
 
 // ---------------------------------------------------------------- silent learning (no buttons)
@@ -266,7 +268,11 @@ function detail(i) {
       <a class="act primary" href="${esc(i.link)}" target="_blank" rel="noopener" data-read><svg><use href="#i-open"/></svg>Læs</a>
       <button class="act" data-share><svg><use href="#i-share"/></svg>Del</button>
       <button class="act" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
-    </div>${coverage(i)}`;
+    </div>${followButton(i)}${coverage(i)}`;
+}
+function followButton(i) {
+  const t = DRAFT && threadFor(i);
+  return t ? `<button class="follow-btn" data-follow="${t.key}"><svg class="ic"><use href="#i-thread"/></svg><span><b>Følg udviklingen</b><em>${esc(t.name)} · ${t.lines.length} udviklinger</em></span><svg><use href="#i-chev"/></svg></button>` : '';
 }
 function coverSummary(cover) {
   return GROUP_ORDER.filter(g => cover && cover[g]).map(g => `${cover[g]} ${GROUP_SHORT[g][cover[g] === 1 ? 0 : 1]}`).join(' · ');
@@ -359,7 +365,7 @@ async function loadArchive() {
     if (!r.ok) throw new Error(r.status);
     moves = await r.json(); archiveState = 'ok';
   } catch { archiveState = 'error'; }
-  if (tab === 'home') render();
+  if (tab === 'home' || tab === 'threads' || tab === 'search') render();
 }
 // earlier days: one row each, opened in place
 // earlier days: the last three always in view (one row each, opened in place), the rest behind 'Vis flere dage'
@@ -627,14 +633,88 @@ function mark(text, terms) {
   }
   return out + esc(text.slice(p));
 }
+// ---------------------------------------------------------------- Følg udviklingen
+// A development is one of the editor's recap topics followed across the days it ran (the editor continues a topic
+// by its exact name): its headline is the topic's name, its steps the recap's 'Who: what' lines, oldest first.
+function threads() {
+  const days = [dayOf(digest), ...((moves && moves.days) || [])].filter(Boolean), seenDay = new Set(), by = new Map();
+  for (const d of days) {
+    if (seenDay.has(d.date)) continue;
+    seenDay.add(d.date);
+    for (const tp of d.topics) {
+      const k = tp.name.trim().toLowerCase();
+      const t = by.get(k) || { key: qkey({ who: 'tråd', text: k }), name: tp.name, section: tp.section, lines: [] };
+      t.lines.push(...tp.lines.filter(l => l.at));
+      by.set(k, t);
+    }
+  }
+  return [...by.values()].map(t => {
+    const seen = new Set();
+    t.lines = t.lines.filter(l => { const id = l.id || l.text; if (seen.has(id)) return false; seen.add(id); return true; })
+      .sort((a, b) => a.at.localeCompare(b.at));
+    t.last = t.lines.length ? t.lines[t.lines.length - 1].at : '';
+    return t;
+  }).filter(t => t.lines.length >= 2).sort((a, b) => b.last.localeCompare(a.last));
+}
+// the development a story belongs to: one of its lines is the story, or it shares enough words with it
+function threadFor(i) {
+  const ids = new Set([i.id, ...(i.also || []).map(a => a.id)]), list = threads();
+  const direct = list.find(t => t.lines.some(l => ids.has(l.id)));
+  if (direct) return direct;
+  // otherwise only a close match: five or more shared names and words (a passing 'Gaza' or 'Israel' is not enough)
+  const st = stems([i.title, i.origTitle, i.title_da, ...(i.also || []).map(a => a.title)].join(' '));
+  let best = null, score = 4;
+  for (const t of list.slice(0, 30)) {
+    const sc = overlap(stems(t.name + ' ' + t.lines.map(l => l.who + ' ' + l.text).join(' ')), st);
+    if (sc > score) { best = t; score = sc; }
+  }
+  return best;
+}
+const dayWord = iso => { const d = new Date(iso), y = new Date(); y.setDate(y.getDate() - 1);
+  return d.toDateString() === new Date().toDateString() ? 'I dag' : d.toDateString() === y.toDateString() ? 'I går' : cap(dateDa(ymd(iso), true)); };
+function threadCard(t) {
+  const open = threadOpen === t.key, last = t.lines[t.lines.length - 1];
+  let steps = '', day = '';
+  if (open) for (const l of t.lines) {
+    const d = dayWord(l.at);
+    if (d !== day) { day = d; steps += `<li class="thr-day">${esc(d)}</li>`; }
+    steps += `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`;
+  }
+  return `<article class="thr${open ? ' open' : ''}" id="thr-${t.key}" data-sec="${esc(t.section || '')}">
+    <button class="thr-head" data-thr="${t.key}" aria-expanded="${open}"><span class="thr-meta"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>
+      <h3>${esc(t.name)}</h3>${open ? '' : `<p class="thr-last">${last.who ? `<b>${esc(last.who)}:</b> ` : ''}${esc(last.text)}</p>`}<svg><use href="#i-chev"/></svg></button>
+    ${open ? `<ol class="thr-steps">${steps}</ol>` : ''}</article>`;
+}
+function threadsPage() {
+  if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);
+  const list = threads();
+  if (!list.length) return '<div class="empty">Ingen udviklinger at følge endnu.</div>';
+  return `<p class="thr-intro">Historier, der udvikler sig – trin for trin, som redaktøren har fulgt dem.</p>${list.map(threadCard).join('')}`;
+}
+// search suggestions: the names and places in today's headlines and the developments, completing what one types
+function searchWords(all) {
+  const n = new Map();
+  for (const i of all) for (const w of (i.kw || [])) n.set(w, (n.get(w) || 0) + 1);
+  return [...n.entries()].sort((a, b) => b[1] - a[1]).map(([w]) => w);
+}
+function suggestions(all, q) {
+  const words = searchWords(all), last = fold(q.split(/\s+/).pop() || ''), head = q.slice(0, q.length - (q.split(/\s+/).pop() || '').length);
+  const chips = (q ? words.filter(w => fold(w).startsWith(last) && fold(w) !== last) : words).slice(0, q ? 6 : 10);
+  const ths = threads().filter(t => !q || fold(t.name + ' ' + t.lines.map(l => l.who).join(' ')).includes(fold(q.trim()))).slice(0, 3);
+  let html = chips.length ? `<div class="sug">${q ? '' : '<div class="sug-h">Populært nu</div>'}${chips.map(w =>
+    `<button class="chip" data-q="${esc(head + w)}">${esc(w)}</button>`).join('')}</div>` : '';
+  if (ths.length) html += `<div class="sug-th"><div class="sug-h">Følg udviklingen</div>${ths.map(t =>
+    `<button class="sug-row" data-follow="${t.key}"><i></i><span>${esc(t.name)}</span><em>${t.lines.length} udviklinger</em><svg><use href="#i-chev"/></svg></button>`).join('')}</div>`;
+  return html;
+}
 function searchPage(all) {
   const q = fold(query.trim());
   const total = searchIndex ? searchIndex.items.length : (data.scanned_24h || 0);
-  if (!q) return `<div class="empty">Søg i alle ${num(total)} nyheder, Khabar har læst de seneste to døgn – også dem, der ikke kom på listerne.</div>`;
+  if (!q) return (DRAFT ? suggestions(all, '') : '') + `<div class="empty">Søg i alle ${num(total)} nyheder, Khabar har læst de seneste to døgn – også dem, der ikke kom på listerne.</div>`;
   const terms = q.split(/\s+/).filter(Boolean);
   const hit = t => { const f = fold(t); return terms.every(w => f.includes(w)); };
   const inApp = all.filter(i => hit(`${i.title} ${i.summary || ''} ${i.source} ${i.origTitle || ''}`)).sort((a, b) => when(b) - when(a));
-  let html = inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '';
+  let html = (DRAFT ? suggestions(all, query) : '') + (inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '');
   if (searchIndex) {
     const onApp = new Set(data.items.map(i => i.id));
     const others = searchIndex.items.filter(x => !onApp.has(x.i) && hit(`${x.t} ${x.s}`));
@@ -662,6 +742,7 @@ function render(opts = {}) {
   let html = offline ? `<p class="notice">Ingen forbindelse – viser nyhederne fra kl. ${clock(data.updated)}.</p>`
     : isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
   html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'latest' ? latestPage(all, opts)
+    : tab === 'threads' ? threadsPage()
     : sectionPage(tab, all, opts);
   $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
@@ -762,6 +843,17 @@ async function share(text, i) {
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
+  const follow = t.closest('[data-follow]');
+  if (follow) {
+    threadOpen = follow.dataset.follow;
+    if (tab === 'threads') render(); else setTab('threads', { top: true });
+    requestAnimationFrame(() => { const el = $('thr-' + threadOpen); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 70 }); });
+    return;
+  }
+  const thr = t.closest('[data-thr]');
+  if (thr) { threadOpen = threadOpen === thr.dataset.thr ? null : thr.dataset.thr; render(); return; }
+  const chip = t.closest('[data-q]');
+  if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus(); render(); return; }
   if (t.closest('[data-recap]')) { recapOpen = !recapOpen; render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
@@ -861,7 +953,7 @@ async function loadIndex() {   // fetched again after a quarter of an hour: the 
 $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab, { top: b.dataset.tab === tab }); });
 $('openSearch').addEventListener('click', () => setTab('search', { top: true }));
 let typing;
-$('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 120); });
+$('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 60); });
 $('search').addEventListener('keydown', e => { if (e.key === 'Enter') $('search').blur(); });
 $('searchClear').addEventListener('click', () => { query = ''; $('search').value = ''; $('search').focus(); render(); });
 $('status').addEventListener('click', () => { $('status').textContent = 'opdaterer …'; load(true); });
@@ -884,6 +976,7 @@ const queueViewport = () => { if (!vvFrame) vvFrame = requestAnimationFrame(sync
 if (vv) { vv.addEventListener('resize', queueViewport); vv.addEventListener('scroll', queueViewport); }
 addEventListener('resize', queueViewport);
 syncViewport();
+if (DRAFT) { document.documentElement.classList.add('draft'); $('tabThreads').hidden = false; loadArchive(); if (params.get('q')) { query = params.get('q'); $('search').value = query; } }
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
 
 // what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story
