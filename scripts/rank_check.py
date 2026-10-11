@@ -80,7 +80,7 @@ def check(cache, state, per_section):
     run.STATE, run.CACHE = state, cache
     run.Embedder, run.Translator = NoNewEmbeddings, NoTranslation
     run.feedback.pull = lambda since: ([], since)
-    run.push.send = lambda payload: {'sent': 0}
+    run.push.send = lambda payload, *phones, **kw: {'sent': 0}
     run.fetch_all = lambda feeds: ([], {f['name']: {'ok': True, 'items': 0, 'error': None} for f in feeds})
     with contextlib.redirect_stdout(io.StringIO()):
         run.main()

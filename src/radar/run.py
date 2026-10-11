@@ -477,7 +477,7 @@ def main():
         if lift:                                      # the owner raised or lowered it in the app
             r += s.get('owner_rank_step', 30) * (1 if lift == 'up' else -1)
         if ls['trivia']:
-            r -= 20                                   # weather, royals, sport, celebrities …
+            r -= s.get('rank_trivia', 30)             # weather, royals, sport, celebrities … (the owner: 30, 2026-10-11)
         if ls['local'] and not core_dk and secs[0] == 'dk':
             r -= 10                                   # everyday crime and accidents
         if not ls['named'] and core < 2:

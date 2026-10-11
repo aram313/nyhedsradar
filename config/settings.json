@@ -32,6 +32,7 @@
   "rank_per_outlet": 4,
   "rank_core": 8,
   "rank_core_dk": 18,
+  "rank_trivia": 30,
   "rank_floor": 60,
   "big_dk_outlets": 5,
   "max_channel_per_day": 6,
