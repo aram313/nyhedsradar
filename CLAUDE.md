@@ -83,6 +83,7 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
     date they happened; a topic continued across days is a development on the app's Udvikling page), and runs
     `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies), `moves.json`
     (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`; 4 days) on the orphan `digest` branch. Only the first update at or after 21 Danish time notifies the phones.
+    The routine prompt also holds the owner's WEIGHING guide (what matters most geopolitically, from his own reading; it orders the lede, picks and topics, never the wording). It lives only in the private routine prompt: keep it out of this public repo.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
