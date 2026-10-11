@@ -69,9 +69,11 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,13,14,19,20 UTC, works only at 07/15/21 Danish time. It runs
     `scripts/editor.py input`, then writes one update: picks (stories that matter most geopolitically; for Danmark,
     those useful in the group's dawah), moves (stories in the wrong section), quotes (best statements, in Danish) and
-    recap lines (at most 14 'Who: what' lines, filed under the Danish date they happened), and runs
-    `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies) and
-    `moves.json` (30 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
+    summaries (2–3 Danish sentences for up to 25 stories readers open most; `paywall: true` when the article could not
+    be read – the app then says Khabar had no access), recap lines (at most 14 'Who: what' lines, filed under the Danish
+    date they happened; a topic continued across days is a development in the app's Udvikling tab), and runs
+    `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies), `moves.json`
+    (30 days) and `summaries.json` (4 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
