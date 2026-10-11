@@ -13,9 +13,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
-<link rel="stylesheet" href="style.css?v=20261012s">
+<!-- light and dark from the very first moment: the phone shows its own surface while the app starts, and without
+     this it is white even on a dark phone (a white flash between the start screen and the app) -->
+<meta name="color-scheme" content="light dark">
 <script>
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
@@ -28,8 +28,14 @@
     if (tone !== 'daempet') d.dataset.tone = tone;
     if (mode !== 'auto') d.dataset.theme = mode;
     if (dark !== 'notion') d.dataset.dark = dark;
+    // the phone's own surface before the page is drawn takes the same light or dark
+    document.querySelector('meta[name="color-scheme"]').content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
   } catch (e) {}
 </script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- the pen's letters load beside the page, not before it: the intro waits for them itself (at most a second) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="style.css?v=20261012t">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -55,6 +61,7 @@
   // and the look the user chose (light, dark or the phone's own setting), so the intro already wears the app's colours
   try {
     const d = document.documentElement, get = k => JSON.parse(localStorage.getItem(k));
+    d.classList.add('intro-on');
     if (localStorage.getItem('introSeen')) d.classList.add('intro-short');
     const mode = get('mode'), tone = get('tone'), dark = get('dark');
     if (mode && mode !== 'auto') d.dataset.theme = mode;
@@ -167,6 +174,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261012s"></script>
+<script src="app.js?v=20261012t"></script>
 </body>
 </html>

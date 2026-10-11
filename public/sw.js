@@ -14,6 +14,15 @@ const fresh = req => fetch(req.url, { cache: 'no-cache', credentials: 'same-orig
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  // a file named with its version (style.css?v=…, app.js?v=…) never changes under that name: the copy on the phone
+  // serves at once, so a start waits only for the page itself
+  if (url.searchParams.has('v')) {
+    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
+      if (r.ok) { const copy = r.clone(); caches.open(SHELL).then(c => c.put(e.request, copy)); }
+      return r;
+    })));
+    return;
+  }
   e.respondWith(fresh(e.request).then(r => {
     const copy = r.clone();
     caches.open(SHELL).then(c => c.put(e.request, copy));

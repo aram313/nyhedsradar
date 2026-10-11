@@ -1631,6 +1631,8 @@ function applyLook() {
   document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
   const bg = getComputedStyle(d).getPropertyValue('--bg').trim();
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
+  const cs = document.querySelector('meta[name="color-scheme"]');
+  if (cs) cs.content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
 }
 $('toneSeg').addEventListener('click', e => { const b = e.target.closest('[data-tone]'); if (b) { tone = b.dataset.tone; store.set('tone', tone); applyLook(); } });
 $('darkSeg').addEventListener('click', e => { const b = e.target.closest('[data-dark]'); if (b) { dark = b.dataset.dark; store.set('dark', dark); applyLook(); } });
@@ -1763,10 +1765,11 @@ const fullInk = mask => {   // the last hair the nib missed: the whole word, onc
 // and stays until 'Kom i gang'. A tap skips the short version.
 (function intro() {
   const el = $('intro');
-  if (!el) return;
+  setTimeout(() => document.documentElement.classList.remove('intro-on'), 6000);   // never keep the tabs hidden
+  if (!el) return document.documentElement.classList.remove('intro-on');
   const first = !store.get('introSeen', false);
   const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
-  const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
+  const done = () => { el.classList.add('gone'); document.documentElement.classList.remove('intro-on'); setTimeout(() => el.remove(), 500); };
   const mask = $('inkMask'), behind = document.createElementNS(NS, 'g');
   behind.setAttribute('mask', 'url(#inkBehind)'); mask.appendChild(behind);
   const start = () => {
