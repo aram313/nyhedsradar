@@ -430,12 +430,12 @@ async function loadWire() {
   if (tab === 'home') render();
 }
 // 'Lige nu': the three newest lines from established outlets (no unverified channels), with their time
+// 'Lige nu': the three newest stories of the Live list (established outlets), so a tap opens the same story in Live
 function nowStrip() {
-  if (!wire) { setTimeout(loadWire, 0); return '<section class="now"><div class="now-h"><i></i>Lige nu</div><p class="now-wait">henter …</p></section>'; }
-  const last = wire.filter(v => (v.k === 'w' || v.k === 'h') && v.da).sort((a, b) => b.p.localeCompare(a.p)).slice(0, 3);
+  const last = stories().filter(i => i.confirmed !== 0).sort((a, b) => when(b) - when(a)).slice(0, 3);
   if (!last.length) return '';
-  return `<section class="now"><div class="now-h"><i></i>Lige nu</div><ul>${last.map(v =>
-    `<li><a href="${esc(v.u)}" target="_blank" rel="noopener"><time>${clock(v.p)}</time><span>${esc(v.da)}</span><em>${esc(v.s)}</em></a></li>`).join('')}</ul></section>`;
+  return `<section class="now"><div class="now-h"><i></i>Lige nu</div><ul>${last.map(i =>
+    `<li><button data-live="${esc(i.id)}"><time>${clock(i.published || i.found)}</time><span dir="auto">${esc(i.title)}</span><em>${esc(i.source)}</em></button></li>`).join('')}</ul></section>`;
 }
 // 'Dagens citat': the editor's first chosen statement, large
 // The owner can hold the front page's quote and pick another: the editor's chosen statements and today's recap lines.
@@ -861,6 +861,14 @@ $('list').addEventListener('click', async e => {
     if (i2 && box) box.innerHTML = el.classList.contains('panel') ? panelBody(i2) : detail(i2);
     return;
   }
+  const live = t.closest('[data-live]');
+  if (live) {   // a story from 'Lige nu': open it where it lives, in Live
+    const id = live.dataset.live;
+    expanded.add(id);
+    setTab('latest', { top: true });
+    requestAnimationFrame(() => { const at = $('s-' + id); if (at) scrollTo(0, at.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8); });
+    return;
+  }
   const follow = t.closest('[data-follow]');
   if (follow) {
     threadOpen = follow.dataset.follow;
@@ -898,42 +906,125 @@ addEventListener('scroll', () => {
   $('bar').classList.toggle('scrolled', scrollY > 4);
 }, { passive: true });
 
-// ---------------------------------------------------------------- pull down to refresh: a quiet ring
-let pull = null;
+// ---------------------------------------------------------------- pull down to refresh: pulling writes خبر
+// The pull is the pen: the further one pulls, the more of the word is written. Let go past the mark and the dot under ب
+// and the red dot follow, and while the news loads the red dot sends out its quiet rings, as in the intro.
+let pull = null, pen = null;
 const list = $('list'), ptr = $('ptr');
+function ptrPen() {
+  if (pen) return pen;
+  ptr.innerHTML = `<svg viewBox="150 100 300 215" aria-hidden="true"><path id="ptrP1" d="${INK.p1}" fill="none"/><path id="ptrP2" d="${INK.p2}" fill="none"/>
+    <mask id="ptrBehind" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"><path fill="#fff" fill-rule="evenodd" d="${INK.behind}"/></mask>
+    <mask id="ptrMask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"></mask>
+    <g mask="url(#ptrMask)"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="${INK.fix}"/></g>
+    <circle class="ink-ring" cx="380" cy="128" r="12"/><circle class="ink-ring two" cx="380" cy="128" r="12"/><circle class="ink-red" cx="380" cy="128" r="12"/></svg>`;
+  const mask = $('ptrMask'), behind = document.createElementNS(NS, 'g');
+  behind.setAttribute('mask', 'url(#ptrBehind)'); mask.appendChild(behind);
+  pen = { strokes: penStrokes(mask, behind, $('ptrP1'), $('ptrP2')), full: fullInk(mask), shown: -1 };
+  pen.full.style.display = 'none';
+  return pen;
+}
+// p: 0..1 of the whole writing (the word up to .85, the dot under ب after .9); shows the polygons up to there
+function ptrWrite(p) {
+  const P = ptrPen(), upto = s => s.stroke ? p >= 0.9 && s.x <= (p - 0.9) / 0.1 : s.x <= p / 0.85;
+  let last = -1;
+  P.strokes.forEach((s, k) => { if (upto(s)) last = k; });
+  if (last === P.shown) return;
+  P.strokes.forEach((s, k) => { s.el.style.display = k <= last ? '' : 'none'; });
+  P.full.style.display = p >= 1 ? '' : 'none';
+  P.shown = last;
+  // browsers do not redraw a mask whose contents changed until the mask is set again
+  for (const g of ptr.querySelectorAll('[mask]')) { const m = g.getAttribute('mask'); g.removeAttribute('mask'); g.setAttribute('mask', m); }
+}
+function ptrReset() { ptr.style.opacity = 0; ptr.classList.remove('ready', 'spin', 'dot'); if (pen) ptrWrite(0); }
 addEventListener('touchstart', e => {
-  if (scrollY <= 0 && tab !== 'search' && !e.target.closest('.sheet, .dock')) pull = { y: e.touches[0].clientY, d: 0 };
+  if (scrollY <= 0 && tab !== 'search' && !e.target.closest('.sheet, .owner, .dock')) pull = { x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
 }, { passive: true });
 addEventListener('touchmove', e => {
   if (!pull) return;
   pull.d = e.touches[0].clientY - pull.y;
+  if (Math.abs(e.touches[0].clientX - pull.x) > Math.abs(pull.d) + 6) { pull = null; list.style.transform = ''; ptrReset(); return; }   // a sideways swipe
   if (pull.d <= 0 || scrollY > 0) { list.style.transform = ''; ptr.style.opacity = 0; return; }
   list.classList.add('pulling');
   list.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
-  ptr.style.opacity = Math.min(1, pull.d / 36);
-  ptr.style.setProperty('--k', Math.min(1, pull.d / 84).toFixed(3));
-  ptr.classList.toggle('ready', pull.d >= 84);
+  ptr.style.opacity = Math.min(1, pull.d / 30);
+  ptrWrite(Math.min(0.85, (pull.d / 90) * 0.85));
+  ptr.classList.toggle('ready', pull.d >= 90);
 }, { passive: true });
 addEventListener('touchcancel', () => {   // an interrupted pull must not leave the list pulled down
   if (!pull) return;
   pull = null;
-  list.classList.remove('pulling'); list.style.transform = ''; ptr.style.opacity = 0; ptr.style.setProperty('--k', 0); ptr.classList.remove('ready');
+  list.classList.remove('pulling'); list.style.transform = ''; ptrReset();
 });
 addEventListener('touchend', async () => {
   if (!pull) return;
-  const go = pull.d >= 84;
+  const go = pull.d >= 90;
   pull = null;
   list.classList.remove('pulling');
   list.classList.add('settling');
   if (go) {
-    list.style.transform = 'translateY(50px)';
-    ptr.classList.remove('ready'); ptr.classList.add('spin'); ptr.style.opacity = 1;
-    await Promise.all([load(true), wait(650)]);
+    list.style.transform = 'translateY(64px)';
+    ptr.classList.remove('ready'); ptr.style.opacity = 1;
+    // the pen finishes: the dot under ب, then the red dot, which signals while the news loads
+    const t0 = performance.now();
+    await new Promise(res => { const step = now => { const k = Math.min(1, (now - t0) / 260); ptrWrite(0.85 + 0.15 * k); k < 1 ? requestAnimationFrame(step) : res(); }; requestAnimationFrame(step); });
+    ptr.classList.add('dot', 'spin');
+    await Promise.all([load(true), wait(900)]);
     ptr.classList.remove('spin');
   }
-  list.style.transform = ''; ptr.style.opacity = 0; ptr.style.setProperty('--k', 0);
-  setTimeout(() => list.classList.remove('settling'), 420);
+  list.style.transform = ''; ptr.style.opacity = 0;
+  setTimeout(() => { list.classList.remove('settling'); if (!pull) ptrReset(); }, 420);
 });
+
+// ---------------------------------------------------------------- swipe left and right between the tabs
+// The page follows the finger; let go far enough (or quickly) and it slides out while the next tab slides in from
+// the other side. Only a clearly sideways move counts, so scrolling and pulling stay as they are.
+const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'threads', 'latest'];
+let sw = null;
+addEventListener('touchstart', e => {
+  const x = e.touches[0].clientX;
+  if (tab === 'search' || e.touches.length > 1 || x < 22 || x > innerWidth - 22 || e.target.closest('.sheet, .owner, .dock, .intro, input, .scrim')) return;
+  sw = { x, y: e.touches[0].clientY, dx: 0, lock: null, t: performance.now() };
+}, { passive: true });
+addEventListener('touchmove', e => {
+  if (!sw) return;
+  const dx = e.touches[0].clientX - sw.x, dy = e.touches[0].clientY - sw.y;
+  if (!sw.lock && Math.hypot(dx, dy) > 10) sw.lock = Math.abs(dx) > Math.abs(dy) * 1.3 ? 'x' : 'y';
+  if (sw.lock !== 'x') return;
+  const i = SWIPE_TABS.indexOf(tab), edge = i < 0 || (dx > 0 && i === 0) || (dx < 0 && i === SWIPE_TABS.length - 1);
+  sw.dx = edge ? dx * 0.2 : dx;   // at the first and the last tab the page only gives a little
+  list.style.transition = 'none';
+  list.style.transform = `translateX(${sw.dx.toFixed(1)}px)`;
+  list.style.opacity = (1 - Math.min(0.4, Math.abs(sw.dx) / innerWidth * 0.7)).toFixed(3);
+}, { passive: true });
+addEventListener('touchend', () => {
+  if (!sw) return;
+  const { dx, lock, t } = sw;
+  sw = null;
+  if (lock !== 'x') return;
+  const i = SWIPE_TABS.indexOf(tab), dir = dx < 0 ? 1 : -1, next = SWIPE_TABS[i + dir];
+  const fast = Math.abs(dx) / Math.max(1, performance.now() - t) > 0.45;
+  const ease = 'transform .22s cubic-bezier(.4,0,1,1), opacity .22s';
+  if (!next || i < 0 || (Math.abs(dx) < innerWidth * 0.22 && !(fast && Math.abs(dx) > 40))) {   // not far enough: back into place
+    list.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s';
+    list.style.transform = ''; list.style.opacity = '';
+    setTimeout(() => { list.style.transition = ''; }, 320);
+    return;
+  }
+  if (navigator.vibrate) navigator.vibrate(6);
+  list.style.transition = reduceMotion ? 'none' : ease;
+  list.style.transform = `translateX(${-dir * innerWidth * 0.45}px)`; list.style.opacity = '0';
+  setTimeout(() => {
+    setTab(next, { swipe: true });
+    list.style.transition = 'none';
+    list.style.transform = `translateX(${dir * innerWidth * 0.3}px)`; list.style.opacity = '0';
+    void list.offsetWidth;
+    list.style.transition = reduceMotion ? 'none' : 'transform .34s cubic-bezier(.2,.8,.2,1), opacity .3s';
+    list.style.transform = ''; list.style.opacity = '';
+    setTimeout(() => { list.style.transition = ''; }, 360);
+  }, reduceMotion ? 0 : 200);
+});
+addEventListener('touchcancel', () => { if (sw && sw.lock === 'x') { list.style.transform = ''; list.style.opacity = ''; } sw = null; });
 
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
@@ -950,7 +1041,7 @@ function setTab(next, opts = {}) {
   $('searchbar').hidden = tab !== 'search';
   if (tab === 'search') { loadIndex(); setTimeout(() => $('search').focus(), 60); } else $('search').blur();
   $('freshPill').hidden = true;
-  render({ view: true });
+  render({ view: !opts.swipe });
   scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
 }
 // everything the radar read in the last two days, fetched only when someone searches
@@ -1303,38 +1394,31 @@ if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'la
 else render({ enter: true });
 load();
 
-// ---------------------------------------------------------------- intro
-// Every start: the name is written as with a reed pen – a flat nib held at an angle, in the order a calligrapher
-// writes حبر: up and round the loop of ح, back along the line through the tooth of ب into the tail of ر, then the
-// dot under ب, and last the red dot that makes it خ. The very first time the screen also says what Khabar is for
-// and stays until 'Kom i gang'. A tap skips the short version.
-(function intro() {
-  const el = $('intro');
-  if (!el) return;
-  const first = !store.get('introSeen', false);
-  const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
-  const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
-  const NS = 'http://www.w3.org/2000/svg', mask = $('inkMask');
-  // the nib: a flat reed 50 wide, held at 60 degrees. Going up the first leg it moves almost along its own edge, so
-  // the line is a hairline (10); from the top of the loop on it lies fuller on the paper (34, so no hair of the loop
-  // shows through while it writes), and the broad part comes only as it crosses back along the line. Each step is
-  // the hull of the nib where it was and where it is now, so the edges follow the nib's corners as smooth curves
-  // (separate stamps would leave teeth); each shows when the pen gets there.
-  const nibAt = (p, t) => [[-25, -t / 2], [25, -t / 2], [25, t / 2], [-25, t / 2]]
-    .map(([x, y]) => [p.x + x * 0.5 + y * 0.866, p.y - x * 0.866 + y * 0.5]);     // rotated -60 degrees
-  const hull = pts => {
-    pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
-    for (const q of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
-    for (const q of pts.reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
-    return lo.slice(0, -1).concat(up.slice(0, -1));
-  };
-  // The first leg runs through the line as a thin strip: its edges are soft curves from the tail's edges below the
-  // line into the leg's edges above it, so the stroke reads as one; the rest of the line's band where they cross
-  // stays hidden until the pen crosses back along it (#inkBehind is the band with that strip cut out).
-  const behind = document.createElementNS(NS, 'g');
-  behind.setAttribute('mask', 'url(#inkBehind)'); mask.appendChild(behind);   // a mask, not a clip-path: masks are anti-aliased
-  const write = (path, start, dur, thin) => {
+// ---------------------------------------------------------------- the pen: خبر written with a reed (the intro and pull to refresh)
+// The nib: a flat reed 50 wide, held at 60 degrees. Going up the first leg it moves almost along its own edge, so the
+// line is a hairline (10); from the top of the loop on it lies fuller on the paper (34, so no hair of the loop shows
+// through while it writes), and the broad part comes only as it crosses back along the line. Each step is the hull of
+// the nib where it was and where it is now, so the edges follow the nib's corners as smooth curves (separate stamps
+// would leave teeth). The first leg runs through the line as a thin strip whose edges curve on from the tail into the
+// leg; the rest of the line's band where they cross waits (in a mask: masks are anti-aliased, clip-paths are not)
+// until the pen crosses back along it. The order is the calligrapher's: up and round the loop of ح, back through the
+// tooth of ب into the tail of ر, then the dot under ب; the red dot that makes it خ comes last.
+const NS = 'http://www.w3.org/2000/svg';
+const INK = { p1: $('inkPath').getAttribute('d'), p2: $('inkDot').getAttribute('d'),
+  behind: document.querySelector('#inkBehind path').getAttribute('d'), fix: document.querySelector('#introInk .ink-fix').getAttribute('d') };
+const nibAt = (p, t) => [[-25, -t / 2], [25, -t / 2], [25, t / 2], [-25, t / 2]]
+  .map(([x, y]) => [p.x + x * 0.5 + y * 0.866, p.y - x * 0.866 + y * 0.5]);     // rotated -60 degrees
+const hull = pts => {
+  pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+  for (const q of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (const q of pts.reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+};
+// the pen's polygons in writing order: {el, stroke (0 the word, 1 the dot under ب), x (0..1 along its stroke, eased)}
+function penStrokes(mask, behind, path1, path2) {
+  const out = [];
+  [[path1, true], [path2, false]].forEach(([path, thin], stroke) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
     let prev = null;
     for (let i = 0; i <= n; i++) {
@@ -1344,20 +1428,33 @@ load();
       r.setAttribute('class', 'nib'); r.setAttribute('fill', '#fff');
       r.setAttribute('points', hull(prev ? prev.concat(nib) : nib).map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' '));
       prev = nib;
-      const x = Math.acos(1 - 2 * (i / n)) / Math.PI;      // the pen speeds up and slows down (sine ease)
-      r.style.setProperty('--t', (start + x * dur).toFixed(3) + 's');
       (thin && len < 200 ? behind : mask).appendChild(r);
+      out.push({ el: r, stroke, x: Math.acos(1 - 2 * (i / n)) / Math.PI });   // the pen speeds up and slows down
     }
-  };
-  const fill = at => {   // the last hair the nib missed: the whole word, settled at once when the pen lifts
-    const r = document.createElementNS(NS, 'rect');
-    r.setAttribute('class', 'nib'); r.setAttribute('width', 600); r.setAttribute('height', 400); r.setAttribute('fill', '#fff');
-    r.style.setProperty('--t', at + 's'); mask.appendChild(r);
-  };
+  });
+  return out;
+}
+const fullInk = mask => {   // the last hair the nib missed: the whole word, once the pen lifts
+  const r = document.createElementNS(NS, 'rect');
+  r.setAttribute('class', 'nib'); r.setAttribute('width', 600); r.setAttribute('height', 400); r.setAttribute('fill', '#fff');
+  mask.appendChild(r); return r;
+};
+
+// ---------------------------------------------------------------- intro
+// Every start: the name is written as with a reed pen. The very first time the screen also says what Khabar is for
+// and stays until 'Kom i gang'. A tap skips the short version.
+(function intro() {
+  const el = $('intro');
+  if (!el) return;
+  const first = !store.get('introSeen', false);
+  const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
+  const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
+  const mask = $('inkMask'), behind = document.createElementNS(NS, 'g');
+  behind.setAttribute('mask', 'url(#inkBehind)'); mask.appendChild(behind);
   const start = () => {
-    write($('inkPath'), 0.1, D, true);
-    write($('inkDot'), 0.1 + D + 0.1, D * 0.15);
-    fill(0.1 + D + 0.4);
+    for (const s of penStrokes(mask, behind, $('inkPath'), $('inkDot')))
+      s.el.style.setProperty('--t', (s.stroke ? 0.1 + D + 0.1 + s.x * D * 0.15 : 0.1 + s.x * D).toFixed(3) + 's');
+    fullInk(mask).style.setProperty('--t', (0.1 + D + 0.4) + 's');
     el.style.setProperty('--dot', (0.1 + D + 0.45).toFixed(2) + 's');
     if (first) $('introWhy').style.animationDelay = (0.1 + D + 0.8).toFixed(2) + 's';
     else { const t = setTimeout(done, (D + 1.6) * 1000); el.addEventListener('click', () => { clearTimeout(t); done(); }); }
@@ -1370,5 +1467,5 @@ load();
   let begun = false;
   const go = () => { if (!begun) { begun = true; start(); } };
   document.fonts.load('700 100px "Aref Ruqaa"', 'حبر').then(go, go);
-  setTimeout(() => { if (!begun) { begun = true; fill(0); el.style.setProperty('--dot', '.1s'); start.call(null); } }, 1000);
+  setTimeout(() => { if (!begun) { begun = true; fullInk(mask).style.setProperty('--t', '0s'); el.style.setProperty('--dot', '.1s'); start(); } }, 1000);
 })();
