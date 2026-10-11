@@ -1301,8 +1301,18 @@ async function checkVersion() {
     location.reload();
   } catch { /* offline: the version one has will do */ }
 }
+// iPhone draws the app in light and in dark for its app switcher while it is away, and the phone may switch look on
+// its own: no colour may glide back in front of the user
+let stillT = 0;
+function holdStill(ms) {
+  document.documentElement.classList.add('still');
+  clearTimeout(stillT);
+  if (ms) stillT = setTimeout(() => document.documentElement.classList.remove('still'), ms);
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => holdStill(document.hidden ? 0 : 600));
 let awaySince = 0;
 document.addEventListener('visibilitychange', () => {
+  holdStill(document.hidden ? 0 : 600);
   if (document.hidden) { store.set('hiddenAt', Date.now()); seenTab[tab] = Date.now(); store.set('seenTab', seenTab); awaySince = Date.now(); countLeave(); return; }
   backFromBreak();
   load();

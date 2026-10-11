@@ -41,9 +41,9 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { scrollbar-width: none; -webkit-text-size-adjust: 100%; touch-action: manipulation; }   /* no double-tap zoom */
 html::-webkit-scrollbar { display: none; }
-html, body { margin: 0; background-color: var(--bg); color: var(--text); overscroll-behavior-y: none; transition: background-color .35s, color .35s; }
+html, body { margin: 0; background-color: var(--bg); color: var(--text); overscroll-behavior: none; }
 body { font: 16px/1.38 var(--sans); -webkit-font-smoothing: antialiased; background-image: var(--grain); background-attachment: fixed; }
-html, body { height: 100%; overflow: hidden; }   /* the pages scroll, each on its own; the document stands still */
+body { min-height: 100vh; }   /* a full screen tall and no taller: the document stands still, the pages scroll */
 button { -webkit-appearance: none; appearance: none; font: inherit; color: inherit; background: none; border: 0; padding: 0; border-radius: 0; cursor: pointer; text-align: inherit; }
 a { color: inherit; text-decoration: none; }
 svg { width: 22px; height: 22px; flex: none; }
@@ -654,3 +654,5 @@ li.go:active, li.src:active { opacity: .6; }
 .st-top li { padding: 4px 0; }
 .st-top small { display: block; color: var(--text-3); font-size: 12px; }
 .st-foot { margin-top: 14px; font-size: 12.5px; color: var(--text-3); }
+/* while the app is away or the phone switches light/dark: nothing glides from one colour to the other */
+html.still *, html.still *::before, html.still *::after { transition: none !important; }
