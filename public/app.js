@@ -1090,6 +1090,7 @@ document.addEventListener('scroll', e => { if (e.target === cur()) onPageScroll(
 // The list follows the pull; far enough down, the red dot of the logo in the top bar swells, and when one lets go it
 // signals with the intro's hairline rings while the news loads – the name is not shown twice.
 let pull = null;
+const PULL = 130;   // a deliberate pull refreshes; a little extra drag at the top (to see the date) does not
 const logo = document.querySelector('.brand .logo');
 addEventListener('touchstart', e => {
   const pg = e.target.closest && e.target.closest('.page');
@@ -1105,7 +1106,7 @@ addEventListener('touchmove', e => {
   if (pull.d <= 0 || pg.scrollTop > 0) { pg.style.transform = ''; return; }
   pg.classList.add('pulling');
   pg.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
-  logo.classList.toggle('ready', pull.d >= 84);
+  logo.classList.toggle('ready', pull.d >= PULL);
 }, { passive: true });
 addEventListener('touchcancel', () => {   // an interrupted pull must not leave the page pulled down
   if (!pull) return;
@@ -1115,7 +1116,7 @@ addEventListener('touchcancel', () => {   // an interrupted pull must not leave 
 });
 addEventListener('touchend', async () => {
   if (!pull) return;
-  const go = pull.lock === 'y' && pull.d >= 84, pg = pull.pg;
+  const go = pull.lock === 'y' && pull.d >= PULL, pg = pull.pg;
   pull = null;
   pg.classList.remove('pulling');
   pg.classList.add('settling');
