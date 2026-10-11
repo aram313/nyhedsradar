@@ -9,6 +9,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- App: pictures look like press photos – hard black and white with a fine film grain (an opened story still shows colour); day bands carry a soft tint of the section colour.
+
 ### Added
 
 - Project scaffolded from the `web-app` workspace template.
