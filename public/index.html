@@ -15,7 +15,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
-<link rel="stylesheet" href="style.css?v=20261012m">
+<link rel="stylesheet" href="style.css?v=20261012n">
 <script>
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
@@ -96,7 +96,15 @@
     <input id="search" type="search" enterkeyhint="search" placeholder="Søg i alle nyheder" aria-label="Søg" autocomplete="off">
     <button id="searchClear" aria-label="Ryd"><svg><use href="#i-x"/></svg></button>
 </div>
-<main id="list"></main>
+<main id="list">
+  <section class="page" data-tab="home"></section>
+  <section class="page" data-tab="dk"></section>
+  <section class="page" data-tab="me"></section>
+  <section class="page" data-tab="world"></section>
+  <section class="page" data-tab="threads"></section>
+  <section class="page" data-tab="latest"></section>
+  <section class="page" data-tab="search"></section>
+</main>
 
 <div class="dock" id="dock">
   <nav class="tabs" id="tabs" role="tablist" aria-label="Sektioner">
@@ -158,6 +166,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261012m"></script>
+<script src="app.js?v=20261012n"></script>
 </body>
 </html>

@@ -42,8 +42,8 @@
 html { scrollbar-width: none; -webkit-text-size-adjust: 100%; touch-action: manipulation; }   /* no double-tap zoom */
 html::-webkit-scrollbar { display: none; }
 html, body { margin: 0; background-color: var(--bg); color: var(--text); overscroll-behavior-y: none; transition: background-color .35s, color .35s; }
-body { font: 16px/1.38 var(--sans); -webkit-font-smoothing: antialiased; background-image: var(--grain); background-attachment: fixed;
-  min-height: 100vh; padding-bottom: calc(var(--dock) + 28px); }
+body { font: 16px/1.38 var(--sans); -webkit-font-smoothing: antialiased; background-image: var(--grain); background-attachment: fixed; }
+html, body { height: 100%; overflow: hidden; }   /* the pages scroll, each on its own; the document stands still */
 button { -webkit-appearance: none; appearance: none; font: inherit; color: inherit; background: none; border: 0; padding: 0; border-radius: 0; cursor: pointer; text-align: inherit; }
 a { color: inherit; text-decoration: none; }
 svg { width: 22px; height: 22px; flex: none; }
@@ -51,7 +51,7 @@ svg { width: 22px; height: 22px; flex: none; }
 :focus-visible { outline: 2px solid var(--pulse); outline-offset: 2px; border-radius: 8px; }
 
 /* ------------------------------------------------------------ top bar: identity, freshness, settings */
-.bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 2px;
+.bar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center; gap: 2px;
   padding: calc(var(--top) + 2px) 6px 2px 16px; min-height: calc(var(--top) + 50px);
   background: var(--bar); -webkit-backdrop-filter: saturate(170%) blur(20px); backdrop-filter: saturate(170%) blur(20px);
   box-shadow: 0 .5px 0 transparent; transition: box-shadow .25s; }
@@ -250,8 +250,8 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
 .logo.blink .ring.two { animation-delay: .4s; }
 .logo.blink .dot { animation: breathe 1.4s ease-in-out infinite; }
 @keyframes logoPing { 0% { transform: scale(1); opacity: .7; } 70% { transform: scale(4.2); opacity: 0; } 100% { transform: scale(4.2); opacity: 0; } }
-#list.pulling, #list.settling { will-change: transform; }
-#list.settling { transition: transform .38s var(--out); }
+.page.pulling, .page.settling { will-change: transform; }
+.page.settling { transition: transform .38s var(--out); }
 
 /* ------------------------------------------------------------ "new stories" pill */
 .fresh-pill { position: fixed; z-index: 25; top: calc(var(--top) + 60px); left: 50%; display: flex; align-items: center; gap: 6px;
@@ -379,9 +379,9 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .guides .wide { margin: 0; }
 
 /* ------------------------------------------------------------ section pages: lead, two side by side, quotes, a quiet colour */
-:is(#list, .peek)[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
-:is(#list, .peek)[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
-:is(#list, .peek)[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
+.page[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
+.page[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
+.page[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
 .story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
 .story.card::before { display: none; }
@@ -409,7 +409,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .block.top .block-h { padding-left: 12px; }
 .block.top .story.hero { margin-left: 6px; margin-right: 6px; }
 .block.top .duo { margin-left: 6px; margin-right: 6px; }
-:is(#list, .peek)[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
+.page[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
 
 /* ------------------------------------------------------------ the front page's own voice: the day in a line, a glance per section */
 .lede { padding: 14px 16px 2px; }
@@ -600,24 +600,32 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .mini:active { opacity: .6; }
 .mini-row + .cov { margin-top: 10px; }
 
-/* swipe between tabs: the neighbouring tab beside the page, both following the finger */
-#list { touch-action: pan-y; }
-.peek { position: fixed; z-index: 5; inset: 0; overflow: hidden; pointer-events: none; background: var(--bg); will-change: transform; }
-.peek-in { padding-bottom: 120px; }
+/* the tabs: pages side by side in one scroller that snaps to whole pages (the phone carries a swipe); each page scrolls
+   on its own, under the top bar and above the tabs */
+#list { position: fixed; inset: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain; scrollbar-width: none; min-height: 0; }
+#list::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
+.page { flex: 0 0 100%; width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto; scroll-snap-align: start; scroll-snap-stop: always;
+  overscroll-behavior-y: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+/* room for the top bar and the tabs as content, not padding: a band that stays under the top bar measures from the
+   page's edge, and some browsers would count padding in */
+.page::before { content: ""; display: block; height: var(--barh, 58px); }
+.page::after { content: ""; display: block; height: calc(var(--dock) + 28px); }
+.page[data-tab="search"] { display: none; }
+.page[data-tab="search"]::before { display: none; }
+.page[data-tab="search"]::after { height: 12px; }
 .story.snap .x, .story.snap .x-in { transition: none !important; }
 
 /* searching: the field under the top bar, the page fixed, only the results scroll (between the field and the keyboard) */
 .searchbar[hidden] { display: none; }
 html.searching .searchbar { position: fixed; z-index: 19; left: 0; right: 0; top: var(--barh, 58px); margin: 0 auto; padding-top: 0;
   box-shadow: 0 0 0 8px var(--bg); }
-html.searching #list { position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh, 58px) + 56px);
-  bottom: calc(var(--kb) + var(--dock)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; min-height: 0; }
-html.searching, html.searching body { overflow: hidden; }
+html.searching #list { overflow: hidden; }
+html.searching .page:not([data-tab="search"]) { visibility: hidden; }
+html.searching .page[data-tab="search"] { display: block; position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh, 58px) + 56px);
+  bottom: calc(var(--kb) + var(--dock)); width: auto; height: auto; overscroll-behavior: contain; }
 /* a step that is a story in the app: a tap opens it in Live */
 li.go, li.src { cursor: pointer; }
 li.go p::after { content: "›"; margin-left: 5px; font-weight: 700; color: var(--text-3); }
 li.src p::after { content: "↗"; margin-left: 5px; font-size: .85em; color: var(--text-3); }
 li.go:active, li.src:active { opacity: .6; }
-/* no rubber-band stretch of the whole page: a swipe that starts with a hair of downward movement must not make the page
-   bounce (Khabar has its own pull to refresh) */
-html, body { overscroll-behavior-y: none; }

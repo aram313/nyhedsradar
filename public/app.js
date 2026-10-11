@@ -37,7 +37,13 @@ let focusId = params.get('item');
 let lastSeen = store.get('lastSeen', 0);                                 // stories found later get a small dot
 const seenTab = store.get('seenTab', {});                                // when each tab was last looked at
 let shownIds = new Set();
-const scrollPos = {};                                                    // each tab remembers where you were
+// the tabs are pages side by side in one horizontal scroller (#list): the phone itself carries a swipe from one to the
+// next, and each page keeps its own place
+const list = $('list');
+const pageEl = t => list.querySelector(`.page[data-tab="${t}"]`);
+const cur = () => pageEl(tab);
+const pg$ = id => { const p = cur(); return p && p.querySelector('#' + CSS.escape(id)); };   // on the page one sees
+let touching = false, paging = false;                                    // a finger on the pages; the pager moving
 let searchIndex = null, searchState = 'idle';
 let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
@@ -379,7 +385,7 @@ async function loadArchive() {
     if (!r.ok) throw new Error(r.status);
     moves = await r.json(); archiveState = 'ok';
   } catch { archiveState = 'error'; }
-  if (tab === 'home' || tab === 'threads' || tab === 'search') render();
+  staleOn(['home', 'threads', 'search']);
 }
 // earlier days: one row each, opened in place
 // earlier days: the last three always in view (one row each, opened in place), the rest behind 'Vis flere dage'
@@ -429,7 +435,7 @@ async function loadWire() {
     wire = (await r.json()).items || [];
   } catch { wire = []; }
   wireState = 'done';
-  if (tab === 'home') render();
+  staleOn(['home']);
 }
 // 'Lige nu': the three newest lines from established outlets (no unverified channels), with their time
 // 'Lige nu': the three newest stories of the Live list (established outlets), so a tap opens the same story in Live
@@ -758,22 +764,73 @@ function pageHtml(t, all, opts = {}) {
   return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts)
     : t === 'threads' ? threadsPage() : sectionPage(t, all, opts));
 }
+// what the pages show changes with the data and the user's choices; each page notes the state it was drawn from
+let ver = 0;
+function draw(t, opts = {}) {
+  const pg = pageEl(t);
+  if (!pg) return;
+  pg.dataset.sec = SECTIONS[t] ? t : '';   // a section's own page takes its colour
+  pg.dataset.ver = ver;
+  pg.innerHTML = !data ? '<div class="skel"></div>'.repeat(8)
+    : `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${pageHtml(t, stories(), opts)}</div>`;
+  pictures(pg);
+}
+// the pages beside the one in view are drawn again in a quiet moment (never while a finger is on the screen or the
+// pages move), so a swipe always finds its neighbour ready; a page never drawn gets drawn too
+let drawT = 0;
+function drawSoon() {
+  clearTimeout(drawT);
+  drawT = setTimeout(function step() {
+    if (tab === 'search') return;
+    if (touching || paging) { drawT = setTimeout(step, 250); return; }
+    const i = SWIPE_TABS.indexOf(tab);
+    const t = [SWIPE_TABS[i - 1], SWIPE_TABS[i + 1]].find(x => x && +pageEl(x).dataset.ver !== ver) || SWIPE_TABS.find(x => !pageEl(x).dataset.ver);
+    if (!t) return;
+    draw(t);
+    drawT = setTimeout(step, 40);
+  }, 120);
+}
+// something only some pages show has changed: draw the page in view if it is one of them, the rest in a quiet moment
+function staleOn(tabs) { if (tabs.includes(tab)) render(); else { ver++; drawSoon(); } }
+// pictures: the first ones on a page load at once (on a page beside the one in view too, so a swipe shows them), the
+// rest as the page scrolls near them – the browser's own lazy loading does not look ahead inside a page that scrolls
+// by itself
+const picWatch = new Map();
+function pictures(pg) {
+  let io = picWatch.get(pg);
+  if (!io) {
+    io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.removeAttribute('loading'); io.unobserve(e.target); } }),
+      { root: pg, rootMargin: '1200px 0px' });
+    picWatch.set(pg, io);
+  }
+  io.disconnect();
+  pg.querySelectorAll('img[loading="lazy"]').forEach(img => io.observe(img));
+}
 function render(opts = {}) {
   renderHeader();
-  $('list').dataset.sec = SECTIONS[tab] ? tab : '';   // a section's own page takes its colour
-  if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
+  ver++;
+  draw(tab, opts);
+  drawSoon();
+  if (!data) return;
   const all = stories();
-  if (opts.adopt) $('list').replaceChildren(opts.adopt);   // a swipe's neighbour, already drawn
-  else $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${pageHtml(tab, all, opts)}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
   const fresh = opts.fresh && shownIds.size ? all.filter(i => !shownIds.has(i.id)).length : 0;
   shownIds = new Set(all.map(i => i.id));
-  if (fresh && scrollY > 240 && tab !== 'search') {
+  if (fresh && cur().scrollTop > 240 && tab !== 'search') {
     $('freshPill').querySelector('span').textContent = `${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`;
     $('freshPill').hidden = false;
   }
-  // a dot on a tab with something the user has not seen yet: a new update of the overview, or an important story
-  // (a tab's dot goes once the tab has been looked at)
+  renderDots(all);
+  if (focusId) openFocus(all);
+  if (goOverview && tab === 'home' && pg$('overview')) {
+    goOverview = false;
+    if (!recapOpen) { recapOpen = true; render(); }
+    setTimeout(() => scrollToEl(pg$('overview')), 150);
+  }
+}
+// a dot on a tab with something the user has not seen yet: a new update of the overview, or an important story
+// (a tab's dot goes once the tab has been looked at)
+function renderDots(all) {
   const since = name => Math.max(lastSeen, seenTab[name] || 0);
   document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
     tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > since('home')));
@@ -783,12 +840,11 @@ function render(opts = {}) {
     document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i =>
       i.important && isNew(i) && secOf(i) === sec && new Date(i.found).getTime() > since(sec)));
   }
-  if (focusId) openFocus(all);
-  if (goOverview && tab === 'home' && $('overview')) {
-    goOverview = false;
-    if (!recapOpen) { recapOpen = true; render(); }
-    setTimeout(() => { const o = $('overview'); if (o) scrollTo(0, o.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8); }, 150);
-  }
+}
+// a place on the page in view, just below the top bar
+function scrollToEl(el, gap = 8) {
+  const p = cur();
+  if (p && el) p.scrollTo(0, el.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - $('bar').offsetHeight - gap);
 }
 // a notification opens the app on its story: find it, open it, show it
 function openFocus(all) {
@@ -797,13 +853,12 @@ function openFocus(all) {
   if (!i) return;
   focusId = null;
   expanded.add(i.id);
-  if (!$('s-' + i.id)) setTab(secOf(i), { top: true });   // its own section shows it already opened
-  const el = $('s-' + i.id);
+  if (!pg$('s-' + i.id)) setTab(secOf(i), { top: true });   // its own section shows it already opened
+  const el = pg$('s-' + i.id);
   if (!el) return;
   if (!el.classList.contains('open')) { el.querySelector('.x-in').innerHTML = detail(i); el.classList.add('open'); }
   setTimeout(() => {   // jump straight there, headline just below the top bar
-    const at = $('s-' + i.id);
-    if (at) scrollTo(0, at.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8);
+    scrollToEl(pg$('s-' + i.id));
   }, 150);
 }
 
@@ -811,13 +866,13 @@ function openFocus(all) {
 function keepInView(el) {
   setTimeout(() => {
     const r = el.getBoundingClientRect(), limit = innerHeight - $('dock').offsetHeight - 12;
-    if (r.bottom > limit) scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
+    if (r.bottom > limit) cur().scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
   }, 320);
 }
 // one thing open at a time: opening a story folds the others (and an open card panel) back; those above it close at
 // once and the page moves with them, so the story one tapped stays where it is
 function foldOthers(keep) {
-  const others = [...document.querySelectorAll('#list .story.open:not(.panel), #list .story.card.sel, #list .story.panel.open')]
+  const others = [...cur().querySelectorAll('.story.open:not(.panel), .story.card.sel, .story.panel.open')]
     .filter(o => o !== keep && !o.contains(keep) && !keep.contains(o) && !(o.classList.contains('panel') && keep.closest('.duo-wrap') === o.closest('.duo-wrap')));
   if (!others.length) return;
   const before = keep.getBoundingClientRect().top;
@@ -829,7 +884,7 @@ function foldOthers(keep) {
     const tg = o.querySelector('[data-toggle]'); if (tg) tg.setAttribute('aria-expanded', false);
   }
   const shift = keep.getBoundingClientRect().top - before;
-  if (shift) scrollBy(0, shift);
+  if (shift) cur().scrollBy(0, shift);
   requestAnimationFrame(() => others.forEach(o => o.classList.remove('snap')));
 }
 // every story's root is Live's chronological list: references elsewhere open the story there, opened and in view
@@ -839,8 +894,7 @@ function openInLive(id) {
   if (!latestAll && hours(i) >= 24) latestAll = true;
   expanded.clear(); expanded.add(i.id);
   if (tab === 'latest') render(); else setTab('latest', { top: true });
-  const at = $('s-' + i.id);   // the page is laid out by now: straight there, headline just below the top bar
-  if (at) scrollTo(0, at.getBoundingClientRect().top + scrollY - $('bar').offsetHeight - 8);
+  scrollToEl(pg$('s-' + i.id));   // the page is laid out by now: straight there, headline just below the top bar
 }
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = find(id);
@@ -877,8 +931,9 @@ function markShared(i) {
   shared[i.id] = { at: Date.now(), title: i.title, link: i.link, source: i.source };
   for (const [k, v] of Object.entries(shared)) if (Date.now() - v.at > 30 * 864e5) delete shared[k];
   store.set('shared', shared);
-  const el = $('s-' + i.id);
-  if (el) { el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { tag: el.dataset.tag === '1', clock: el.dataset.clock === '1', top: el.dataset.top === '1', tick: el.classList.contains('tick') }); }
+  for (const el of list.querySelectorAll('#' + CSS.escape('s-' + i.id))) {   // on every page that shows it
+    el.classList.remove('new'); el.querySelector('.m').innerHTML = meta(i, { tag: el.dataset.tag === '1', clock: el.dataset.clock === '1', top: el.dataset.top === '1', tick: el.classList.contains('tick') });
+  }
   learnFrom(i, 'share');
 }
 // the phone's own share sheet (WhatsApp is one tap away there); copying is the fallback
@@ -906,13 +961,13 @@ $('list').addEventListener('click', async e => {
   if (follow) {
     threadOpen = follow.dataset.follow;
     if (tab === 'threads') render(); else setTab('threads', { top: true });
-    requestAnimationFrame(() => { const el = $('thr-' + threadOpen); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 70 }); });
+    scrollToEl(pg$('thr-' + threadOpen), 12);
     return;
   }
   const thr = t.closest('[data-thr]');
   if (thr) { threadOpen = threadOpen === thr.dataset.thr ? null : thr.dataset.thr; render(); return; }
   const chip = t.closest('[data-q]');
-  if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus({ preventScroll: true }); render(); list.scrollTop = 0; return; }
+  if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus({ preventScroll: true }); render(); cur().scrollTop = 0; return; }
   if (t.closest('[data-recap]')) { recapOpen = !recapOpen; if (recapOpen) { expanded.clear(); daysOpen.clear(); } render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
@@ -933,46 +988,51 @@ $('list').addEventListener('click', async e => {
   else if (t.closest('[data-read]')) learnFrom(i, 'read');
   else if (t.closest('[data-toggle]')) el.classList.contains('card') ? toggleCard(el) : toggle(el);
 });
-$('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
-addEventListener('scroll', () => {
-  if (scrollY < 120) $('freshPill').hidden = true;
-  $('bar').classList.toggle('scrolled', scrollY > 4);
-}, { passive: true });
+$('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
+// the page in view scrolls (scroll events do not bubble: caught on their way down)
+function onPageScroll() {
+  const y = cur() ? cur().scrollTop : 0;
+  if (y < 120) $('freshPill').hidden = true;
+  $('bar').classList.toggle('scrolled', y > 4);
+}
+document.addEventListener('scroll', e => { if (e.target === cur()) onPageScroll(); }, { capture: true, passive: true });
 
 // ---------------------------------------------------------------- pull down to refresh: the logo answers
 // The list follows the pull; far enough down, the red dot of the logo in the top bar swells, and when one lets go it
 // signals with the intro's hairline rings while the news loads – the name is not shown twice.
 let pull = null;
-const list = $('list'), logo = document.querySelector('.brand .logo');
+const logo = document.querySelector('.brand .logo');
 addEventListener('touchstart', e => {
-  if (scrollY <= 0 && tab !== 'search' && !e.target.closest('.sheet, .owner, .dock')) pull = { x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
+  const pg = e.target.closest && e.target.closest('.page');
+  if (pg && pg === cur() && pg.scrollTop <= 0 && tab !== 'search' && !paging) pull = { pg, x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
 }, { passive: true });
 addEventListener('touchmove', e => {
   if (!pull) return;
+  const pg = pull.pg, dx = e.touches[0].clientX - pull.x;
   pull.d = e.touches[0].clientY - pull.y;
-  const dx = e.touches[0].clientX - pull.x;
   if (!pull.lock && Math.hypot(dx, pull.d) > 10) pull.lock = Math.abs(pull.d) > Math.abs(dx) ? 'y' : 'x';
-  if (pull.lock === 'x') { pull = null; list.classList.remove('pulling'); logo.classList.remove('ready'); return; }   // a sideways swipe
+  if (pull.lock === 'x') { pull = null; pg.classList.remove('pulling'); pg.style.transform = ''; logo.classList.remove('ready'); return; }   // a sideways swipe
   if (pull.lock !== 'y') return;
-  if (pull.d <= 0 || scrollY > 0) { list.style.transform = ''; return; }
-  list.classList.add('pulling');
-  list.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
+  if (pull.d <= 0 || pg.scrollTop > 0) { pg.style.transform = ''; return; }
+  pg.classList.add('pulling');
+  pg.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
   logo.classList.toggle('ready', pull.d >= 84);
 }, { passive: true });
-addEventListener('touchcancel', () => {   // an interrupted pull must not leave the list pulled down
+addEventListener('touchcancel', () => {   // an interrupted pull must not leave the page pulled down
   if (!pull) return;
+  const pg = pull.pg;
   pull = null;
-  list.classList.remove('pulling'); list.style.transform = ''; logo.classList.remove('ready');
+  pg.classList.remove('pulling'); pg.style.transform = ''; logo.classList.remove('ready');
 });
 addEventListener('touchend', async () => {
   if (!pull) return;
-  const go = pull.d >= 84;
+  const go = pull.lock === 'y' && pull.d >= 84, pg = pull.pg;
   pull = null;
-  list.classList.remove('pulling');
-  list.classList.add('settling');
+  pg.classList.remove('pulling');
+  pg.classList.add('settling');
   logo.classList.remove('ready');
-  if (go) {   // the list waits a little way down until the dot has signalled to the end of a full ring
-    list.style.transform = 'translateY(48px)';
+  if (go) {   // the page waits a little way down until the dot has signalled to the end of a full ring
+    pg.style.transform = 'translateY(48px)';
     logo.classList.add('blink');
     const t0 = performance.now();
     await load(true);
@@ -980,105 +1040,56 @@ addEventListener('touchend', async () => {
     await wait(Math.max(1, Math.ceil(spent / ring)) * ring - spent);
     logo.classList.remove('blink');
   }
-  list.style.transform = '';
-  setTimeout(() => list.classList.remove('settling'), 420);
+  pg.style.transform = '';
+  setTimeout(() => pg.classList.remove('settling'), 420);
 });
 
 // ---------------------------------------------------------------- swipe left and right between the tabs
-// As in a native page view: the neighbouring tab lies ready beside the page and both follow the finger one to one (no
-// fading). The direction is decided after 12 px; a sideways move then keeps the page from scrolling. On release the
-// speed of the last ~90 ms decides: a flick turns the page even when short, otherwise it must be past a third of the
-// width. The page then finishes at the finger's own speed, or springs back. At the first and last tab it only gives a
-// little. Touches from the screen's outer edge are left to the phone (its own back gesture).
+// The tabs lie side by side as pages in one horizontal scroller that snaps to whole pages, so the phone itself carries
+// the swipe: the page follows the finger exactly, a flick turns it with the phone's own speed and easing, at the first
+// and last tab it gives a little and springs back, and a swipe up or down stays a scroll of the page. Nothing is drawn
+// or swapped while it moves (the neighbours are drawn beforehand), so nothing can hop. The pill in the tab bar and the
+// title follow along; once the pages stand still, the page in view is the tab.
 const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'threads', 'latest'];
-const SNAP = 'cubic-bezier(.2,.85,.25,1)';
-let sw = null, peek = null;
-function peekOf(next, side) {
-  if (peek && peek.dataset.tab === next) return peek;
-  if (peek) peek.remove();
-  peek = document.createElement('div');
-  peek.className = 'peek'; peek.dataset.tab = next; peek.dataset.sec = SECTIONS[next] ? next : '';
-  peek.setAttribute('aria-hidden', 'true');
-  const top0 = list.getBoundingClientRect().top + scrollY;
-  // drawn exactly as the page will be (same wrapper, ids and all), so on release it simply becomes the page: no redraw,
-  // no picture loading again, no hop
-  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px"><div>${pageHtml(next, stories())}</div></div>`;
-  document.body.appendChild(peek);
-  const inner = peek.firstElementChild, room = Math.max(0, inner.offsetHeight + bottomRoom() - innerHeight);
-  scrollPos[next] = Math.min(scrollPos[next] || 0, room);
-  inner.style.transform = `translateY(${-scrollPos[next]}px)`;
-  return peek;
-}
-const bottomRoom = () => document.documentElement.scrollHeight - list.getBoundingClientRect().bottom - scrollY;   // below the list
-function setSwipe(x, side, transition = 'none') {
-  const W = innerWidth + 12;
-  list.style.transition = peek ? (peek.style.transition = transition) : transition;
-  list.style.transform = x ? `translate3d(${x}px,0,0)` : '';
-  if (peek) peek.style.transform = `translate3d(${x + side * W}px,0,0)`;
-}
-addEventListener('touchstart', e => {
-  const x = e.touches[0].clientX;
-  if (tab === 'search' || e.touches.length > 1 || x < 20 || x > innerWidth - 20 || e.target.closest('.sheet, .owner, .dock, .intro, input, .scrim')) return;
-  sw = { x, y: e.touches[0].clientY, dx: 0, lock: null, samples: [[performance.now(), x]] };
+let settleT = 0, jumping = false;   // jumping: the pages moved by a tap on a tab, not by a finger
+list.addEventListener('touchstart', () => { touching = true; jumping = false; }, { passive: true });
+for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
+  touching = false;
+  if (paging) { clearTimeout(settleT); settleT = setTimeout(settle, 140); }
 }, { passive: true });
-addEventListener('touchmove', e => {
-  if (!sw) return;
-  const cx = e.touches[0].clientX, dx = cx - sw.x, dy = e.touches[0].clientY - sw.y;
-  if (!sw.lock && Math.hypot(dx, dy) > 12) sw.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-  if (sw.lock !== 'x') return;
-  e.preventDefault();   // a sideways swipe must not also scroll the page
-  sw.samples.push([performance.now(), cx]);
-  if (sw.samples.length > 8) sw.samples.shift();
-  const i = SWIPE_TABS.indexOf(tab), side = dx < 0 ? 1 : -1, next = SWIPE_TABS[i + side];
-  if (i < 0 || !next) { if (peek) { peek.remove(); peek = null; } sw.dx = dx * 0.3; setSwipe(sw.dx, side); return; }
-  peekOf(next, side);
-  sw.dx = dx; sw.side = side; sw.next = next;
-  setSwipe(dx, side);
-  pillBetween(tab, next, Math.min(1, Math.abs(dx) / innerWidth));
-}, { passive: false });
-function endSwipe() {
-  if (!sw) return;
-  const { dx, lock, samples, side, next } = sw;
-  sw = null;
-  if (lock !== 'x') return;
-  const [t1, x1] = samples[samples.length - 1], from = samples.find(([t]) => t1 - t <= 90) || samples[0];
-  const v = (x1 - from[1]) / Math.max(1, t1 - from[0]);   // px per ms, + to the right
-  const W = innerWidth + 12;
-  const go = next && peek && (Math.abs(dx) > W / 3 || (Math.abs(v) > 0.35 && Math.sign(v) === Math.sign(dx) && Math.abs(dx) > 20));
-  const remaining = go ? W - Math.abs(dx) : Math.abs(dx);
-  const ms = reduceMotion ? 0 : Math.round(Math.min(340, Math.max(160, remaining / Math.max(Math.abs(v), 0.9))));
-  const ease = `transform ${ms}ms ${SNAP}`;
-  // the end of the slide, when the browser says so (with a fallback, should the event not come)
-  const settled = fn => {
-    let done = false;
-    const run = () => { if (done) return; done = true; list.removeEventListener('transitionend', run); fn(); };
-    if (ms) { list.addEventListener('transitionend', run); setTimeout(run, ms + 120); } else run();
-  };
-  if (!go) {   // back into place
-    setSwipe(0, side || 1, ease);
-    placePill(tab, true);
-    settled(() => { list.style.transition = ''; if (peek && !sw) { peek.remove(); peek = null; } });
-    return;
+const showTitle = t => { const s = TITLES[t] || SECTIONS[t]; if ($('title').textContent !== s) $('title').textContent = s; };
+list.addEventListener('scroll', () => {
+  if (tab === 'search') return;
+  if (!jumping) paging = true;   // a finger or a trackpad; a tap on a tab has placed the pill itself
+  if (paging) {
+    const n = SWIPE_TABS.length, k = Math.max(0, Math.min(n - 1, list.scrollLeft / list.clientWidth)), i = Math.min(n - 2, Math.floor(k));
+    pillBetween(SWIPE_TABS[i], SWIPE_TABS[i + 1], k - i);
+    showTitle(SWIPE_TABS[Math.round(k)]);
   }
-  setSwipe(-side * W, side, ease);
-  settled(() => {   // the neighbour now fills the screen: make it the page, in one frame
-    list.style.transition = 'none'; list.style.transform = '';
-    const drawn = peek && peek.querySelector('.peek-in > div');
-    setTab(next, { swipe: true, adopt: drawn });
-    if (peek) { peek.remove(); peek = null; }
-    setTimeout(() => { list.style.transition = ''; }, 30);
-  });
+  clearTimeout(settleT); settleT = setTimeout(settle, 140);
+}, { passive: true });
+if ('onscrollend' in window) list.addEventListener('scrollend', () => { clearTimeout(settleT); settle(); });
+function settle() {
+  if (touching || tab === 'search') return;   // the finger still holds the page
+  const W = list.clientWidth, i = Math.round(list.scrollLeft / W);
+  if (Math.abs(list.scrollLeft - i * W) > 2) { clearTimeout(settleT); settleT = setTimeout(settle, 140); return; }   // still on its way
+  const t = SWIPE_TABS[i];
+  paging = false; jumping = false;
+  if (t && t !== tab) setTab(t, { swipe: true }); else { placePill(tab, true); showTitle(tab); }
 }
-addEventListener('touchend', endSwipe);
-addEventListener('touchcancel', () => { if (sw) { sw.samples = [[performance.now(), sw.x + sw.dx]]; sw.dx = 0; endSwipe(); } });
+// a tab chosen by a tap (or a link to another tab): the pages go straight there; the pill glides, the page fades in
+function showPage(t) {
+  const i = SWIPE_TABS.indexOf(t);
+  if (i >= 0 && Math.abs(list.scrollLeft - i * list.clientWidth) > 1) { jumping = true; list.scrollLeft = i * list.clientWidth; }
+}
+addEventListener('resize', () => { if (tab !== 'search') showPage(tab); });
 
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
   if (next === tab) {
-    if (tab === 'search') $('search').focus({ preventScroll: true }); else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    if (tab === 'search') $('search').focus({ preventScroll: true }); else cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
     return;
   }
-  scrollPos[tab] = scrollY;
   seenTab[tab] = Date.now(); seenTab[next] = Date.now(); store.set('seenTab', seenTab);
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
@@ -1090,10 +1101,18 @@ function setTab(next, opts = {}) {
   // searching: the field sits under the top bar, the page stands still and only the results scroll, so the phone has
   // no reason to push the page up when the keyboard comes
   document.documentElement.classList.toggle('searching', tab === 'search');
-  if (tab === 'search') { loadIndex(); list.scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
+  if (tab === 'search') { loadIndex(); cur().scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
   $('freshPill').hidden = true;
-  render({ view: !opts.swipe, adopt: opts.adopt });
-  scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
+  if (opts.swipe) {   // the page is in view already, drawn beforehand: only what is around it follows
+    if (!cur().dataset.ver) draw(tab);
+    if (data) renderDots(stories());
+    drawSoon();
+  } else {
+    render({ view: true });
+    if (opts.top) cur().scrollTop = 0;
+    showPage(tab);
+  }
+  onPageScroll();
 }
 // everything the radar read in the last two days, fetched only when someone searches
 let searchLoaded = 0;
@@ -1310,7 +1329,7 @@ $('list').addEventListener('pointerdown', e => {
 });
 $('list').addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
 for (const ev of ['pointerup', 'pointercancel']) $('list').addEventListener(ev, cancelPress);
-addEventListener('scroll', cancelPress, { passive: true });
+document.addEventListener('scroll', cancelPress, { capture: true, passive: true });
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 $('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
