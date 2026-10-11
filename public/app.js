@@ -1013,12 +1013,13 @@ load();
   const NS = 'http://www.w3.org/2000/svg', mask = $('inkMask');
   // the nib: a flat reed 50 wide, held at 60 degrees, stamped every 1.5 units and shown when the pen arrives. Going
   // up the first leg it moves almost along its own edge, so the line is a hairline (10); from the top of the loop on
-  // it lies fuller on the paper (26), and the broad part comes only as it crosses back along the line
+  // it lies fuller on the paper (34, so no hair of the loop shows through while it writes), and the broad part comes
+  // only as it crosses back along the line
   const write = (path, start, dur, thin) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
     for (let i = 0; i <= n; i++) {
       const len = L * i / n, p = path.getPointAtLength(len), r = document.createElementNS(NS, 'rect');
-      const t = thin ? 10 + 16 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26;
+      const t = thin ? 10 + 24 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26;
       const x = Math.acos(1 - 2 * (i / n)) / Math.PI;      // the pen speeds up and slows down (sine ease)
       r.setAttribute('class', 'nib');
       r.setAttribute('x', (p.x - 25).toFixed(1)); r.setAttribute('y', (p.y - t / 2).toFixed(1));
