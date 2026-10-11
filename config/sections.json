@@ -80,7 +80,12 @@
     "enhedslisten", "Radikale", "Konservative", "liberal alliance", "statsminister", "partileder", "løkke",
     "troels lund", "messerschmidt", "vanopslagh", "olsen dyhr", "dragsted", "søren gade", "hummelgaard",
     "dybvad", "finansforslag", "åbningsdebat", "kommunalvalg", "folketingsvalg", "indfødsret", "ghetto",
-    "parallelsamfund", "udvisning"
+    "parallelsamfund", "udvisning",
+    "nato=", "sikkerhedsråd", "security council", "veto", "hormuz", "bab el-mandeb", "bab al-mandab", "suez",
+    "bosporus", "militærbase", "military base", "militærkup", "statskup", "coup=", "atomvåben", "nuclear",
+    "blokade", "blockade", "fredsplan", "peace plan", "fredsaftale", "peace deal", "normalisering", "normaliz",
+    "stormagt", "great power", "superpower", "pentagon", "kreml", "kremlin", "det hvide hus", "white house",
+    "brics", "imf=", "الناتو", "مجلس الأمن", "هرمز", "باب المندب", "انقلاب", "حصار"
   ],
   "core_dk": [
     "muslim", "islam", "moské", "imam", "koran", "tørklæde", "hijab", "niqab", "burka", "halal", "ramadan",
