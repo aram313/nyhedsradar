@@ -572,16 +572,12 @@ function quotesFor(sec) {
   return day ? day.topics.filter(tp => tp.section === sec).flatMap(tp => tp.lines.filter(l => l.who)) : [];
 }
 const quoteCard = (l, pick) => `<a class="quote"${pick ? ' data-pick' : ''} href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;
-// 'Vis N mere fra døgnet' – preview variants (?more=a|b|c|d) while the owner chooses
+// 'N mere fra døgnet': a row with the hidden stories' small pictures, a chevron at the end; 'Vis færre' folds them back
 function moreButton(sec, rest, fold) {
-  const v = params.get('more') || '', chev = '<svg aria-hidden="true"><use href="#i-chev"/></svg>', n = rest.length;
-  if (!fold) return `<div class="more-wrap"><button class="pill-more up" data-top-more="${sec}">Vis færre${chev}</button></div>`;
-  if (v === 'a') return `<button class="mv-a" data-top-more="${sec}"><span>${n} mere fra døgnet</span>${chev}</button>`;
-  if (v === 'b') return `<button class="mv-b" data-top-more="${sec}"><span class="mv-pics">${rest.slice(0, 4).map(i => i.thumb
-    ? `<img src="${esc(THUMBS + i.thumb)}" alt="" onerror="this.replaceWith(document.createElement('i'))">` : '<i></i>').join('')}</span><span>${n} mere fra døgnet</span>${chev}</button>`;
-  if (v === 'c') return `<button class="mv-c" data-top-more="${sec}"><span class="mv-next">${bold(rest[0].title, rest[0].kw)}</span><span class="mv-count">+ ${n - 1} mere${chev}</span></button>`;
-  if (v === 'd') return `<button class="mv-d" data-top-more="${sec}"><i></i><span>${n} mere</span><i></i></button>`;
-  return `<div class="more-wrap"><button class="pill-more" data-top-more="${sec}">Vis ${n} mere fra døgnet${chev}</button></div>`;
+  const chev = '<svg aria-hidden="true"><use href="#i-chev"/></svg>';
+  if (!fold) return `<button class="mv-b up" data-top-more="${sec}"><span>Vis færre</span>${chev}</button>`;
+  return `<button class="mv-b" data-top-more="${sec}"><span class="mv-pics">${rest.slice(0, 4).map(i => i.thumb
+    ? `<img src="${esc(THUMBS + i.thumb)}" alt="" onerror="this.replaceWith(document.createElement('i'))">` : '<i></i>').join('')}</span><span>${rest.length} mere fra døgnet</span>${chev}</button>`;
 }
 function sectionPage(sec, all, opts) {
   const list = all.filter(i => inSection(i, sec));

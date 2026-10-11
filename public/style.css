@@ -444,14 +444,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 html, body, body *:not(input):not(textarea) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iPhone wants it on every element */
 input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 
-/* 'Vis 4 mere fra døgnet': a small pill under the pictures, not a full-width button */
-/* centred by its row (not by auto margins on a flex button) and with a real chevron, so iPhone draws it like the rest */
-.more-wrap { margin: 4px 0 12px; text-align: center; }
-.pill-more { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 0 14px 0 16px;
-  border-radius: 999px; background: var(--fill-2); color: var(--text); font-size: 13.5px; font-weight: 650; line-height: 1; white-space: nowrap; }
-.pill-more svg { flex: none; width: 14px; height: 14px; transform: rotate(90deg); transition: transform .25s; }
-.pill-more.up svg { transform: rotate(-90deg); }
-.pill-more:active { transform: scale(.96); }
+
 
 /* the pair's shared panel: the tapped card gets a quiet frame, its story opens under both cards */
 .duo-wrap { margin: 0 0 6px; }
@@ -548,22 +541,13 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .owner .wide, .owner .wide.soft { width: 100%; margin: 0; }
 .owner .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-/* preview variants of 'Vis N mere fra døgnet' (?more=a|b|c|d) */
-.mv-a { display: flex; align-items: center; justify-content: space-between; width: calc(100% - 32px); margin: 6px 16px 4px; padding: 12px 0 10px;
-  border-top: 1px solid var(--line); font-size: 15px; font-weight: 650; color: var(--text); }
-.mv-a svg { width: 16px; height: 16px; transform: rotate(90deg); color: var(--text-3); }
+/* 'N mere fra døgnet' under the pictures of a section page: the hidden stories' pictures as small overlapping circles */
 .mv-b { display: flex; align-items: center; gap: 10px; width: calc(100% - 32px); margin: 6px 16px 6px; padding: 10px 0; border-top: 1px solid var(--line);
   font-size: 14.5px; font-weight: 650; }
 .mv-b .mv-pics { display: flex; }
 .mv-b .mv-pics img, .mv-b .mv-pics i { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; filter: grayscale(1) contrast(1.06);
   box-shadow: 0 0 0 2px var(--fill); background: var(--fill-2); }
 .mv-b .mv-pics > * + * { margin-left: -9px; }
-.mv-b svg { width: 16px; height: 16px; margin-left: auto; transform: rotate(90deg); color: var(--text-3); }
-.mv-c { display: block; width: calc(100% - 32px); margin: 6px 16px 4px; padding: 11px 0 9px; border-top: 1px solid var(--line); text-align: left; }
-.mv-c .mv-next { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; font-size: 15px; color: var(--text-2); }
-.mv-c .mv-next b { font-weight: 650; color: var(--text); }
-.mv-c .mv-count { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--text-3); }
-.mv-c svg { width: 13px; height: 13px; transform: rotate(90deg); }
-.mv-d { display: flex; align-items: center; gap: 10px; width: calc(100% - 32px); margin: 8px 16px 8px; padding: 6px 0; font-size: 12px; font-weight: 750;
-  letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
-.mv-d i { flex: 1; height: 1px; background: var(--line); }
+.mv-b svg { width: 16px; height: 16px; margin-left: auto; transform: rotate(90deg); color: var(--text-3); transition: transform .25s; }
+.mv-b.up svg { transform: rotate(-90deg); }
+.mv-b:active { opacity: .6; }
