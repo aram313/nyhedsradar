@@ -210,7 +210,7 @@ function thumb(source, file) {
 }
 function meta(i, opts = {}) {
   const m = [];
-  if (i.big && !opts.top) m.push('<span class="big">Topnyhed</span>');   // under 'Vigtigst i dag' it goes without saying
+  if (i.big && !opts.top) m.push('<span class="big">Topnyhed</span>');   // under 'Døgnets vigtigste' it goes without saying
   if (opts.tag) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);   // mixed lists say where it belongs
   m.push(`<span class="src">${esc(i.source)}</span>`);
   if (!opts.tick) m.push(`<span>${opts.clock ? 'kl. ' + clock(i.published || i.found) : ago(i.published || i.found)}</span>`);   // the ticker has its own time column
@@ -342,6 +342,7 @@ async function loadArchive() {
 // earlier days: one row each, opened in place
 // earlier days: the last three always in view (one row each, opened in place), the rest behind 'Vis flere dage'
 let archAll = false;
+const topOpen = new Set();   // sections whose 'Døgnets vigtigste' is unfolded
 function archive() {
   if (!moves) {
     if (archiveState === 'idle') setTimeout(loadArchive, 0);   // fetched as soon as the front page shows
@@ -362,7 +363,7 @@ function archive() {
 }
 
 // ---------------------------------------------------------------- render: pages
-// headings: a block ('Vigtigst i dag') is a large title; a day ('I dag', 'I går') is a coloured marker
+// headings: a block ('Døgnets vigtigste') is a large title; a day ('I dag', 'I går') is a coloured marker
 // that stays at the top while its stories scroll past
 const blockHead = (title, more) => `<div class="block-h"><h2><i class="live"></i>${title}</h2>${more || ''}</div>`;
 function timeline(list, opts, n0 = 0) {
@@ -386,7 +387,7 @@ function home(all, opts) {
   // the day in one line from the editor, above everything
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
   let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
-  html += `<section class="block top">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
+  html += `<section class="block top">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
   // one glance into each section: its strongest story not shown above, a tap away
   const shown = new Set(now.map(i => i.id));
@@ -427,10 +428,14 @@ function sectionPage(sec, all, opts) {
   const withPic = top.filter(i => i.thumb);
   const lead = withPic[0], duo = withPic.slice(1, 3).length === 2 ? withPic.slice(1, 3) : [];
   const rest = top.filter(i => i !== lead && !duo.includes(i));
-  let html = `<section class="block top">${blockHead('Vigtigst i dag')}`;
+  let html = `<section class="block top">${blockHead('Døgnets vigtigste')}`;
   if (lead) html += heroStory(lead, 0, { ...opts, top: true, tag: false });
   if (duo.length) html += `<div class="duo">${duo.map((i, n) => cardStory(i, n + 1, opts)).join('')}</div>`;
-  html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('') + '</section>';
+  // the rest of the day's top folds away, so the latest news follow right after the pictures
+  const fold = (lead || duo.length) && !topOpen.has(sec);
+  if (!fold) html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('');
+  if (rest.length && (lead || duo.length)) html += `<button class="wide soft" data-top-more="${sec}">${fold ? `Vis ${rest.length} mere fra døgnet` : 'Vis færre'}</button>`;
+  html += '</section>';
   // the list, with a quote from the recap after every fifth story
   const ids = new Set(top.map(i => i.id)), quotes = quotesFor(sec);
   let body = timeline(list.filter(i => !ids.has(i.id)), opts, top.length), k = 0, seen = 0;
@@ -605,6 +610,8 @@ $('list').addEventListener('click', async e => {
   }
   if (t.closest('[data-archive]')) { loadArchive(); return; }
   if (t.closest('[data-arch-all]')) { archAll = true; render(); return; }
+  const more = t.closest('[data-top-more]');
+  if (more) { const k = more.dataset.topMore; topOpen.has(k) ? topOpen.delete(k) : topOpen.add(k); render(); return; }
   if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; daysOpen.has(c) ? daysOpen.delete(c) : daysOpen.add(c); render(); return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;

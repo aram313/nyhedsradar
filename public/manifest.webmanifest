@@ -22,7 +22,7 @@
     { "name": "Seneste", "url": "./?tab=latest", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
   ],
   "screenshots": [
-    { "src": "screens/forside.jpg", "sizes": "1080x1920", "type": "image/jpeg", "form_factor": "narrow", "label": "Vigtigst i dag" },
+    { "src": "screens/forside.jpg", "sizes": "1080x1920", "type": "image/jpeg", "form_factor": "narrow", "label": "Døgnets vigtigste" },
     { "src": "screens/overblik.jpg", "sizes": "1080x1920", "type": "image/jpeg", "form_factor": "narrow", "label": "Dagens resumé" }
   ]
 }

@@ -84,7 +84,7 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   sources, big stories and silent share/copy/open signals only.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- The front page stays finite and compact: 'Vigtigst i dag' first, then the latest recap ('Resumé', written once a day at 21,
+- The front page stays finite and compact: 'Døgnets vigtigste' first, then the latest recap ('Resumé', written once a day at 21,
   titled with the date, short 'Who: what' lines in Al Jazeera's breaking style, no summaries and no 'Også' row – owner's
   request 2026-10-10), then earlier days; the full mixed list lives in 'Seneste'. Colour is minimal (the owner found section-coloured labels
   'in your face'): a small section dot on mixed lists, red only for big stories and 'live'. Headlines guide the eye
