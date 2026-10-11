@@ -4,7 +4,7 @@
 $ErrorActionPreference = 'Stop'
 $alphabet = 'abcdefghjkmnpqrstuvwxyz23456789'   # no 0/o, 1/l/i: easy to type on a phone
 $bytes = New-Object byte[] 16
-[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)   # works in Windows PowerShell 5 too
 $chars = $bytes | ForEach-Object { $alphabet[$_ % $alphabet.Length] }
 $code = (0..3 | ForEach-Object { -join $chars[($_ * 4)..($_ * 4 + 3)] }) -join '-'
 
