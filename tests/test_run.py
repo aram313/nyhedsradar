@@ -207,3 +207,17 @@ def test_hub_pages_are_noise():
     assert hub('World News and Headlines')
     assert not hub('Fox News host says Iran talks are over')
     assert not hub('Israel fires on Gaza, latest attack in weeks')
+
+
+def test_the_same_event_in_another_city_is_another_story():
+    import numpy as np
+    from radar.run import clusters, place_finder
+    find = place_finder({'copenhagen': ['Copenhagen', 'København'], 'london': ['London', 'لندن']})
+    assert find('Tusinder demonstrerer i København') == {'copenhagen'}
+    assert find("London's streets fill") == {'london'} and find('مظاهرة في لندن') == {'london'}
+    assert find('Londonderry votes') == frozenset()
+    e = np.array([[1, 0], [0.9, 0.436], [0.95, 0.312]], dtype=np.float32)
+    e /= np.linalg.norm(e, axis=1, keepdims=True)
+    cities = [find('Protest in Copenhagen'), find('Protest in London'), find('Protests across Europe')]
+    assert clusters(e, range(3), 0.75) == [[0, 1, 2]]                                   # no cities known: one story
+    assert clusters(e, range(3), 0.75, places=cities, other_city=0.98) == [[0], [1, 2]]   # two cities: two stories

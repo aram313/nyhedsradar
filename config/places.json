@@ -1,0 +1,346 @@
+{
+ "_help": "Cities that tell two stories apart: headlines about the same kind of event in different cities (a protest in Copenhagen, one in London) are never one story. Each city: its spellings in Danish, English and Arabic. Only cities – a country is often named by both sides of one story. Capitals that stand for their government ('Moscow says', 'Washington warns') are left out, and Dubai has no Arabic spelling (the airline flydubai).",
+ "copenhagen": [
+  "Copenhagen",
+  "København",
+  "Københavns",
+  "كوبنهاغن",
+  "كوبنهاجن"
+ ],
+ "aarhus": [
+  "Aarhus",
+  "Århus",
+  "آرهوس"
+ ],
+ "odense": [
+  "Odense"
+ ],
+ "aalborg": [
+  "Aalborg",
+  "Ålborg"
+ ],
+ "malmo": [
+  "Malmö",
+  "Malmø",
+  "Malmo",
+  "مالمو"
+ ],
+ "stockholm": [
+  "Stockholm",
+  "ستوكهولم"
+ ],
+ "gothenburg": [
+  "Gothenburg",
+  "Göteborg",
+  "Gøteborg"
+ ],
+ "oslo": [
+  "Oslo",
+  "أوسلو"
+ ],
+ "helsinki": [
+  "Helsinki",
+  "Helsingfors",
+  "هلسنكي"
+ ],
+ "london": [
+  "London",
+  "لندن"
+ ],
+ "manchester": [
+  "Manchester",
+  "مانشستر"
+ ],
+ "glasgow": [
+  "Glasgow"
+ ],
+ "dublin": [
+  "Dublin",
+  "دبلن"
+ ],
+ "paris": [
+  "Paris",
+  "باريس"
+ ],
+ "berlin": [
+  "Berlin",
+  "برلين"
+ ],
+ "hamburg": [
+  "Hamburg",
+  "هامبورغ"
+ ],
+ "munich": [
+  "Munich",
+  "München",
+  "ميونخ"
+ ],
+ "amsterdam": [
+  "Amsterdam",
+  "أمستردام"
+ ],
+ "brussels": [
+  "Brussels",
+  "Bruxelles",
+  "بروكسل"
+ ],
+ "vienna": [
+  "Vienna",
+  "Wien",
+  "فيينا"
+ ],
+ "geneva": [
+  "Geneva",
+  "Genève",
+  "جنيف"
+ ],
+ "rome": [
+  "Rome",
+  "Rom",
+  "روما"
+ ],
+ "milan": [
+  "Milan",
+  "Milano",
+  "ميلانو"
+ ],
+ "madrid": [
+  "Madrid",
+  "مدريد"
+ ],
+ "barcelona": [
+  "Barcelona",
+  "برشلونة"
+ ],
+ "athens": [
+  "Athens",
+  "Athen",
+  "أثينا"
+ ],
+ "warsaw": [
+  "Warsaw",
+  "Warszawa",
+  "وارسو"
+ ],
+ "prague": [
+  "Prague",
+  "Prag",
+  "براغ"
+ ],
+ "budapest": [
+  "Budapest",
+  "بودابست"
+ ],
+ "new york": [
+  "New York",
+  "نيويورك"
+ ],
+ "los angeles": [
+  "Los Angeles",
+  "لوس أنجلوس"
+ ],
+ "chicago": [
+  "Chicago",
+  "شيكاغو"
+ ],
+ "toronto": [
+  "Toronto",
+  "تورنتو"
+ ],
+ "sydney": [
+  "Sydney",
+  "سيدني"
+ ],
+ "melbourne": [
+  "Melbourne",
+  "ملبورن"
+ ],
+ "istanbul": [
+  "Istanbul",
+  "إسطنبول",
+  "اسطنبول"
+ ],
+ "ankara": [
+  "Ankara",
+  "أنقرة"
+ ],
+ "cairo": [
+  "Cairo",
+  "Kairo",
+  "القاهرة"
+ ],
+ "amman": [
+  "Amman"
+ ],
+ "beirut": [
+  "Beirut",
+  "بيروت"
+ ],
+ "damascus": [
+  "Damascus",
+  "Damaskus",
+  "دمشق"
+ ],
+ "aleppo": [
+  "Aleppo",
+  "حلب"
+ ],
+ "baghdad": [
+  "Baghdad",
+  "Bagdad",
+  "بغداد"
+ ],
+ "riyadh": [
+  "Riyadh",
+  "Riyad",
+  "الرياض"
+ ],
+ "jeddah": [
+  "Jeddah",
+  "Jidda",
+  "جدة"
+ ],
+ "mecca": [
+  "Mecca",
+  "Makkah",
+  "Mekka",
+  "مكة"
+ ],
+ "doha": [
+  "Doha",
+  "الدوحة"
+ ],
+ "dubai": [
+  "Dubai"
+ ],
+ "abu dhabi": [
+  "Abu Dhabi",
+  "أبوظبي",
+  "أبو ظبي"
+ ],
+ "sanaa": [
+  "Sanaa",
+  "Sana'a",
+  "صنعاء"
+ ],
+ "aden": [
+  "Aden",
+  "عدن"
+ ],
+ "khartoum": [
+  "Khartoum",
+  "الخرطوم"
+ ],
+ "tripoli": [
+  "Tripoli",
+  "طرابلس"
+ ],
+ "tunis": [
+  "Tunis",
+  "تونس العاصمة"
+ ],
+ "algiers": [
+  "Algiers",
+  "Algier",
+  "الجزائر العاصمة"
+ ],
+ "rabat": [
+  "Rabat",
+  "الرباط"
+ ],
+ "jerusalem": [
+  "Jerusalem",
+  "القدس"
+ ],
+ "tel aviv": [
+  "Tel Aviv",
+  "تل أبيب"
+ ],
+ "ramallah": [
+  "Ramallah",
+  "رام الله"
+ ],
+ "jenin": [
+  "Jenin",
+  "جنين"
+ ],
+ "nablus": [
+  "Nablus",
+  "نابلس"
+ ],
+ "hebron": [
+  "Hebron",
+  "Al-Khalil",
+  "الخليل"
+ ],
+ "bethlehem": [
+  "Bethlehem",
+  "Betlehem",
+  "بيت لحم"
+ ],
+ "tulkarm": [
+  "Tulkarm",
+  "Tulkarem",
+  "طولكرم"
+ ],
+ "gaza city": [
+  "Gaza City",
+  "Gaza by",
+  "مدينة غزة"
+ ],
+ "khan younis": [
+  "Khan Younis",
+  "Khan Yunis",
+  "خان يونس"
+ ],
+ "rafah": [
+  "Rafah",
+  "رفح"
+ ],
+ "deir al-balah": [
+  "Deir al-Balah",
+  "Deir el-Balah",
+  "دير البلح"
+ ],
+ "kabul": [
+  "Kabul",
+  "كابل"
+ ],
+ "islamabad": [
+  "Islamabad",
+  "إسلام آباد"
+ ],
+ "karachi": [
+  "Karachi",
+  "كراتشي"
+ ],
+ "lahore": [
+  "Lahore",
+  "لاهور"
+ ],
+ "new delhi": [
+  "New Delhi",
+  "Delhi",
+  "نيودلهي"
+ ],
+ "mumbai": [
+  "Mumbai",
+  "مومباي"
+ ],
+ "dhaka": [
+  "Dhaka",
+  "دكا"
+ ],
+ "jakarta": [
+  "Jakarta",
+  "جاكرتا"
+ ],
+ "kuala lumpur": [
+  "Kuala Lumpur",
+  "كوالالمبور"
+ ],
+ "tokyo": [
+  "Tokyo",
+  "طوكيو"
+ ]
+}

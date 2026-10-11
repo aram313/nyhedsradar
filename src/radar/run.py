@@ -145,29 +145,54 @@ def top_share(scores_sorted, s):
     return int(100 * (np.searchsorted(scores_sorted, s, side='right') - 1) / (n - 1))
 
 
-def clusters(emb, order, threshold, langs=None, strict=None):
+def place_finder(cfg):
+    """The cities a headline names (config/places.json): Latin spellings as whole words (a Danish genitive -s
+    allowed), Arabic ones anywhere in the word, since Arabic glues 'in' and 'to' onto the name."""
+    pats = []
+    for city, names in cfg.items():
+        if city.startswith('_'):
+            continue
+        latin = [re.escape(n) for n in names if not re.search('[؀-ۿ]', n)]
+        arabic = [re.escape(n) for n in names if re.search('[؀-ۿ]', n)]
+        parts = ([r'\b(?:' + '|'.join(latin) + r")(?:'?s)?\b"] if latin else []) + (['|'.join(arabic)] if arabic else [])
+        pats.append((city, re.compile('|'.join(parts))))
+    return lambda text: frozenset(city for city, pat in pats if pat.search(text or ''))
+
+
+def clusters(emb, order, threshold, langs=None, strict=None, places=None, other_city=1.01):
     """Group items about the same story. Each item joins the existing story whose centre it is
     closest to (if close enough), otherwise starts a new one. Comparing with the centre rather
     than with any single member keeps a day of different Gaza stories from melting into one."""
-    centres, sums, groups, glang = [], [], [], []
+    centres, sums, groups, glang, gcity = [], [], [], [], []
     strict = strict or {}
     for i in order:
         e = emb[i]
         lang = langs[i] if langs else ''
+        city = places[i] if places else frozenset()
+        joined = False
         if centres:
             sims = np.array(centres) @ e
-            j = int(sims.argmax())
-            # the model rates any two texts in some languages (Arabic) as rather alike – some unrelated Arabic
-            # headlines land almost on top of each other – so a story made only of such texts needs a closer
-            # match (settings: same_story_strict; above 1 means such texts never join each other)
-            need = strict.get(lang, threshold) if glang[j] == {lang} else threshold
-            if sims[j] >= need:
-                glang[j].add(lang)
-                groups[j].append(i)
-                sums[j] = sums[j] + e
-                centres[j] = sums[j] / np.linalg.norm(sums[j])
-                continue
-        centres.append(e.copy()); sums.append(e.copy()); groups.append([i]); glang.append({lang})
+            for j in np.argsort(-sims)[:5]:
+                # the model rates any two texts in some languages (Arabic) as rather alike – some unrelated Arabic
+                # headlines land almost on top of each other – so a story made only of such texts needs a closer
+                # match (settings: same_story_strict; above 1 means such texts never join each other)
+                need = strict.get(lang, threshold) if glang[j] == {lang} else threshold
+                # the same kind of event in another city (a protest in Copenhagen, one in London) is another story
+                # unless the texts are all but the same (settings: same_story_other_city)
+                if city and gcity[j] and not city & gcity[j]:
+                    need = max(need, other_city)
+                if sims[j] >= need:
+                    glang[j].add(lang)
+                    gcity[j] = gcity[j] | city
+                    groups[j].append(i)
+                    sums[j] = sums[j] + e
+                    centres[j] = sums[j] / np.linalg.norm(sums[j])
+                    joined = True
+                    break
+                if sims[j] < threshold:
+                    break
+        if not joined:
+            centres.append(e.copy()); sums.append(e.copy()); groups.append([i]); glang.append({lang}); gcity.append(city)
     return groups
 
 
@@ -222,6 +247,8 @@ def main():
                 for f in feeds}
     hint = {f['name']: f['sec'] for f in feeds if f.get('sec')}   # where a source's stories usually belong
     sections = Sections(load(CONFIG / 'sections.json', {}))
+    find_cities = place_finder(load(CONFIG / 'places.json', {}))
+    city_of = lambda it: find_cities(f"{it['title']} {it.get('title_tr') or ''}")
 
     items = load(STATE / 'items.json', {})          # id -> every scored item from the last keep_hours
     seen = load(STATE / 'seen.json', {})            # id -> first seen; stops dropped items coming back
@@ -402,7 +429,8 @@ def main():
         emb = np.array([emb_store[k] for k in recent])
         stories = [story([items[recent[i]] for i in g]) for g in
                    clusters(emb, range(len(recent)), s['same_story_similarity'],
-                            [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {}))]
+                            [items[k].get('lang', '') for k in recent], s.get('same_story_strict', {}),
+                            [city_of(items[k]) for k in recent], s.get('same_story_other_city', 1.01))]
         # second look: two cards whose headlines say the same thing (often one Danish, one English) become
         # one story. Only the cards are compared, best story first, so different stories never chain together;
         # Arabic cards are left alone because the model finds all Arabic headlines rather alike.
@@ -413,7 +441,8 @@ def main():
             if lead.get('lang') in READABLE and keys:
                 sims = np.array(keys) @ emb_store[lead['id']]
                 j = int(sims.argmax())
-                if sims[j] >= s['same_story_merge']:
+                a, b = city_of(lead), city_of(joined[where[j]][0])
+                if sims[j] >= (s.get('same_story_other_city', 1.01) if a and b and not a & b else s['same_story_merge']):
                     joined[where[j]] = story(joined[where[j]] + st)
                     continue
             joined.append(st)
