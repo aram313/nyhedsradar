@@ -265,11 +265,14 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
   box-shadow: 0 -1px 0 var(--line), 0 -6px 18px rgba(0, 0, 0, .05); }
 .keyboard .dock { padding-bottom: 0; }
 .keyboard .tabs { display: none; }   /* while typing a search only the field sits above the keyboard */
-.tabs { display: grid; grid-template-columns: repeat(6, 1fr); max-width: 640px; margin: 0 auto; }
+.tabs { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); max-width: 640px; margin: 0 auto; touch-action: none; }
+.tab-pill { position: absolute; left: 0; top: 0; z-index: 0; width: 54px; height: 29px; border-radius: 15px; background: var(--fill-2);
+  pointer-events: none; opacity: 0; will-change: transform; }
+.tabs button > svg, .tabs button > span { position: relative; z-index: 1; }   /* above the pill; the dots keep their own place */
 .tabs button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   min-height: 56px; padding-top: 3px; font-size: 10.5px; font-weight: 600; letter-spacing: 0; color: var(--text-2); transition: color .2s; }
 .tabs button svg { width: 25px; height: 25px; padding: 1px 0; border-radius: 13px; box-sizing: content-box; transition: transform .18s var(--out), background-color .2s; }
-.tabs button[aria-selected="true"] svg { width: 25px; padding: 1px 16px; background: var(--fill-2); }
+.tabs button.scrub { color: var(--text); }
 .tabs button:active svg { transform: scale(.88); }
 .tabs button[aria-selected="true"] { color: var(--text); font-weight: 750; }
 .tab-dot { position: absolute; top: 6px; left: calc(50% + 8px); width: 7px; height: 7px; border-radius: 50%; background: var(--pulse);
@@ -615,3 +618,6 @@ li.go, li.src { cursor: pointer; }
 li.go p::after { content: "›"; margin-left: 5px; font-weight: 700; color: var(--text-3); }
 li.src p::after { content: "↗"; margin-left: 5px; font-size: .85em; color: var(--text-3); }
 li.go:active, li.src:active { opacity: .6; }
+/* no rubber-band stretch of the whole page: a swipe that starts with a hair of downward movement must not make the page
+   bounce (Khabar has its own pull to refresh) */
+html, body { overscroll-behavior-y: none; }

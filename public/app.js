@@ -950,7 +950,10 @@ addEventListener('touchstart', e => {
 addEventListener('touchmove', e => {
   if (!pull) return;
   pull.d = e.touches[0].clientY - pull.y;
-  if (Math.abs(e.touches[0].clientX - pull.x) > Math.abs(pull.d) + 6) { pull = null; list.style.transform = ''; logo.classList.remove('ready'); return; }   // a sideways swipe
+  const dx = e.touches[0].clientX - pull.x;
+  if (!pull.lock && Math.hypot(dx, pull.d) > 10) pull.lock = Math.abs(pull.d) > Math.abs(dx) ? 'y' : 'x';
+  if (pull.lock === 'x') { pull = null; list.classList.remove('pulling'); logo.classList.remove('ready'); return; }   // a sideways swipe
+  if (pull.lock !== 'y') return;
   if (pull.d <= 0 || scrollY > 0) { list.style.transform = ''; return; }
   list.classList.add('pulling');
   list.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
@@ -999,10 +1002,14 @@ function peekOf(next, side) {
   const top0 = list.getBoundingClientRect().top + scrollY;
   // drawn exactly as the page will be (same wrapper, ids and all), so on release it simply becomes the page: no redraw,
   // no picture loading again, no hop
-  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px;transform:translateY(${-(scrollPos[next] || 0)}px)"><div>${pageHtml(next, stories())}</div></div>`;
+  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px"><div>${pageHtml(next, stories())}</div></div>`;
   document.body.appendChild(peek);
+  const inner = peek.firstElementChild, room = Math.max(0, inner.offsetHeight + bottomRoom() - innerHeight);
+  scrollPos[next] = Math.min(scrollPos[next] || 0, room);
+  inner.style.transform = `translateY(${-scrollPos[next]}px)`;
   return peek;
 }
+const bottomRoom = () => document.documentElement.scrollHeight - list.getBoundingClientRect().bottom - scrollY;   // below the list
 function setSwipe(x, side, transition = 'none') {
   const W = innerWidth + 12;
   list.style.transition = peek ? (peek.style.transition = transition) : transition;
@@ -1027,6 +1034,7 @@ addEventListener('touchmove', e => {
   peekOf(next, side);
   sw.dx = dx; sw.side = side; sw.next = next;
   setSwipe(dx, side);
+  pillBetween(tab, next, Math.min(1, Math.abs(dx) / innerWidth));
 }, { passive: false });
 function endSwipe() {
   if (!sw) return;
@@ -1040,19 +1048,26 @@ function endSwipe() {
   const remaining = go ? W - Math.abs(dx) : Math.abs(dx);
   const ms = reduceMotion ? 0 : Math.round(Math.min(340, Math.max(160, remaining / Math.max(Math.abs(v), 0.9))));
   const ease = `transform ${ms}ms ${SNAP}`;
+  // the end of the slide, when the browser says so (with a fallback, should the event not come)
+  const settled = fn => {
+    let done = false;
+    const run = () => { if (done) return; done = true; list.removeEventListener('transitionend', run); fn(); };
+    if (ms) { list.addEventListener('transitionend', run); setTimeout(run, ms + 120); } else run();
+  };
   if (!go) {   // back into place
     setSwipe(0, side || 1, ease);
-    setTimeout(() => { list.style.transition = ''; if (peek && !sw) { peek.remove(); peek = null; } }, ms + 20);
+    placePill(tab, true);
+    settled(() => { list.style.transition = ''; if (peek && !sw) { peek.remove(); peek = null; } });
     return;
   }
   setSwipe(-side * W, side, ease);
-  setTimeout(() => {   // the neighbour now fills the screen: make it the page, in one frame
+  settled(() => {   // the neighbour now fills the screen: make it the page, in one frame
     list.style.transition = 'none'; list.style.transform = '';
     const drawn = peek && peek.querySelector('.peek-in > div');
     setTab(next, { swipe: true, adopt: drawn });
     if (peek) { peek.remove(); peek = null; }
-    requestAnimationFrame(() => { list.style.transition = ''; });
-  }, ms + 10);
+    setTimeout(() => { list.style.transition = ''; }, 30);
+  });
 }
 addEventListener('touchend', endSwipe);
 addEventListener('touchcancel', () => { if (sw) { sw.samples = [[performance.now(), sw.x + sw.dx]]; sw.dx = 0; endSwipe(); } });
@@ -1067,6 +1082,7 @@ function setTab(next, opts = {}) {
   seenTab[tab] = Date.now(); seenTab[next] = Date.now(); store.set('seenTab', seenTab);
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
+  placePill(tab, true);
   $('title').textContent = TITLES[tab] || SECTIONS[tab];
   $('title').classList.remove('swap');
   if (!opts.swipe) { void $('title').offsetWidth; $('title').classList.add('swap'); }   // a swipe has its own motion
@@ -1094,7 +1110,72 @@ async function loadIndex() {   // fetched again after a quarter of an hour: the 
   } catch { searchState = 'error'; }
   if (tab === 'search') render();
 }
-$('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab, { top: b.dataset.tab === tab }); });
+$('tabs').addEventListener('click', e => {
+  if (scrubbed) { scrubbed = false; return; }   // a slide along the bar has chosen already
+  const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab, { top: b.dataset.tab === tab });
+});
+
+// ---------------------------------------------------------------- the tab bar: one pill that glides
+// The selected tab is marked by one pill behind its icon. It glides to a tapped tab, follows a page swipe part of the
+// way, and one can put a finger on the bar and slide along it: the pill follows the finger, the tab under it lights
+// up (a light tick on phones that have it), and lifting the finger opens that tab.
+const tabsEl = $('tabs'), pill = document.createElement('i');
+pill.className = 'tab-pill'; pill.setAttribute('aria-hidden', 'true'); tabsEl.prepend(pill);
+const tabBtn = t => tabsEl.querySelector(`[data-tab="${t}"]`);
+function pillX(t) {   // the pill's left edge under a tab's icon, relative to the bar
+  const b = tabBtn(t);
+  if (!b) return null;
+  const r = b.querySelector('svg').getBoundingClientRect(), n = tabsEl.getBoundingClientRect();
+  return { x: r.left - n.left + r.width / 2 - pill.offsetWidth / 2, y: r.top - n.top + r.height / 2 - pill.offsetHeight / 2 };
+}
+function movePill(x, y, animate) {
+  pill.style.transition = animate && !reduceMotion ? 'transform .38s cubic-bezier(.3,1.25,.4,1)' : 'none';
+  pill.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+  pill.style.opacity = 1;
+}
+function placePill(t, animate) {
+  const p = pillX(t);
+  if (p) movePill(p.x, p.y, animate); else pill.style.opacity = 0;   // the search page has no tab
+}
+addEventListener('resize', () => placePill(tab, false));
+requestAnimationFrame(() => placePill(tab, false));
+setTimeout(() => placePill(tab, false), 300);   // once the fonts have set the labels
+// a page swipe takes the pill along between the two tabs
+function pillBetween(a, b, k) {
+  const p = pillX(a), q = pillX(b);
+  if (p && q) movePill(p.x + (q.x - p.x) * k, p.y, false);
+}
+let scrub = null, scrubbed = false;
+const tabAt = x => { const bs = [...tabsEl.querySelectorAll('[data-tab]')].filter(b => !b.hidden);
+  return bs.reduce((best, b) => { const r = b.getBoundingClientRect(), d = Math.abs(x - (r.left + r.width / 2)); return !best || d < best.d ? { b, d } : best; }, null).b; };
+tabsEl.addEventListener('touchstart', e => { scrub = { x: e.touches[0].clientX, moved: false, over: tab }; }, { passive: true });
+tabsEl.addEventListener('touchmove', e => {
+  if (!scrub) return;
+  const x = e.touches[0].clientX;
+  if (!scrub.moved && Math.abs(x - scrub.x) < 8) return;
+  scrub.moved = true;
+  e.preventDefault();
+  const bs = [...tabsEl.querySelectorAll('[data-tab]')].filter(b => !b.hidden), n = tabsEl.getBoundingClientRect();
+  const first = pillX(bs[0].dataset.tab), last = pillX(bs[bs.length - 1].dataset.tab);
+  const px = Math.min(last.x, Math.max(first.x, x - n.left - pill.offsetWidth / 2));
+  movePill(px, first.y, false);
+  const over = tabAt(x).dataset.tab;
+  if (over !== scrub.over) {
+    scrub.over = over;
+    tabsEl.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('scrub', b.dataset.tab === over));
+    if (navigator.vibrate) navigator.vibrate(4);
+  }
+}, { passive: false });
+tabsEl.addEventListener('touchend', () => {
+  if (!scrub) return;
+  const { moved, over } = scrub;
+  scrub = null;
+  tabsEl.querySelectorAll('.scrub').forEach(b => b.classList.remove('scrub'));
+  if (!moved) return;   // a plain tap: the click does it
+  scrubbed = true; setTimeout(() => { scrubbed = false; }, 400);
+  if (over !== tab) setTab(over, { top: false }); else placePill(tab, true);
+});
+tabsEl.addEventListener('touchcancel', () => { scrub = null; placePill(tab, true); });
 $('openSearch').addEventListener('click', () => setTab('search', { top: true }));
 let typing;
 $('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 60); });
