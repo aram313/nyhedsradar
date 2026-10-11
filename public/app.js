@@ -929,8 +929,8 @@ addEventListener('scroll', () => {
 }, { passive: true });
 
 // ---------------------------------------------------------------- pull down to refresh: the logo answers
-// The list follows the pull; far enough down, the logo in the top bar gives a small nod, and when one lets go it
-// blinks while the news loads – the name is not shown twice.
+// The list follows the pull; far enough down, the red dot of the logo in the top bar swells, and when one lets go it
+// signals with the intro's hairline rings while the news loads – the name is not shown twice.
 let pull = null;
 const list = $('list'), logo = document.querySelector('.brand .logo');
 addEventListener('touchstart', e => {
@@ -957,13 +957,17 @@ addEventListener('touchend', async () => {
   list.classList.remove('pulling');
   list.classList.add('settling');
   logo.classList.remove('ready');
-  list.style.transform = '';
-  setTimeout(() => list.classList.remove('settling'), 420);
-  if (go) {
+  if (go) {   // the list waits a little way down until the dot has signalled to the end of a full ring
+    list.style.transform = 'translateY(48px)';
     logo.classList.add('blink');
-    await Promise.all([load(true), wait(900)]);
+    const t0 = performance.now();
+    await load(true);
+    const ring = 1400, spent = performance.now() - t0;
+    await wait(Math.max(1, Math.ceil(spent / ring)) * ring - spent);
     logo.classList.remove('blink');
   }
+  list.style.transform = '';
+  setTimeout(() => list.classList.remove('settling'), 420);
 });
 
 // ---------------------------------------------------------------- swipe left and right between the tabs

@@ -239,11 +239,16 @@ main { min-height: 70vh; }
 mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
 
 /* ------------------------------------------------------------ pull to refresh: a quiet ring, like the system's */
-/* pull to refresh: the logo nods when the pull is far enough, and blinks while the news loads */
-.brand .logo { transition: transform .2s var(--out); }
-.brand .logo.ready { transform: scale(1.12); }
-.brand .logo.blink { animation: logoBlink 1s ease-in-out infinite; }
-@keyframes logoBlink { 50% { opacity: .25; } }
+/* pull to refresh: the logo's red dot swells when the pull is far enough, and signals while the news loads – the
+   same hairline rings as in the intro */
+.logo .dot { transform-box: fill-box; transform-origin: center; transition: transform .2s var(--out), fill .4s; }
+.logo.ready .dot { transform: scale(1.35); }
+.logo .ring { fill: none; stroke: var(--pulse); stroke-width: 1.2; vector-effect: non-scaling-stroke; opacity: 0;
+  transform-box: fill-box; transform-origin: center; }
+.logo.blink .ring { animation: logoPing 1.4s cubic-bezier(.15, .55, .3, 1) infinite; }
+.logo.blink .ring.two { animation-delay: .4s; }
+.logo.blink .dot { animation: breathe 1.4s ease-in-out infinite; }
+@keyframes logoPing { 0% { transform: scale(1); opacity: .7; } 70% { transform: scale(4.2); opacity: 0; } 100% { transform: scale(4.2); opacity: 0; } }
 #list.pulling, #list.settling { will-change: transform; }
 #list.settling { transition: transform .38s var(--out); }
 
@@ -345,7 +350,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 @keyframes shimmer { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .brand .logo.blink { animation-duration: 2s; }
+  .logo.blink .ring { animation: none; }
 }
 @media (min-width: 700px) {
   main, .bar > .brand { max-width: 680px; }
