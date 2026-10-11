@@ -1015,6 +1015,10 @@ load();
   // up the first leg it moves almost along its own edge, so the line is a hairline (10); from the top of the loop on
   // it lies fuller on the paper (34, so no hair of the loop shows through while it writes), and the broad part comes
   // only as it crosses back along the line
+  // The first leg passes behind the line: while it and the loop are written, the line's band stays hidden where they
+  // cross (only the little tail below shows); the band comes when the pen crosses back.
+  const behind = document.createElementNS(NS, 'g');
+  behind.setAttribute('clip-path', 'url(#inkBehind)'); mask.appendChild(behind);
   const write = (path, start, dur, thin) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
     for (let i = 0; i <= n; i++) {
@@ -1026,7 +1030,7 @@ load();
       r.setAttribute('width', 50); r.setAttribute('height', t.toFixed(1)); r.setAttribute('fill', '#fff');
       r.setAttribute('transform', `rotate(-60 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
       r.style.setProperty('--t', (start + x * dur).toFixed(3) + 's');
-      mask.appendChild(r);
+      (thin && len < 200 ? behind : mask).appendChild(r);
     }
   };
   const fill = at => {   // the last hair the nib missed: the whole word, settled at once when the pen lifts
