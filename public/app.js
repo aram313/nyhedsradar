@@ -675,10 +675,23 @@ function sectionPage(sec, all, opts) {
   body = body.replace(/<\/article>/g, m => (++seen % 5 === 0 && k < quotes.length ? m + quoteCard(quotes[k++]) : m));
   return html + body;
 }
-// everything as it comes in, all sections mixed, newest first
+// Live, sorted two ways, chosen at the top (the phone remembers which): 'Seneste' – everything as it comes in, all
+// sections mixed, newest first; 'Vigtigste' – the last 24 hours by weight: the editor's picks in its order, then the
+// radar's strongest, with pictures
+let liveSort = store.get('liveSort', 'new'), liveTopAll = false;
 function latestPage(all, opts) {
+  const seg = `<div class="seg two live-seg" role="radiogroup" aria-label="Sortér">${[['new', 'Seneste'], ['top', 'Vigtigste']].map(([v, l]) =>
+    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div>`;
+  if (liveSort === 'top') {
+    const day = all.filter(i => hours(i) < 24);
+    const list = [...day.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b)),
+      ...day.filter(i => pickRank(i) === 99).sort((a, b) => rankOf(b) - rankOf(a))];
+    const shown = liveTopAll ? list : list.slice(0, 30);
+    return seg + shown.map((i, n) => story(i, n, { ...opts, tag: true, top: true })).join('')
+      + (shown.length < list.length ? `<button class="wide soft" data-live-top-all>Vis flere (${list.length - shown.length})</button>` : '');
+  }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = timeline(recent, { ...opts, tag: true, tick: true });
+  let html = seg + timeline(recent, { ...opts, tag: true, tick: true });
   if (recent.length < all.length) html += `<button class="wide soft" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -995,6 +1008,7 @@ function openInLive(id) {
   const i = findStory(id);
   if (!i) return;
   if (!latestAll && hours(i) >= 24) latestAll = true;
+  liveSort = 'new';   // found by its time; the phone's own choice returns next time
   expanded.clear(); expanded.add(i.id);
   if (tab === 'latest') render(); else setTab('latest', { top: true });
   scrollToEl(pg$('s-' + i.id));   // the page is laid out by now: straight there, headline just below the top bar
@@ -1093,6 +1107,9 @@ $('list').addEventListener('click', async e => {
     if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
+  const ls = t.closest('[data-live-sort]');
+  if (ls) { liveSort = ls.dataset.liveSort; store.set('liveSort', liveSort); expanded.clear(); render(); cur().scrollTop = 0; return; }
+  if (t.closest('[data-live-top-all]')) { liveTopAll = true; render(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
   else if (t.closest('[data-copy]')) { if (await copyText(shareText(i))) { toast('Kopieret'); markShared(i); } }

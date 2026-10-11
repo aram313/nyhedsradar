@@ -729,3 +729,5 @@ div.thr-head { padding-right: 14px; }
 .ud-h { margin-top: 24px; }
 .ud-all { margin: 2px 12px 0; width: calc(100% - 24px); }
 .ud-arch { margin-top: 24px; }
+/* Live: Seneste or Vigtigste */
+.live-seg { margin: 12px 16px 6px; }

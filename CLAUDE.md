@@ -111,7 +111,7 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   the editor's order, each a card with its lines of the day, newest first, that unfolds into the whole development across
   the days ('Hele forløbet'); then 'Fulgt de seneste dage' (developments the day has not touched); then 'Tidligere dage'
   (whole recaps, to read or share). A development tapped elsewhere opens unfolded; the recap notification (?digest=1)
-  opens the page at the top. The name is 'Live' everywhere. Foreign headlines show in Danish by default (the editor's
+  opens the page at the top. The name is 'Live' everywhere; Live sorts 'Seneste' or 'Vigtigste' (the editor's picks, then rank; remembered per phone). Foreign headlines show in Danish by default (the editor's
   checked Danish first, else the machine's; the opened story names the original). The intro plays on the first visit and
   after six hours away, else the app opens straight in. Text size follows the phone (iPhone Dynamic Type) or the setting
   (every font size is `calc(Npx * var(--ts, 1))`, --ts set on #list). Old news: only the box on the page, the top bar stays
