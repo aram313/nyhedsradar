@@ -866,13 +866,24 @@ $('search').addEventListener('keydown', e => { if (e.key === 'Enter') $('search'
 $('searchClear').addEventListener('click', () => { query = ''; $('search').value = ''; $('search').focus(); render(); });
 $('status').addEventListener('click', () => { $('status').textContent = 'opdaterer …'; load(true); });
 
-// keep the dock (search field + tabs) right above the keyboard, and tell the layout how tall it is
+// keep the dock (search field + tabs) right above the keyboard, and tell the layout how tall the visible part is.
+// On iPhone the page can slide under an open keyboard when it is scrolled, so this follows the visible area's every
+// move (scroll as well as resize); --vvh is the height one can actually see, which in the browsers inside Messenger
+// or a text message is less than the screen (their own bars cover the rest)
 const vv = window.visualViewport;
-if (vv) vv.addEventListener('resize', () => {
-  const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop);
-  document.documentElement.style.setProperty('--kb', kb + 'px');
+let vvFrame = 0;
+function syncViewport() {
+  vvFrame = 0;
+  const h = vv ? vv.height : innerHeight, kb = vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) : 0;
+  const root = document.documentElement.style;
+  root.setProperty('--kb', kb + 'px');
+  root.setProperty('--vvh', h + 'px');
   document.body.classList.toggle('keyboard', kb > 40);
-});
+}
+const queueViewport = () => { if (!vvFrame) vvFrame = requestAnimationFrame(syncViewport); };
+if (vv) { vv.addEventListener('resize', queueViewport); vv.addEventListener('scroll', queueViewport); }
+addEventListener('resize', queueViewport);
+syncViewport();
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
 
 // what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story
