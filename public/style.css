@@ -418,7 +418,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .gl:active { background: var(--fill-2); }
 
 /* ------------------------------------------------------------ big pictures look like press photos: hard black and white with a fine film grain; opened, they keep both and get a little colour */
-:root { --press: grayscale(1) contrast(1.45) brightness(1.08); --press-open: grayscale(.7) contrast(1.45) brightness(1.08);
+:root { --press: grayscale(.85) contrast(1.45) brightness(1.08); --press-open: grayscale(.7) contrast(1.45) brightness(1.08);
   --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 :is(.card-pic, .hero-row)::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: var(--film); mix-blend-mode: multiply; opacity: .5; transition: opacity .4s; }
