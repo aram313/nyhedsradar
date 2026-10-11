@@ -13,6 +13,9 @@ function draw(size, fill, { bg = '#111111', ink = '#ffffff', dot = RED } = {}) {
   const m = b.measureText('حبر'), w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
   const left = 700 - m.actualBoundingBoxLeft, top = 600 - m.actualBoundingBoxAscent, r = w * 0.042;
   b.fillStyle = ink; b.fillText('حبر', 700, 600);
+  // the same two small fills as the logo (public/index.html .ink-fix): they smooth where ر meets ب in the font
+  b.save(); b.translate(700, 600); b.scale(400 / 230, 400 / 230); b.translate(-300, -270);
+  b.fill(new Path2D('M302.7 200.5 C302.7 202.5 307 206.8 316 206.29 L317 213 L300 213 Z M296 241.27 C299 240.81 303 240.92 306 240.39 L306 236 L296 236 Z')); b.restore();
   b.fillStyle = dot; b.beginPath(); b.arc(left + w * 0.815, top - w * 0.08, r, 0, Math.PI * 2); b.fill();
   // 2. where the ink really is (the font's box includes side bearings), so the mark sits truly in the middle
   const d = b.getImageData(0, 0, 1400, 1000).data; let x0 = 1400, y0 = 1000, x1 = 0, y1 = 0;
