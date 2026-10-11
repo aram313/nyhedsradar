@@ -411,7 +411,7 @@ function quoteOfDay() {
 const followTopic = () => { const day = dayOf(digest); return day && day.topics.find(t => t.lines.filter(l => l.at).length >= 3); };
 // ---------------------------------------------------------------- the front page, organised by story and time
 // 1. the day in a sentence (+ what is new since the last visit), 2. the day's main story as one package: picture and
-// headline, how it developed, a statement from it and how different media tell it, 3. the rest of the day's top,
+// headline, how it developed and a statement from it, 3. the rest of the day's top,
 // 4. 'Lige nu' further down, 5. the sections and the recap as before.
 const STOP = new Set(['angreb', 'angrebet', 'angrebene', 'amerikansk', 'israelsk', 'efter', 'under', 'siger', 'mange', 'flere', 'denne', 'dette', 'imod', 'mellem', 'omkring', 'about', 'after',
   'against', 'their', 'there', 'which', 'would', 'could', 'other', 'says', 'said', 'while', 'where', 'today']);
@@ -429,15 +429,6 @@ function mainPackage(cands) {
     if (sc > score || (sc === score && best && !best.thumb && i.thumb)) { best = i; score = sc; }
   }
   return best && { story: best, topic: tp, ts };
-}
-// how the outlets tell it: one headline from each kind of media, Danish first
-function coverage(i, shownTitle) {
-  const rows = [{ source: i.source, title: i.origTitle || i.title, group: i.group, link: i.link }, ...(i.also || []).map(a => ({ ...a, title: a.title_tr || a.title }))];
-  // one per kind of media; not the headline the package already shows, when that kind has another
-  const pick = ['dk', 'west', 'mena', 'il'].map(g => rows.find(r => r.group === g && r.title !== shownTitle) || rows.find(r => r.group === g)).filter(Boolean);
-  if (pick.length < 2) return '';
-  return `<div class="cov"><div class="pkg-h">Sådan dækkes det</div><ul>${pick.map(r =>
-    `<li><a href="${esc(r.link)}" target="_blank" rel="noopener"><b>${esc(GROUPS[r.group].replace(' medier', ''))}</b><span>${esc(r.source)}</span><p dir="auto">${esc(r.title)}</p></a></li>`).join('')}</ul></div>`;
 }
 function packageQuote(pkg, told) {
   const qs = (notes().quotes || []).map(q => ({ q, sc: overlap(stems(q.who + ' ' + q.text), pkg.ts) })).filter(x => x.sc >= 3 && !told.has(x.q.who));
@@ -476,7 +467,7 @@ function home(all, opts) {
       pq = packageQuote(pkg, new Set(tl.lines.map(l => l.who)));
       html += tl.html + (pq ? `<div class="pkg-q">${quoteCard(pq)}</div>` : '');
     }
-    html += coverage(lead, shown.title) + '</section>';
+    html += '</section>';
   }
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 4);
   html += `<section class="block">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
