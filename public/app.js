@@ -1011,10 +1011,20 @@ load();
   const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
   const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
   const NS = 'http://www.w3.org/2000/svg', mask = $('inkMask');
-  // the nib: a flat reed 50 wide, held at 60 degrees, stamped every 1.5 units and shown when the pen arrives. Going
-  // up the first leg it moves almost along its own edge, so the line is a hairline (10); from the top of the loop on
-  // it lies fuller on the paper (34, so no hair of the loop shows through while it writes), and the broad part comes
-  // only as it crosses back along the line
+  // the nib: a flat reed 50 wide, held at 60 degrees. Going up the first leg it moves almost along its own edge, so
+  // the line is a hairline (10); from the top of the loop on it lies fuller on the paper (34, so no hair of the loop
+  // shows through while it writes), and the broad part comes only as it crosses back along the line. Each step is
+  // the hull of the nib where it was and where it is now, so the edges follow the nib's corners as smooth curves
+  // (separate stamps would leave teeth); each shows when the pen gets there.
+  const nibAt = (p, t) => [[-25, -t / 2], [25, -t / 2], [25, t / 2], [-25, t / 2]]
+    .map(([x, y]) => [p.x + x * 0.5 + y * 0.866, p.y - x * 0.866 + y * 0.5]);     // rotated -60 degrees
+  const hull = pts => {
+    pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+    for (const q of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+    for (const q of pts.reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  };
   // The first leg runs through the line as a thin strip: its edges are soft curves from the tail's edges below the
   // line into the leg's edges above it, so the stroke reads as one; the rest of the line's band where they cross
   // stays hidden until the pen crosses back along it (#inkBehind is the band with that strip cut out).
@@ -1022,14 +1032,15 @@ load();
   behind.setAttribute('clip-path', 'url(#inkBehind)'); mask.appendChild(behind);
   const write = (path, start, dur, thin) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
+    let prev = null;
     for (let i = 0; i <= n; i++) {
-      const len = L * i / n, p = path.getPointAtLength(len), r = document.createElementNS(NS, 'rect');
-      const t = thin ? 10 + 24 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26;
+      const len = L * i / n, p = path.getPointAtLength(len);
+      const nib = nibAt(p, thin ? 10 + 24 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26);
+      const r = document.createElementNS(NS, 'polygon');
+      r.setAttribute('class', 'nib'); r.setAttribute('fill', '#fff');
+      r.setAttribute('points', hull(prev ? prev.concat(nib) : nib).map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' '));
+      prev = nib;
       const x = Math.acos(1 - 2 * (i / n)) / Math.PI;      // the pen speeds up and slows down (sine ease)
-      r.setAttribute('class', 'nib');
-      r.setAttribute('x', (p.x - 25).toFixed(1)); r.setAttribute('y', (p.y - t / 2).toFixed(1));
-      r.setAttribute('width', 50); r.setAttribute('height', t.toFixed(1)); r.setAttribute('fill', '#fff');
-      r.setAttribute('transform', `rotate(-60 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
       r.style.setProperty('--t', (start + x * dur).toFixed(3) + 's');
       (thin && len < 200 ? behind : mask).appendChild(r);
     }
