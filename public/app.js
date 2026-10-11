@@ -1011,15 +1011,18 @@ load();
   const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
   const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
   const NS = 'http://www.w3.org/2000/svg', mask = $('inkMask');
-  // the nib: 56 wide, 22 thick, at 60 degrees; one stamp every 1.5 units of the stroke, shown when the pen arrives
-  const write = (path, start, dur) => {
+  // the nib: a flat reed 50 wide, held at 60 degrees, stamped every 1.5 units and shown when the pen arrives. Going
+  // up the first leg it moves almost along its own edge, so the line is a hairline (10); from the top of the loop on
+  // it lies fuller on the paper (26), and the broad part comes only as it crosses back along the line
+  const write = (path, start, dur, thin) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
     for (let i = 0; i <= n; i++) {
-      const p = path.getPointAtLength(L * i / n), r = document.createElementNS(NS, 'rect');
+      const len = L * i / n, p = path.getPointAtLength(len), r = document.createElementNS(NS, 'rect');
+      const t = thin ? 10 + 16 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26;
       const x = Math.acos(1 - 2 * (i / n)) / Math.PI;      // the pen speeds up and slows down (sine ease)
       r.setAttribute('class', 'nib');
-      r.setAttribute('x', (p.x - 28).toFixed(1)); r.setAttribute('y', (p.y - 11).toFixed(1));
-      r.setAttribute('width', 56); r.setAttribute('height', 22); r.setAttribute('fill', '#fff');
+      r.setAttribute('x', (p.x - 25).toFixed(1)); r.setAttribute('y', (p.y - t / 2).toFixed(1));
+      r.setAttribute('width', 50); r.setAttribute('height', t.toFixed(1)); r.setAttribute('fill', '#fff');
       r.setAttribute('transform', `rotate(-60 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
       r.style.setProperty('--t', (start + x * dur).toFixed(3) + 's');
       mask.appendChild(r);
@@ -1031,7 +1034,7 @@ load();
     r.style.setProperty('--t', at + 's'); mask.appendChild(r);
   };
   const start = () => {
-    write($('inkPath'), 0.1, D);
+    write($('inkPath'), 0.1, D, true);
     write($('inkDot'), 0.1 + D + 0.1, D * 0.15);
     fill(0.1 + D + 0.4);
     el.style.setProperty('--dot', (0.1 + D + 0.45).toFixed(2) + 's');
