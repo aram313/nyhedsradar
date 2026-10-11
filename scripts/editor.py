@@ -1,17 +1,16 @@
-"""Tools for the Claude editor, who writes Khabar's recap of the day.
+"""Tools for the Claude editor, who updates Khabar three times a day (07, 15 and 21 Danish time).
 
-One recap per day, written at 21:00 Danish time: the most important movements since the previous recap (normally
-21:00 the evening before) as short lines in the style of Al Jazeera's breaking wire and the group's own 'Politiske
-nyheder' posts – 'Who: what', one sentence each, grouped by topic. The newest recap replaces the previous one on
-the app's front page, under 'Vigtigst i dag'; earlier days stay in an archive.
+Each update does four things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
+in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
+and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
+breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A line goes into the day it happened
+(Danish date), so at 07 what came before midnight completes yesterday's recap.
 
-    python3 scripts/editor.py input              -> /tmp/editor/input.md: the stories and every Al Jazeera wire
-                                                    line since the previous recap, and the format to write
-    python3 scripts/editor.py publish FILE       -> checks Claude's recap, fills in links, sources and times and
-            [--push] [--out DIR]                    writes digest.json (the recap, with its share text) and
-                                                    moves.json (the last 30 days, newest first); --push commits
-                                                    both to the digest branch. Run again the same day, it
-                                                    replaces that day's recap.
+    python3 scripts/editor.py input              -> /tmp/editor/input.md: the recap so far, the top stories, the new
+                                                    stories and wire lines since the last update, and the format
+    python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
+            [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
+                                                    quotes) and moves.json (the last 30 days); --push commits both
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
 Options for test runs: --now ISO."""
@@ -29,7 +28,7 @@ DAYS = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'
 MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober',
           'november', 'december']
 KEEP = 30        # days in the archive
-MAX_NEW = 25     # lines in a recap: the day's most important movements, not everything
+MAX_NEW = 14     # lines one update may add: the most important movements, not everything
 MAX_TEXT = 220   # characters in a line: one short sentence
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
@@ -62,10 +61,10 @@ def period_of(now):
 
 
 def window_start(now, times=()):
-    """Where the recap's material begins: at the previous recap (less than 30 hours old), so nothing falls between
-    two days; without one, 24 hours back."""
-    earlier = [ts(t) for t in times if t and timedelta(0) < now - ts(t) < timedelta(hours=30)]
-    return max(earlier) if earlier else now - timedelta(hours=24)
+    """Where an update's material begins: at the previous update (less than 20 hours old), so nothing falls between
+    two updates; without one, 12 hours back."""
+    earlier = [ts(t) for t in times if t and timedelta(0) < now - ts(t) < timedelta(hours=20)]
+    return max(earlier) if earlier else now - timedelta(hours=12)
 
 
 # ------------------------------------------------------------------ the day and the archive
@@ -73,6 +72,11 @@ def window_start(now, times=()):
 def new_day(t):
     return {'date': dk(t).date().isoformat(), 'title': f'Politiske nyheder – {date_da(t)}', 'created': '',
             'updates': [], 'topics': [], 'ids': []}
+
+
+def noon(date):
+    """A moment safely inside a Danish calendar date, for naming its day."""
+    return datetime(date.year, date.month, date.day, 11, tzinfo=timezone.utc)
 
 
 def key(name):
@@ -142,14 +146,11 @@ def material(args):
     return data, lines, migrate(read(args, 'origin/digest', 'moves.json', {'days': []}), data, lines)
 
 
-def before(moves, now):
-    """The archive without today's recap: a second run the same day replaces it and must see the same material."""
-    return {**moves, 'days': [d for d in moves.get('days') or [] if d['date'] != dk(now).date().isoformat()]}
-
-
-def today_of(moves, now):
-    days = moves.get('days') or []
-    return days[0] if days and days[0]['date'] == dk(now).date().isoformat() else None
+def recent_days(moves, now):
+    """Today's day and yesterday's, as far as they exist: the two an update may add to."""
+    today = dk(now).date()
+    wanted = {today.isoformat(), (today - timedelta(days=1)).isoformat()}
+    return [d for d in moves.get('days') or [] if d['date'] in wanted]
 
 
 def update_times(moves):
@@ -170,53 +171,76 @@ def uncovered(lines, moves):
 
 TEMPLATE = {
     'topics': [{
-        'name': '<a short, concrete Danish heading: one event, conflict, negotiation, place or Danish issue>',
+        'name': "<a topic of today's or yesterday's recap, written exactly as listed, or a new short concrete Danish heading>",
         'section': 'dk | me | world',
         'lines': [{'who': '<who says or reports it>', 'text': '<one short Danish sentence: what happened or was said>',
                    'story': '<the story id, when the line tells a story from the list>',
                    'ids': ['<the wire line id, when it comes from the wire>', '<a second id when two lines say the same>']}],
     }],
-    'order': ['<every topic name, the most important of the day first>'],
+    'order': ['<the topic names of the day the lines went to, the most important first>'],
+    'picks': [{'id': '<story id from the top stories>', 'why': '<a few words: why it matters geopolitically>'}],
+    'moves': [{'id': '<story id in the wrong section>', 'sec': 'dk | me | world'}],
+    'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish, one or two sentences>', 'sec': 'dk | me | world',
+                'ids': ['<wire line id>'], 'story': '<or a story id>'}],
 }
+
+
+def story_lines(i):
+    cover = ', '.join(f'{n} {k}' for k, n in (i.get('cover') or {}).items())
+    flags = ' · big' if i.get('big') else ''
+    tr = i.get('title_tr')
+    out = [f"[{i['id']}] {i.get('sec')} · rank {i.get('rank')}{flags} · {i.get('outlets', 1)} outlets ({cover}) · "
+           f"confirmed {i.get('confirmed')}",
+           f"{tr} (machine translation from {i.get('lang')}; original: {i['title']})" if tr else i['title']]
+    summary = i.get('summary_tr') if tr else i.get('summary')
+    if summary:
+        out.append(summary)
+    out.append(f"{i['source']} · {dk(ts(i.get('published') or i['found'])):%d.%m %H.%M} · {i['link']}")
+    also = [f"{a['source']}: {a.get('title_tr') or a['title']}" for a in (i.get('also') or [])[:6]]
+    if also:
+        out.append('Also: ' + ' | '.join(also))
+    return out + ['']
 
 
 def cmd_input(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
     data, lines, moves = material(args)
-    moves = before(moves, now)
     start = window_start(now, update_times(moves))
-    stories = [i for i in data.get('items', []) if ts(i.get('found') or i['published']) >= start]   # found: a gap must not hide it
-    stories.sort(key=lambda i: -(i.get('rank') or 0))
+    told = {x['id'] for d in recent_days(moves, now) for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
+    items = data.get('items', [])
+    stories = sorted((i for i in items if ts(i.get('found') or i['published']) >= start and i['id'] not in told),
+                     key=lambda i: -(i.get('rank') or 0))
+    top = sorted((i for i in items if now - ts(i.get('published') or i['found']) < timedelta(hours=24)),
+                 key=lambda i: -(i.get('rank') or 0))[:70]
     wire = uncovered(lines, moves)
-    out = [f'# Material for the recap of {date_da(now, True)} · written kl. {dk(now):%H.%M} (Danish time)', '']
-    out += [f'## Stories since {dk(start):%H.%M} {date_da(start)} – {len(stories)}, strongest first', '',
+    out = [f'# Material for the {dk(now):%H}.00 update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
+    for d in sorted(recent_days(moves, now), key=lambda d: d['date']):
+        n = sum(len(tp['lines']) for tp in d['topics'])
+        out += [f"## The recap of {date_da(noon(datetime.fromisoformat(d['date'])))} so far – {n} lines", '',
+                'Continue a topic by writing its name exactly as here. Lines, newest first: [id] Danish time · who: text', '']
+        for tp in d['topics']:
+            out.append(f"### {tp['name']} ({tp['section']})")
+            out += [f"[{x['id']}] {dk(ts(x['at'])):%d.%m %H.%M} · {x['who'] + ': ' if x['who'] else ''}{x['text']}" for x in tp['lines']]
+            out.append('')
+    out += ['## Top stories of the last 24 hours – for picks and moves (strongest first)', '',
+            'Fields: id · section · rank · outlets · title', '']
+    out += [f"[{i['id']}] {i.get('sec')} · rank {i.get('rank')} · {i.get('outlets', 1)} outlets · {i.get('title_tr') or i['title']}"
+            for i in top]
+    out += ['', f'## Stories since {dk(start):%H.%M} {date_da(start)} – {len(stories)}, strongest first – for recap lines', '',
             'Fields: id · section · rank · big (many outlets) · outlets, by kind of media · confirmed (established '
             'outlets; 0 = only Telegram/YouTube channels, so unconfirmed)', '']
-    for i in stories[:120]:
-        cover = ', '.join(f'{n} {k}' for k, n in (i.get('cover') or {}).items())
-        flags = ' · big' if i.get('big') else ''
-        tr = i.get('title_tr')
-        out += [f"[{i['id']}] {i.get('sec')} · rank {i.get('rank')}{flags} · {i.get('outlets', 1)} outlets ({cover}) · "
-                f"confirmed {i.get('confirmed')}",
-                f"{tr} (machine translation from {i.get('lang')}; original: {i['title']})" if tr else i['title']]
-        summary = i.get('summary_tr') if tr else i.get('summary')
-        if summary:
-            out.append(summary)
-        out.append(f"{i['source']} · {dk(ts(i.get('published') or i['found'])):%d.%m %H.%M} · {i['link']}")
-        also = [f"{a['source']}: {a.get('title_tr') or a['title']}" for a in (i.get('also') or [])[:6]]
-        if also:
-            out.append('Also: ' + ' | '.join(also))
-        out.append('')
+    for i in stories[:100]:
+        out += story_lines(i)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
-            'Fields: [id] Danish time · Arabic original (machine English, only a hint)', '']
+            'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
         out.append(f"[{v['i']}] {dk(ts(v['p'])):%d.%m %H.%M} · {v['t']}  ({v.get('tr') or '–'})")
     out += ['', '## Write /tmp/editor/update.json in exactly this shape (UTF-8 JSON)', '',
             json.dumps(TEMPLATE, ensure_ascii=False, indent=1)]
     WORK.mkdir(parents=True, exist_ok=True)
     (WORK / 'input.md').write_text('\n'.join(out), encoding='utf-8')
-    print(f'{WORK / "input.md"}: {len(stories)} stories since '
-          f'{dk(start):%H.%M}, {len(wire)} wire lines')
+    print(f'{WORK / "input.md"}: {len(top)} top stories, {len(stories)} new stories since {dk(start):%H.%M}, '
+          f'{len(wire)} wire lines')
 
 
 # ------------------------------------------------------------------ publishing an update
@@ -231,34 +255,43 @@ def day_text(day):
     return '\n'.join(out).strip()
 
 
-def push_text(day):
-    """The notification for an update: its most important new line, and how many more came; none when it added
-    nothing."""
-    new = [x for tp in day['topics'] for x in tp['lines'] if x['added'] == day['created']]
-    if not new:
+def push_text(day, now):
+    """One notification a day, with the evening update: the day's most important line, and how many more."""
+    if dk(now).hour < 20:
         return None
-    body = f"{new[0]['who']}: {new[0]['text']}" if new[0]['who'] else new[0]['text']
-    return {'title': f"Khabar · dagens resumé, {dk(ts(day['created'])).day}. {MONTHS[dk(ts(day['created'])).month - 1]}",
-            'body': body + (f'  (+{len(new) - 1} mere)' if len(new) > 1 else '')}
+    lines = [x for tp in day['topics'] for x in tp['lines']]
+    if not lines:
+        return None
+    x = day['topics'][0]['lines'][0]
+    return {'title': f"Khabar · dagens resumé, {dk(now).day}. {MONTHS[dk(now).month - 1]}",
+            'body': (f"{x['who']}: {x['text']}" if x['who'] else x['text']) + (f'  (+{len(lines) - 1} mere)' if len(lines) > 1 else '')}
 
 
 def build(draft, data, lines, moves, now):
-    """Today's overview with Claude's additions, or a list of problems to fix."""
+    """The updated days and the editor's notes, or a list of problems to fix. A line goes into the day it happened
+    (Danish date): at 07 what came before midnight completes yesterday's recap."""
     problems = []
     stamp = now.isoformat(timespec='seconds')
-    moves = before(moves, now)
-    day = new_day(now)
+    today = dk(now).date()
+    days = {d['date']: json.loads(json.dumps(d)) for d in recent_days(moves, now)}
+
+    def day_for(at):
+        date = max(dk(ts(at)).date(), today - timedelta(days=1))
+        return days.setdefault(date.isoformat(), new_day(noon(date)))
+
+    day_for(stamp)   # today exists, if only to keep the wire lines it was given
     by_id = {i['id']: i for i in data.get('items', [])}
+    by_line = {v['i']: v for v in lines.get('items', [])}
     wire = {v['i']: v for v in uncovered(lines, moves)}
-    told = {x['id'] for tp in day['topics'] for x in tp['lines'] if x.get('kind') == 's'}
-    known = {key(tp['name']): tp for tp in day['topics']}
+    told = {x['id'] for d in days.values() for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
+    sections = {key(tp['name']): tp['section'] for d in days.values() for tp in d['topics']}
     used, picked, adds = {}, {}, []   # wire id -> where; story id -> where; (name, section, line)
     for k, tp in enumerate(draft.get('topics') or []):
         name = ' '.join(str(tp.get('name', '')).split())
         where = f"topic {k + 1} ({name or '?'})"
         if not name:
             problems.append(f'{where}: no name')
-        section = known[key(name)]['section'] if key(name) in known else tp.get('section')
+        section = sections.get(key(name)) or tp.get('section')
         if section not in SECTIONS:
             problems.append(f"{where}: section must be dk, me or world, not {tp.get('section')!r}")
         if not tp.get('lines'):
@@ -279,7 +312,7 @@ def build(draft, data, lines, moves, now):
                 if not it:
                     problems.append(f'{label}: unknown story id {story!r}')
                 elif story in told:
-                    problems.append(f"{label}: story {story} is in today's overview already")
+                    problems.append(f'{label}: story {story} is in the recap already')
                 elif story in picked:
                     problems.append(f'{label}: story {story} is used twice (also in {picked[story]})')
                 picked[story] = where
@@ -300,45 +333,75 @@ def build(draft, data, lines, moves, now):
                                              'at': first['p'], 'added': stamp, 'id': first['i'], 'kind': 'w'}))
     if len(adds) > MAX_NEW:
         problems.append(f'{len(adds)} lines – at most {MAX_NEW}: keep only the most important movements')
-    names = {key(tp['name']) for tp in day['topics']} | {key(n) for n, _, _ in adds}
+    names = set(sections) | {key(n) for n, _, _ in adds}
     order = [n for n in draft.get('order') or [] if str(n).strip()]
-    problems += [f'order: {n!r} is no topic of the day' for n in order if key(n) not in names]
+    problems += [f'order: {n!r} is no topic' for n in order if key(n) not in names]
+    # the editor's notes for the app: stories that matter more, stories in the wrong section, the best statements
+    picks, fixes, quotes = [], [], []
+    for p in (draft.get('picks') or [])[:8]:
+        if p.get('id') not in by_id:
+            problems.append(f"picks: unknown story id {p.get('id')!r}")
+        else:
+            picks.append({'id': p['id'], 'why': ' '.join(str(p.get('why', '')).split())[:120]})
+    for m in draft.get('moves') or []:
+        if m.get('id') not in by_id or m.get('sec') not in SECTIONS:
+            problems.append(f'moves: {m!r} needs a known story id and a section dk, me or world')
+        else:
+            fixes.append({'id': m['id'], 'sec': m['sec']})
+    for q in (draft.get('quotes') or [])[:8]:
+        who, text = ' '.join(str(q.get('who', '')).split()), ' '.join(str(q.get('text', '')).split())
+        src = by_id.get(q.get('story')) if q.get('story') else by_line.get((q.get('ids') or [None])[0])
+        if not who or not text or len(text) > 300 or q.get('sec') not in SECTIONS or not src:
+            problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
+        else:
+            quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
     if problems:
-        return None, problems
+        return None, None, problems
+    touched = set()
     for name, section, line in adds:
-        topic_of(day, name, section)['lines'].append(line)
-    for tp in day['topics']:
-        newest_first(tp)
+        d = day_for(line['at'])
+        topic_of(d, name, section)['lines'].append(line)
+        touched.add(d['date'])
     rank = {key(n): j for j, n in enumerate(order)}
-    day['topics'] = sorted((tp for tp in day['topics'] if tp['lines']), key=lambda tp: rank.get(key(tp['name']), len(rank)))
-    day['ids'] = sorted(set(day['ids']) | set(wire))   # every line it was given, used or not, is done
-    day['updates'] = day['updates'] + [stamp]
-    day['created'] = stamp
-    return day, []
+    for d in days.values():
+        for tp in d['topics']:
+            newest_first(tp)
+        d['topics'] = sorted((tp for tp in d['topics'] if tp['lines']), key=lambda tp: rank.get(key(tp['name']), len(rank)))
+    now_day = days[today.isoformat()]
+    now_day['ids'] = sorted(set(now_day['ids']) | set(wire))   # every line it was given, used or not, is done
+    for date in touched | {today.isoformat()}:
+        days[date]['updates'] = days[date]['updates'] + [stamp]
+        days[date]['created'] = stamp
+    notes = {'created': stamp, 'picks': picks, 'moves': fixes, 'quotes': quotes}
+    return days, notes, []
 
 
 def cmd_publish(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
-    period = args.period or period_of(now)
     draft = json.loads(Path(args.file).read_text(encoding='utf-8'))
     data, lines, moves = material(args)
-    day, problems = build(draft, data, lines, moves, now)
+    days, notes, problems = build(draft, data, lines, moves, now)
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))
         sys.exit(1)
-    days = [day] + [d for d in moves.get('days') or [] if d['date'] != day['date']][:KEEP - 1]
-    digest = {**day, 'period': period, 'whatsapp': day_text(day), 'push': push_text(day)}
-    files = {'digest.json': digest, 'moves.json': {'updated': day['created'], 'days': days}}
+    merged = {d['date']: d for d in moves.get('days') or []}
+    merged.update(days)
+    archive = sorted(merged.values(), key=lambda d: d['date'], reverse=True)[:KEEP]
+    today = days[dk(now).date().isoformat()]
+    shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
+    digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
+    files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive}}
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name, obj in files.items():
         (out / name).write_text(json.dumps(obj, ensure_ascii=False, indent=1), encoding='utf-8')
-    new = sum(x['added'] == day['created'] for tp in day['topics'] for x in tp['lines'])
+    new = sum(x['added'] == notes['created'] for d in days.values() for tp in d['topics'] for x in tp['lines'])
     if args.push:
-        push(out, f"Overblik {dk(now):%d.%m %H.%M}")
+        push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
-          f"{sum(len(tp['lines']) for tp in day['topics'])} in the day · topics: {', '.join(tp['name'] for tp in day['topics'])}")
+          f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · "
+          f"days: {', '.join(sorted(days))}")
 
 
 def push(folder, message):

@@ -66,12 +66,12 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   workflow_dispatch API every 5 minutes with a fine-grained GitHub token (Actions read/write on this repo only, made
   by the owner; it expires – renew it and rerun `scripts/setup-clock.ps1`). The PC task 'Nabd vaekkeur' is removed.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
-  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 19,20 UTC, works only at 21 Danish time (owner's choice 2026-10-10). It runs
-    `scripts/editor.py input`, writes the recap of the day (at most 25 short 'Who: what' lines from the stories
-    and the Al Jazeera wire since the previous recap, by topic) and runs
-    `scripts/editor.py publish --push`, which writes `digest.json` (the day, with its share text and the
-    notification text) and `moves.json` (the last 30 days) to the orphan `digest` branch in one commit. The
-    line format copies the 'Politiske nyheder' briefings members post in the group.
+  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05,06,13,14,19,20 UTC, works only at 07/15/21 Danish time. It runs
+    `scripts/editor.py input`, then writes one update: picks (stories that matter most geopolitically; for Danmark,
+    those useful in the group's dawah), moves (stories in the wrong section), quotes (best statements, in Danish) and
+    recap lines (at most 14 'Who: what' lines, filed under the Danish date they happened), and runs
+    `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies) and
+    `moves.json` (30 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in

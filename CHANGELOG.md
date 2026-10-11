@@ -97,6 +97,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ### Changed
 
+- The editor runs three times a day again (07, 15, 21) and does four jobs: lifts the stories that matter most
+  geopolitically (for Danmark: those most useful in the group's dawah) to the top of 'Vigtigst i dag', moves stories
+  that landed in the wrong section, chooses statements for quote cards, and adds to the recap; a line goes into the
+  day it happened, so at 07 what came before midnight completes yesterday's recap. The phones are told once, at 21.
+- Section pages have a shape: one lead story big, two side by side, the compact list, and the editor's quotes in it;
+  each section has a quiet colour (Danmark blue, Mellemøsten green, Verden purple). 'Live' is red only while it holds
+  stories the reader has not seen there.
 - Front page: the day's lead story opens big (its outlet's own picture, headline on a dark veil), the rest are
   compact rows with a small black-and-white square picture; the radar passes on each picture's original (pic).
 - Story pictures are cut around the biggest face (OpenCV's face finder, new dependency in the cloud only)

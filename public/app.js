@@ -149,7 +149,15 @@ function bold(text, words = []) {
 }
 const readable = t => !/[؀-ۿ]/.test(t || '');
 const visible = i => !i.foreign || foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr);
-const secOf = i => i.sec || (i.lang === 'da' ? 'dk' : 'world');
+// the editor (07, 15, 21) lifts stories that matter most, moves stories that landed in the wrong section and picks
+// the best statements; a story is known by any of its outlets' articles, since its card may change lead
+const notes = () => (digest && digest.editor) || { picks: [], moves: [], quotes: [] };
+const noteFor = (list, i) => list.find(x => x.id === i.id || (i.also || []).some(a => a.id === x.id));
+const secOf = i => (noteFor(notes().moves || [], i) || {}).sec || i.sec || (i.lang === 'da' ? 'dk' : 'world');
+const pickRank = i => { const p = notes().picks || [], k = p.findIndex(x => x.id === i.id || (i.also || []).some(a => a.id === x.id)); return k < 0 ? 99 : k; };
+// the editor's picks first (in its order), then the radar's strongest
+const withPicks = (list, n) => { const mine = list.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b));
+  return [...mine, ...pick(list.filter(i => pickRank(i) === 99), n)].slice(0, n); };
 const inSection = (i, sec) => secOf(i) === sec || (i.secs || []).includes(sec);
 const rankOf = i => i.rank ?? i.pct ?? 0;
 const hot = i => rankOf(i) - 1.5 * Math.min(48, hours(i)) - (i.confirmed === 0 ? 6 : 0);   // strong, recent, confirmed first
@@ -258,7 +266,7 @@ function coverage(i) {
 }
 
 // ---------------------------------------------------------------- the overview of the day
-// One recap per day, written at 21: the day's most important movements as short lines – 'Who: what', in the style
+// One recap per day, added to at 7, 15 and 21: the day's most important movements as short lines – 'Who: what', in the style
 // of Al Jazeera's breaking wire and the group's own 'Politiske nyheder' posts – grouped by topic, newest first. It
 // closes the front page and replaces the day before; earlier days wait in the archive below it.
 const SHOW = 4;   // lines a topic shows before '+ n mere'
@@ -311,11 +319,12 @@ let recapOpen = false;
 function overview() {
   const day = dayOf(digest);
   if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer kl. 21</small></span></div></section>`;
+    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer kl. 7, 15 og 21</small></span></div></section>`;
   }
-  const n = lineCount(day);
+  const n = lineCount(day), hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
+  const said = hrs.length < 2 ? hrs.join('') : hrs.slice(0, -1).join(', ') + ' og ' + hrs[hrs.length - 1];
   return `<section class="ov${recapOpen ? ' open' : ''}" id="overview"><button class="ov-row" data-recap aria-expanded="${recapOpen}">
-    <span><b>Resumé · ${dateDa(day.date, true)}</b><small>Dagens vigtigste bevægelser · ${n} linjer · kl. ${clock(day.created)}</small></span>
+    <span><b>Resumé · ${dateDa(day.date, true)}</b><small>Dagens vigtigste bevægelser · ${n} linjer · opdateret kl. ${said}</small></span>
     <svg><use href="#i-chev"/></svg></button>${recapOpen ? dayBody(day) : ''}</section>`;
 }
 async function loadArchive() {
@@ -365,7 +374,7 @@ function home(all, opts) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
-  const now = pick(cands, 7);
+  const now = withPicks(cands, 7);
   // the strongest of the first three with a picture opens the page big
   const lead = now.slice(0, 3).find(i => i.thumb);
   if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
@@ -376,15 +385,42 @@ function home(all, opts) {
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
   return html;
 }
+// a section page has a shape: one lead story big, two side by side, then the compact list – with now and then a
+// statement from the day's recap set as a quote, so the page is not headline after headline
+function cardStory(i, n, opts) {
+  const open = expanded.has(i.id);
+  return `<article class="story card${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-top="1" style="--i:${n}">
+    <button class="card-row" data-toggle aria-expanded="${open}"><span class="card-pic"><img src="${esc(THUMBS + i.thumb)}" alt="" loading="lazy" decoding="async"></span>
+      <span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, { ...opts, top: true })}</span></button>
+    <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
+}
+function quotesFor(sec) {
+  const chosen = (notes().quotes || []).filter(q => q.sec === sec);
+  if (chosen.length) return chosen;
+  const day = dayOf(digest);
+  return day ? day.topics.filter(tp => tp.section === sec).flatMap(tp => tp.lines.filter(l => l.who)) : [];
+}
+const quoteCard = l => `<a class="quote" href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;
 function sectionPage(sec, all, opts) {
   const list = all.filter(i => inSection(i, sec));
   if (!list.length) return '<div class="empty">Ingen historier her endnu.</div>';
-  // the day's important stories; on a quiet day, the strongest three
+  // the day's important stories; on a quiet day, the strongest few
   const imp = list.filter(i => hours(i) < 24 && i.important);
-  const top = imp.length >= 2 ? pick(imp, 5) : pick(list.filter(i => hours(i) < 24), 3);
-  const ids = new Set(top.map(i => i.id));
-  const html = top.length ? `<section class="block">${blockHead('Vigtigst i dag')}${top.map((i, n) => story(i, n, { ...opts, top: true })).join('')}</section>` : '';
-  return html + timeline(list.filter(i => !ids.has(i.id)), opts, top.length);
+  const picked = list.filter(i => hours(i) < 24 && pickRank(i) < 99);
+  const pool = [...new Set([...picked, ...(imp.length >= 3 ? imp : list.filter(i => hours(i) < 24))])];
+  const top = withPicks(pool, imp.length >= 3 ? 7 : 5);
+  const withPic = top.filter(i => i.thumb);
+  const lead = withPic[0], duo = withPic.slice(1, 3).length === 2 ? withPic.slice(1, 3) : [];
+  const rest = top.filter(i => i !== lead && !duo.includes(i));
+  let html = `<section class="block">${blockHead('Vigtigst i dag')}`;
+  if (lead) html += heroStory(lead, 0, { ...opts, top: true, tag: false });
+  if (duo.length) html += `<div class="duo">${duo.map((i, n) => cardStory(i, n + 1, opts)).join('')}</div>`;
+  html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('') + '</section>';
+  // the list, with a quote from the recap after every fifth story
+  const ids = new Set(top.map(i => i.id)), quotes = quotesFor(sec);
+  let body = timeline(list.filter(i => !ids.has(i.id)), opts, top.length), k = 0, seen = 0;
+  body = body.replace(/<\/article>/g, m => (++seen % 5 === 0 && k < quotes.length ? m + quoteCard(quotes[k++]) : m));
+  return html + body;
 }
 // everything as it comes in, all sections mixed, newest first
 function latestPage(all, opts) {
@@ -458,6 +494,8 @@ function render(opts = {}) {
   const since = name => Math.max(lastSeen, seenTab[name] || 0);
   document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
     tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > since('home')));
+  document.querySelector('.tabs [data-tab="latest"]').classList.toggle('has-new', tab !== 'latest' &&
+    all.some(i => i.found && new Date(i.found).getTime() > Math.max(since('latest'), Date.now() - 6 * 3600e3)));
   for (const sec of Object.keys(SECTIONS)) {
     document.querySelector(`.tabs [data-tab="${sec}"]`).classList.toggle('has-new', tab !== sec && all.some(i =>
       i.important && isNew(i) && secOf(i) === sec && new Date(i.found).getTime() > since(sec)));

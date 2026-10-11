@@ -56,73 +56,66 @@ YESTERDAY = {**TODAY, 'date': '2026-10-09', 'title': 'Politiske nyheder – 9. o
              'created': '2026-10-09T19:01:00+00:00', 'updates': ['2026-10-09T19:01:00+00:00'], 'ids': []}
 
 
-def test_input_lists_what_came_since_the_last_recap(folder):
-    (folder / 'moves.json').write_text(json.dumps({'days': [{**YESTERDAY, 'ids': ['w1'],
-                                                              'created': '2026-10-10T11:35:00+00:00',
-                                                              'updates': ['2026-10-10T11:35:00+00:00']}]}), encoding='utf-8')
+def test_input_shows_the_recap_so_far_top_stories_and_new_material(folder):
     editor.main(['input', '--dir', str(folder), '--now', NOW])
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
-    assert 'recap of lørdag 10. oktober 2026' in text
-    assert '[w2]' in text and '[w3]' in text and '[w4]' in text and '[w1]' not in text and '[h1]' not in text
-    assert '[s1]' in text and '[s2]' not in text and '[s3]' not in text   # only what came after the last recap
+    assert 'The recap of 10. oktober 2026 so far – 1 lines' in text and '### Ukraine (world)' in text
+    assert '## Top stories of the last 24 hours' in text and '[s3] world · rank 95' in text   # top stories for picks
+    w = text.split('## Al Jazeera wire lines')[1]
+    assert '[w2]' in w and '[w3]' in w and '[w1]' not in w and '[h1]' not in w
+    new = text.split('for recap lines')[1]
+    assert '[s1]' in new and '[s3]' not in new and '[s2]' not in new   # only what came after the last update
     assert 'update.json' in text
 
 
-def test_a_second_run_the_same_day_sees_the_same_material(folder):
-    editor.main(['input', '--dir', str(folder), '--now', NOW])   # moves.json holds today's earlier recap (w1 done)
-    text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
-    assert '[w1]' in text and '[s3]' in text   # today's own recap does not count: it is being replaced
-
-
-def test_publish_writes_the_recap(folder, tmp_path):
-    (folder / 'moves.json').write_text(json.dumps({'days': [TODAY, YESTERDAY]}), encoding='utf-8')
+def test_publish_adds_lines_and_the_editors_notes(folder, tmp_path):
     digest, moves = publish(folder, tmp_path, {
-        'topics': [{'name': 'Ukraine', 'section': 'world', 'lines': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'ids': ['w3', 'w4']},
-                                                                    {'who': 'Kyivs borgmester', 'text': 'Fire såret.', 'ids': ['w1']}]},
-                   {'name': 'Statsborgerskab', 'section': 'dk', 'lines': [
-                       {'who': 'Regeringen', 'text': 'Reglerne for statsborgerskab skal strammes.', 'story': 's1'}]}],
-        'order': ['Statsborgerskab', 'Ukraine']})
-    assert digest['date'] == '2026-10-10' and digest['title'] == 'Politiske nyheder – 10. oktober 2026'
-    assert [tp['name'] for tp in digest['topics']] == ['Statsborgerskab', 'Ukraine']
-    dk_line = digest['topics'][0]['lines'][0]
-    assert dk_line['link'] == 'https://dr.test/1' and dk_line['source'] == 'DR' and dk_line['at'] == '2026-10-10T12:00:00+00:00'
-    ukraine = digest['topics'][1]['lines']
-    assert [x['who'] for x in ukraine] == ['Kreml', 'Kyivs borgmester']   # newest first
-    assert ukraine[0]['link'] == 'https://t.me/ajanews/w3' and ukraine[0]['source'] == 'Al Jazeera'
+        'topics': [{'name': 'Statsborgerskab', 'section': 'dk', 'lines': [
+                       {'who': 'Regeringen', 'text': 'Reglerne for statsborgerskab skal strammes.', 'story': 's1'}]},
+                   {'name': 'ukraine ', 'lines': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'ids': ['w3', 'w4']}]}],
+        'order': ['Statsborgerskab', 'Ukraine'],
+        'picks': [{'id': 's3', 'why': 'Stormagter'}], 'moves': [{'id': 's4', 'sec': 'world'}],
+        'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world', 'ids': ['w3']}]})
+    assert digest['date'] == '2026-10-10' and [tp['name'] for tp in digest['topics']] == ['Statsborgerskab', 'Ukraine']
+    assert [x['who'] for x in digest['topics'][1]['lines']] == ['Kreml', 'Kyivs borgmester']   # continued, newest first
     assert digest['ids'] == ['w1', 'w2', 'w3', 'w4']   # w2 was given and left out: done all the same
-    assert digest['updates'] == ['2026-10-10T20:01:00+00:00']   # a fresh recap, the earlier one replaced
-    assert digest['whatsapp'] == ('Politiske nyheder – 10. oktober 2026\n\nStatsborgerskab\n\n- Regeringen: Reglerne for '
-                                  'statsborgerskab skal strammes.\n\nUkraine\n\n- Kreml: Samtalerne fortsætter.\n\n'
-                                  '- Kyivs borgmester: Fire såret.')
-    assert digest['push'] == {'title': 'Khabar · dagens resumé, 10. oktober',
-                              'body': 'Regeringen: Reglerne for statsborgerskab skal strammes.  (+2 mere)'}
-    assert [d['date'] for d in moves['days']] == ['2026-10-10', '2026-10-09']
-    assert moves['days'][0] == {k: v for k, v in digest.items() if k not in ('period', 'whatsapp', 'push')}
+    assert digest['updates'] == ['2026-10-10T11:35:00+00:00', '2026-10-10T20:01:00+00:00']
+    assert digest['editor'] == {'created': '2026-10-10T20:01:00+00:00', 'picks': [{'id': 's3', 'why': 'Stormagter'}],
+                                'moves': [{'id': 's4', 'sec': 'world'}],
+                                'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world',
+                                            'link': 'https://t.me/ajanews/w3'}]}
+    assert digest['push']['title'] == 'Khabar · dagens resumé, 10. oktober'   # the evening update tells the phones
+    assert moves['days'][0]['date'] == '2026-10-10' and 'editor' not in moves['days'][0]
+
+
+def test_at_seven_the_night_before_midnight_completes_yesterday(folder, tmp_path):
+    (folder / 'moves.json').write_text(json.dumps({'days': [TODAY]}), encoding='utf-8')
+    late = {'i': 'w9', 't': 'نص', 'tr': '', 'p': '2026-10-10T21:30:00+00:00', 'u': 'https://t.me/ajanews/w9', 'k': 'w'}   # 23.30
+    early = {'i': 'w8', 't': 'نص', 'tr': '', 'p': '2026-10-11T03:00:00+00:00', 'u': 'https://t.me/ajanews/w8', 'k': 'w'}   # 05.00
+    items = json.loads((folder / 'lines.json').read_text(encoding='utf-8'))['items'] + [late, early]
+    (folder / 'lines.json').write_text(json.dumps({'items': items}), encoding='utf-8')
+    digest, moves = publish(folder, tmp_path, {'topics': [{'name': 'Ukraine', 'lines': [
+        {'who': 'Kreml', 'text': 'Sent i går.', 'ids': ['w9']}, {'who': 'Kyiv', 'text': 'Tidligt i dag.', 'ids': ['w8']}]}]},
+        now='2026-10-11T05:02:00+00:00')
+    by_date = {d['date']: d for d in moves['days']}
+    assert [x['text'] for x in by_date['2026-10-10']['topics'][0]['lines']][:1] == ['Sent i går.']
+    assert [x['text'] for x in by_date['2026-10-11']['topics'][0]['lines']] == ['Tidligt i dag.']
+    assert digest['date'] == '2026-10-11' and digest['push'] is None   # only the evening update notifies
 
 
 def test_publish_refuses_what_does_not_fit(folder, tmp_path, capsys):
-    (folder / 'moves.json').write_text(json.dumps({'days': [{**YESTERDAY, 'ids': ['w1']}]}), encoding='utf-8')   # w1 done yesterday
     bad = {'topics': [{'name': 'Gaza', 'section': 'gaza', 'lines': [
-        {'who': '', 'text': 'Uden afsender.', 'ids': ['w1']},
+        {'who': '', 'text': 'Uden afsender.', 'ids': ['w1']},             # w1 was looked at this morning
         {'who': 'Kanal', 'text': 'x' * 300, 'story': 's9'},
         {'who': 'Kreml', 'text': 'To gange.', 'ids': ['w3', 'w3']}]}],
-        'order': ['Gaza', 'Sudan']}
+        'order': ['Gaza', 'Sudan'], 'picks': [{'id': 'nope'}], 'moves': [{'id': 's1', 'sec': 'mars'}]}
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, bad)
     out = capsys.readouterr().out
-    for problem in ("section must be dk, me or world", 'needs who and text', "'w1' is no new wire line", 'is too long',
-                    "unknown story id 's9'", 'wire line w3 is used twice', "order: 'Sudan' is no topic of the day",
-                    ):
+    for problem in ('section must be dk, me or world', 'needs who and text', "'w1' is no new wire line", 'is too long',
+                    "unknown story id 's9'", 'wire line w3 is used twice', "order: 'Sudan' is no topic",
+                    "picks: unknown story id 'nope'", 'moves:'):
         assert problem in out, problem
-    many = {'topics': [{'name': 'Ukraine', 'section': 'world', 'lines': [{'who': 'Kreml', 'text': f'Linje {n}.', 'ids': [f'w{n}']}
-                                                     for n in range(2, 5)]}]}
-    editor.MAX_NEW, keep = 2, editor.MAX_NEW
-    try:
-        with pytest.raises(SystemExit):
-            publish(folder, tmp_path, many)
-    finally:
-        editor.MAX_NEW = keep
-    assert '3 lines – at most 2' in capsys.readouterr().out
 
 
 def test_editions_from_before_days_become_days():
@@ -141,9 +134,9 @@ def test_editions_from_before_days_become_days():
     assert [v['i'] for v in editor.uncovered(lines, {'days': days})] == ['b']
 
 
-def test_window_starts_at_the_last_recap():
+def test_window_starts_at_the_last_update():
     t = editor.ts
-    now = t('2026-10-10T19:01:00+00:00')   # 21.01 Danish time
-    assert editor.window_start(now, ['2026-10-09T19:02:00+00:00']) == t('2026-10-09T19:02:00+00:00')
-    assert editor.window_start(now, []) == t('2026-10-09T19:01:00+00:00')                                # 24 hours back
-    assert editor.window_start(now, ['2026-10-08T19:00:00+00:00']) == t('2026-10-09T19:01:00+00:00')  # too old to count
+    now = t('2026-10-10T13:01:00+00:00')
+    assert editor.window_start(now, ['2026-10-10T05:02:00+00:00']) == t('2026-10-10T05:02:00+00:00')
+    assert editor.window_start(now, []) == t('2026-10-10T01:01:00+00:00')                                # 12 hours back
+    assert editor.window_start(now, ['2026-10-09T05:00:00+00:00']) == t('2026-10-10T01:01:00+00:00')  # too old to count
