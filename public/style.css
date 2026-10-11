@@ -602,3 +602,11 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .peek { position: fixed; z-index: 5; inset: 0; overflow: hidden; pointer-events: none; background: var(--bg); will-change: transform; }
 .peek-in { padding-bottom: 120px; }
 .story.snap .x, .story.snap .x-in { transition: none !important; }
+
+/* searching: the field under the top bar, the page fixed, only the results scroll (between the field and the keyboard) */
+.searchbar[hidden] { display: none; }
+html.searching .searchbar { position: fixed; z-index: 19; left: 0; right: 0; top: var(--barh, 58px); margin: 0 auto; padding-top: 0;
+  box-shadow: 0 0 0 8px var(--bg); }
+html.searching #list { position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh, 58px) + 56px);
+  bottom: calc(var(--kb) + var(--dock)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; min-height: 0; }
+html.searching, html.searching body { overflow: hidden; }

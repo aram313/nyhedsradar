@@ -758,8 +758,8 @@ function render(opts = {}) {
   $('list').dataset.sec = SECTIONS[tab] ? tab : '';   // a section's own page takes its colour
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
   const all = stories();
-  const html = pageHtml(tab, all, opts);
-  $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
+  if (opts.adopt) $('list').replaceChildren(opts.adopt);   // a swipe's neighbour, already drawn
+  else $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${pageHtml(tab, all, opts)}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
   const fresh = opts.fresh && shownIds.size ? all.filter(i => !shownIds.has(i.id)).length : 0;
   shownIds = new Set(all.map(i => i.id));
@@ -901,7 +901,7 @@ $('list').addEventListener('click', async e => {
   const thr = t.closest('[data-thr]');
   if (thr) { threadOpen = threadOpen === thr.dataset.thr ? null : thr.dataset.thr; render(); return; }
   const chip = t.closest('[data-q]');
-  if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus(); render(); return; }
+  if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus({ preventScroll: true }); render(); list.scrollTop = 0; return; }
   if (t.closest('[data-recap]')) { recapOpen = !recapOpen; if (recapOpen) { expanded.clear(); daysOpen.clear(); } render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
@@ -986,7 +986,9 @@ function peekOf(next, side) {
   peek.className = 'peek'; peek.dataset.tab = next; peek.dataset.sec = SECTIONS[next] ? next : '';
   peek.setAttribute('aria-hidden', 'true');
   const top0 = list.getBoundingClientRect().top + scrollY;
-  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px;transform:translateY(${-(scrollPos[next] || 0)}px)">${pageHtml(next, stories()).replace(/ id="[^"]*"/g, '')}</div>`;
+  // drawn exactly as the page will be (same wrapper, ids and all), so on release it simply becomes the page: no redraw,
+  // no picture loading again, no hop
+  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px;transform:translateY(${-(scrollPos[next] || 0)}px)"><div>${pageHtml(next, stories())}</div></div>`;
   document.body.appendChild(peek);
   return peek;
 }
@@ -1035,7 +1037,8 @@ function endSwipe() {
   setSwipe(-side * W, side, ease);
   setTimeout(() => {   // the neighbour now fills the screen: make it the page, in one frame
     list.style.transition = 'none'; list.style.transform = '';
-    setTab(next, { swipe: true });
+    const drawn = peek && peek.querySelector('.peek-in > div');
+    setTab(next, { swipe: true, adopt: drawn });
     if (peek) { peek.remove(); peek = null; }
     requestAnimationFrame(() => { list.style.transition = ''; });
   }, ms + 10);
@@ -1046,7 +1049,7 @@ addEventListener('touchcancel', () => { if (sw) { sw.samples = [[performance.now
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
   if (next === tab) {
-    if (tab === 'search') $('search').focus(); else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    if (tab === 'search') $('search').focus({ preventScroll: true }); else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
     return;
   }
   scrollPos[tab] = scrollY;
@@ -1054,11 +1057,15 @@ function setTab(next, opts = {}) {
   tab = next;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
   $('title').textContent = TITLES[tab] || SECTIONS[tab];
-  $('title').classList.remove('swap'); void $('title').offsetWidth; $('title').classList.add('swap');
+  $('title').classList.remove('swap');
+  if (!opts.swipe) { void $('title').offsetWidth; $('title').classList.add('swap'); }   // a swipe has its own motion
   $('searchbar').hidden = tab !== 'search';
-  if (tab === 'search') { loadIndex(); setTimeout(() => $('search').focus(), 60); } else $('search').blur();
+  // searching: the field sits under the top bar, the page stands still and only the results scroll, so the phone has
+  // no reason to push the page up when the keyboard comes
+  document.documentElement.classList.toggle('searching', tab === 'search');
+  if (tab === 'search') { loadIndex(); list.scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
   $('freshPill').hidden = true;
-  render({ view: !opts.swipe });
+  render({ view: !opts.swipe, adopt: opts.adopt });
   scrollTo(0, opts.top ? 0 : scrollPos[tab] || 0);
 }
 // everything the radar read in the last two days, fetched only when someone searches
@@ -1081,7 +1088,7 @@ $('openSearch').addEventListener('click', () => setTab('search', { top: true }))
 let typing;
 $('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 60); });
 $('search').addEventListener('keydown', e => { if (e.key === 'Enter') $('search').blur(); });
-$('searchClear').addEventListener('click', () => { query = ''; $('search').value = ''; $('search').focus(); render(); });
+$('searchClear').addEventListener('click', () => { query = ''; $('search').value = ''; $('search').focus({ preventScroll: true }); render(); });
 $('status').addEventListener('click', () => { $('status').textContent = 'opdaterer …'; load(true); });
 
 // keep the dock (search field + tabs) right above the keyboard, and tell the layout how tall the visible part is.
@@ -1105,6 +1112,7 @@ syncViewport();
 setTimeout(loadArchive, 1500);   // the earlier days: for 'Følg udviklingen' across days
 if (params.get('q')) { query = params.get('q'); $('search').value = query; }
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
+new ResizeObserver(() => document.documentElement.style.setProperty('--barh', $('bar').offsetHeight + 'px')).observe($('bar'));
 
 // what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story
 // must not mark everything as seen
