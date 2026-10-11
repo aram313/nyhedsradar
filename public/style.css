@@ -703,5 +703,6 @@ html.intro-skip .intro { display: none; }
 .pic-credit { margin: 10px 0 0; font-size: calc(12px * var(--ts, 1)); color: var(--text-3); }
 /* the Udvikling page: one view at a time – Forløb or Dag for dag */
 .seg.two { grid-template-columns: repeat(2, 1fr); }
-.ud-seg { margin: 12px 16px 8px; }
+.ud-seg { position: sticky; z-index: 6; top: var(--barh, 58px); margin: 0 16px 8px; padding-top: 0;
+  box-shadow: 0 -8px 0 8px var(--bg), 0 8px 0 0 var(--bg); }   /* stays under the top bar while the page scrolls */
 .ud-seg + .ov { margin-top: 12px; }

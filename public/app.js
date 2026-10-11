@@ -763,7 +763,7 @@ function threadCard(t) {
 let udView = 'forlob';
 function threadsPage() {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);
-  const seg = `<div class="seg two ud-seg" role="radiogroup" aria-label="Vis">${[['forlob', 'Forløb'], ['dage', 'Dag for dag']].map(([v, l]) =>
+  const seg = `<div class="seg two ud-seg" role="radiogroup" aria-label="Vis">${[['forlob', 'Forløb'], ['dage', 'Resumé']].map(([v, l]) =>
     `<button role="radio" data-ud="${v}" aria-checked="${udView === v}">${l}</button>`).join('')}</div>`;
   if (udView === 'dage') return seg + overview() + `<section class="block">${archive()}</section>`;
   const list = threads();
@@ -1068,7 +1068,7 @@ $('list').addEventListener('click', async e => {
   const more = t.closest('[data-top-more]');
   if (more) { const k = more.dataset.topMore; topOpen.has(k) ? topOpen.delete(k) : topOpen.add(k); render(); return; }
   if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); recapOpen = false; } render();
-    if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`));   // the opened day starts at the top
+    if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8 + (cur().querySelector('.ud-seg') || { offsetHeight: 0 }).offsetHeight + 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
