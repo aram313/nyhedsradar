@@ -410,7 +410,7 @@ function quoteOfDay() {
 // 'Følg historien': the day's first topic from the recap as a small timeline, oldest first
 const followTopic = () => { const day = dayOf(digest); return day && day.topics.find(t => t.lines.filter(l => l.at).length >= 3); };
 // ---------------------------------------------------------------- the front page, organised by story and time
-// 1. the day in a sentence (+ what is new since the last visit), 2. the day's main story as one package: picture and
+// 1. the day in a sentence, 2. the day's main story as one package: picture and
 // headline, how it developed and a statement from it, 3. the rest of the day's top,
 // 4. 'Lige nu' further down, 5. the sections and the recap as before.
 const STOP = new Set(['angreb', 'angrebet', 'angrebene', 'amerikansk', 'israelsk', 'efter', 'under', 'siger', 'mange', 'flere', 'denne', 'dette', 'imod', 'mellem', 'omkring', 'about', 'after',
@@ -440,19 +440,13 @@ function storyline(tp, n = 4) {
   return { lines, html: `<div class="follow pkg-f"><div class="pkg-h">Sådan udviklede det sig</div><ol>${lines.map(l =>
     `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></div>` };
 }
-function sinceChip(all) {
-  const since = lastSeen;   // the last visit (set when the app comes back after ten minutes or more away)
-  if (!since) return '';
-  const n = all.filter(i => i.found && new Date(i.found).getTime() > since && (i.important || i.big || pickRank(i) < 99)).length;
-  return n ? `<button class="since" data-go="latest"><i></i>${n} ${n === 1 ? 'ny vigtig' : 'nye vigtige'} siden kl. ${clock(new Date(since).toISOString())}</button>` : '';
-}
 function home(all, opts) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
   const top = withPicks(cands, 12), pkg = mainPackage(top);
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
-  let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}${sinceChip(all)}</header>`;
+  let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
   const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
   // the package's other stories about the same thing stay out of the lists below
   const same = i => pkg && i !== lead && overlap(stems([i.title, i.origTitle, i.title_da].join(' ')), pkg.ts) >= 3;

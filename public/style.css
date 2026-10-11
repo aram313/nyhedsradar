@@ -528,9 +528,6 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .follow p b { font-weight: 700; }
 
 /* ------------------------------------------------------------ front page by story: the main story as one package */
-.lede .since { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; padding: 6px 12px; border-radius: 999px;
-  background: var(--pulse-soft); color: var(--pulse); font-size: 13px; font-weight: 700; }
-.lede .since i { width: 6px; height: 6px; border-radius: 50%; background: var(--pulse); }
 .pkg-h { margin: 0 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
 .pkg .pkg-f { margin: 14px 16px 6px; }
 .pkg .pkg-q { margin: 4px 0 6px; }
