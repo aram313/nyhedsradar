@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
-<link rel="stylesheet" href="style.css?v=20261011g">
+<link rel="stylesheet" href="style.css?v=20261011h">
 <script>
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
@@ -52,7 +52,15 @@
 </div>
 <script>
   // before anything else paints: a returning visitor gets only the short writing, a first visit stays for the purpose
-  try { if (localStorage.getItem('introSeen')) document.documentElement.classList.add('intro-short'); } catch (e) {}
+  // and the look the user chose (light, dark or the phone's own setting), so the intro already wears the app's colours
+  try {
+    const d = document.documentElement, get = k => JSON.parse(localStorage.getItem(k));
+    if (localStorage.getItem('introSeen')) d.classList.add('intro-short');
+    const mode = get('mode'), tone = get('tone'), dark = get('dark');
+    if (mode && mode !== 'auto') d.dataset.theme = mode;
+    if (tone && tone !== 'daempet') d.dataset.tone = tone;
+    if (dark && dark !== 'notion') d.dataset.dark = dark;
+  } catch (e) {}
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 5.5h12v13a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M16.5 9h3v9.5a1.5 1.5 0 0 1-3 0"/><path d="M7.5 9h6M7.5 12.5h6M7.5 16h4"/></g></symbol>
@@ -149,6 +157,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261011g"></script>
+<script src="app.js?v=20261011h"></script>
 </body>
 </html>
