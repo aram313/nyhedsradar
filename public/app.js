@@ -1055,8 +1055,7 @@ load();
     write($('inkDot'), 0.1 + D + 0.1, D * 0.15);
     fill(0.1 + D + 0.4);
     el.style.setProperty('--dot', (0.1 + D + 0.45).toFixed(2) + 's');
-    el.querySelector('.intro-name').style.animationDelay = (0.1 + D + 0.65).toFixed(2) + 's';
-    if (first) $('introWhy').style.animationDelay = (0.1 + D + 1).toFixed(2) + 's';
+    if (first) $('introWhy').style.animationDelay = (0.1 + D + 0.8).toFixed(2) + 's';
     else { const t = setTimeout(done, (D + 1.6) * 1000); el.addEventListener('click', () => { clearTimeout(t); done(); }); }
   };
   if (first) {

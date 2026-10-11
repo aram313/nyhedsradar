@@ -476,8 +476,6 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
 .intro-ink .nib { opacity: 0; animation: inkOn .01s linear forwards; animation-delay: var(--t); }
 .intro-ink .ink-red { fill: var(--pulse); transform-box: fill-box; transform-origin: center; transform: scale(0);
   animation: introDot .35s cubic-bezier(.3, 1.6, .5, 1) forwards; animation-delay: var(--dot, 1.7s); }
-.intro-name { font-size: 22px; font-weight: 700; letter-spacing: .02em; opacity: 0; transform: translateY(6px);
-  animation: introUp .5s ease-out 1.9s forwards; }
 .intro-why { width: 100%; max-width: 420px; opacity: 0; transform: translateY(10px); animation: introUp .6s ease-out 2.3s forwards; }
 .intro-why[hidden] { display: none; }
 .intro-lead { margin: 0 0 16px; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; line-height: 1.35; text-align: center; }
@@ -488,7 +486,6 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
 .intro-go:active { transform: scale(.98); }
 @keyframes introDot { to { transform: scale(1); } }
 @keyframes introUp { to { opacity: 1; transform: none; } }
-html.intro-short .intro-name { animation-delay: 1.35s; }
 @keyframes inkOn { to { opacity: 1; } }
 /* the dot of خ, set last, sends out a signal: two hairline rings that widen and fade – once on a short start,
    a quiet ping every few seconds while the first visit reads what Khabar is for */
@@ -498,5 +495,5 @@ html.intro-short .intro-name { animation-delay: 1.35s; }
 .intro-ink .ink-ring.two { animation-delay: calc(var(--dot, 1.7s) + .75s); }
 html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 @keyframes inkPing { 0% { transform: scale(1); opacity: .5; } 55% { transform: scale(5.2); opacity: 0; } 100% { transform: scale(5.2); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .intro-ink .nib, .intro-ink .ink-red, .intro-name, .intro-why { animation-duration: .01s !important; animation-delay: 0s !important; } }
+@media (prefers-reduced-motion: reduce) { .intro-ink .nib, .intro-ink .ink-red, .intro-why { animation-duration: .01s !important; animation-delay: 0s !important; } }
 @media (prefers-reduced-motion: reduce) { .intro-ink .ink-ring { display: none; } }
