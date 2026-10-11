@@ -30,9 +30,9 @@
 :root[data-dark="apple"][data-theme="dark"] { color-scheme: dark; --bg: #1c1c1e; --text: #ffffff; --text-2: #aeaeb2; --text-3: #8e8e93; --line: #38383a; --fill: #2c2c2e; --fill-2: #3a3a3c; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(28, 28, 30, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 :root[data-dark="grafit"][data-theme="dark"] { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #98938b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; }
 /* colour is used sparingly: a small dot tells the section on mixed lists; red is only for big news and 'live' */
-:root { --dk: #3b6fc4; --me: #2f855a; --world: #8058b8; --warn: #9a5800; --sec: var(--text-3); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dk: #7aa7ff; --me: #4cc38a; --world: #b794f6; --warn: #f0b45a; } }
-:root[data-theme="dark"] { --dk: #7aa7ff; --me: #4cc38a; --world: #b794f6; --warn: #f0b45a; }
+:root { --dk: #5d6e88; --me: #5f7a69; --world: #76698c; --warn: #9a5800; --sec: var(--text-3); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dk: #95a5bf; --me: #95ae9e; --world: #ab9fc0; --warn: #f0b45a; } }
+:root[data-theme="dark"] { --dk: #95a5bf; --me: #95ae9e; --world: #ab9fc0; --warn: #f0b45a; }
 [data-sec="dk"] { --sec: var(--dk); }
 [data-sec="me"] { --sec: var(--me); }
 [data-sec="world"] { --sec: var(--world); }
@@ -370,9 +370,8 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .guides .wide { margin: 0; }
 
 /* ------------------------------------------------------------ section pages: lead, two side by side, quotes, a quiet colour */
-#list[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
-#list[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
-#list[data-sec]:not([data-sec=""]) .day span { background: var(--sec); color: #fff; }
+#list[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 14%, transparent); }
+#list[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 35%, transparent); margin: 0 16px 10px; padding-left: 0; }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
 .story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
 .story.card::before { display: none; }
