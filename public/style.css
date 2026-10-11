@@ -239,18 +239,11 @@ main { min-height: 70vh; }
 mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
 
 /* ------------------------------------------------------------ pull to refresh: a quiet ring, like the system's */
-/* pull to refresh: the mark written by the pull; while loading, the red dot signals */
-.ptr { position: fixed; z-index: 15; top: calc(var(--top) + 70px); left: 50%; width: 62px; height: 44px; margin-left: -31px;
-  opacity: 0; pointer-events: none; transition: opacity .2s; }
-.ptr svg { width: 100%; height: 100%; overflow: visible; }
-.ptr text { font-family: 'Aref Ruqaa', var(--logo); font-weight: 700; font-size: 230px; fill: var(--text); }
-.ptr .ink-fix { fill: var(--text); }
-.ptr .ink-red { fill: var(--pulse); transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
-.ptr.dot .ink-red { transform: scale(1); }
-.ptr .ink-ring { fill: none; stroke: var(--pulse); stroke-width: 1.2; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; }
-.ptr.spin .ink-ring { animation: inkPing 1.6s cubic-bezier(.15, .55, .3, 1) infinite; }
-.ptr.spin .ink-ring.two { animation-delay: .45s; }
-.ptr.ready svg { transform: scale(1.06); transition: transform .2s var(--out); }
+/* pull to refresh: the logo nods when the pull is far enough, and blinks while the news loads */
+.brand .logo { transition: transform .2s var(--out); }
+.brand .logo.ready { transform: scale(1.12); }
+.brand .logo.blink { animation: logoBlink 1s ease-in-out infinite; }
+@keyframes logoBlink { 50% { opacity: .25; } }
 #list.pulling, #list.settling { will-change: transform; }
 #list.settling { transition: transform .38s var(--out); }
 
@@ -352,7 +345,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 @keyframes shimmer { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .ptr.spin .ink-ring { animation: none; }
+  .brand .logo.blink { animation-duration: 2s; }
 }
 @media (min-width: 700px) {
   main, .bar > .brand { max-width: 680px; }
@@ -377,9 +370,9 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .guides .wide { margin: 0; }
 
 /* ------------------------------------------------------------ section pages: lead, two side by side, quotes, a quiet colour */
-#list[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
-#list[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
-#list[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
+:is(#list, .peek)[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
+:is(#list, .peek)[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
+:is(#list, .peek)[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
 .story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
 .story.card::before { display: none; }
@@ -407,7 +400,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .block.top .block-h { padding-left: 12px; }
 .block.top .story.hero { margin-left: 6px; margin-right: 6px; }
 .block.top .duo { margin-left: 6px; margin-right: 6px; }
-#list[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
+:is(#list, .peek)[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
 
 /* ------------------------------------------------------------ the front page's own voice: the day in a line, a glance per section */
 .lede { padding: 14px 16px 2px; }
@@ -597,3 +590,9 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .mini.on .chev { transform: rotate(-90deg); }
 .mini:active { opacity: .6; }
 .mini-row + .cov { margin-top: 10px; }
+
+/* swipe between tabs: the neighbouring tab beside the page, both following the finger */
+#list { touch-action: pan-y; }
+.peek { position: fixed; z-index: 5; inset: 0; overflow: hidden; pointer-events: none; background: var(--bg); will-change: transform; }
+.peek-in { padding-bottom: 120px; }
+.story.snap .x, .story.snap .x-in { transition: none !important; }

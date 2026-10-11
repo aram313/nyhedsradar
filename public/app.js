@@ -577,6 +577,7 @@ function toggleCard(card) {
   if (was === card) { panel.classList.remove('open'); return; }
   const i = find(card.dataset.id);
   if (!i) return;
+  foldOthers(card);
   mark(card, true);
   panel.dataset.id = i.id;
   panel.querySelector('.x-in').innerHTML = panelBody(i);
@@ -746,16 +747,18 @@ function renderHeader() {
   $('status').textContent = !data ? 'henter …' : stale ? 'ikke opdateret siden ' + clock(data.updated) : 'opdateret ' + clock(data.updated);
   $('status').setAttribute('aria-label', $('status').textContent + ' – tryk for at opdatere');
 }
+function pageHtml(t, all, opts = {}) {
+  const note = offline ? `<p class="notice">Ingen forbindelse – viser nyhederne fra kl. ${clock(data.updated)}.</p>`
+    : isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
+  return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts)
+    : t === 'threads' ? threadsPage() : sectionPage(t, all, opts));
+}
 function render(opts = {}) {
   renderHeader();
   $('list').dataset.sec = SECTIONS[tab] ? tab : '';   // a section's own page takes its colour
   if (!data) { $('list').innerHTML = '<div class="skel"></div>'.repeat(8); return; }
   const all = stories();
-  let html = offline ? `<p class="notice">Ingen forbindelse – viser nyhederne fra kl. ${clock(data.updated)}.</p>`
-    : isStale() ? `<p class="notice">Khabar har ikke hentet nyt siden kl. ${clock(data.updated)}. Listen kan være forældet.</p>` : '';
-  html += tab === 'home' ? home(all, opts) : tab === 'search' ? searchPage(all) : tab === 'latest' ? latestPage(all, opts)
-    : tab === 'threads' ? threadsPage()
-    : sectionPage(tab, all, opts);
+  const html = pageHtml(tab, all, opts);
   $('list').innerHTML = `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${html}</div>`;
   // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
   const fresh = opts.fresh && shownIds.size ? all.filter(i => !shownIds.has(i.id)).length : 0;
@@ -806,8 +809,27 @@ function keepInView(el) {
     if (r.bottom > limit) scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
   }, 320);
 }
+// one thing open at a time: opening a story folds the others (and an open card panel) back; those above it close at
+// once and the page moves with them, so the story one tapped stays where it is
+function foldOthers(keep) {
+  const others = [...document.querySelectorAll('#list .story.open:not(.panel), #list .story.card.sel, #list .story.panel.open')]
+    .filter(o => o !== keep && !o.contains(keep) && !keep.contains(o) && !(o.classList.contains('panel') && keep.closest('.duo-wrap') === o.closest('.duo-wrap')));
+  if (!others.length) return;
+  const before = keep.getBoundingClientRect().top;
+  for (const o of others) {
+    const above = !!(o.compareDocumentPosition(keep) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if (above) o.classList.add('snap');
+    if (o.classList.contains('card')) { o.classList.remove('sel'); o.querySelector('[data-toggle]').setAttribute('aria-expanded', false); expanded.delete(o.dataset.id); continue; }
+    o.classList.remove('open'); expanded.delete(o.dataset.id);
+    const tg = o.querySelector('[data-toggle]'); if (tg) tg.setAttribute('aria-expanded', false);
+  }
+  const shift = keep.getBoundingClientRect().top - before;
+  if (shift) scrollBy(0, shift);
+  requestAnimationFrame(() => others.forEach(o => o.classList.remove('snap')));
+}
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = find(id);
+  if (open) foldOthers(el);
   if (open && i) {
     el.querySelector('.x-in').innerHTML = detail(i);
     expanded.add(id);
@@ -880,7 +902,7 @@ $('list').addEventListener('click', async e => {
   if (thr) { threadOpen = threadOpen === thr.dataset.thr ? null : thr.dataset.thr; render(); return; }
   const chip = t.closest('[data-q]');
   if (chip) { query = chip.dataset.q + ' '; $('search').value = query; $('search').focus(); render(); return; }
-  if (t.closest('[data-recap]')) { recapOpen = !recapOpen; render(); return; }
+  if (t.closest('[data-recap]')) { recapOpen = !recapOpen; if (recapOpen) { expanded.clear(); daysOpen.clear(); } render(); return; }
   if (t.closest('[data-day-more]')) { dayOpen.add(t.closest('[data-day-more]').dataset.dayMore); render(); return; }
   if (t.closest('[data-day-share]')) { const d = findDay(t.closest('[data-day]').dataset.day); if (d) share(dayText(d)); return; }
   if (t.closest('[data-line]')) {   // a line that tells a story: opening it says 'more like this', quietly
@@ -892,7 +914,7 @@ $('list').addEventListener('click', async e => {
   if (t.closest('[data-arch-all]')) { archAll = true; render(); return; }
   const more = t.closest('[data-top-more]');
   if (more) { const k = more.dataset.topMore; topOpen.has(k) ? topOpen.delete(k) : topOpen.add(k); render(); return; }
-  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; daysOpen.has(c) ? daysOpen.delete(c) : daysOpen.add(c); render(); return; }
+  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); recapOpen = false; } render(); return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
@@ -906,125 +928,116 @@ addEventListener('scroll', () => {
   $('bar').classList.toggle('scrolled', scrollY > 4);
 }, { passive: true });
 
-// ---------------------------------------------------------------- pull down to refresh: pulling writes خبر
-// The pull is the pen: the further one pulls, the more of the word is written. Let go past the mark and the dot under ب
-// and the red dot follow, and while the news loads the red dot sends out its quiet rings, as in the intro.
-let pull = null, pen = null;
-const list = $('list'), ptr = $('ptr');
-function ptrPen() {
-  if (pen) return pen;
-  ptr.innerHTML = `<svg viewBox="150 100 300 215" aria-hidden="true"><path id="ptrP1" d="${INK.p1}" fill="none"/><path id="ptrP2" d="${INK.p2}" fill="none"/>
-    <mask id="ptrBehind" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"><path fill="#fff" fill-rule="evenodd" d="${INK.behind}"/></mask>
-    <mask id="ptrMask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"></mask>
-    <g mask="url(#ptrMask)"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="${INK.fix}"/></g>
-    <circle class="ink-ring" cx="380" cy="128" r="12"/><circle class="ink-ring two" cx="380" cy="128" r="12"/><circle class="ink-red" cx="380" cy="128" r="12"/></svg>`;
-  const mask = $('ptrMask'), behind = document.createElementNS(NS, 'g');
-  behind.setAttribute('mask', 'url(#ptrBehind)'); mask.appendChild(behind);
-  pen = { strokes: penStrokes(mask, behind, $('ptrP1'), $('ptrP2')), full: fullInk(mask), shown: -1 };
-  pen.full.style.display = 'none';
-  return pen;
-}
-// p: 0..1 of the whole writing (the word up to .85, the dot under ب after .9); shows the polygons up to there
-function ptrWrite(p) {
-  const P = ptrPen(), upto = s => s.stroke ? p >= 0.9 && s.x <= (p - 0.9) / 0.1 : s.x <= p / 0.85;
-  let last = -1;
-  P.strokes.forEach((s, k) => { if (upto(s)) last = k; });
-  if (last === P.shown) return;
-  P.strokes.forEach((s, k) => { s.el.style.display = k <= last ? '' : 'none'; });
-  P.full.style.display = p >= 1 ? '' : 'none';
-  P.shown = last;
-  // browsers do not redraw a mask whose contents changed until the mask is set again
-  for (const g of ptr.querySelectorAll('[mask]')) { const m = g.getAttribute('mask'); g.removeAttribute('mask'); g.setAttribute('mask', m); }
-}
-function ptrReset() { ptr.style.opacity = 0; ptr.classList.remove('ready', 'spin', 'dot'); if (pen) ptrWrite(0); }
+// ---------------------------------------------------------------- pull down to refresh: the logo answers
+// The list follows the pull; far enough down, the logo in the top bar gives a small nod, and when one lets go it
+// blinks while the news loads – the name is not shown twice.
+let pull = null;
+const list = $('list'), logo = document.querySelector('.brand .logo');
 addEventListener('touchstart', e => {
   if (scrollY <= 0 && tab !== 'search' && !e.target.closest('.sheet, .owner, .dock')) pull = { x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
 }, { passive: true });
 addEventListener('touchmove', e => {
   if (!pull) return;
   pull.d = e.touches[0].clientY - pull.y;
-  if (Math.abs(e.touches[0].clientX - pull.x) > Math.abs(pull.d) + 6) { pull = null; list.style.transform = ''; ptrReset(); return; }   // a sideways swipe
-  if (pull.d <= 0 || scrollY > 0) { list.style.transform = ''; ptr.style.opacity = 0; return; }
+  if (Math.abs(e.touches[0].clientX - pull.x) > Math.abs(pull.d) + 6) { pull = null; list.style.transform = ''; logo.classList.remove('ready'); return; }   // a sideways swipe
+  if (pull.d <= 0 || scrollY > 0) { list.style.transform = ''; return; }
   list.classList.add('pulling');
   list.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
-  ptr.style.opacity = Math.min(1, pull.d / 30);
-  ptrWrite(Math.min(0.85, (pull.d / 90) * 0.85));
-  ptr.classList.toggle('ready', pull.d >= 90);
+  logo.classList.toggle('ready', pull.d >= 84);
 }, { passive: true });
 addEventListener('touchcancel', () => {   // an interrupted pull must not leave the list pulled down
   if (!pull) return;
   pull = null;
-  list.classList.remove('pulling'); list.style.transform = ''; ptrReset();
+  list.classList.remove('pulling'); list.style.transform = ''; logo.classList.remove('ready');
 });
 addEventListener('touchend', async () => {
   if (!pull) return;
-  const go = pull.d >= 90;
+  const go = pull.d >= 84;
   pull = null;
   list.classList.remove('pulling');
   list.classList.add('settling');
+  logo.classList.remove('ready');
+  list.style.transform = '';
+  setTimeout(() => list.classList.remove('settling'), 420);
   if (go) {
-    list.style.transform = 'translateY(64px)';
-    ptr.classList.remove('ready'); ptr.style.opacity = 1;
-    // the pen finishes: the dot under ب, then the red dot, which signals while the news loads
-    const t0 = performance.now();
-    await new Promise(res => { const step = now => { const k = Math.min(1, (now - t0) / 260); ptrWrite(0.85 + 0.15 * k); k < 1 ? requestAnimationFrame(step) : res(); }; requestAnimationFrame(step); });
-    ptr.classList.add('dot', 'spin');
+    logo.classList.add('blink');
     await Promise.all([load(true), wait(900)]);
-    ptr.classList.remove('spin');
+    logo.classList.remove('blink');
   }
-  list.style.transform = ''; ptr.style.opacity = 0;
-  setTimeout(() => { list.classList.remove('settling'); if (!pull) ptrReset(); }, 420);
 });
 
 // ---------------------------------------------------------------- swipe left and right between the tabs
-// The page follows the finger; let go far enough (or quickly) and it slides out while the next tab slides in from
-// the other side. Only a clearly sideways move counts, so scrolling and pulling stay as they are.
+// As in a native page view: the neighbouring tab lies ready beside the page and both follow the finger one to one (no
+// fading). The direction is decided after 12 px; a sideways move then keeps the page from scrolling. On release the
+// speed of the last ~90 ms decides: a flick turns the page even when short, otherwise it must be past a third of the
+// width. The page then finishes at the finger's own speed, or springs back. At the first and last tab it only gives a
+// little. Touches from the screen's outer edge are left to the phone (its own back gesture).
 const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'threads', 'latest'];
-let sw = null;
+const SNAP = 'cubic-bezier(.2,.85,.25,1)';
+let sw = null, peek = null;
+function peekOf(next, side) {
+  if (peek && peek.dataset.tab === next) return peek;
+  if (peek) peek.remove();
+  peek = document.createElement('div');
+  peek.className = 'peek'; peek.dataset.tab = next; peek.dataset.sec = SECTIONS[next] ? next : '';
+  peek.setAttribute('aria-hidden', 'true');
+  const top0 = list.getBoundingClientRect().top + scrollY;
+  peek.innerHTML = `<div class="peek-in" style="padding-top:${top0}px;transform:translateY(${-(scrollPos[next] || 0)}px)">${pageHtml(next, stories()).replace(/ id="[^"]*"/g, '')}</div>`;
+  document.body.appendChild(peek);
+  return peek;
+}
+function setSwipe(x, side, transition = 'none') {
+  const W = innerWidth + 12;
+  list.style.transition = peek ? (peek.style.transition = transition) : transition;
+  list.style.transform = x ? `translate3d(${x}px,0,0)` : '';
+  if (peek) peek.style.transform = `translate3d(${x + side * W}px,0,0)`;
+}
 addEventListener('touchstart', e => {
   const x = e.touches[0].clientX;
-  if (tab === 'search' || e.touches.length > 1 || x < 22 || x > innerWidth - 22 || e.target.closest('.sheet, .owner, .dock, .intro, input, .scrim')) return;
-  sw = { x, y: e.touches[0].clientY, dx: 0, lock: null, t: performance.now() };
+  if (tab === 'search' || e.touches.length > 1 || x < 20 || x > innerWidth - 20 || e.target.closest('.sheet, .owner, .dock, .intro, input, .scrim')) return;
+  sw = { x, y: e.touches[0].clientY, dx: 0, lock: null, samples: [[performance.now(), x]] };
 }, { passive: true });
 addEventListener('touchmove', e => {
   if (!sw) return;
-  const dx = e.touches[0].clientX - sw.x, dy = e.touches[0].clientY - sw.y;
-  if (!sw.lock && Math.hypot(dx, dy) > 10) sw.lock = Math.abs(dx) > Math.abs(dy) * 1.3 ? 'x' : 'y';
+  const cx = e.touches[0].clientX, dx = cx - sw.x, dy = e.touches[0].clientY - sw.y;
+  if (!sw.lock && Math.hypot(dx, dy) > 12) sw.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
   if (sw.lock !== 'x') return;
-  const i = SWIPE_TABS.indexOf(tab), edge = i < 0 || (dx > 0 && i === 0) || (dx < 0 && i === SWIPE_TABS.length - 1);
-  sw.dx = edge ? dx * 0.2 : dx;   // at the first and the last tab the page only gives a little
-  list.style.transition = 'none';
-  list.style.transform = `translateX(${sw.dx.toFixed(1)}px)`;
-  list.style.opacity = (1 - Math.min(0.4, Math.abs(sw.dx) / innerWidth * 0.7)).toFixed(3);
-}, { passive: true });
-addEventListener('touchend', () => {
+  e.preventDefault();   // a sideways swipe must not also scroll the page
+  sw.samples.push([performance.now(), cx]);
+  if (sw.samples.length > 8) sw.samples.shift();
+  const i = SWIPE_TABS.indexOf(tab), side = dx < 0 ? 1 : -1, next = SWIPE_TABS[i + side];
+  if (i < 0 || !next) { if (peek) { peek.remove(); peek = null; } sw.dx = dx * 0.3; setSwipe(sw.dx, side); return; }
+  peekOf(next, side);
+  sw.dx = dx; sw.side = side; sw.next = next;
+  setSwipe(dx, side);
+}, { passive: false });
+function endSwipe() {
   if (!sw) return;
-  const { dx, lock, t } = sw;
+  const { dx, lock, samples, side, next } = sw;
   sw = null;
   if (lock !== 'x') return;
-  const i = SWIPE_TABS.indexOf(tab), dir = dx < 0 ? 1 : -1, next = SWIPE_TABS[i + dir];
-  const fast = Math.abs(dx) / Math.max(1, performance.now() - t) > 0.45;
-  const ease = 'transform .22s cubic-bezier(.4,0,1,1), opacity .22s';
-  if (!next || i < 0 || (Math.abs(dx) < innerWidth * 0.22 && !(fast && Math.abs(dx) > 40))) {   // not far enough: back into place
-    list.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s';
-    list.style.transform = ''; list.style.opacity = '';
-    setTimeout(() => { list.style.transition = ''; }, 320);
+  const [t1, x1] = samples[samples.length - 1], from = samples.find(([t]) => t1 - t <= 90) || samples[0];
+  const v = (x1 - from[1]) / Math.max(1, t1 - from[0]);   // px per ms, + to the right
+  const W = innerWidth + 12;
+  const go = next && peek && (Math.abs(dx) > W / 3 || (Math.abs(v) > 0.35 && Math.sign(v) === Math.sign(dx) && Math.abs(dx) > 20));
+  const remaining = go ? W - Math.abs(dx) : Math.abs(dx);
+  const ms = reduceMotion ? 0 : Math.round(Math.min(340, Math.max(160, remaining / Math.max(Math.abs(v), 0.9))));
+  const ease = `transform ${ms}ms ${SNAP}`;
+  if (!go) {   // back into place
+    setSwipe(0, side || 1, ease);
+    setTimeout(() => { list.style.transition = ''; if (peek && !sw) { peek.remove(); peek = null; } }, ms + 20);
     return;
   }
-  if (navigator.vibrate) navigator.vibrate(6);
-  list.style.transition = reduceMotion ? 'none' : ease;
-  list.style.transform = `translateX(${-dir * innerWidth * 0.45}px)`; list.style.opacity = '0';
-  setTimeout(() => {
+  setSwipe(-side * W, side, ease);
+  setTimeout(() => {   // the neighbour now fills the screen: make it the page, in one frame
+    list.style.transition = 'none'; list.style.transform = '';
     setTab(next, { swipe: true });
-    list.style.transition = 'none';
-    list.style.transform = `translateX(${dir * innerWidth * 0.3}px)`; list.style.opacity = '0';
-    void list.offsetWidth;
-    list.style.transition = reduceMotion ? 'none' : 'transform .34s cubic-bezier(.2,.8,.2,1), opacity .3s';
-    list.style.transform = ''; list.style.opacity = '';
-    setTimeout(() => { list.style.transition = ''; }, 360);
-  }, reduceMotion ? 0 : 200);
-});
-addEventListener('touchcancel', () => { if (sw && sw.lock === 'x') { list.style.transform = ''; list.style.opacity = ''; } sw = null; });
+    if (peek) { peek.remove(); peek = null; }
+    requestAnimationFrame(() => { list.style.transition = ''; });
+  }, ms + 10);
+}
+addEventListener('touchend', endSwipe);
+addEventListener('touchcancel', () => { if (sw) { sw.samples = [[performance.now(), sw.x + sw.dx]]; sw.dx = 0; endSwipe(); } });
 
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
@@ -1404,8 +1417,6 @@ load();
 // until the pen crosses back along it. The order is the calligrapher's: up and round the loop of ح, back through the
 // tooth of ب into the tail of ر, then the dot under ب; the red dot that makes it خ comes last.
 const NS = 'http://www.w3.org/2000/svg';
-const INK = { p1: $('inkPath').getAttribute('d'), p2: $('inkDot').getAttribute('d'),
-  behind: document.querySelector('#inkBehind path').getAttribute('d'), fix: document.querySelector('#introInk .ink-fix').getAttribute('d') };
 const nibAt = (p, t) => [[-25, -t / 2], [25, -t / 2], [25, t / 2], [-25, t / 2]]
   .map(([x, y]) => [p.x + x * 0.5 + y * 0.866, p.y - x * 0.866 + y * 0.5]);     // rotated -60 degrees
 const hull = pts => {
