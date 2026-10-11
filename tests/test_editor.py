@@ -209,3 +209,11 @@ def test_opened_stories_are_summarised_first_and_yesterday_shrinks(folder, tmp_p
     assert 'The recap of 9. oktober' not in text and 'The recap of 10. oktober 2026 so far' in text
     editor.main(['input', '--dir', str(folder), '--now', '2026-10-10T05:01:00+00:00'])   # 07.01: yesterday in full
     assert 'The recap of 9. oktober 2026 so far' in (editor.WORK / 'input.md').read_text(encoding='utf-8')
+
+
+def test_only_the_first_update_after_21_notifies():
+    day = {'topics': [{'name': 'X', 'lines': [{'who': 'A', 'text': 'b'}]}],
+           'updates': ['2026-10-10T19:01:00+00:00', '2026-10-10T20:01:00+00:00']}   # 21.01 and 22.01 Danish time
+    assert editor.push_text(day, editor.ts('2026-10-10T19:01:00+00:00')) is not None
+    assert editor.push_text(day, editor.ts('2026-10-10T20:01:00+00:00')) is None
+    assert editor.push_text(day, editor.ts('2026-10-10T18:01:00+00:00')) is None

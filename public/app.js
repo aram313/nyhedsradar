@@ -413,7 +413,7 @@ let recapOpen = false;
 function overview() {
   const day = dayOf(digest);
   if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer morgen, eftermiddag og aften</small></span></div></section>`;
+    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – opdateres løbende fra morgen til aften</small></span></div></section>`;
   }
   const n = lineCount(day), hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
   const said = hrs.length < 2 ? hrs.join('') : hrs.slice(0, -1).join(', ') + ' og ' + hrs[hrs.length - 1];

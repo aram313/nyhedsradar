@@ -1,5 +1,5 @@
-"""Tools for the Claude editor, who updates Khabar three times a day (morning, afternoon and evening: 07, 15 and 21
-Danish summer time, an hour earlier in winter – the routine runs at 05, 13 and 19 UTC).
+"""Tools for the Claude editor, who updates Khabar twelve times a day: 07, 10 and 13, then every hour from 15 to 23
+Danish winter time (the routine runs at 06, 09, 12 and 14-22 UTC; an hour later in summer). Each update is small.
 
 Each update does six things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
 in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
@@ -34,12 +34,12 @@ DAYS = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'
 MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober',
           'november', 'december']
 KEEP = 30        # days in the archive
-MAX_NEW = 14     # lines one update may add: the most important movements, not everything
+MAX_NEW = 5      # lines one update may add: the most important movements since the last (12 updates a day)
 MAX_TEXT = 220   # characters in a line: one short sentence
-MAX_SUM = 15     # stories one update summarises: the ones readers open, then the ones they are most likely to
+MAX_SUM = 6      # stories one update summarises: the ones readers open, then the ones they are most likely to
 SUM_LEN = 420    # characters in a summary: two or three sentences
 SUM_DAYS = 4     # how long a summary (and a checked headline) is kept
-MAX_TITLES = 20  # foreign headlines one update goes over in Danish: the strongest the app shows
+MAX_TITLES = 8   # foreign headlines one update goes over in Danish: the strongest the app shows
 TITLE_LEN = 140  # characters in a headline
 TOP = 40         # top stories of the day listed for picks and moves
 WORK = Path(tempfile.gettempdir()) / 'editor'
@@ -348,8 +348,10 @@ def day_text(day):
 
 
 def push_text(day, now):
-    """One notification a day, with the evening update: the day's most important line, and how many more."""
-    if dk(now).hour < 20:
+    """One notification a day, with the first update at or after 21 Danish time: the day's most important line, and
+    how many more."""
+    if dk(now).hour < 21 or any(ts(u) < now and dk(ts(u)).hour >= 21 and dk(ts(u)).date() == dk(now).date()
+                                for u in day.get('updates') or []):
         return None
     lines = [x for tp in day['topics'] for x in tp['lines']]
     if not lines:

@@ -69,19 +69,20 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   workflow_dispatch API every 5 minutes with a fine-grained GitHub token (Actions read/write on this repo only, made
   by the owner; it expires – renew it and rerun `scripts/setup-clock.ps1`). The PC task 'Nabd vaekkeur' is removed.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
-  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires 05, 13 and 19 UTC (07/15/21 Danish summer time, 06/14/20 in winter –
-    no idle runs; the app says 'morgen, eftermiddag og aften'). It has NO internet (the cloud sandbox blocks it; the owner
+  - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor: fires twelve times a day (since 2026-10-11, the owner's choice, ~1/10 of his plan):
+    06, 09, 12 and 14-22 UTC = 07, 10, 13 and every hour 15-23 Danish winter time (an hour later in summer); each update
+    is small – only what is new since the last; the app says the recap is 'opdateret løbende fra morgen til aften'. It has NO internet (the cloud sandbox blocks it; the owner
     chose not to open it): everything comes from `editor.py input`, kept lean for tokens (40 top stories, yesterday's
-    recap only as topic names after 10, stories listed once, 15 summaries with readers' opened stories first from
-    learned.json, 20 headlines). It runs
+    recap only as topic names after 10, stories listed once, 6 summaries per update with readers' opened stories first from
+    learned.json, 8 headlines). It runs
     `scripts/editor.py input`, then writes one update: picks (stories that matter most geopolitically; for Danmark,
     those useful in the group's dawah), moves (stories in the wrong section), quotes (best statements, in Danish) and
-    summaries (2–3 Danish sentences for up to 15 stories from headline, teaser and other outlets – always `paywall:
-    true`, and the app says the summary rests on the headlines and introductions), titles (its own Danish for up to 40 of the strongest foreign
-    headlines, which the app shows instead of the machine's), recap lines (at most 14 'Who: what' lines, filed under the Danish
+    summaries (2–3 Danish sentences for up to 6 stories from headline, teaser and other outlets – always `paywall:
+    true`, and the app says the summary rests on the headlines and introductions), titles (its own Danish for up to 8 of the strongest foreign
+    headlines, which the app shows instead of the machine's), recap lines (at most 5 'Who: what' lines, filed under the Danish
     date they happened; a topic continued across days is a development on the app's Udvikling page), and runs
     `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies), `moves.json`
-    (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`; 4 days) on the orphan `digest` branch. Only the evening update (20 or 21) notifies the phones.
+    (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`; 4 days) on the orphan `digest` branch. Only the first update at or after 21 Danish time notifies the phones.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
