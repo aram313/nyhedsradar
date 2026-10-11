@@ -137,7 +137,7 @@ main { min-height: 70vh; }
 .hero-row { position: relative; display: block; width: 100%; height: 230px; overflow: hidden; text-align: left; background: #222; }
 .hero-row img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%;
   filter: var(--press); transition: filter .4s; }
-.story.hero.open .hero-row img { filter: none; }
+.story.hero.open .hero-row img { filter: var(--press-open); }
 .hero-row::after { content: ""; position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, .88) 0%, rgba(0, 0, 0, .62) 38%, rgba(0, 0, 0, .1) 72%, transparent); }
 .hero-tx { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 13px; }
@@ -380,7 +380,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .card-row { display: block; width: 100%; padding: 0 0 10px; text-align: left; }
 .card-pic { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--fill-2); }
 .card-pic img { width: 100%; height: 100%; object-fit: cover; filter: var(--press); }
-.story.card.open .card-pic img { filter: none; }
+.story.card.open .card-pic img { filter: var(--press-open); }
 .card-row .h { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 8px 10px 0;
   font-size: 15px; line-height: 1.3; font-weight: 520; }
 .card-row .m { margin: 5px 10px 0; white-space: nowrap; overflow: hidden; }
@@ -417,9 +417,8 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .gl svg { width: 15px; height: 15px; color: var(--text-3); }
 .gl:active { background: var(--fill-2); }
 
-/* ------------------------------------------------------------ pictures look like press photos: hard black and white with a fine film grain; an opened story shows the colour */
-:root { --press: grayscale(1) contrast(1.45) brightness(1.08);
+/* ------------------------------------------------------------ big pictures look like press photos: hard black and white with a fine film grain; opened, they keep both and get a little colour */
+:root { --press: grayscale(1) contrast(1.45) brightness(1.08); --press-open: grayscale(.7) contrast(1.45) brightness(1.08);
   --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 :is(.card-pic, .hero-row)::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: var(--film); mix-blend-mode: multiply; opacity: .5; transition: opacity .4s; }
-.story.hero.open .hero-row::before, .story.card.open .card-pic::before { opacity: 0; }
