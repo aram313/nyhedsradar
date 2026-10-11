@@ -1067,7 +1067,9 @@ $('list').addEventListener('click', async e => {
   if (t.closest('[data-arch-all]')) { archAll = true; render(); return; }
   const more = t.closest('[data-top-more]');
   if (more) { const k = more.dataset.topMore; topOpen.has(k) ? topOpen.delete(k) : topOpen.add(k); render(); return; }
-  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); recapOpen = false; } render(); return; }
+  if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; const was = daysOpen.has(c); daysOpen.clear(); if (!was) { daysOpen.add(c); expanded.clear(); recapOpen = false; } render();
+    if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`));   // the opened day starts at the top
+    return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
   if (t.closest('[data-share]')) share(shareText(i), i);
