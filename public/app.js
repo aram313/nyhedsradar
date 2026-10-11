@@ -1029,7 +1029,7 @@ load();
   // line into the leg's edges above it, so the stroke reads as one; the rest of the line's band where they cross
   // stays hidden until the pen crosses back along it (#inkBehind is the band with that strip cut out).
   const behind = document.createElementNS(NS, 'g');
-  behind.setAttribute('clip-path', 'url(#inkBehind)'); mask.appendChild(behind);
+  behind.setAttribute('mask', 'url(#inkBehind)'); mask.appendChild(behind);   // a mask, not a clip-path: masks are anti-aliased
   const write = (path, start, dur, thin) => {
     const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
     let prev = null;
