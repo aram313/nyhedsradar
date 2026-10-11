@@ -417,7 +417,94 @@ function followStory() {
   return `<section class="follow" data-sec="${esc(tp.section || '')}"><div class="follow-h">Følg historien</div><h3>${esc(tp.name)}</h3>
     <ol>${lines.map(l => `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></section>`;
 }
+// ---------------------------------------------------------------- the front page organised by story and time (preview: ?forside=ny2)
+// 1. the day in a sentence (+ what is new since the last visit), 2. the day's main story as one package: picture and
+// headline, how it developed, a statement from it and how different media tell it, 3. the rest of the day's top,
+// 4. 'Lige nu' further down, 5. the sections and the recap as before.
+const PACKAGE_FRONT = params.get('forside') === 'ny2';
+const STOP = new Set(['angreb', 'angrebet', 'angrebene', 'amerikansk', 'israelsk', 'efter', 'under', 'siger', 'mange', 'flere', 'denne', 'dette', 'imod', 'mellem', 'omkring', 'about', 'after',
+  'against', 'their', 'there', 'which', 'would', 'could', 'other', 'says', 'said', 'while', 'where', 'today']);
+const stems = t => new Set((t || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 5 && !STOP.has(w)).map(w => w.slice(0, 6)));
+const overlap = (a, b) => { let n = 0; for (const w of a) if (b.has(w)) n++; return n; };
+const topicStems = tp => stems(tp.name + ' ' + tp.lines.map(l => l.who + ' ' + l.text).join(' '));
+// the story the recap's lead topic is about: the top story sharing most words with it
+function mainPackage(cands) {
+  const tp = followTopic();
+  if (!tp) return null;
+  const ts = topicStems(tp);
+  let best = null, score = 1;
+  for (const i of cands) {
+    const sc = overlap(stems([i.title, i.origTitle, i.title_da, ...(i.also || []).map(a => a.title)].join(' ')), ts);
+    if (sc > score || (sc === score && best && !best.thumb && i.thumb)) { best = i; score = sc; }
+  }
+  return best && { story: best, topic: tp, ts };
+}
+// how the outlets tell it: one headline from each kind of media, Danish first
+function coverage(i, shownTitle) {
+  const rows = [{ source: i.source, title: i.origTitle || i.title, group: i.group, link: i.link }, ...(i.also || []).map(a => ({ ...a, title: a.title_tr || a.title }))];
+  // one per kind of media; not the headline the package already shows, when that kind has another
+  const pick = ['dk', 'west', 'mena', 'il'].map(g => rows.find(r => r.group === g && r.title !== shownTitle) || rows.find(r => r.group === g)).filter(Boolean);
+  if (pick.length < 2) return '';
+  return `<div class="cov"><div class="pkg-h">Sådan dækkes det</div><ul>${pick.map(r =>
+    `<li><a href="${esc(r.link)}" target="_blank" rel="noopener"><b>${esc(GROUPS[r.group].replace(' medier', ''))}</b><span>${esc(r.source)}</span><p dir="auto">${esc(r.title)}</p></a></li>`).join('')}</ul></div>`;
+}
+function packageQuote(pkg, told) {
+  const qs = (notes().quotes || []).map(q => ({ q, sc: overlap(stems(q.who + ' ' + q.text), pkg.ts) })).filter(x => x.sc >= 3 && !told.has(x.q.who));
+  qs.sort((a, b) => b.sc - a.sc);
+  return qs[0] ? qs[0].q : null;
+}
+function storyline(tp, n = 4) {
+  const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-n);
+  return { lines, html: `<div class="follow pkg-f"><div class="pkg-h">Sådan udviklede det sig</div><ol>${lines.map(l =>
+    `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></div>` };
+}
+function sinceChip(all) {
+  const demo = params.get('siden'), since = demo ? new Date(new Date().toDateString() + ' ' + demo.replace('.', ':')).getTime() : lastSeen;
+  if (!since) return '';
+  const n = all.filter(i => i.found && new Date(i.found).getTime() > since && (i.important || i.big || pickRank(i) < 99)).length;
+  return n ? `<button class="since" data-go="latest"><i></i>${n} ${n === 1 ? 'ny vigtig' : 'nye vigtige'} siden kl. ${clock(new Date(since).toISOString())}</button>` : '';
+}
+function homePackage(all, opts) {
+  const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
+  let cands = all.filter(today);
+  if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
+  const top = withPicks(cands, 12), pkg = mainPackage(top);
+  const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
+  let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}${sinceChip(all)}</header>`;
+  const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
+  // the package's other stories about the same thing stay out of the lists below
+  const same = i => pkg && i !== lead && overlap(stems([i.title, i.origTitle, i.title_da].join(' ')), pkg.ts) >= 3;
+  let pq = null;
+  if (lead) {
+    // a Danish outlet's headline for the package when the story has one
+    const dk = lead.lang !== 'da' && (lead.also || []).find(a => a.group === 'dk');
+    const shown = dk ? { ...lead, title: dk.title, source: dk.source, kw: [] } : lead;
+    html += `<section class="block top pkg" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, hero: !!lead.thumb })}`;
+    if (pkg) {
+      const tl = storyline(pkg.topic);
+      pq = packageQuote(pkg, new Set(tl.lines.map(l => l.who)));
+      html += tl.html + (pq ? `<div class="pkg-q">${quoteCard(pq)}</div>` : '');
+    }
+    html += coverage(lead, shown.title) + '</section>';
+  }
+  const rest = top.filter(i => i !== lead && !same(i)).slice(0, 4);
+  html += `<section class="block">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
+    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
+  if (!pq) html += quoteOfDay();   // no statement from the main story: the day's quote stands on its own
+  html += nowStrip().replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
+  const shown = new Set([lead, ...rest].filter(Boolean).map(i => i.id));
+  const glance = Object.entries(SECTIONS).map(([sec, name]) => {
+    const best = withPicks(all.filter(i => inSection(i, sec) && hours(i) < 24 && !shown.has(i.id) && !same(i)), 1)[0];
+    return best ? `<button class="gl" data-go="${sec}" data-sec="${sec}"><b><i></i>${name}</b><span>${bold(best.title, best.kw)}</span><svg><use href="#i-chev"/></svg></button>` : '';
+  }).join('');
+  if (glance) html += `<section class="glance">${glance}</section>`;
+  html += overview() + `<section class="block">${archive()}</section>`;
+  const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
+  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
+  return html;
+}
 function home(all, opts) {
+  if (PACKAGE_FRONT) return homePackage(all, opts);
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
