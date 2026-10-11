@@ -13,6 +13,15 @@ self.addEventListener('activate', e => {
 const fresh = req => fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => r.redirected ? fetch(req) : r);
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // the intro's letters (Google's font sheet and file for the three letters of خبر): kept on the phone, so a start
+  // has them at once
+  if (e.request.method === 'GET' && (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com')) {
+    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
+      if (r.ok || r.type === 'opaque') { const copy = r.clone(); caches.open(SHELL).then(c => c.put(e.request, copy)); }
+      return r;
+    })));
+    return;
+  }
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   // a file named with its version (style.css?v=…, app.js?v=…) never changes under that name: the copy on the phone
   // serves at once, so a start waits only for the page itself

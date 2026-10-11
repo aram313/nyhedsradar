@@ -1784,9 +1784,21 @@ const fullInk = mask => {   // the last hair the nib missed: the whole word, onc
     $('introWhy').hidden = false; el.setAttribute('aria-hidden', 'false');
     $('introGo').addEventListener('click', () => { store.set('introSeen', true); countVisit(cameVia(), true); done(); });
   }
-  // the pen needs the calligraphic letters; if they do not come within a second, the word simply shows
+  // the pen needs the calligraphic letters. They come with Google's font sheet, which loads beside the page (it no
+  // longer holds up the start): first the sheet, then the letters – asking for the letters before the sheet is in
+  // finds no such font and would let the pen write over letters that are not there yet. If they have not come within
+  // two and a half seconds, the word simply shows.
   let begun = false;
   const go = () => { if (!begun) { begun = true; start(); } };
-  document.fonts.load('700 100px "Aref Ruqaa"', 'حبر').then(go, go);
-  setTimeout(() => { if (!begun) { begun = true; fullInk(mask).style.setProperty('--t', '0s'); el.style.setProperty('--dot', '.1s'); start(); } }, 1000);
+  const plain = () => { if (!begun) { begun = true; fullInk(mask).style.setProperty('--t', '0s'); el.style.setProperty('--dot', '.1s'); start(); } };
+  const sheet = document.querySelector('link[href*="fonts.googleapis"]');
+  new Promise(res => {
+    if (!sheet || (sheet.sheet && sheet.media === 'all')) return res();
+    sheet.addEventListener('load', () => setTimeout(res), { once: true });   // its own onload has made it count by then
+    sheet.addEventListener('error', res, { once: true });
+  }).then(() => {
+    void getComputedStyle(document.documentElement).fontFamily;   // the page takes in the new sheet's font
+    return document.fonts.load('700 100px "Aref Ruqaa"', 'حبر');
+  }).then(faces => (faces.length ? go() : plain()), plain);
+  setTimeout(plain, 2500);
 })();
