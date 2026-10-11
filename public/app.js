@@ -281,6 +281,7 @@ function monogram(name) {
   if (w.length === 1) return caps.length > 1 ? caps.slice(0, 3) : w[0][0].toUpperCase();
   return (w[0][0] + w[1][0]).toUpperCase();
 }
+// a story's small picture; where it has none, or it cannot be loaded, the outlet's initials on a quiet tile
 function thumb(source, file) {
   return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${file
     ? `<img src="${esc(THUMBS + file)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
@@ -299,7 +300,7 @@ function meta(i, opts = {}) {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', opts.tick ? 'tick' : i.thumb && 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
+  const cls = ['story', opts.tick ? 'tick' : 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''} style="--i:${n}">
     <button class="row" data-toggle aria-expanded="${open}">${opts.tick ? `<time class="tt">${clock(i.published || i.found)}</time>` : ''}<span class="tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</button>
@@ -619,7 +620,7 @@ function home(all, opts) {
 function cardStory(i, n, opts) {
   const sel = expanded.has(i.id);
   return `<article class="story card${sel ? ' sel' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-top="1" style="--i:${n}">
-    <button class="card-row" data-toggle aria-expanded="${sel}"><span class="card-pic"><img src="${esc(THUMBS + i.thumb)}" alt="" loading="lazy" decoding="async"></span>
+    <button class="card-row" data-toggle aria-expanded="${sel}"><span class="card-pic"><b aria-hidden="true">${esc(monogram(i.source))}</b><img src="${esc(THUMBS + i.thumb)}" alt="" loading="lazy" decoding="async" onerror="this.remove()"></span>
       <span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, { ...opts, top: true })}</span></button></article>`;
 }
 function duoBlock(duo, opts) {
