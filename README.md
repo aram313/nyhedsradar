@@ -5,8 +5,10 @@ The app is called **Khabar** (خبر, "news"). The repository and folder keep th
 A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
 *Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and **Verden**.
-Headlines set the names of people, parties and places in bold. The front page opens with 'Vigtigst i dag'
-(the radar's strongest stories today) and closes with Claude's **recap of the day** ('Resumé', written at 21:00):
+Headlines set the names of people, parties and places in bold. The front page opens with the day in one sentence
+and **Dagens historie** – the main story as one package (picture, how it developed through the day, a statement from it
+and how Danish, Western, Arab/Muslim and Israeli media headline it) – then the day's other top stories, 'Lige nu' (the
+newest lines) and the sections, and closes with Claude's **recap of the day** ('Resumé', updated at 07, 15 and 21):
 the day's most important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire,
 grouped by topic; each recap replaces the one before, and earlier days stay in an archive below it. The fifth tab, **Seneste**, shows everything as it comes in. Every story has a small picture; opening it shows a short summary, how Danish, Western,
 Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is

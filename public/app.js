@@ -380,8 +380,7 @@ function timeline(list, opts, n0 = 0) {
   return html;
 }
 // the front page: today's most important stories (all sections), then the latest recap of a day, then earlier days
-// ---------------------------------------------------------------- the new front page (preview: ?forside=ny)
-const NEW_FRONT = params.get('forside') === 'ny';
+// ---------------------------------------------------------------- front-page pieces: Lige nu, Dagens citat, the main story's timeline
 let wire = null, wireState = 'idle';   // the latest short lines (Al Jazeera urgent and outlets' headlines), in Danish
 async function loadWire() {
   if (wireState !== 'idle') return;
@@ -410,18 +409,10 @@ function quoteOfDay() {
 }
 // 'Følg historien': the day's first topic from the recap as a small timeline, oldest first
 const followTopic = () => { const day = dayOf(digest); return day && day.topics.find(t => t.lines.filter(l => l.at).length >= 3); };
-function followStory() {
-  const tp = followTopic();
-  if (!tp) return '';
-  const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-5);
-  return `<section class="follow" data-sec="${esc(tp.section || '')}"><div class="follow-h">Følg historien</div><h3>${esc(tp.name)}</h3>
-    <ol>${lines.map(l => `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></section>`;
-}
-// ---------------------------------------------------------------- the front page organised by story and time (preview: ?forside=ny2)
+// ---------------------------------------------------------------- the front page, organised by story and time
 // 1. the day in a sentence (+ what is new since the last visit), 2. the day's main story as one package: picture and
 // headline, how it developed, a statement from it and how different media tell it, 3. the rest of the day's top,
 // 4. 'Lige nu' further down, 5. the sections and the recap as before.
-const PACKAGE_FRONT = params.get('forside') === 'ny2';
 const STOP = new Set(['angreb', 'angrebet', 'angrebene', 'amerikansk', 'israelsk', 'efter', 'under', 'siger', 'mange', 'flere', 'denne', 'dette', 'imod', 'mellem', 'omkring', 'about', 'after',
   'against', 'their', 'there', 'which', 'would', 'could', 'other', 'says', 'said', 'while', 'where', 'today']);
 const stems = t => new Set((t || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 5 && !STOP.has(w)).map(w => w.slice(0, 6)));
@@ -459,12 +450,12 @@ function storyline(tp, n = 4) {
     `<li><time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`).join('')}</ol></div>` };
 }
 function sinceChip(all) {
-  const demo = params.get('siden'), since = demo ? new Date(new Date().toDateString() + ' ' + demo.replace('.', ':')).getTime() : lastSeen;
+  const since = lastSeen;   // the last visit (set when the app comes back after ten minutes or more away)
   if (!since) return '';
   const n = all.filter(i => i.found && new Date(i.found).getTime() > since && (i.important || i.big || pickRank(i) < 99)).length;
   return n ? `<button class="since" data-go="latest"><i></i>${n} ${n === 1 ? 'ny vigtig' : 'nye vigtige'} siden kl. ${clock(new Date(since).toISOString())}</button>` : '';
 }
-function homePackage(all, opts) {
+function home(all, opts) {
   const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
   let cands = all.filter(today);
   if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
@@ -495,34 +486,6 @@ function homePackage(all, opts) {
   const shown = new Set([lead, ...rest].filter(Boolean).map(i => i.id));
   const glance = Object.entries(SECTIONS).map(([sec, name]) => {
     const best = withPicks(all.filter(i => inSection(i, sec) && hours(i) < 24 && !shown.has(i.id) && !same(i)), 1)[0];
-    return best ? `<button class="gl" data-go="${sec}" data-sec="${sec}"><b><i></i>${name}</b><span>${bold(best.title, best.kw)}</span><svg><use href="#i-chev"/></svg></button>` : '';
-  }).join('');
-  if (glance) html += `<section class="glance">${glance}</section>`;
-  html += overview() + `<section class="block">${archive()}</section>`;
-  const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
-  html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
-  return html;
-}
-function home(all, opts) {
-  if (PACKAGE_FRONT) return homePackage(all, opts);
-  const today = i => new Date(i.published || i.found).toDateString() === new Date().toDateString();
-  let cands = all.filter(today);
-  if (cands.length < 5) cands = all.filter(i => today(i) || hours(i) < 12);
-  const now = withPicks(cands, NEW_FRONT ? 5 : 7);
-  // the strongest of the first three with a picture opens the page big
-  const lead = now.slice(0, 3).find(i => i.thumb);
-  if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
-  // the day in one line from the editor, above everything
-  const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
-  let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
-  if (NEW_FRONT) html += nowStrip();
-  html += `<section class="block top">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
-    ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
-  if (NEW_FRONT) html += quoteOfDay() + followStory();
-  // one glance into each section: its strongest story not shown above, a tap away
-  const shown = new Set(now.map(i => i.id));
-  const glance = Object.entries(SECTIONS).map(([sec, name]) => {
-    const best = withPicks(all.filter(i => inSection(i, sec) && hours(i) < 24 && !shown.has(i.id)), 1)[0];
     return best ? `<button class="gl" data-go="${sec}" data-sec="${sec}"><b><i></i>${name}</b><span>${bold(best.title, best.kw)}</span><svg><use href="#i-chev"/></svg></button>` : '';
   }).join('');
   if (glance) html += `<section class="glance">${glance}</section>`;

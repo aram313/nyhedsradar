@@ -88,7 +88,10 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- The front page stays finite and compact: 'Døgnets vigtigste' first, then the latest recap ('Resumé', written once a day at 21,
+- The front page (2026-10-11) is organised by story and time, not by format: date + the editor's lede (+ 'nye vigtige siden kl.'),
+  'Dagens historie' (the recap's lead topic matched to a top story by shared words: hero, timeline, a quote from it, 'Sådan
+  dækkes det'), 4 more top stories (never the main story again), 'Dagens citat' if the package had none, 'Lige nu' (lines.json),
+  the section glance, then the recap. It stays finite. Earlier rule: the latest recap ('Resumé', written once a day at 21,
   titled with the date, short 'Who: what' lines in Al Jazeera's breaking style, no summaries and no 'Også' row – owner's
   request 2026-10-10), then earlier days; the full mixed list lives in 'Seneste'. Colour is minimal (the owner found section-coloured labels
   'in your face'): a small section dot on mixed lists, red only for big stories and 'live'. Headlines guide the eye
