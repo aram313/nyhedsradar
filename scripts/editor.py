@@ -1,9 +1,10 @@
 """Tools for the Claude editor, who updates Khabar three times a day (07, 15 and 21 Danish time).
 
-Each update does five things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
+Each update does six things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
 in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
 writes a short summary of the stories readers open most (what an opened story shows; behind a paywall the editor's
-best reading of headline and coverage, flagged as such), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
+best reading of headline and coverage, flagged as such), goes over the machine's Danish for the strongest foreign
+headlines (the app shows headlines in Danish), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
 breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A line goes into the day it happened
 (Danish date), so at 07 what came before midnight completes yesterday's recap.
 
@@ -12,7 +13,8 @@ breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A
     python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
             [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
                                                     quotes), moves.json (the last 30 days) and summaries.json (the
-                                                    story summaries of the last 4 days); --push commits all three
+                                                    story summaries and checked Danish headlines of the last 4 days);
+                                                    --push commits all three
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
 Options for test runs: --now ISO."""
@@ -34,7 +36,9 @@ MAX_NEW = 14     # lines one update may add: the most important movements, not e
 MAX_TEXT = 220   # characters in a line: one short sentence
 MAX_SUM = 25     # stories one update summarises: the ones readers are most likely to open
 SUM_LEN = 420    # characters in a summary: two or three sentences
-SUM_DAYS = 4     # how long a summary is kept
+SUM_DAYS = 4     # how long a summary (and a checked headline) is kept
+MAX_TITLES = 40  # foreign headlines one update goes over in Danish: the strongest the app shows
+TITLE_LEN = 140  # characters in a headline
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -155,18 +159,33 @@ def summaries_of(args):
     return read(args, 'origin/digest', 'summaries.json', {'items': {}})
 
 
-def to_summarise(items, done, now):
-    """The stories an opened card is most likely to be: the strongest of each section in the last day, then the
-    rest by rank – those without a summary yet, at most MAX_SUM."""
-    fresh = [i for i in items if now - ts(i.get('published') or i['found']) < timedelta(hours=24) and i['id'] not in done]
+def strongest(fresh, per_section, limit):
+    """The strongest stories of each section first, then the rest by rank, each once, at most `limit`."""
     by_rank = sorted(fresh, key=lambda i: -(i.get('rank') or 0))
-    first = [i for sec in SECTIONS for i in [x for x in by_rank if x.get('sec') == sec][:8]]
+    first = [i for sec in SECTIONS for i in [x for x in by_rank if x.get('sec') == sec][:per_section]]
     out, seen = [], set()
     for i in first + by_rank:
         if i['id'] not in seen:
             seen.add(i['id'])
             out.append(i)
-    return out[:MAX_SUM]
+    return out[:limit]
+
+
+def day_old(i, now):
+    return now - ts(i.get('published') or i['found']) < timedelta(hours=24)
+
+
+def to_summarise(items, done, now):
+    """The stories an opened card is most likely to be: the strongest of each section in the last day, then the
+    rest by rank – those without a summary yet, at most MAX_SUM."""
+    return strongest([i for i in items if day_old(i, now) and i['id'] not in done], 8, MAX_SUM)
+
+
+def to_check(items, done, now):
+    """The foreign headlines readers see in the machine's Danish: the strongest of each section in the last day,
+    then the rest by rank – those the editor has not gone over yet, at most MAX_TITLES."""
+    return strongest([i for i in items if day_old(i, now) and i.get('title_da') and i.get('lang') != 'da'
+                      and i['id'] not in done], 12, MAX_TITLES)
 
 
 def recent_days(moves, now):
@@ -206,6 +225,8 @@ TEMPLATE = {
     'moves': [{'id': '<story id in the wrong section>', 'sec': 'dk | me | world'}],
     'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish, one or two sentences>', 'sec': 'dk | me | world',
                 'ids': ['<wire line id>'], 'story': '<or a story id>'}],
+    'titles': [{'id': '<story id from "Danish headlines to check">',
+                'title': '<the headline in correct, natural Danish – the machine\'s own when it is right>'}],
     'summaries': [{'id': '<story id from "Stories to summarise">',
                    'text': '<2-3 Danish sentences from the article: what happened, who, why it matters>',
                    'paywall': '<true when you could not read the article and wrote your best reading of headline, teaser '
@@ -279,6 +300,15 @@ def cmd_input(args):
                 'app then says Khabar had no access to the article.', '']
         for i in todo:
             out += story_lines(i)
+    heads = to_check(items, set((summaries_of(args).get('titles') or {})), now)
+    if heads:
+        out += [f'## Danish headlines to check – {len(heads)} (the app shows foreign headlines in Danish; these are machine translations)', '',
+                "For each: read the original and the machine's Danish, and write the headline as a Danish news desk would:",
+                'the same facts and the same weight, natural Danish word order, names in their usual Danish spelling',
+                '(Zelenskyj, Netanyahu, Hizbollah, Hamas), no additions and no opinion, at most about 110 characters. When the',
+                "machine's is right, give it unchanged. Fields: [id] language · original (English for Arabic and Turkish) → machine Danish", '']
+        out += [f"[{i['id']}] {i.get('lang')} · {i['title']}{' (English: ' + i['title_tr'] + ')' if i.get('title_tr') else ''} → {i['title_da']}"
+                for i in heads] + ['']
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -406,6 +436,15 @@ def build(draft, data, lines, moves, now):
             problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
         else:
             quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
+    heads = []
+    for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
+        title = ' '.join(str(x.get('title', '')).split())
+        if x.get('id') not in by_id:
+            problems.append(f"titles: unknown story id {x.get('id')!r}")
+        elif not title or len(title) > TITLE_LEN:
+            problems.append(f"titles: {x['id']} needs one Danish headline (at most {TITLE_LEN} characters, not {len(title)})")
+        else:
+            heads.append({'id': x['id'], 'title': title})
     sums = []
     for x in (draft.get('summaries') or [])[:MAX_SUM + 5]:
         text = ' '.join(str(x.get('text', '')).split())
@@ -434,7 +473,7 @@ def build(draft, data, lines, moves, now):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums}
+    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums, 'titles': heads}
     return days, notes, []
 
 
@@ -452,12 +491,14 @@ def cmd_publish(args):
     archive = sorted(merged.values(), key=lambda d: d['date'], reverse=True)[:KEEP]
     today = days[dk(now).date().isoformat()]
     shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
-    sums = notes.pop('summaries')
-    kept = {k: v for k, v in (summaries_of(args).get('items') or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}
+    sums, heads, before = notes.pop('summaries'), notes.pop('titles'), summaries_of(args)
+    recent = lambda d: {k: v for k, v in (d or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}  # noqa: E731
+    kept, checked = recent(before.get('items')), recent(before.get('titles'))
     kept.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
+    checked.update({x['id']: {'title': x['title'], 'at': notes['created']} for x in heads})
     digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
     files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive},
-             'summaries.json': {'updated': notes['created'], 'items': kept}}
+             'summaries.json': {'updated': notes['created'], 'items': kept, 'titles': checked}}
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name, obj in files.items():
@@ -467,6 +508,7 @@ def cmd_publish(args):
         push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
           f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · {len(sums)} summaries · "
+          f"{len(heads)} headlines · "
           f"days: {', '.join(sorted(days))}")
 
 

@@ -71,10 +71,11 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
     `scripts/editor.py input`, then writes one update: picks (stories that matter most geopolitically; for Danmark,
     those useful in the group's dawah), moves (stories in the wrong section), quotes (best statements, in Danish) and
     summaries (2–3 Danish sentences for up to 25 stories readers open most; `paywall: true` when the article could not
-    be read – the app then says Khabar had no access), recap lines (at most 14 'Who: what' lines, filed under the Danish
-    date they happened; a topic continued across days is a development in the app's Udvikling tab), and runs
+    be read – the app then says Khabar had no access), titles (its own Danish for up to 40 of the strongest foreign
+    headlines, which the app shows instead of the machine's), recap lines (at most 14 'Who: what' lines, filed under the Danish
+    date they happened; a topic continued across days is a development on the app's Udvikling page), and runs
     `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies), `moves.json`
-    (30 days) and `summaries.json` (4 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
+    (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`; 4 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
@@ -91,12 +92,20 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- The front page (2026-10-11) is organised by story and time, not by format: date + the editor's lede (no 'nye siden' chip – owner removed it),
-  'Dagens historie' (the recap's lead topic matched to a top story by shared words: hero, timeline, a quote from it; the
-  owner dropped 'Sådan dækkes det' there as too big – coverage lives in the opened story), 4 more top stories (never the main story again), 'Dagens citat' if the package had none, 'Lige nu' (lines.json),
-  the section glance, then the recap. It stays finite. Earlier rule: the latest recap ('Resumé', written once a day at 21,
-  titled with the date, short 'Who: what' lines in Al Jazeera's breaking style, no summaries and no 'Også' row – owner's
-  request 2026-10-10), then earlier days; the full mixed list lives in 'Seneste'. Colour is minimal (the owner found section-coloured labels
+- The UX review (2026-10-11, owner chose it): five tabs (Forside, Danmark, Mellemøsten, Verden, Live – keep Mellemøsten and
+  Verden apart: the group's core is the Middle East and together they are 100+ stories a day). The front page, organised by
+  story and time: date + the editor's lede (no 'nye siden' chip), 'Dagens historie' (the recap's lead topic matched to a top
+  story by shared words: hero, timeline, a quote from it; no 'Sådan dækkes det' – coverage lives in the opened story), 4 more
+  top stories (never the main story again), 'Følg udviklingen' (the 3 developments that moved last, not the main story's),
+  'Dagens citat' if the package had none, 'Live' (the 3 newest Live stories). No section glance, no recap on the front page:
+  the Udvikling page (not a tab; reached from the front page, the stories and search, left by a tab or the logo with a back
+  mark) holds the recap ('Resumé', short 'Who: what' lines), every development and the earlier days; the recap notification
+  (?digest=1) opens it there. The name is 'Live' everywhere. Foreign headlines show in Danish by default (the editor's
+  checked Danish first, else the machine's; the opened story names the original). The intro plays on the first visit and
+  after six hours away, else the app opens straight in. Text size follows the phone (iPhone Dynamic Type) or the setting
+  (every font size is `calc(Npx * var(--ts, 1))`, --ts set on #list). Old news: only the box on the page, the top bar stays
+  quiet. Shared texts end with 'via khabar.nu'. Bump `?v=` on every change: the service worker serves versioned files from
+  its cache. Colour is minimal (the owner found section-coloured labels
   'in your face'): a small section dot on mixed lists, red only for big stories and 'live'. Headlines guide the eye
   with bold keywords (who and where) instead. Block titles and day markers must never look alike.
 - The app never mentions Claude in visible text and has no 'how Khabar chooses' explainer (owner's request,

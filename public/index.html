@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- the pen's letters load beside the page, not before it: the intro waits for them itself (at most a second) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="style.css?v=20261012u">
+<link rel="stylesheet" href="style.css?v=20261012w">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -61,8 +61,11 @@
   // and the look the user chose (light, dark or the phone's own setting), so the intro already wears the app's colours
   try {
     const d = document.documentElement, get = k => JSON.parse(localStorage.getItem(k));
-    d.classList.add('intro-on');
-    if (localStorage.getItem('introSeen')) d.classList.add('intro-short');
+    // the very first visit: the name, then what Khabar is for. Back within six hours: straight in. After a longer
+    // break (the next morning, say): the name writes itself once more, briefly
+    const seen = localStorage.getItem('introSeen'), away = Date.now() - (Number(localStorage.getItem('hiddenAt')) || 0);
+    if (seen && away < 6 * 3600e3) d.classList.add('intro-skip');
+    else { d.classList.add('intro-on'); if (seen) d.classList.add('intro-short'); }
     const mode = get('mode'), tone = get('tone'), dark = get('dark');
     if (mode && mode !== 'auto') d.dataset.theme = mode;
     if (tone && tone !== 'daempet') d.dataset.tone = tone;
@@ -119,7 +122,6 @@
     <button role="tab" data-tab="dk" aria-selected="false"><svg><use href="#i-dk"/></svg><span>Danmark</span><i class="tab-dot"></i></button>
     <button role="tab" data-tab="me" aria-selected="false"><svg><use href="#i-me"/></svg><span>Mellemøsten</span><i class="tab-dot"></i></button>
     <button role="tab" data-tab="world" aria-selected="false"><svg><use href="#i-world"/></svg><span>Verden</span><i class="tab-dot"></i></button>
-    <button role="tab" data-tab="threads" id="tabThreads" aria-selected="false"><svg><use href="#i-thread"/></svg><span>Udvikling</span><i class="tab-dot"></i></button>
     <button role="tab" data-tab="latest" class="live-tab" aria-selected="false"><svg><use href="#i-clock"/></svg><span>Live</span><i class="live-dot"></i></button>
   </nav>
 </div>
@@ -134,23 +136,27 @@
     <h2>Indstillinger</h2>
     <div class="admin-stats" id="adminStats" hidden></div>
 
+    <h3>Notifikationer</h3>
+    <p class="hint" id="installHint" hidden>Installer Khabar som app, så får den sit eget ikon: tryk <b>⋮</b> i Chrome → <b>Installer app</b> (eller <b>Føj til startskærm</b>), og åbn den derfra.</p>
+    <button class="wide" id="installApp" hidden>Installer Khabar</button>
+    <p class="hint" id="pushInfo"></p>
+    <button class="wide" id="enablePush" hidden>Slå notifikationer til</button>
+    <button class="wide soft-btn" id="disablePush" hidden>Slå notifikationer fra</button>
+
     <h3>Læg Khabar på telefonen</h3>
     <div class="guides"><a class="wide" href="guide.html#iphone">iPhone</a><a class="wide" href="guide.html#android">Android</a></div>
 
-    <h3>Udseende</h3>
-    <p class="tones-label">Lys</p>
-    <div class="tones four" id="toneSeg" role="radiogroup" aria-label="Lys tone"><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-ac:#b8403a"><i></i>Dæmpet</button><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-ac:#d62d30"><i></i>Kølig</button></div>
-    <p class="tones-label">Mørk</p>
-    <div class="tones four" id="darkSeg" role="radiogroup" aria-label="Mørk palet"><button role="radio" data-dark="notion" style="--c-bg:#191919;--c-ac:#eb5757"><i></i>Notion</button><button role="radio" data-dark="grafit" style="--c-bg:#1e1d1b;--c-ac:#ff5a4e"><i></i>Grafit</button><button role="radio" data-dark="material" style="--c-bg:#121212;--c-ac:#ff453a"><i></i>Material</button><button role="radio" data-dark="apple" style="--c-bg:#1c1c1e;--c-ac:#ff453a"><i></i>Apple</button></div>
-    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Lys eller mørk">
-      <button role="radio" data-v="auto">Automatisk</button>
-      <button role="radio" data-v="light">Lys</button>
-      <button role="radio" data-v="dark">Mørk</button>
+    <h3>Tekststørrelse</h3>
+    <div class="seg four" id="sizeSeg" role="radiogroup" aria-label="Tekststørrelse">
+      <button role="radio" data-v="auto">Som telefonen</button>
+      <button role="radio" data-v="1">Normal</button>
+      <button role="radio" data-v="1.15">Større</button>
+      <button role="radio" data-v="1.3">Størst</button>
     </div>
-    <p class="hint">Automatisk følger telefonens lys/mørk-indstilling.</p>
+    <p class="hint">Gælder nyhederne. »Som telefonen« følger telefonens egen tekststørrelse.</p>
 
     <h3>Sprog</h3>
-    <label class="opt"><span>Vis og del på dansk<small>Engelske nyheder maskinoversættes til dansk, både i listen og når du deler.</small></span><input type="checkbox" id="danish" class="switch"></label>
+    <label class="opt"><span>Vis og del på dansk<small>Engelske, arabiske og tyrkiske overskrifter vises på dansk – de vigtigste tjekket af redaktøren. Originalen står i historien, når du åbner den.</small></span><input type="checkbox" id="danish" class="switch"></label>
 
     <h3>Arabisk og tyrkisk</h3>
     <div class="seg" id="foreignSeg" role="radiogroup" aria-label="Arabisk og tyrkisk">
@@ -160,12 +166,19 @@
     </div>
     <p class="hint">Findes historien også på dansk eller engelsk, vises den version altid.</p>
 
-    <h3>Notifikationer</h3>
-    <p class="hint" id="installHint" hidden>Installer Khabar som app, så får den sit eget ikon: tryk <b>⋮</b> i Chrome → <b>Installer app</b> (eller <b>Føj til startskærm</b>), og åbn den derfra.</p>
-    <button class="wide" id="installApp" hidden>Installer Khabar</button>
-    <p class="hint" id="pushInfo"></p>
-    <button class="wide" id="enablePush" hidden>Slå notifikationer til</button>
-    <button class="wide soft-btn" id="disablePush" hidden>Slå notifikationer fra</button>
+    <h3>Udseende</h3>
+    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Lys eller mørk">
+      <button role="radio" data-v="auto">Automatisk</button>
+      <button role="radio" data-v="light">Lys</button>
+      <button role="radio" data-v="dark">Mørk</button>
+    </div>
+    <p class="hint">Automatisk følger telefonens lys/mørk-indstilling.</p>
+    <details class="looks"><summary>Flere farver<svg><use href="#i-chev"/></svg></summary>
+    <p class="tones-label">Lys</p>
+    <div class="tones four" id="toneSeg" role="radiogroup" aria-label="Lys tone"><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-ac:#b8403a"><i></i>Dæmpet</button><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-ac:#d62d30"><i></i>Kølig</button></div>
+    <p class="tones-label">Mørk</p>
+    <div class="tones four" id="darkSeg" role="radiogroup" aria-label="Mørk palet"><button role="radio" data-dark="notion" style="--c-bg:#191919;--c-ac:#eb5757"><i></i>Notion</button><button role="radio" data-dark="grafit" style="--c-bg:#1e1d1b;--c-ac:#ff5a4e"><i></i>Grafit</button><button role="radio" data-dark="material" style="--c-bg:#121212;--c-ac:#ff453a"><i></i>Material</button><button role="radio" data-dark="apple" style="--c-bg:#1c1c1e;--c-ac:#ff453a"><i></i>Apple</button></div>
+    </details>
 
     <h3>Kilder</h3>
     <div class="sources" id="sources"></div>
@@ -174,6 +187,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261012u"></script>
+<script src="app.js?v=20261012w"></script>
 </body>
 </html>

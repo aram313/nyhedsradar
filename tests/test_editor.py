@@ -164,3 +164,32 @@ def test_a_summary_must_fit(folder, tmp_path, capsys):
             {'id': 'nope', 'text': 'x'}, {'id': 's1', 'text': 'x' * 500}, {'id': 's3', 'text': 'Kort.', 'paywall': 'måske'}]})
     out = capsys.readouterr().out
     assert "unknown story id 'nope'" in out and 'at most 420' in out and 'paywall must be true or false' in out
+
+
+def test_machine_headlines_are_asked_for_checked_and_kept(folder, tmp_path):
+    data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
+    data['items'][2].update(lang='en', title_da='Allerede set kl. 13.35')   # s3, gone over this morning
+    data['items'].append({'id': 's5', 'title': 'نص', 'title_tr': 'Text', 'title_da': 'Tekst', 'lang': 'ar', 'summary': '',
+                          'link': 'https://aj.test/5', 'source': 'Al Jazeera', 'sec': 'me', 'rank': 60,
+                          'published': '2026-10-10T18:00:00+00:00', 'found': '2026-10-10T18:01:00+00:00'})
+    (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
+    (folder / 'summaries.json').write_text(json.dumps({'items': {}, 'titles': {
+        's3': {'title': 'Set i formiddags', 'at': '2026-10-10T11:35:00+00:00'},
+        'old': {'title': 'Gammel', 'at': '2026-10-01T10:00:00+00:00'}}}), encoding='utf-8')
+    editor.main(['input', '--dir', str(folder), '--now', NOW])
+    text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
+    asked = text.split('## Danish headlines to check')[1].split('## Al Jazeera')[0]
+    assert '[s5] ar · نص (English: Text) → Tekst' in asked
+    assert '[s3]' not in asked and '[s1]' not in asked   # gone over already; Danish to begin with
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 's5', 'title': 'Teksten  på dansk'}]})
+    out = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))
+    assert set(out['titles']) == {'s3', 's5'} and out['titles']['s5']['title'] == 'Teksten på dansk'   # older than four days: dropped
+    assert 'titles' not in json.loads((tmp_path / 'out' / 'digest.json').read_text(encoding='utf-8'))['editor']
+
+
+def test_a_headline_must_fit(folder, tmp_path, capsys):
+    with pytest.raises(SystemExit):
+        publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [
+            {'id': 'nope', 'title': 'x'}, {'id': 's1', 'title': 'x' * 200}, {'id': 's3', 'title': ' '}]})
+    out = capsys.readouterr().out
+    assert "titles: unknown story id 'nope'" in out and 'at most 140' in out and 'not 0' in out

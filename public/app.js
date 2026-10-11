@@ -20,7 +20,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar.nu', latest: 'Live feed', search: 'Søg', threads: 'Udvikling' };
+const TITLES = { home: 'Khabar.nu', latest: 'Live', search: 'Søg', threads: 'Udvikling' };
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
@@ -30,7 +30,8 @@ let sums = store.get('lastSums', {});   // story id -> the editor's summary {tex
 let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
-let danish = store.get('danish', false);                                 // show and share in Danish
+let danish = store.get('danish', true);                                  // show and share in Danish (the standard)
+let titles = store.get('lastTitles', {});                                // story id -> the editor's checked Danish headline
 const expanded = new Set();                                              // opened stories
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
@@ -151,7 +152,13 @@ async function load(manual) {
     } catch { /* keep the last overview */ }
     try {   // the editor's summaries of the stories readers open most (summaries.json next to digest.json)
       const r = await fetch(CFG.summariesUrl || CFG.digestUrl.replace(/digest\.json$/, 'summaries.json'), { cache: 'no-cache' });
-      if (r.ok) { const x = (await r.json()).items || {}; if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); } }
+      if (r.ok) {
+        const all = await r.json(), x = all.items || {};
+        if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); }
+        // the headlines the editor has gone over in Danish (id -> {title, at})
+        const t = Object.fromEntries(Object.entries(all.titles || {}).map(([k, v]) => [k, v && v.title]).filter(([, v]) => v));
+        if (JSON.stringify(t) !== JSON.stringify(titles)) { titles = t; titlesVer++; store.set('lastTitles', titles); changed = true; }
+      }
     } catch { /* keep the last summaries */ }
   }
   if (--busy === 0) document.body.classList.remove('loading');
@@ -172,8 +179,9 @@ function display(i) {
   if (i.foreign && foreignMode !== 'original' && i.title_tr) {
     d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en', kw: i.kw_tr || [] };
   }
-  if (danish && i.title_da && !(i.foreign && foreignMode === 'original')) {
-    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [] };
+  const checked = titles[i.id];   // the editor's own Danish for the headline, where it has gone over the machine's
+  if (danish && (checked || i.title_da) && !(i.foreign && foreignMode === 'original')) {
+    d = { ...d, title: checked || i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [], checked: !!checked };
   }
   d.title = tidy(d.title);
   return d;
@@ -241,11 +249,13 @@ function pick(list, n) {
 }
 const isNew = i => lastSeen && i.found && new Date(i.found).getTime() > lastSeen && !shared[i.id];
 let cache = null;
+let titlesVer = 0;
 function stories() {
   if (!data) return [];
-  if (cache && cache.src === data && cache.mode === foreignMode + danish) return cache.list;
+  const mode = foreignMode + danish + titlesVer;
+  if (cache && cache.src === data && cache.mode === mode) return cache.list;
   const list = data.items.filter(visible).map(display);
-  cache = { src: data, mode: foreignMode + danish, list, byId: new Map(list.map(i => [i.id, i])) };
+  cache = { src: data, mode, list, byId: new Map(list.map(i => [i.id, i])) };
   return list;
 }
 const find = id => (stories(), cache && cache.byId.get(id));
@@ -256,7 +266,7 @@ function shareText(d) {
   let first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '').trim();
   // the rest of a cut-off sentence, a link or a sign-off is no summary
   if (first.length < 20 || /^[a-zæøå]/.test(first) || /^(https?:|www\.|\[)/i.test(first)) first = '';
-  return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}`;
+  return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}\n\nvia khabar.nu`;
 }
 
 // ---------------------------------------------------------------- render: one story
@@ -309,7 +319,8 @@ function heroStory(i, n, opts) {
 const covOpen = new Set();
 const sumOf = i => [i.id, ...(i.also || []).map(a => a.id)].map(k => sums[k]).find(Boolean);
 function detail(i) {
-  const ed = sumOf(i), note = !ed && i.to ? `<p class="tr-note">Maskinoversat fra ${LANG[i.from] || i.from}</p>` : '';
+  const ed = sumOf(i), note = i.to ? `<p class="tr-note">${i.checked ? 'Oversat' : 'Maskinoversat'} fra ${LANG[i.from] || i.from}${i.checked ? ' og tjekket af redaktøren' : ''}`
+    + ` · original: <span dir="auto">»${esc(tidy(i.origTitle))}«</span></p>` : '';
   const text = ed ? ed.text : i.summary;
   const pay = ed && ed.paywall ? '<p class="sum-note">Khabar har ikke adgang til artiklen – resuméet er redaktørens bedste bud ud fra overskriften og andre mediers dækning.</p>' : '';
   return `${text ? `<p class="sum" dir="auto">${esc(text)}</p>` : ''}${pay}${note}
@@ -393,8 +404,8 @@ function dayBody(day) {
 }
 // the share text, in the format members post themselves (digest.json brings it ready for the newest day)
 function dayText(day) {
-  if (digest && digest.date === day.date && digest.created === day.created && digest.whatsapp) return digest.whatsapp;
-  return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`)].join('\n\n');
+  if (digest && digest.date === day.date && digest.created === day.created && digest.whatsapp) return digest.whatsapp + '\n\nvia khabar.nu';
+  return [day.title || 'Politiske nyheder', ...day.topics.map(tp => `${tp.name}\n\n${tp.lines.map(l => `- ${l.who ? l.who + ': ' : ''}${l.text}`).join('\n\n')}`), 'via khabar.nu'].join('\n\n');
 }
 // the newest recap (written at 21, it covers the day since 21 the evening before) replaces the one before
 let recapOpen = false;
@@ -470,12 +481,11 @@ async function loadWire() {
   wireState = 'done';
   staleOn(['home']);
 }
-// 'Lige nu': the three newest lines from established outlets (no unverified channels), with their time
-// 'Lige nu': the three newest stories of the Live list (established outlets), so a tap opens the same story in Live
+// 'Live' on the front page: the three newest stories of the Live list (established outlets); a tap opens the story there
 function nowStrip() {
   const last = stories().filter(i => i.confirmed !== 0).sort((a, b) => when(b) - when(a)).slice(0, 3);
   if (!last.length) return '';
-  return `<section class="now"><div class="now-h"><i></i>Lige nu</div><ul>${last.map(i =>
+  return `<section class="now"><div class="now-h"><i></i>Live</div><ul>${last.map(i =>
     `<li><button data-live="${esc(i.id)}"><time>${clock(i.published || i.found)}</time><span dir="auto">${esc(i.title)}</span><em>${esc(i.source)}</em></button></li>`).join('')}</ul></section>`;
 }
 // 'Dagens citat': the editor's first chosen statement, large
@@ -561,6 +571,17 @@ function mainChoice(top) {
   return mainPackage(top);
 }
 const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(top); return pkg ? pkg.story : top.find(i => i.thumb) || top[0]; };
+// 'Følg udviklingen' on the front page: the developments that moved last (not the main story's own, which shows its
+// steps above); a tap opens one on the Udvikling page, where the recap and the earlier days are too
+function followStrip(skip) {
+  if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
+  const list = threads().filter(t => !skip || t.name.trim().toLowerCase() !== skip.name.trim().toLowerCase()).slice(0, 3);
+  const all = '<button class="now-more" data-go="threads">Alle udviklinger, resuméer og tidligere dage<svg><use href="#i-chev"/></svg></button>';
+  if (!list.length) return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${all}</section>`;
+  return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${list.map(t => { const l = t.lines[t.lines.length - 1];
+    return `<button class="fol-row" data-follow="${t.key}" data-sec="${esc(t.section || '')}"><span class="fol-m"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>`
+      + `<b>${esc(t.name)}</b><span class="fol-l">${l.who ? `<em>${esc(l.who)}:</em> ` : ''}${esc(l.text)}</span><svg><use href="#i-chev"/></svg></button>`; }).join('')}${all}</section>`;
+}
 function home(all, opts) {
   const top = frontCands(all), pkg = mainChoice(top);
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
@@ -585,15 +606,9 @@ function home(all, opts) {
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 4);
   html += `<section class="block">${blockHead('Døgnets vigtigste', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
+  html += followStrip(pkg && pkg.topic);
   if (!pq) html += quoteOfDay(pin);   // no statement from the main story (or the owner picked one): the day's quote
   html += nowStrip().replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
-  const shown = new Set([lead, ...rest].filter(Boolean).map(i => i.id));
-  const glance = Object.entries(SECTIONS).map(([sec, name]) => {
-    const best = withPicks(all.filter(i => inSection(i, sec) && hours(i) < 24 && !shown.has(i.id) && !same(i)), 1)[0];
-    return best ? `<button class="gl" data-go="${sec}" data-sec="${sec}"><b><i></i>${name}</b><span>${bold(best.title, best.kw)}</span><svg><use href="#i-chev"/></svg></button>` : '';
-  }).join('');
-  if (glance) html += `<section class="glance">${glance}</section>`;
-  html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
   return html;
@@ -745,8 +760,10 @@ function threadCard(t) {
 function threadsPage() {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);
   const list = threads();
-  if (!list.length) return '<div class="empty">Ingen udviklinger at følge endnu.</div>';
-  return `<p class="thr-intro">Historier, der udvikler sig – trin for trin, som redaktøren har fulgt dem.</p>${list.map(threadCard).join('')}`;
+  return overview()
+    + '<div class="arch-h thr-h">Følg udviklingen</div><p class="thr-intro">Historier, der udvikler sig – trin for trin, som redaktøren har fulgt dem.</p>'
+    + (list.length ? list.map(threadCard).join('') : '<p class="explain pad">Ingen udviklinger at følge endnu.</p>')
+    + `<section class="block">${archive()}</section>`;
 }
 // search suggestions: the names and places in today's headlines and the developments, completing what one types
 function searchWords(all) {
@@ -787,8 +804,7 @@ const isStale = () => data && data.updated && (Date.now() - new Date(data.update
 function renderHeader() {
   const stale = isStale();
   $('dot').classList.toggle('stale', !!stale);
-  $('status').classList.toggle('stale', !!stale);
-  $('status').textContent = !data ? 'henter …' : stale ? 'ikke opdateret siden ' + clock(data.updated) : 'opdateret ' + clock(data.updated);
+  $('status').textContent = !data ? 'henter …' : 'opdateret ' + clock(data.updated);   // old news: the box on the page says it
   $('status').setAttribute('aria-label', $('status').textContent + ' – tryk for at opdatere');
 }
 function pageHtml(t, all, opts = {}) {
@@ -814,7 +830,7 @@ let drawT = 0;
 function drawSoon() {
   clearTimeout(drawT);
   drawT = setTimeout(function step() {
-    if (tab === 'search') return;
+    if (ASIDE.has(tab)) return;
     if (touching || paging || scrubbing) { drawT = setTimeout(step, 250); return; }
     const i = SWIPE_TABS.indexOf(tab);
     const t = [SWIPE_TABS[i - 1], SWIPE_TABS[i + 1]].find(x => x && +pageEl(x).dataset.ver !== ver) || SWIPE_TABS.find(x => !pageEl(x).dataset.ver);
@@ -855,9 +871,10 @@ function render(opts = {}) {
   }
   renderDots(all);
   if (focusId) openFocus(all);
-  if (goOverview && tab === 'home' && pg$('overview')) {
+  if (goOverview && data) {   // a notification about the recap: open it, on the Udvikling page
     goOverview = false;
-    if (!recapOpen) { recapOpen = true; render(); }
+    recapOpen = true;
+    if (tab !== 'threads') setTab('threads', { top: true }); else render();
     setTimeout(() => scrollToEl(pg$('overview')), 150);
   }
 }
@@ -1084,8 +1101,9 @@ addEventListener('touchend', async () => {
 // and last tab it gives a little and springs back, and a swipe up or down stays a scroll of the page. Nothing is drawn
 // or swapped while it moves (the neighbours are drawn beforehand), so nothing can hop. The pill in the tab bar and the
 // title follow along; once the pages stand still, the page in view is the tab.
-const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'threads', 'latest'];
-let settleT = 0, jumping = false;   // jumping: the pages moved by a tap on a tab, not by a finger
+const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'latest'];
+const ASIDE = new Set(['search', 'threads']);   // pages beside the tabs: reached from a button, left by a tab or the logo
+let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
 list.addEventListener('touchstart', () => { touching = true; jumping = false; list.style.scrollSnapType = ''; }, { passive: true });
 for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
   touching = false;
@@ -1098,7 +1116,7 @@ const showTitle = t => {
   document.querySelectorAll('.tabs [data-tab]').forEach(x => { const on = String(x.dataset.tab === t); if (x.getAttribute('aria-selected') !== on) x.setAttribute('aria-selected', on); });
 };
 list.addEventListener('scroll', () => {
-  if (tab === 'search' || scrubbing) return;   // sliding along the tab bar places the pill itself
+  if (ASIDE.has(tab) || scrubbing) return;   // sliding along the tab bar places the pill itself
   if (!jumping) paging = true;   // a finger or a trackpad; a tap on a tab has placed the pill itself
   if (paging) {
     const n = SWIPE_TABS.length, k = Math.max(0, Math.min(n - 1, list.scrollLeft / list.clientWidth)), i = Math.min(n - 2, Math.floor(k));
@@ -1109,7 +1127,7 @@ list.addEventListener('scroll', () => {
 }, { passive: true });
 if ('onscrollend' in window) list.addEventListener('scrollend', () => { clearTimeout(settleT); settle(); });
 function settle() {
-  if (touching || scrubbing || tab === 'search') return;   // a finger still holds the pages
+  if (touching || scrubbing || ASIDE.has(tab)) return;   // a finger still holds the pages
   const W = list.clientWidth, i = Math.round(list.scrollLeft / W);
   if (Math.abs(list.scrollLeft - i * W) > 2) {   // stopped between two pages: the snap points take it home (or, failing that, we do)
     if (list.style.scrollSnapType) list.style.scrollSnapType = ''; else list.scrollTo({ left: i * W, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -1125,7 +1143,7 @@ function showPage(t) {
   const i = SWIPE_TABS.indexOf(t);
   if (i >= 0 && Math.abs(list.scrollLeft - i * list.clientWidth) > 1) { jumping = true; list.scrollLeft = i * list.clientWidth; }
 }
-addEventListener('resize', () => { if (tab !== 'search') showPage(tab); });
+addEventListener('resize', () => { if (!ASIDE.has(tab)) showPage(tab); });
 
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
@@ -1134,6 +1152,7 @@ function setTab(next, opts = {}) {
     return;
   }
   seenTab[tab] = Date.now(); seenTab[next] = Date.now(); store.set('seenTab', seenTab);
+  const was = tab;
   tab = next;
   if (visit) visit.tabs[tab] = (visit.tabs[tab] || 0) + 1;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
@@ -1145,6 +1164,8 @@ function setTab(next, opts = {}) {
   // searching: the field sits under the top bar, the page stands still and only the results scroll, so the phone has
   // no reason to push the page up when the keyboard comes
   document.documentElement.classList.toggle('searching', tab === 'search');
+  document.documentElement.classList.toggle('aside', tab === 'threads');
+  if (tab === 'threads' && !ASIDE.has(was)) backTo = was;
   if (tab === 'search') { loadIndex(); cur().scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
   $('freshPill').hidden = true;
   if (opts.swipe) {   // the page is in view already, drawn beforehand: only what is around it follows
@@ -1223,7 +1244,7 @@ tabsEl.addEventListener('touchmove', e => {
   const px = Math.min(last.x, Math.max(first.x, x - n.left - pill.offsetWidth / 2));
   movePill(px, first.y, false);
   // the pages follow along: as far between two tabs as the pill is (no snapping while the finger leads them)
-  if (tab !== 'search') {
+  if (!ASIDE.has(tab)) {
     if (!scrubbing) { scrubbing = true; list.style.scrollSnapType = 'none'; }
     list.scrollLeft = (px - first.x) / Math.max(1, last.x - first.x) * (bs.length - 1) * list.clientWidth;
   }
@@ -1483,8 +1504,9 @@ brand.addEventListener('pointerdown', () => {
 });
 for (const ev of ['pointerup', 'pointercancel']) brand.addEventListener(ev, () => clearTimeout(logoHold));
 // a tap on the logo goes home, to the top of the front page (a long hold is the admin code, not a tap)
-brand.addEventListener('click', () => { if (logoHeld) { logoHeld = false; return; } setTab('home', { top: true }); });
-brand.addEventListener('keydown', e => { if (e.key === 'Enter') setTab('home', { top: true }); });
+const goHome = () => (tab === 'threads' ? setTab(backTo || 'home') : setTab('home', { top: true }));   // from Udvikling: back
+brand.addEventListener('click', () => { if (logoHeld) { logoHeld = false; return; } goHome(); });
+brand.addEventListener('keydown', e => { if (e.key === 'Enter') goHome(); });
 brand.addEventListener('contextmenu', e => e.preventDefault());
 // the code goes in a small sheet of our own: a home-screen app may not show the browser's prompt
 function openCode() {
@@ -1608,6 +1630,26 @@ $('sheet').addEventListener('touchend', () => {
 
 // settings
 $('danish').checked = danish;
+// the size of the news text: as the phone's own setting (iPhone's text size), or the reader's choice here. It scales
+// the text of the pages only (every font size there is multiplied by --ts), not the bars or the settings
+let textSize = store.get('textSize', 'auto');
+function phoneText() {
+  if (!CSS.supports('font', '-apple-system-body')) return 1;   // elsewhere the browser scales by itself
+  const s = document.createElement('span');
+  s.style.cssText = 'font:-apple-system-body;position:absolute;visibility:hidden';
+  s.textContent = 'x';
+  document.body.appendChild(s);
+  const px = parseFloat(getComputedStyle(s).fontSize);
+  s.remove();
+  return px ? Math.min(1.6, Math.max(0.85, px / 17)) : 1;   // 17 is iPhone's standard size
+}
+function applyTextSize() {
+  list.style.setProperty('--ts', (textSize === 'auto' ? phoneText() : +textSize || 1).toFixed(3));
+  document.querySelectorAll('#sizeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === textSize));
+}
+$('sizeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { textSize = b.dataset.v; store.set('textSize', textSize); applyTextSize(); } });
+applyTextSize();
+document.addEventListener('visibilitychange', () => { if (!document.hidden && textSize === 'auto') applyTextSize(); });   // changed on the phone meanwhile
 $('danish').addEventListener('change', e => { danish = e.target.checked; store.set('danish', danish); render(); });
 function paintSeg() { document.querySelectorAll('#foreignSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === foreignMode)); }
 $('foreignSeg').addEventListener('click', e => {
@@ -1765,6 +1807,7 @@ const fullInk = mask => {   // the last hair the nib missed: the whole word, onc
 // and stays until 'Kom i gang'. A tap skips the short version.
 (function intro() {
   const el = $('intro');
+  if (document.documentElement.classList.contains('intro-skip')) { if (el) el.remove(); return; }   // back within hours
   setTimeout(() => document.documentElement.classList.remove('intro-on'), 6000);   // never keep the tabs hidden
   if (!el) return document.documentElement.classList.remove('intro-on');
   const first = !store.get('introSeen', false);
