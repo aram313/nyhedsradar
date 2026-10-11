@@ -330,7 +330,7 @@ function overview() {
 }
 async function loadArchive() {
   if (archiveState === 'loading') return;
-  archiveState = 'loading'; render();
+  archiveState = 'loading';
   const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
   try {
     const r = await fetch(url, { cache: 'no-cache' });
@@ -340,21 +340,25 @@ async function loadArchive() {
   if (tab === 'home') render();
 }
 // earlier days: one row each, opened in place
+// earlier days: the last three always in view (one row each, opened in place), the rest behind 'Vis flere dage'
+let archAll = false;
 function archive() {
   if (!moves) {
-    const note = archiveState === 'loading' ? 'henter …' : archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'de seneste 30 dage';
-    return `<div class="arch"><button class="arch-row" data-archive><span><b>Tidligere dage</b><small>${note}</small></span><svg><use href="#i-chev"/></svg></button></div>`;
+    if (archiveState === 'idle') setTimeout(loadArchive, 0);   // fetched as soon as the front page shows
+    const note = archiveState === 'error' ? 'kunne ikke hente – prøv igen' : 'henter …';
+    return `<div class="arch-h">Tidligere dage</div><div class="arch"><button class="arch-row" data-archive><span><small>${note}</small></span></button></div>`;
   }
   const current = dayOf(digest);
   const list = (moves.days || []).map(dayOf).filter(d => d && d.topics.length && (!current || d.date !== current.date));
   if (!list.length) return '<div class="arch-h">Tidligere dage</div><p class="explain pad">Hver dag lægges her, når den næste begynder.</p>';
-  return '<div class="arch-h">Tidligere dage</div>' + list.map(day => {
+  const shown = archAll ? list : list.slice(0, 3);
+  return '<div class="arch-h">Tidligere dage</div>' + shown.map(day => {
     const open = daysOpen.has(day.date), n = lineCount(day);
     return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(day.date)}">
       <button class="arch-row" data-arch-toggle aria-expanded="${open}"><span><b>${cap(dateDa(day.date, true))}</b>
       <small>${n} ${n === 1 ? 'linje' : 'linjer'} · ${day.topics.length} emner</small></span><svg><use href="#i-chev"/></svg></button>
       ${open ? dayBody(day) : ''}</article>`;
-  }).join('');
+  }).join('') + (list.length > 3 && !archAll ? `<button class="wide soft" data-arch-all>Vis flere dage (${list.length - 3})</button>` : '');
 }
 
 // ---------------------------------------------------------------- render: pages
@@ -600,6 +604,7 @@ $('list').addEventListener('click', async e => {
     return;
   }
   if (t.closest('[data-archive]')) { loadArchive(); return; }
+  if (t.closest('[data-arch-all]')) { archAll = true; render(); return; }
   if (t.closest('[data-arch-toggle]')) { const c = t.closest('[data-arch]').dataset.arch; daysOpen.has(c) ? daysOpen.delete(c) : daysOpen.add(c); render(); return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
   if (!el) return;
