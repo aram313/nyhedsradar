@@ -786,15 +786,19 @@ const applyAdmin = () => document.documentElement.classList.toggle('admin', !!ad
 applyAdmin(); keepOwner();
 let logoHold;
 const brand = document.querySelector('.brand');
-brand.addEventListener('pointerdown', () => {
-  logoHold = setTimeout(() => {
-    const c = prompt(adminKey ? 'Admin er slået til. Skriv koden igen, eller tøm feltet for at slå det fra.' : 'Admin-kode');
-    if (c === null) return;
-    adminKey = c.trim(); store.set('adminKey', adminKey); applyAdmin();
-    toast(adminKey ? 'Admin slået til – hold en nyhed nede' : 'Admin slået fra');
-  }, 2000);
-});
-for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) brand.addEventListener(ev, () => clearTimeout(logoHold));
+brand.addEventListener('pointerdown', () => { clearTimeout(logoHold); logoHold = setTimeout(openCode, 1500); });
+for (const ev of ['pointerup', 'pointercancel']) brand.addEventListener(ev, () => clearTimeout(logoHold));
+brand.addEventListener('contextmenu', e => e.preventDefault());
+// the code goes in a small sheet of our own: a home-screen app may not show the browser's prompt
+function openCode() {
+  if (navigator.vibrate) navigator.vibrate(12);
+  $('actTitle').textContent = adminKey ? 'Admin er slået til' : 'Admin-kode';
+  $('actBtns').innerHTML = `<input id="adminCode" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off"
+    spellcheck="false" placeholder="xxxx-xxxx-xxxx-xxxx" aria-label="Admin-kode"><button class="wide primary" data-a="code">Gem</button>`
+    + (adminKey ? '<button class="wide warn" data-a="code-off">Slå admin fra</button>' : '') + '<button class="wide soft" data-a="">Annuller</button>';
+  actItem = null; $('act').hidden = false;
+  requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); $('adminCode').focus(); });
+}
 
 let press = null, pressed = false, actItem = null;
 const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
@@ -832,6 +836,12 @@ $('scrim').addEventListener('click', closeAct);
 $('act').addEventListener('click', async e => {
   const b = e.target.closest('[data-a]'), i = actItem;
   if (!b) return;
+  if (b.dataset.a === 'code' || b.dataset.a === 'code-off') {
+    adminKey = b.dataset.a === 'code' ? $('adminCode').value.trim().toLowerCase() : '';
+    store.set('adminKey', adminKey); applyAdmin(); closeAct();
+    toast(adminKey ? 'Admin slået til – hold en nyhed nede' : 'Admin slået fra');
+    return;
+  }
   closeAct();
   if (!b.dataset.a || !i) return;
   const [act, arg] = b.dataset.a.split(':');

@@ -82,7 +82,7 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
 
 - The owner wants it **fully automatic**: no feedback buttons. Adaptation comes from community
   sources, big stories and silent share/copy/open signals only.
-- The one exception is the owner's hidden admin (2026-10-11): hold the logo 2 s → admin code; hold a story → remove
+- The one exception is the owner's hidden admin (2026-10-11): hold the logo 1.5 s → admin code (own sheet, no prompt()); hold a story → remove
   (irrelevant / not news / duplicate) or move. No visible button – the owner asked for a long press. Actions are
   HMAC-signed with ADMIN_KEY (`scripts/setup-admin.ps1` makes it; never ask for or handle the code), checked in
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.

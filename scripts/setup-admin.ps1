@@ -16,6 +16,6 @@ Write-Host 'Din admin-kode til Khabar:' -ForegroundColor Green
 Write-Host ''
 Write-Host "    $code" -ForegroundColor Yellow
 Write-Host ''
-Write-Host 'Paa telefonen: aabn Khabar, hold logoet nede i 2 sekunder og skriv koden.'
+Write-Host 'Paa telefonen: aabn Khabar, hold logoet nede i 1,5 sekund og skriv koden.'
 Write-Host 'Derefter: hold en nyhed nede for at fjerne eller flytte den.'
 Write-Host 'Luk dette vindue bagefter, og del ikke koden med nogen.'
