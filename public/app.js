@@ -311,7 +311,7 @@ function heroStory(i, n, opts) {
   const open = expanded.has(i.id), small = THUMBS + i.thumb;
   return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1" style="--i:${n}">
     <button class="hero-row" data-toggle aria-expanded="${open}"><img src="${esc(i.pic || small)}" alt="" decoding="async"
-      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'">${i.pic_credit ? '<span class="arch-tag">Arkivfoto</span>' : ''}<span class="hero-tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span>
+      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'"><span class="hero-tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span>
       <span class="m">${meta(i, opts)}</span></span></button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
@@ -323,13 +323,13 @@ function detail(i) {
   const ed = sumOf(i), note = i.to ? `<p class="tr-note">${i.checked ? 'Oversat' : 'Maskinoversat'} fra ${LANG[i.from] || i.from}${i.checked ? ' og tjekket af redaktøren' : ''}`
     + ` · original: <span dir="auto">»${esc(tidy(i.origTitle))}«</span></p>` : '';
   const text = ed ? ed.text : i.summary;
-  const pay = ed && ed.paywall ? '<p class="sum-note">Khabar har ikke adgang til artiklen – resuméet er redaktørens bedste bud ud fra overskriften og andre mediers dækning.</p>' : '';
+  const pay = ed && ed.paywall ? '<p class="sum-note">Resuméet bygger på overskrifterne og mediernes indledninger.</p>' : '';
   return `${text ? `<p class="sum" dir="auto">${esc(text)}</p>` : ''}${pay}${note}
     <div class="acts">
       <a class="act primary" href="${esc(i.link)}" target="_blank" rel="noopener" data-read><svg><use href="#i-open"/></svg>Læs</a>
       <button class="act" data-share><svg><use href="#i-share"/></svg>Del</button>
       <button class="act" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
-    </div>${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}${i.pic_credit ? `<p class="pic-credit">Billede: ${esc(i.pic_credit)}</p>` : ''}`;
+    </div>${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}`;
 }
 function moreRow(i) {
   const t = threadFor(i), n = (i.outlets || 1) - 1;
@@ -413,7 +413,7 @@ let recapOpen = false;
 function overview() {
   const day = dayOf(digest);
   if (!day || Date.now() - new Date(day.created) > 48 * 3600e3) {
-    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer kl. 7, 15 og 21</small></span></div></section>`;
+    return `<section class="ov" id="overview"><div class="ov-row"><span><b>Resumé</b><small>Dagens vigtigste bevægelser – kommer morgen, eftermiddag og aften</small></span></div></section>`;
   }
   const n = lineCount(day), hrs = [...new Set((day.updates || [day.created]).map(u => new Date(u).getHours()))];
   const said = hrs.length < 2 ? hrs.join('') : hrs.slice(0, -1).join(', ') + ' og ' + hrs[hrs.length - 1];

@@ -195,24 +195,17 @@ def test_a_headline_must_fit(folder, tmp_path, capsys):
     assert "titles: unknown story id 'nope'" in out and 'at most 140' in out and 'not 0' in out
 
 
-def test_pictures_are_asked_for_checked_and_kept(folder, tmp_path, capsys):
-    data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
-    data['items'][2]['thumb'] = 'abc.jpg'   # s3 has a picture already
-    (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
-    editor.main(['input', '--dir', str(folder), '--now', NOW])
+
+def test_opened_stories_are_summarised_first_and_yesterday_shrinks(folder, tmp_path):
+    (folder / 'learned.json').write_text(json.dumps([{'id': 's4', 'why': 'read', 'at': '2026-10-10T19:00:00+00:00'},
+                                                      {'id': 's1', 'why': 'community', 'at': '2026-10-10T19:00:00+00:00'}]), encoding='utf-8')
+    (folder / 'moves.json').write_text(json.dumps({'days': [YESTERDAY, TODAY]}), encoding='utf-8')
+    editor.main(['input', '--dir', str(folder), '--now', NOW])   # 22.01: yesterday is done
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
-    asked = text.split('## Stories without a picture')[1].split('## Al Jazeera')[0]
-    assert '[s1]' in asked and '[s3]' not in asked and '[s2]' not in asked   # has one; yesterday's
-    with pytest.raises(SystemExit):
-        publish(folder, tmp_path, {'lede': 'Dagen kort.', 'pictures': [
-            {'id': 's1', 'url': 'http://x.test/a.jpg', 'kind': 'article'},
-            {'id': 's4', 'url': 'https://upload.wikimedia.test/a.jpg', 'kind': 'archive'},
-            {'id': 'nope', 'url': 'https://x.test/a.jpg', 'kind': 'article'}]})
-    out = capsys.readouterr().out
-    assert 'direct https address' in out and 'needs its credit' in out and "unknown story id 'nope'" in out
-    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'pictures': [
-        {'id': 's1', 'url': 'https://dr.test/photo.jpg', 'kind': 'article', 'credit': 'ignored'},
-        {'id': 's4', 'url': 'https://upload.wikimedia.test/a.jpg', 'kind': 'archive', 'credit': 'Wikimedia Commons / Foto: X'}]})
-    images = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['images']
-    assert images['s1'] == {'url': 'https://dr.test/photo.jpg', 'kind': 'article', 'credit': '', 'at': '2026-10-10T20:01:00+00:00'}
-    assert images['s4']['credit'] == 'Wikimedia Commons / Foto: X'
+    asked = text.split('## Stories to summarise')[1].split('## ')[0]
+    assert asked.index('[s4]') < asked.index('[s1]')          # opened by a reader: first, though weaker
+    assert '[s1] – listed above' in asked and 'curl' not in text and 'Stories without a picture' not in text
+    assert "## Yesterday's topics (9. oktober 2026, 1 lines)" in text and '- Ukraine (world)' in text
+    assert 'The recap of 9. oktober' not in text and 'The recap of 10. oktober 2026 so far' in text
+    editor.main(['input', '--dir', str(folder), '--now', '2026-10-10T05:01:00+00:00'])   # 07.01: yesterday in full
+    assert 'The recap of 9. oktober 2026 so far' in (editor.WORK / 'input.md').read_text(encoding='utf-8')

@@ -1,11 +1,11 @@
-"""Tools for the Claude editor, who updates Khabar three times a day (07, 15 and 21 Danish time).
+"""Tools for the Claude editor, who updates Khabar three times a day (morning, afternoon and evening: 07, 15 and 21
+Danish summer time, an hour earlier in winter – the routine runs at 05, 13 and 19 UTC).
 
 Each update does six things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
 in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
 writes a short summary of the stories readers open most (what an opened story shows; behind a paywall the editor's
-best reading of headline and coverage, flagged as such), goes over the machine's Danish for the strongest foreign
-headlines (the app shows headlines in Danish), finds a picture for the strongest stories that have none (the story's
-own from an article page, else an archive photo of the person or place from Wikimedia Commons, credited), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
+reading of headline, teaser and the other outlets' coverage – the editor has no internet), goes over the machine's Danish for the strongest foreign
+headlines (the app shows headlines in Danish), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
 breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A line goes into the day it happened
 (Danish date), so at 07 what came before midnight completes yesterday's recap.
 
@@ -14,8 +14,8 @@ breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A
     python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
             [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
                                                     quotes), moves.json (the last 30 days) and summaries.json (the
-                                                    story summaries, checked Danish headlines and found pictures of
-                                                    the last 4 days);
+                                                    story summaries and checked Danish headlines of the last 4
+                                                    days);
                                                     --push commits all three
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
@@ -36,12 +36,12 @@ MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august'
 KEEP = 30        # days in the archive
 MAX_NEW = 14     # lines one update may add: the most important movements, not everything
 MAX_TEXT = 220   # characters in a line: one short sentence
-MAX_SUM = 25     # stories one update summarises: the ones readers are most likely to open
+MAX_SUM = 15     # stories one update summarises: the ones readers open, then the ones they are most likely to
 SUM_LEN = 420    # characters in a summary: two or three sentences
 SUM_DAYS = 4     # how long a summary (and a checked headline) is kept
-MAX_TITLES = 40  # foreign headlines one update goes over in Danish: the strongest the app shows
+MAX_TITLES = 20  # foreign headlines one update goes over in Danish: the strongest the app shows
 TITLE_LEN = 140  # characters in a headline
-MAX_PICS = 12    # strong stories without a picture one update looks for a picture for
+TOP = 40         # top stories of the day listed for picks and moves
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -178,17 +178,14 @@ def day_old(i, now):
     return now - ts(i.get('published') or i['found']) < timedelta(hours=24)
 
 
-def to_summarise(items, done, now):
-    """The stories an opened card is most likely to be: the strongest of each section in the last day, then the
-    rest by rank – those without a summary yet, at most MAX_SUM."""
-    return strongest([i for i in items if day_old(i, now) and i['id'] not in done], 8, MAX_SUM)
-
-
-def to_picture(items, done, now):
-    """The strongest stories of the last day – the ones the app shows big – that the radar found no picture for and
-    the editor has not looked for yet, at most MAX_PICS."""
-    return [i for i in strongest([i for i in items if day_old(i, now)], 8, 40)
-            if not i.get('thumb') and i['id'] not in done][:MAX_PICS]
+def to_summarise(items, done, now, opened=()):
+    """The stories readers opened (the app's silent 'read' and 'copied' signals, learned.json), then the ones an
+    opened card is most likely to be – the strongest of each section in the last day, then the rest by rank – those
+    without a summary yet, at most MAX_SUM."""
+    fresh = [i for i in items if day_old(i, now) and i['id'] not in done]
+    read = [i for i in sorted(fresh, key=lambda i: -(i.get('rank') or 0)) if i['id'] in set(opened)]
+    rest = strongest([i for i in fresh if i not in read], 5, MAX_SUM)
+    return (read + rest)[:MAX_SUM]
 
 
 def to_check(items, done, now):
@@ -237,14 +234,9 @@ TEMPLATE = {
                 'ids': ['<wire line id>'], 'story': '<or a story id>'}],
     'titles': [{'id': '<story id from "Danish headlines to check">',
                 'title': '<the headline in correct, natural Danish – the machine\'s own when it is right>'}],
-    'pictures': [{'id': '<story id from "Stories without a picture">',
-                  'url': '<the direct https address of the picture>',
-                  'kind': 'article (the story\'s own picture) | archive (a Wikimedia Commons photo of the person or place)',
-                  'credit': '<for an archive photo: Wikimedia Commons / the photographer, as Commons names them>'}],
     'summaries': [{'id': '<story id from "Stories to summarise">',
-                   'text': '<2-3 Danish sentences from the article: what happened, who, why it matters>',
-                   'paywall': '<true when you could not read the article and wrote your best reading of headline, teaser '
-                              'and the other outlets; else false>'}],
+                   'text': '<2-3 Danish sentences from the headline, the teaser and the other outlets: what happened, who, why it matters>',
+                   'paywall': True}],
 }
 
 
@@ -274,11 +266,16 @@ def cmd_input(args):
     stories = sorted((i for i in items if ts(i.get('found') or i['published']) >= start and i['id'] not in told),
                      key=lambda i: -(i.get('rank') or 0))
     top = sorted((i for i in items if now - ts(i.get('published') or i['found']) < timedelta(hours=24)),
-                 key=lambda i: -(i.get('rank') or 0))[:70]
+                 key=lambda i: -(i.get('rank') or 0))[:TOP]
     wire = uncovered(lines, moves)
     out = [f'# Material for the {dk(now):%H}.00 update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
+    today = dk(now).date().isoformat()
     for d in sorted(recent_days(moves, now), key=lambda d: d['date']):
         n = sum(len(tp['lines']) for tp in d['topics'])
+        if d['date'] != today and dk(now).hour >= 10:   # yesterday is done: its topic names, to continue developments
+            out += [f"## Yesterday's topics ({date_da(noon(datetime.fromisoformat(d['date'])))}, {n} lines) – continue one by "
+                    'writing its name exactly as here', ''] + [f"- {tp['name']} ({tp['section']})" for tp in d['topics']] + ['']
+            continue
         out += [f"## The recap of {date_da(noon(datetime.fromisoformat(d['date'])))} so far – {n} lines", '',
                 'Continue a topic by writing its name exactly as here. Lines, newest first: [id] Danish time · who: text', '']
         for tp in d['topics']:
@@ -292,8 +289,10 @@ def cmd_input(args):
     out += ['', f'## Stories since {dk(start):%H.%M} {date_da(start)} – {len(stories)}, strongest first – for recap lines', '',
             'Fields: id · section · rank · big (many outlets) · outlets, by kind of media · confirmed (established '
             'outlets; 0 = only Telegram/YouTube channels, so unconfirmed)', '']
+    listed = set()
     for i in stories[:100]:
         out += story_lines(i)
+        listed.add(i['id'])
     owner = read(args, 'origin/data', 'removed.json', {'removed': [], 'moved': {}})
     gone = sorted(owner.get('removed') or [], key=lambda r: r['at'], reverse=True)[:40]
     if gone:   # the owner's own verdicts from the app, stated plainly
@@ -304,29 +303,17 @@ def cmd_input(args):
     if owner.get('moved'):
         out += ['## Stories the owner moved to another section – the right place for stories like them', '']
         out += [f"- {i['title']} → {owner['moved'][i['id']]}" for i in items if i['id'] in owner['moved']] + ['']
-    todo = to_summarise(items, set((summaries_of(args).get('items') or {})), now)
+    learned = read(args, 'origin/data', 'learned.json', [])
+    opened = [l['id'] for l in learned if l.get('why') in ('read', 'copied') and l.get('at') and now - ts(l['at']) < timedelta(hours=24)]
+    todo = to_summarise(items, set((summaries_of(args).get('items') or {})), now, opened)
     if todo:
-        out += [f'## Stories to summarise – {len(todo)} (what readers see when they open a story)', '',
-                'For each: open the link (curl -sL with a browser user agent; for a Google News link try the outlets under',
-                '"Also"), and write 2-3 plain Danish sentences from the article: what happened, who, and why it matters. No',
-                'opinion, no "artiklen handler om". If no article text can be read (paywall, blocked, only a teaser), write',
-                'your best reading of the headline, teaser and the other outlets\' headlines and set "paywall": true – the',
-                'app then says Khabar had no access to the article.', '']
+        out += [f'## Stories to summarise – {len(todo)} (what readers see when they open a story; the ones readers opened first)', '',
+                'You cannot open the articles (no internet here). For each, write 2-3 plain Danish sentences from what is given:',
+                'the headline, the teaser under it and the other outlets\' headlines under "Also" – what happened, who, and why it',
+                'matters, and nothing they do not support. No opinion, no "artiklen handler om". Set "paywall": true (the app then',
+                'says the summary rests on the headlines and the outlets\' introductions).', '']
         for i in todo:
-            out += story_lines(i)
-    bare = to_picture(items, set((summaries_of(args).get('images') or {})), now)
-    if bare:
-        out += [f'## Stories without a picture – {len(bare)} (the app shows these big; the radar found no picture)', '',
-                "For each, look for the story's own picture first: the og:image of its article page or of another outlet's",
-                "under 'Also' (curl -sL -A 'Mozilla/5.0' URL | grep -o 'og:image[^>]*'), skipping a site's logo or",
-                "default picture – kind 'article'. Only when no outlet has one: a real, freely licensed photo on Wikimedia",
-                'Commons of the main person or place the story is about (a portrait of the politician, the city, the',
-                'building) – kind \'archive\', with credit \'Wikimedia Commons / <photographer>\'; give a direct upload.wikimedia.org',
-                'address (a thumbnail about 1200 px wide is best). Never a photo of another event presented as this one,',
-                'never a drawing, a map or an AI-made picture, never the dead or wounded. When in doubt, skip the story:',
-                'no picture is better than a wrong one.', '']
-        for i in bare:
-            out += story_lines(i)
+            out += [f"[{i['id']}] – listed above", ''] if i['id'] in listed else story_lines(i)
     heads = to_check(items, set((summaries_of(args).get('titles') or {})), now)
     if heads:
         out += [f'## Danish headlines to check – {len(heads)} (the app shows foreign headlines in Danish; these are machine translations)', '',
@@ -463,20 +450,6 @@ def build(draft, data, lines, moves, now):
             problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
         else:
             quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
-    pics = []
-    for x in (draft.get('pictures') or [])[:MAX_PICS + 5]:
-        url, kind = str(x.get('url', '')).strip(), x.get('kind')
-        credit = ' '.join(str(x.get('credit', '')).split())
-        if x.get('id') not in by_id:
-            problems.append(f"pictures: unknown story id {x.get('id')!r}")
-        elif not url.startswith('https://') or len(url) > 800 or ' ' in url:
-            problems.append(f"pictures: {x['id']} needs a direct https address of the picture")
-        elif kind not in ('article', 'archive'):
-            problems.append(f"pictures: {x['id']} kind must be article or archive")
-        elif kind == 'archive' and (not credit or len(credit) > 140):
-            problems.append(f"pictures: {x['id']} is an archive photo and needs its credit (Wikimedia Commons / the photographer)")
-        else:
-            pics.append({'id': x['id'], 'url': url, 'kind': kind, 'credit': credit if kind == 'archive' else ''})
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
         title = ' '.join(str(x.get('title', '')).split())
@@ -514,7 +487,7 @@ def build(draft, data, lines, moves, now):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums, 'titles': heads, 'pictures': pics}
+    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums, 'titles': heads}
     return days, notes, []
 
 
@@ -532,15 +505,14 @@ def cmd_publish(args):
     archive = sorted(merged.values(), key=lambda d: d['date'], reverse=True)[:KEEP]
     today = days[dk(now).date().isoformat()]
     shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
-    sums, heads, pics, before = notes.pop('summaries'), notes.pop('titles'), notes.pop('pictures'), summaries_of(args)
+    sums, heads, before = notes.pop('summaries'), notes.pop('titles'), summaries_of(args)
     recent = lambda d: {k: v for k, v in (d or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}  # noqa: E731
-    kept, checked, found = recent(before.get('items')), recent(before.get('titles')), recent(before.get('images'))
+    kept, checked = recent(before.get('items')), recent(before.get('titles'))
     kept.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
     checked.update({x['id']: {'title': x['title'], 'at': notes['created']} for x in heads})
-    found.update({x['id']: {'url': x['url'], 'kind': x['kind'], 'credit': x['credit'], 'at': notes['created']} for x in pics})
     digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
     files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive},
-             'summaries.json': {'updated': notes['created'], 'items': kept, 'titles': checked, 'images': found}}
+             'summaries.json': {'updated': notes['created'], 'items': kept, 'titles': checked}}
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name, obj in files.items():
@@ -550,7 +522,7 @@ def cmd_publish(args):
         push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
           f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · {len(sums)} summaries · "
-          f"{len(heads)} headlines · {len(pics)} pictures · "
+          f"{len(heads)} headlines · "
           f"days: {', '.join(sorted(days))}")
 
 

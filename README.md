@@ -11,7 +11,7 @@ day in one sentence and **Dagens historie** – the main story as one package (p
 and a statement from it) – then the day's other top stories, **Følg udviklingen** (the developments that moved last),
 the day's quote and **Live** (the newest stories). Five tabs: Forside, Danmark, Mellemøsten, Verden and **Live**, which
 shows everything as it comes in. The **Udvikling** page holds every development step by step, the recap of the day
-('Resumé', updated at 07, 15 and 21: the day's most important movements as short 'Who: what' lines in the style of Al
+('Resumé', updated morning, afternoon and evening: the day's most important movements as short 'Who: what' lines in the style of Al
 Jazeera's breaking wire, grouped by topic) and the earlier days. Every story has a small picture; opening it shows a
 short summary, how Danish, Western,
 Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is
