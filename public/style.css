@@ -363,3 +363,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .story.tick:not(.open) .h { -webkit-line-clamp: 2; }
 .story.tick .m { margin-top: 3px; }
 .story.tick + .story.tick::before { left: 68px; }
+
+/* settings: the two setup guides side by side */
+.guides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.guides .wide { margin: 0; }

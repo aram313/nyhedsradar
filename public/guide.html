@@ -121,7 +121,7 @@
       <p class="note">Det virker kun fra ikonet, ikke inde i Safari.</p></div></li>
   </ol>
 
-  <ol id="android" hidden>
+  <ol id="android-steps" hidden>
     <li class="step"><div><h2>Åbn khabar.nu i Chrome</h2><p>Skriv <b>khabar.nu</b> i Chrome. Åbner linket inde i WhatsApp, så tryk <b>⋮</b> → <b>Åbn i Chrome</b>.</p></div></li>
 
     <li class="step"><div><h2>Tryk på ⋮ øverst til højre</h2><p>De tre prikker i Chromes adresselinje.</p></div></li>
@@ -156,7 +156,7 @@
   const pick = os => {
     document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.os === os));
     document.getElementById('ios').hidden = os !== 'ios';
-    document.getElementById('android').hidden = os !== 'android';
+    document.getElementById('android-steps').hidden = os !== 'android';
     document.querySelectorAll('.help [data-for]').forEach(d => d.hidden = d.dataset.for !== os);
   };
   document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-os]'); if (b) pick(b.dataset.os); });
