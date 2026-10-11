@@ -692,3 +692,9 @@ html.intro-skip .intro { display: none; }
 .fol-row:active { background: var(--fill); }
 .fol .now-more { width: 100%; min-height: 46px; margin: 0; padding: 0 14px; border-top: .5px solid var(--line); }
 .fol .now-more:active { background: var(--fill); }
+/* iPhone redrew the big picture's layers while its colour changed on open and close, and for a moment showed it without
+   its dark fade and headline: picture, grain, fade and text are layered once and for all, so nothing is redrawn */
+.hero-row, .card-pic { isolation: isolate; transform: translateZ(0); }
+.hero-row img, .card-pic img { z-index: 0; will-change: filter; }
+.hero-row::after { z-index: 2; }
+.hero-tx { z-index: 3; }
