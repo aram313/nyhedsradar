@@ -373,7 +373,7 @@ def main():
             if row[j] >= hi and items[k].get('lang', '') == r_lang[j]:
                 items[k]['removed'] = True
             elif row[j] >= lo:
-                items[k]['score'] = round(items[k]['score'] - s.get('removed_penalty', 0.05) * min(1, (row[j] - lo) / (hi - lo)), 4)
+                items[k]['score'] = round(float(items[k]['score'] - s.get('removed_penalty', 0.05) * min(1, (row[j] - lo) / (hi - lo))), 4)
     # rank within each language: the model scores some languages (Arabic) higher across the board
     ranked = {'': np.sort(np.array([items[k]['score'] for k in ids], dtype=np.float32))}
     for lang in {items[k].get('lang', '') for k in ids}:

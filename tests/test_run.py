@@ -58,6 +58,14 @@ def test_run(tmp_path, monkeypatch):
     run.main()
     data2 = json.loads((tmp_path / 'state' / 'data.json').read_text(encoding='utf-8'))
     assert len(data2['items']) == len(data['items'])
+    # the owner removed the Gaza story from the app: it is gone, and the run still saves its state
+    (tmp_path / 'state' / 'removed.json').write_text(json.dumps({'removed': [
+        {'id': gaza[0]['id'], 'why': 'irrelevant', 'at': datetime.now(timezone.utc).isoformat(), 't': gaza[0]['title'],
+         'title': gaza[0]['title'], 'source': gaza[0]['source'], 'link': gaza[0]['link']}], 'moved': {}}), encoding='utf-8')
+    run.main()
+    data3 = json.loads((tmp_path / 'state' / 'data.json').read_text(encoding='utf-8'))
+    assert gaza[0]['id'] not in {i['id'] for i in data3['items']}
+    assert json.loads((tmp_path / 'state' / 'removed.json').read_text(encoding='utf-8'))['removed'][0]['id'] == gaza[0]['id']
 
 
 def test_notifies_once_per_story_and_learns(tmp_path, monkeypatch):
