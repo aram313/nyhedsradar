@@ -541,9 +541,14 @@ function packageQuote(pkg, told) {
   qs.sort((a, b) => b.sc - a.sc);
   return qs[0] ? qs[0].q : null;
 }
-// a step that is a story in the app opens it in Live; a statement only on the wire opens its source
-const stepHtml = (l, extra = '') => { const live = liveIdOf(l), at = live ? ` class="go" data-live="${esc(live)}"` : l.link ? ` class="src" data-src="${esc(l.link)}"` : '';
-  return `<li${at}>${extra}<time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p></li>`; };
+// a step that is a story in the app opens it in Live; a statement only on the wire opens its source. The step is a
+// real button or link: iPhone does not always pass a tap on plain text on to the page.
+const stepHtml = (l, extra = '') => {
+  const live = liveIdOf(l), inner = `<time>${clock(l.at)}</time><p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${esc(l.text)}</p>`;
+  if (live) return `<li class="go">${extra}<button class="step" data-live="${esc(live)}">${inner}</button></li>`;
+  if (l.link) return `<li class="src">${extra}<a class="step" href="${esc(l.link)}" target="_blank" rel="noopener">${inner}</a></li>`;
+  return `<li>${extra}${inner}</li>`;
+};
 function storyline(tp, n = 4) {
   const lines = tp.lines.filter(l => l.at).sort((a, b) => a.at.localeCompare(b.at)).slice(-n);
   return { lines, html: `<div class="follow pkg-f"><div class="pkg-h">Sådan udviklede det sig</div><ol>${lines.map(l =>

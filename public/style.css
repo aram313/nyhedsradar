@@ -709,3 +709,6 @@ html.intro-skip .intro { display: none; }
 /* searching: the results scroll in their own box under the search field, so their group bands stick to its top */
 .page[data-tab="search"] .day { top: 0; }
 .day { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }   /* solid, like the top bar */
+/* a timeline step that opens something is one button or link across the whole row */
+.follow li > .step, .thr-steps li > .step { grid-column: 1 / -1; display: grid; grid-template-columns: 42px 1fr; column-gap: 22px;
+  width: 100%; color: inherit; text-decoration: none; text-align: left; -webkit-tap-highlight-color: transparent; }
