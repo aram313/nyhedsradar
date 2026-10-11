@@ -103,8 +103,9 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   top stories (never the main story again), 'Følg udviklingen' (the 3 developments that moved last, not the main story's),
   'Dagens citat' if the package had none, 'Live' (the 3 newest Live stories). No section glance, no recap on the front page:
   the Udvikling page (not a tab; reached from the front page, the stories and search, left by a tab or the logo with a back
-  mark) holds the recap ('Resumé', short 'Who: what' lines), every development and the earlier days; the recap notification
-  (?digest=1) opens it there. The name is 'Live' everywhere. Foreign headlines show in Danish by default (the editor's
+  mark) shows the editor's lines one way at a time, chosen at the top: 'Forløb' (every development, story by story
+  across days) or 'Dag for dag' (the day's recap, ready to share, then the earlier days) – never both on one page (owner
+  found them clashing); a development opens Forløb, the recap notification (?digest=1) opens Dag for dag. The name is 'Live' everywhere. Foreign headlines show in Danish by default (the editor's
   checked Danish first, else the machine's; the opened story names the original). The intro plays on the first visit and
   after six hours away, else the app opens straight in. Text size follows the phone (iPhone Dynamic Type) or the setting
   (every font size is `calc(Npx * var(--ts, 1))`, --ts set on #list). Old news: only the box on the page, the top bar stays

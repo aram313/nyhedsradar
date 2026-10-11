@@ -577,7 +577,7 @@ const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(to
 function followStrip(skip) {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
   const list = threads().filter(t => !skip || t.name.trim().toLowerCase() !== skip.name.trim().toLowerCase()).slice(0, 3);
-  const all = '<button class="now-more" data-go="threads">Alle udviklinger, resuméer og tidligere dage<svg><use href="#i-chev"/></svg></button>';
+  const all = '<button class="now-more" data-go="threads">Alle forløb og dagens resumé<svg><use href="#i-chev"/></svg></button>';
   if (!list.length) return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${all}</section>`;
   return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${list.map(t => { const l = t.lines[t.lines.length - 1];
     return `<button class="fol-row" data-follow="${t.key}" data-sec="${esc(t.section || '')}"><span class="fol-m"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>`
@@ -758,13 +758,17 @@ function threadCard(t) {
       <h3>${esc(t.name)}</h3>${open ? '' : `<p class="thr-last">${last.who ? `<b>${esc(last.who)}:</b> ` : ''}${esc(last.text)}</p>`}<svg><use href="#i-chev"/></svg></button>
     ${open ? `<ol class="thr-steps">${steps}</ol>` : ''}</article>`;
 }
+// the Udvikling page shows the editor's lines one way at a time: story by story across the days ('Forløb'), or day by
+// day – the day's recap, ready to share, then the earlier days ('Dag for dag'). The same lines, never twice on one page.
+let udView = 'forlob';
 function threadsPage() {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);
+  const seg = `<div class="seg two ud-seg" role="radiogroup" aria-label="Vis">${[['forlob', 'Forløb'], ['dage', 'Dag for dag']].map(([v, l]) =>
+    `<button role="radio" data-ud="${v}" aria-checked="${udView === v}">${l}</button>`).join('')}</div>`;
+  if (udView === 'dage') return seg + overview() + `<section class="block">${archive()}</section>`;
   const list = threads();
-  return overview()
-    + '<div class="arch-h thr-h">Følg udviklingen</div><p class="thr-intro">Historier, der udvikler sig – trin for trin, som redaktøren har fulgt dem.</p>'
-    + (list.length ? list.map(threadCard).join('') : '<p class="explain pad">Ingen udviklinger at følge endnu.</p>')
-    + `<section class="block">${archive()}</section>`;
+  return seg + '<p class="thr-intro">Hver historie for sig – trin for trin, som redaktøren har fulgt den, også over flere dage.</p>'
+    + (list.length ? list.map(threadCard).join('') : '<p class="explain pad">Ingen forløb at følge endnu.</p>');
 }
 // search suggestions: the names and places in today's headlines and the developments, completing what one types
 function searchWords(all) {
@@ -874,7 +878,7 @@ function render(opts = {}) {
   if (focusId) openFocus(all);
   if (goOverview && data) {   // a notification about the recap: open it, on the Udvikling page
     goOverview = false;
-    recapOpen = true;
+    recapOpen = true; udView = 'dage';
     if (tab !== 'threads') setTab('threads', { top: true }); else render();
     setTimeout(() => scrollToEl(pg$('overview')), 150);
   }
@@ -1027,7 +1031,7 @@ async function share(text, i) {
 
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
-  if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
+  if (t.closest('[data-go]')) { const go = t.closest('[data-go]').dataset.go; if (go === 'threads') udView = 'forlob'; setTab(go, { top: true }); return; }
   if (t.closest('[data-cov]') && el) {
     covOpen.has(el.dataset.id) ? covOpen.delete(el.dataset.id) : covOpen.add(el.dataset.id);
     const i2 = find(el.dataset.id) || findStory(el.dataset.id), box = el.querySelector('.x-in');
@@ -1038,9 +1042,11 @@ $('list').addEventListener('click', async e => {
   if (live) { e.preventDefault(); openInLive(live.dataset.live); return; }   // 'Lige nu', a development's step, a recap line
   const src = t.closest('[data-src]');
   if (src) { window.open(src.dataset.src, '_blank', 'noopener'); return; }
+  const ud = t.closest('[data-ud]');
+  if (ud) { udView = ud.dataset.ud; if (udView === 'dage') recapOpen = true; render(); cur().scrollTop = 0; return; }
   const follow = t.closest('[data-follow]');
   if (follow) {
-    threadOpen = follow.dataset.follow;
+    threadOpen = follow.dataset.follow; udView = 'forlob';
     if (tab === 'threads') render(); else setTab('threads', { top: true });
     scrollToEl(pg$('thr-' + threadOpen), 12);
     return;
