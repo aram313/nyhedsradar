@@ -998,3 +998,21 @@ const startTab = params.get('tab');
 if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'latest')) setTab(startTab, { top: true });
 else render({ enter: true });
 load();
+
+// ---------------------------------------------------------------- intro
+// Every start: the name writes itself, then the app shows. The very first time it also says what Khabar is for,
+// and stays until 'Kom i gang'. A tap skips the short version.
+(function intro() {
+  const el = $('intro');
+  if (!el) return;
+  const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
+  if (store.get('introSeen', false)) {
+    const t = setTimeout(done, reduceMotion ? 300 : 1500);
+    el.addEventListener('click', () => { clearTimeout(t); done(); });
+    return;
+  }
+  $('introWhy').hidden = false;
+  el.setAttribute('aria-hidden', 'false');
+  $('introGo').addEventListener('click', () => { store.set('introSeen', true); done(); });
+})();
+
