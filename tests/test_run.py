@@ -197,3 +197,13 @@ def test_war_strikes_are_attacks_before_danish():
     assert run.military('Russian drone strike hits Kyiv') == 'Russian drone attack hits Kyiv'
     assert run.military('US and Russia strike diesel deal') == 'US and Russia strike diesel deal'
     assert run.military('Workers strike in France as teachers threaten strikes across Denmark').count('attack') == 0
+
+
+def test_hub_pages_are_noise():
+    from radar.run import is_noise
+    hub = lambda t: is_noise({'title': t, 'link': 'https://apnews.com/hub/x'})
+    assert hub('Latin American News | Latest Latin American News')
+    assert hub('Middle East News | Today\'s Latest Stories')
+    assert hub('World News and Headlines')
+    assert not hub('Fox News host says Iran talks are over')
+    assert not hub('Israel fires on Gaza, latest attack in weeks')

@@ -92,7 +92,9 @@ def relevance(e, m, w, k, item_ids=None, prof_ids=None):
 # liveblogs, podcasts, videos, sport, celebrity and lifestyle never belong in the radar
 NOISE_TITLE = re.compile(r'^(live\b|live:|liveblog|watch\b|video\b|podcast\b|quiz\b|horoskop|se billederne)'
                          r'|seneste nyt|\blive blog\b|\bliveblog\b|\blive updates\b|\blive:'
-                         r'|følg (med|udviklingen)|se med her', re.I)
+                         r'|følg (med|udviklingen)|se med her'
+                         # an outlet's hub page, not a story: 'Latin American News | Latest Latin American News'
+                         r'|^[^|:]{1,40}\bnews\s*\||\blatest [^|:]{0,40}\bnews\s*$|\bnews (?:and|&) headlines\b|^top stories\b', re.I)
 NOISE_URL = re.compile(r'/(sport|sports|fodbold|football|soccer|haandbold|cykling|tennis|golf|formel-1|kendte|celebrity|'
                        r'underholdning|entertainment|livsstil|lifestyle|horoskop|vejret|weather|quiz|games|podcasts?|'
                        r'travel|rejser|mad|food|recipes|opskrifter|bolig|motor|biler|tv-guide|musik|music|film-og-serier)(/|-|$)', re.I)
