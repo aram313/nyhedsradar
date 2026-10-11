@@ -1000,19 +1000,52 @@ else render({ enter: true });
 load();
 
 // ---------------------------------------------------------------- intro
-// Every start: the name writes itself, then the app shows. The very first time it also says what Khabar is for,
+// Every start: the name is written as with a reed pen – a flat nib held at an angle, in the order a calligrapher
+// writes حبر: up and round the loop of ح, back along the line through the tooth of ب into the tail of ر, then the
+// dot under ب, and last the red dot that makes it خ. The very first time the screen also says what Khabar is for
 // and stays until 'Kom i gang'. A tap skips the short version.
 (function intro() {
   const el = $('intro');
   if (!el) return;
+  const first = !store.get('introSeen', false);
+  const D = reduceMotion ? 0 : first ? 1.3 : 0.95;          // the main stroke's duration in seconds
   const done = () => { el.classList.add('gone'); setTimeout(() => el.remove(), 500); };
-  if (store.get('introSeen', false)) {
-    const t = setTimeout(done, reduceMotion ? 300 : 1500);
-    el.addEventListener('click', () => { clearTimeout(t); done(); });
-    return;
+  const NS = 'http://www.w3.org/2000/svg', mask = $('inkMask');
+  // the nib: 56 wide, 22 thick, at 60 degrees; one stamp every 1.5 units of the stroke, shown when the pen arrives
+  const write = (path, start, dur) => {
+    const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
+    for (let i = 0; i <= n; i++) {
+      const p = path.getPointAtLength(L * i / n), r = document.createElementNS(NS, 'rect');
+      const x = Math.acos(1 - 2 * (i / n)) / Math.PI;      // the pen speeds up and slows down (sine ease)
+      r.setAttribute('class', 'nib');
+      r.setAttribute('x', (p.x - 28).toFixed(1)); r.setAttribute('y', (p.y - 11).toFixed(1));
+      r.setAttribute('width', 56); r.setAttribute('height', 22); r.setAttribute('fill', '#fff');
+      r.setAttribute('transform', `rotate(-60 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+      r.style.setProperty('--t', (start + x * dur).toFixed(3) + 's');
+      mask.appendChild(r);
+    }
+  };
+  const fill = at => {   // the last hair the nib missed: the whole word, settled at once when the pen lifts
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('class', 'nib'); r.setAttribute('width', 600); r.setAttribute('height', 400); r.setAttribute('fill', '#fff');
+    r.style.setProperty('--t', at + 's'); mask.appendChild(r);
+  };
+  const start = () => {
+    write($('inkPath'), 0.1, D);
+    write($('inkDot'), 0.1 + D + 0.1, D * 0.15);
+    fill(0.1 + D + 0.4);
+    el.style.setProperty('--dot', (0.1 + D + 0.45).toFixed(2) + 's');
+    el.querySelector('.intro-name').style.animationDelay = (0.1 + D + 0.65).toFixed(2) + 's';
+    if (first) $('introWhy').style.animationDelay = (0.1 + D + 1).toFixed(2) + 's';
+    else { const t = setTimeout(done, (D + 1.6) * 1000); el.addEventListener('click', () => { clearTimeout(t); done(); }); }
+  };
+  if (first) {
+    $('introWhy').hidden = false; el.setAttribute('aria-hidden', 'false');
+    $('introGo').addEventListener('click', () => { store.set('introSeen', true); done(); });
   }
-  $('introWhy').hidden = false;
-  el.setAttribute('aria-hidden', 'false');
-  $('introGo').addEventListener('click', () => { store.set('introSeen', true); done(); });
+  // the pen needs the calligraphic letters; if they do not come within a second, the word simply shows
+  let begun = false;
+  const go = () => { if (!begun) { begun = true; start(); } };
+  document.fonts.load('700 100px "Aref Ruqaa"', 'حبر').then(go, go);
+  setTimeout(() => { if (!begun) { begun = true; fill(0); el.style.setProperty('--dot', '.1s'); start.call(null); } }, 1000);
 })();
-

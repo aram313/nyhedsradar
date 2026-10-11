@@ -15,7 +15,8 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap">
-<link rel="stylesheet" href="style.css?v=20261011e">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
+<link rel="stylesheet" href="style.css?v=20261011f">
 <script>
   // apply the saved tone and light/dark choice before the first paint (no flash)
   try {
@@ -34,7 +35,11 @@
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
 <div class="intro" id="intro" aria-hidden="true">
-  <div class="intro-mark"><span class="intro-logo" dir="rtl">حبر<i></i></span><span class="intro-name">Khabar</span></div>
+  <div class="intro-mark"><svg class="intro-ink" id="introInk" viewBox="150 100 300 215" aria-hidden="true">
+    <path id="inkPath" d="M336 241 C343 225 350 205 360 186 C368 170 375 160 388 158 C402 156 414 166 419 178 C418 187 406 189 397 196 C390 203 380 211 366 215 C350 218 330 223 312 228 L307 211 L301 231 C292 234 285 224 279 213 C273 203 259 203 253 214 C248 224 245 240 228 248 C215 257 195 257 169 251" fill="none"/><path id="inkDot" d="M281 271 L295 289" fill="none"/>
+    <mask id="inkMask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"></mask>
+    <text x="300" y="270" text-anchor="middle" mask="url(#inkMask)">حبر</text>
+    <circle class="ink-red" cx="380" cy="128" r="11"/></svg><span class="intro-name">Khabar</span></div>
   <div class="intro-why" id="introWhy" hidden>
     <p class="intro-lead">Dagens vigtigste nyheder fra Danmark, Mellemøsten og verden – samlet ét sted.</p>
     <ul>
@@ -144,6 +149,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261011e"></script>
+<script src="app.js?v=20261011f"></script>
 </body>
 </html>
