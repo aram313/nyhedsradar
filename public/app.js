@@ -1104,7 +1104,7 @@ addEventListener('touchend', async () => {
 const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'latest'];
 const ASIDE = new Set(['search', 'threads']);   // pages beside the tabs: reached from a button, left by a tab or the logo
 let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
-list.addEventListener('touchstart', () => { touching = true; jumping = false; list.style.scrollSnapType = ''; }, { passive: true });
+list.addEventListener('touchstart', () => { cancelAnimationFrame(glide); touching = true; jumping = false; list.style.scrollSnapType = ''; }, { passive: true });
 for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
   touching = false;
   if (paging) { clearTimeout(settleT); settleT = setTimeout(settle, 140); }
@@ -1267,12 +1267,25 @@ tabsEl.addEventListener('touchend', () => {
   glideTo(over);
 });
 tabsEl.addEventListener('touchcancel', () => { scrub = null; tabsEl.querySelectorAll('.scrub').forEach(b => b.classList.remove('scrub')); if (scrubbing) glideTo(tab); else placePill(tab, true); });
-// the finger lifts: the pages glide the last bit to the tab under it, which then is the tab (as after a swipe)
+// the finger lifts: the pages snap to the nearest tab – the one under the finger – in a fifth of a second, and that is
+// the tab (as after a swipe). Our own short motion, not the browser's smooth scrolling, which on iPhone can crawl.
+let glide = 0;
 function glideTo(t) {
-  scrubbing = false; paging = true;
+  scrubbing = false;
+  cancelAnimationFrame(glide);
+  const W = list.clientWidth, from = list.scrollLeft, to = Math.max(0, SWIPE_TABS.indexOf(t)) * W;
+  const ms = reduceMotion ? 0 : Math.round(140 + 80 * Math.min(1, Math.abs(to - from) / W));
   placePill(t, true); showTitle(t);
-  list.scrollTo({ left: SWIPE_TABS.indexOf(t) * list.clientWidth, behavior: reduceMotion ? 'auto' : 'smooth' });
-  clearTimeout(settleT); settleT = setTimeout(settle, 140);
+  jumping = true;   // the pill is placed; the pages only follow
+  const t0 = performance.now();
+  const step = now => {
+    const k = ms ? Math.min(1, (now - t0) / ms) : 1;
+    list.scrollLeft = from + (to - from) * (1 - Math.pow(1 - k, 3));   // fast, then easing in
+    if (k < 1) { glide = requestAnimationFrame(step); return; }
+    list.style.scrollSnapType = '';
+    clearTimeout(settleT); settle();
+  };
+  step(t0);
 }
 $('openSearch').addEventListener('click', () => setTab('search', { top: true }));
 let typing;
