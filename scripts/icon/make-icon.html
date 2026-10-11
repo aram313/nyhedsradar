@@ -1,29 +1,40 @@
 <!doctype html><html><head><meta charset="utf-8"><title>icon-export</title>
-<link href="https://fonts.googleapis.com/css2?family=Lalezar&display=block" rel="stylesheet">
-<style>body{margin:0;background:#888;display:flex;gap:16px;padding:16px;align-items:flex-start}canvas{border-radius:22%}</style></head>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" rel="stylesheet">
+<style>body{margin:0;background:#888;display:flex;flex-wrap:wrap;gap:16px;padding:16px;align-items:flex-start}canvas{border-radius:22%}</style></head>
 <body><script>
-// "Varmt papir": warm paper with grain, black Lalezar خبر, red dot over the خ (drawn as ح + dot)
-function draw(size) {
-  const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d'), k = size / 512;
-  x.fillStyle = '#efe5d1'; x.fillRect(0, 0, size, size);
-  // paper grain: soft grey speckle, a little coarser than pixel noise
-  const img = x.getImageData(0, 0, size, size), d = img.data; let seed = 7;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < d.length; i += 4) { const n = (rnd() - .5) * 26; d[i] += n; d[i + 1] += n; d[i + 2] += n * .9; }
-  x.putImageData(img, 0, 0);
-  x.font = `${430 * k}px "Lalezar"`; x.direction = 'rtl'; x.textAlign = 'center';
-  const m = x.measureText('حبر'), asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent;
-  const cx = 256 * k, cy = 320 * k, base = cy + (asc - desc) / 2, top = base - asc;
-  const left = cx - m.actualBoundingBoxLeft, right = cx + m.actualBoundingBoxRight;
-  x.fillStyle = '#111111'; x.fillText('حبر', cx, base);
-  x.fillStyle = '#e10600'; x.beginPath(); x.arc(left + (right - left) * .86, top - 48 * k, 38 * k, 0, Math.PI * 2); x.fill();
+// The Khabar mark: خبر in Aref Ruqaa (the reed-pen hand of the intro), written as ح + a red dot over it – white on
+// near-black for the app icons, white on transparent for the Android status-bar badge.
+// fill: how much of the square the word and its dot may take (0.82 for icons, 0.68 for maskable, whose edge is cut).
+const RED = '#e3292b';
+function draw(size, fill, { bg = '#111111', ink = '#ffffff', dot = RED } = {}) {
+  // 1. the word and its dot, large, on a scratch canvas: the dot above the loop of ح, as in the intro
+  const big = document.createElement('canvas'); big.width = 1400; big.height = 1000; const b = big.getContext('2d');
+  b.font = '700 400px "Aref Ruqaa"'; b.direction = 'rtl'; b.textAlign = 'center';
+  const m = b.measureText('حبر'), w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const left = 700 - m.actualBoundingBoxLeft, top = 600 - m.actualBoundingBoxAscent, r = w * 0.042;
+  b.fillStyle = ink; b.fillText('حبر', 700, 600);
+  b.fillStyle = dot; b.beginPath(); b.arc(left + w * 0.815, top - w * 0.08, r, 0, Math.PI * 2); b.fill();
+  // 2. where the ink really is (the font's box includes side bearings), so the mark sits truly in the middle
+  const d = b.getImageData(0, 0, 1400, 1000).data; let x0 = 1400, y0 = 1000, x1 = 0, y1 = 0;
+  for (let y = 0; y < 1000; y++) for (let x = 0; x < 1400; x++) if (d[(y * 1400 + x) * 4 + 3] > 8) {
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const iw = x1 - x0 + 1, ih = y1 - y0 + 1, k = Math.min(size * fill / iw, size * fill / ih);
+  // 3. the icon: background, then the mark scaled into the middle
+  const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d');
+  if (bg) { x.fillStyle = bg; x.fillRect(0, 0, size, size); }
+  x.imageSmoothingQuality = 'high';
+  x.drawImage(big, x0, y0, iw, ih, (size - iw * k) / 2, (size - ih * k) / 2, iw * k, ih * k);
   return c;
 }
-document.fonts.load('430px "Lalezar"', 'حبر').then(async () => {
-  for (const s of [512, 192, 180]) {
-    const c = draw(s); document.body.append(c);
+const jobs = [['icon-512', 512, .82], ['icon-192', 192, .82], ['icon-180', 180, .82],
+              ['maskable-512', 512, .68], ['maskable-192', 192, .68],
+              ['badge-96', 96, .86, { bg: null, ink: '#ffffff', dot: '#ffffff' }]];
+document.fonts.load('700 400px "Aref Ruqaa"', 'حبر').then(async () => {
+  for (const [name, size, fill, look] of jobs) {
+    const c = draw(size, fill, look); document.body.append(c);
+    if (new URLSearchParams(location.search).has('preview')) continue;
     const blob = await new Promise(r => c.toBlob(r, 'image/png'));
-    const res = await fetch(`http://127.0.0.1:8766/icon-${s}.png`, { method: 'POST', body: blob });
+    const res = await fetch(`http://127.0.0.1:8766/${name}.png`, { method: 'POST', body: blob });
     document.title += ' ' + (await res.text());
   }
   document.title += ' DONE';
