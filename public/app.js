@@ -438,7 +438,7 @@ function sectionPage(sec, all, opts) {
   // the rest of the day's top folds away, so the latest news follow right after the pictures
   const fold = (lead || duo.length) && !topOpen.has(sec);
   if (!fold) html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('');
-  if (rest.length && (lead || duo.length)) html += `<button class="wide soft" data-top-more="${sec}">${fold ? `Vis ${rest.length} mere fra døgnet` : 'Vis færre'}</button>`;
+  if (rest.length && (lead || duo.length)) html += `<button class="pill-more${fold ? '' : ' up'}" data-top-more="${sec}">${fold ? `Vis ${rest.length} mere fra døgnet` : 'Vis færre'}</button>`;
   html += '</section>';
   // the list, with a quote from the recap after every fifth story
   const ids = new Set(top.map(i => i.id)), quotes = quotesFor(sec);

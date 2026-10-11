@@ -445,3 +445,11 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* an app, not a page: a long press never selects text or pops up a menu (except where one types) */
 html, body, body *:not(input):not(textarea) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iPhone wants it on every element */
 input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+
+/* 'Vis 4 mere fra døgnet': a small pill under the pictures, not a full-width button */
+.pill-more { display: flex; align-items: center; gap: 8px; margin: 4px auto 12px; padding: 7px 14px; border-radius: 999px;
+  background: var(--fill-2); color: var(--text); font-size: 13.5px; font-weight: 650; }
+.pill-more::after { content: ""; width: 5px; height: 5px; border: solid currentColor; border-width: 0 1.6px 1.6px 0;
+  transform: translateY(-2px) rotate(45deg); transition: transform .25s; }
+.pill-more.up::after { transform: translateY(1px) rotate(-135deg); }
+.pill-more:active { transform: scale(.96); }
