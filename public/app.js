@@ -1015,9 +1015,9 @@ load();
   // up the first leg it moves almost along its own edge, so the line is a hairline (10); from the top of the loop on
   // it lies fuller on the paper (34, so no hair of the loop shows through while it writes), and the broad part comes
   // only as it crosses back along the line
-  // The first leg runs through the line as a thin even strip (its narrowest width above the line joined to the
-  // narrowest width of the tail below); the rest of the line's band where they cross stays hidden until the pen
-  // crosses back along it (#inkBehind is the band with that strip cut out).
+  // The first leg runs through the line as a thin strip: its edges are soft curves from the tail's edges below the
+  // line into the leg's edges above it, so the stroke reads as one; the rest of the line's band where they cross
+  // stays hidden until the pen crosses back along it (#inkBehind is the band with that strip cut out).
   const behind = document.createElementNS(NS, 'g');
   behind.setAttribute('clip-path', 'url(#inkBehind)'); mask.appendChild(behind);
   const write = (path, start, dur, thin) => {
