@@ -104,7 +104,7 @@ async function load(manual) {
       const r = await fetch(CFG.digestUrl, { cache: 'no-cache' });
       if (r.ok) {
         const d = await r.json();
-        const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}`;
+        const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}|${JSON.stringify(x.editor || '').length}`;
         if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; digest = d; store.set('lastDigest', digest); }
       }
     } catch { /* keep the last overview */ }
