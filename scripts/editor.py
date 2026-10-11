@@ -170,6 +170,7 @@ def uncovered(lines, moves):
 
 
 TEMPLATE = {
+    'lede': '<one Danish sentence of at most about 25 words: the day so far, for the top of the front page>',
     'topics': [{
         'name': "<a topic of today's or yesterday's recap, written exactly as listed, or a new short concrete Danish heading>",
         'section': 'dk | me | world',
@@ -337,6 +338,9 @@ def build(draft, data, lines, moves, now):
     order = [n for n in draft.get('order') or [] if str(n).strip()]
     problems += [f'order: {n!r} is no topic' for n in order if key(n) not in names]
     # the editor's notes for the app: stories that matter more, stories in the wrong section, the best statements
+    lede = ' '.join(str(draft.get('lede', '')).split())
+    if not lede or len(lede) > 220:
+        problems.append('lede: one sentence of the day so far is needed (at most about 25 words)')
     picks, fixes, quotes = [], [], []
     for p in (draft.get('picks') or [])[:8]:
         if p.get('id') not in by_id:
@@ -372,7 +376,7 @@ def build(draft, data, lines, moves, now):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'picks': picks, 'moves': fixes, 'quotes': quotes}
+    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes}
     return days, notes, []
 
 

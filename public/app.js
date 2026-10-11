@@ -379,8 +379,18 @@ function home(all, opts) {
   // the strongest of the first three with a picture opens the page big
   const lead = now.slice(0, 3).find(i => i.thumb);
   if (lead) now.splice(now.indexOf(lead), 1), now.unshift(lead);
-  let html = `<section class="block top">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
+  // the day in one line from the editor, above everything
+  const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
+  let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${esc(lede)}</p>` : ''}</header>`;
+  html += `<section class="block top">${blockHead('Vigtigst i dag', '<button class="more" data-go="latest">Live<svg><use href="#i-chev"/></svg></button>')}
     ${now.map((i, n) => story(i, n, { ...opts, tag: true, top: true, hero: i === lead })).join('') || '<div class="empty">Intet nyt lige nu.</div>'}</section>`;
+  // one glance into each section: its strongest story not shown above, a tap away
+  const shown = new Set(now.map(i => i.id));
+  const glance = Object.entries(SECTIONS).map(([sec, name]) => {
+    const best = withPicks(all.filter(i => inSection(i, sec) && hours(i) < 24 && !shown.has(i.id)), 1)[0];
+    return best ? `<button class="gl" data-go="${sec}" data-sec="${sec}"><b><i></i>${name}</b><span>${bold(best.title, best.kw)}</span><svg><use href="#i-chev"/></svg></button>` : '';
+  }).join('');
+  if (glance) html += `<section class="glance">${glance}</section>`;
   html += overview() + `<section class="block">${archive()}</section>`;
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;

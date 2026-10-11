@@ -73,14 +73,14 @@ def test_publish_adds_lines_and_the_editors_notes(folder, tmp_path):
         'topics': [{'name': 'Statsborgerskab', 'section': 'dk', 'lines': [
                        {'who': 'Regeringen', 'text': 'Reglerne for statsborgerskab skal strammes.', 'story': 's1'}]},
                    {'name': 'ukraine ', 'lines': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'ids': ['w3', 'w4']}]}],
-        'order': ['Statsborgerskab', 'Ukraine'],
+        'order': ['Statsborgerskab', 'Ukraine'], 'lede': 'Dagen kort.',
         'picks': [{'id': 's3', 'why': 'Stormagter'}], 'moves': [{'id': 's4', 'sec': 'world'}],
         'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world', 'ids': ['w3']}]})
     assert digest['date'] == '2026-10-10' and [tp['name'] for tp in digest['topics']] == ['Statsborgerskab', 'Ukraine']
     assert [x['who'] for x in digest['topics'][1]['lines']] == ['Kreml', 'Kyivs borgmester']   # continued, newest first
     assert digest['ids'] == ['w1', 'w2', 'w3', 'w4']   # w2 was given and left out: done all the same
     assert digest['updates'] == ['2026-10-10T11:35:00+00:00', '2026-10-10T20:01:00+00:00']
-    assert digest['editor'] == {'created': '2026-10-10T20:01:00+00:00', 'picks': [{'id': 's3', 'why': 'Stormagter'}],
+    assert digest['editor'] == {'created': '2026-10-10T20:01:00+00:00', 'lede': 'Dagen kort.', 'picks': [{'id': 's3', 'why': 'Stormagter'}],
                                 'moves': [{'id': 's4', 'sec': 'world'}],
                                 'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world',
                                             'link': 'https://t.me/ajanews/w3'}]}
@@ -95,7 +95,7 @@ def test_at_seven_the_night_before_midnight_completes_yesterday(folder, tmp_path
     items = json.loads((folder / 'lines.json').read_text(encoding='utf-8'))['items'] + [late, early]
     (folder / 'lines.json').write_text(json.dumps({'items': items}), encoding='utf-8')
     digest, moves = publish(folder, tmp_path, {'topics': [{'name': 'Ukraine', 'lines': [
-        {'who': 'Kreml', 'text': 'Sent i går.', 'ids': ['w9']}, {'who': 'Kyiv', 'text': 'Tidligt i dag.', 'ids': ['w8']}]}]},
+        {'who': 'Kreml', 'text': 'Sent i går.', 'ids': ['w9']}, {'who': 'Kyiv', 'text': 'Tidligt i dag.', 'ids': ['w8']}]}], 'lede': 'Natten kort.'},
         now='2026-10-11T05:02:00+00:00')
     by_date = {d['date']: d for d in moves['days']}
     assert [x['text'] for x in by_date['2026-10-10']['topics'][0]['lines']][:1] == ['Sent i går.']

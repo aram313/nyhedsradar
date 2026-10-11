@@ -370,9 +370,9 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .guides .wide { margin: 0; }
 
 /* ------------------------------------------------------------ section pages: lead, two side by side, quotes, a quiet colour */
-#list[data-sec] .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
-#list[data-sec] .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
-#list[data-sec] .day span { background: var(--sec); color: #fff; }
+#list[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
+#list[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
+#list[data-sec]:not([data-sec=""]) .day span { background: var(--sec); color: #fff; }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
 .story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
 .story.card::before { display: none; }
@@ -400,4 +400,19 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .block.top .block-h { padding-left: 12px; }
 .block.top .story.hero { margin-left: 6px; margin-right: 6px; }
 .block.top .duo { margin-left: 6px; margin-right: 6px; }
-#list[data-sec] .block.top .block-h { margin: 0 12px 10px; }
+#list[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
+
+/* ------------------------------------------------------------ the front page's own voice: the day in a line, a glance per section */
+.lede { padding: 14px 16px 2px; }
+.lede span { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pulse); }
+.lede p { margin: 4px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 21px; line-height: 1.28; letter-spacing: -.005em; color: var(--text); text-wrap: pretty; }
+.glance { margin: 0 8px 18px; border-radius: 18px; overflow: hidden; background: color-mix(in srgb, var(--fill) 55%, var(--bg)); }
+.gl { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 58px; padding: 10px 12px 10px 14px; text-align: left; }
+.gl + .gl { border-top: .5px solid var(--line); }
+.gl b { flex: none; width: 96px; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 720; color: var(--text); }
+.gl b i { width: 8px; height: 8px; border-radius: 50%; background: var(--sec); }
+.gl span { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.32; color: var(--text-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gl span b { display: inline; width: auto; font-size: inherit; font-weight: 650; color: var(--text); }
+.gl svg { width: 15px; height: 15px; color: var(--text-3); }
+.gl:active { background: var(--fill-2); }
