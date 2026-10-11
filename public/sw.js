@@ -1,5 +1,5 @@
 // Service worker: offline app shell, and notifications from the radar.
-const SHELL = 'radar-shell-v1';
+const SHELL = 'radar-shell-v2';   // a new name clears the old copies on every phone
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {
