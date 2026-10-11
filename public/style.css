@@ -12,7 +12,8 @@
   --out: cubic-bezier(.16, 1, .3, 1);
   --top: env(safe-area-inset-top, 0px);
   --bottom: env(safe-area-inset-bottom, 0px);
-  --dock: 56px;
+  --dock: calc(56px + var(--bottom));   /* the tabs and the home bar under them; app.js measures it too */
+  --barh: calc(var(--top) + 50px);      /* the top bar: the status bar and 50 pt (its min-height; nothing in it is taller) */
   --kb: 0px;
 }
 :root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #656562; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; }
@@ -613,7 +614,7 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
   overscroll-behavior-y: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 /* room for the top bar and the tabs as content, not padding: a band that stays under the top bar measures from the
    page's edge, and some browsers would count padding in */
-.page::before { content: ""; display: block; height: var(--barh, 58px); }
+.page::before { content: ""; display: block; height: var(--barh); }
 .page::after { content: ""; display: block; height: calc(var(--dock) + 28px); }
 .page[data-tab="search"] { display: none; }
 .page[data-tab="search"]::before { display: none; }
@@ -622,11 +623,11 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 
 /* searching: the field under the top bar, the page fixed, only the results scroll (between the field and the keyboard) */
 .searchbar[hidden] { display: none; }
-html.searching .searchbar { position: fixed; z-index: 19; left: 0; right: 0; top: var(--barh, 58px); margin: 0 auto; padding-top: 0;
+html.searching .searchbar { position: fixed; z-index: 19; left: 0; right: 0; top: var(--barh); margin: 0 auto; padding-top: 0;
   box-shadow: 0 0 0 8px var(--bg); }
 html.searching #list { overflow: hidden; }
 html.searching .page:not([data-tab="search"]) { visibility: hidden; }
-html.searching .page[data-tab="search"] { display: block; position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh, 58px) + 56px);
+html.searching .page[data-tab="search"] { display: block; position: fixed; z-index: 1; left: 0; right: 0; top: calc(var(--barh) + 56px);
   bottom: calc(var(--kb) + var(--dock)); width: auto; height: auto; overscroll-behavior: contain; }
 /* a step that is a story in the app: a tap opens it in Live */
 li.go, li.src { cursor: pointer; }
@@ -703,7 +704,7 @@ html.intro-skip .intro { display: none; }
 .pic-credit { margin: 10px 0 0; font-size: calc(12px * var(--ts, 1)); color: var(--text-3); }
 /* the Udvikling page: one view at a time – Forløb or Dag for dag */
 .seg.two { grid-template-columns: repeat(2, 1fr); }
-.ud-seg { position: sticky; z-index: 6; top: var(--barh, 58px); margin: 0 16px 8px; padding-top: 0;
+.ud-seg { position: sticky; z-index: 6; top: var(--barh); margin: 0 16px 8px; padding-top: 0;
   box-shadow: 0 -8px 0 8px var(--bg), 0 8px 0 0 var(--bg); }   /* stays under the top bar while the page scrolls */
 .ud-seg + .ov { margin-top: 12px; }
 /* the top bar is solid: over the pages (each scrolling on its own) iPhone does not blur what passes under it, and

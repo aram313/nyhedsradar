@@ -1354,7 +1354,6 @@ syncViewport();
 setTimeout(loadArchive, 1500);   // the earlier days: for 'Følg udviklingen' across days
 if (params.get('q')) { query = params.get('q'); $('search').value = query; }
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
-new ResizeObserver(() => document.documentElement.style.setProperty('--barh', $('bar').offsetHeight + 'px')).observe($('bar'));
 
 // what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story
 // must not mark everything as seen
