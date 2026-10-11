@@ -407,12 +407,32 @@ function home(all, opts) {
 }
 // a section page has a shape: one lead story big, two side by side, then the compact list – with now and then a
 // statement from the day's recap set as a quote, so the page is not headline after headline
+// the pair never changes shape: a tapped card is only marked, and its story opens in one panel under both
 function cardStory(i, n, opts) {
-  const open = expanded.has(i.id);
-  return `<article class="story card${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-top="1" style="--i:${n}">
-    <button class="card-row" data-toggle aria-expanded="${open}"><span class="card-pic"><img src="${esc(THUMBS + i.thumb)}" alt="" loading="lazy" decoding="async"></span>
-      <span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, { ...opts, top: true })}</span></button>
-    <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
+  const sel = expanded.has(i.id);
+  return `<article class="story card${sel ? ' sel' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-top="1" style="--i:${n}">
+    <button class="card-row" data-toggle aria-expanded="${sel}"><span class="card-pic"><img src="${esc(THUMBS + i.thumb)}" alt="" loading="lazy" decoding="async"></span>
+      <span class="h" dir="auto">${bold(i.title, i.kw)}</span><span class="m">${meta(i, { ...opts, top: true })}</span></button></article>`;
+}
+function duoBlock(duo, opts) {
+  const sel = duo.find(i => expanded.has(i.id));
+  return `<div class="duo-wrap"><div class="duo">${duo.map((i, n) => cardStory(i, n + 1, opts)).join('')}</div>
+    <article class="story panel${sel ? ' open' : ''}"${sel ? ` data-id="${esc(sel.id)}"` : ''}><div class="x"><div><div class="x-in">${sel ? panelBody(sel) : ''}</div></div></div></article></div>`;
+}
+// the card cuts its headline after three lines; the panel starts with all of it
+const panelBody = i => `<p class="ph" dir="auto">${bold(i.title, i.kw)}</p>` + detail(i);
+function toggleCard(card) {
+  const wrap = card.closest('.duo-wrap'), panel = wrap.querySelector('.panel'), was = wrap.querySelector('.story.card.sel');
+  const mark = (c, on) => { c.classList.toggle('sel', on); c.querySelector('[data-toggle]').setAttribute('aria-expanded', on); on ? expanded.add(c.dataset.id) : expanded.delete(c.dataset.id); };
+  if (was) mark(was, false);
+  if (was === card) { panel.classList.remove('open'); return; }
+  const i = find(card.dataset.id);
+  if (!i) return;
+  mark(card, true);
+  panel.dataset.id = i.id;
+  panel.querySelector('.x-in').innerHTML = panelBody(i);
+  if (!was) { void panel.offsetHeight; panel.classList.add('open'); }
+  keepInView(panel);
 }
 function quotesFor(sec) {
   const chosen = (notes().quotes || []).filter(q => q.sec === sec);
@@ -434,7 +454,7 @@ function sectionPage(sec, all, opts) {
   const rest = top.filter(i => i !== lead && !duo.includes(i));
   let html = `<section class="block top">${blockHead('Døgnets vigtigste')}`;
   if (lead) html += heroStory(lead, 0, { ...opts, top: true, tag: false });
-  if (duo.length) html += `<div class="duo">${duo.map((i, n) => cardStory(i, n + 1, opts)).join('')}</div>`;
+  if (duo.length) html += duoBlock(duo, opts);
   // the rest of the day's top folds away, so the latest news follow right after the pictures
   const fold = (lead || duo.length) && !topOpen.has(sec);
   if (!fold) html += rest.map((i, n) => story(i, n + 3, { ...opts, top: true })).join('');
@@ -622,7 +642,7 @@ $('list').addEventListener('click', async e => {
   if (t.closest('[data-share]')) share(shareText(i), i);
   else if (t.closest('[data-copy]')) { if (await copyText(shareText(i))) { toast('Kopieret'); markShared(i); } }
   else if (t.closest('[data-read]')) learnFrom(i, 'read');
-  else if (t.closest('[data-toggle]')) toggle(el);
+  else if (t.closest('[data-toggle]')) el.classList.contains('card') ? toggleCard(el) : toggle(el);
 });
 $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
 addEventListener('scroll', () => {

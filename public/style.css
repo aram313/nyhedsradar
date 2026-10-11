@@ -375,17 +375,13 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 #list[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
 #list[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
-/* an opened card needs the full width for its coverage and buttons: the pair stacks while one is open */
-.duo:has(.story.card.open) { grid-template-columns: 1fr; }
-.duo:has(.story.card.open) .card-pic { aspect-ratio: 2 / 1; }
-.duo:has(.story.card.open) .story.card:not(.open) .card-pic { aspect-ratio: 16 / 6; }
 .story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
 .story.card::before { display: none; }
 .duo + .story::before { display: none; }
 .card-row { display: block; width: 100%; padding: 0 0 10px; text-align: left; }
 .card-pic { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--fill-2); }
 .card-pic img { width: 100%; height: 100%; object-fit: cover; filter: var(--press); }
-.story.card.open .card-pic img { filter: var(--press-open); }
+.story.card.sel .card-pic img { filter: var(--press-open); }
 .card-row .h { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 8px 10px 0;
   font-size: 15px; line-height: 1.3; font-weight: 520; }
 .card-row .m { margin: 5px 10px 0; white-space: nowrap; overflow: hidden; }
@@ -397,7 +393,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .quote span { display: block; margin-top: 6px; font-size: 12.5px; font-weight: 650; color: var(--text-2); }
 .quote span::before { content: "— "; }
 .quote + .story::before { display: none; }
-.story.card:not(.open) .card-row .h { -webkit-line-clamp: 3; }
+.story.card .card-row .h { -webkit-line-clamp: 3; }
 .card-row .m > span:nth-child(n+3) { display: none; }   /* a card's foot: outlet and time only */
 
 /* 'Vigtigst i dag' sits on its own soft panel, so the chosen stories read apart from the running list below */
@@ -453,3 +449,16 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
   transform: translateY(-2px) rotate(45deg); transition: transform .25s; }
 .pill-more.up::after { transform: translateY(1px) rotate(-135deg); }
 .pill-more:active { transform: scale(.96); }
+
+/* the pair's shared panel: the tapped card gets a quiet frame, its story opens under both cards */
+.duo-wrap { margin: 0 0 6px; }
+.duo-wrap .duo { margin-bottom: 0; }
+.story.card { outline: 2px solid transparent; outline-offset: 2px; transition: outline-color .2s; }
+.story.card.sel { outline-color: var(--text); }
+.story.panel { margin: 0 12px; border-radius: 14px; transition: margin-top .3s var(--out), background-color .25s; }
+.duo-wrap + .story::before { display: none; }
+.story.panel::before { display: none; }
+.story.panel.open { margin-top: 10px; background: var(--fill); }
+.story.panel .x-in { padding: 14px 14px 12px; }
+.story.panel .ph { margin: 0 0 8px; font-size: 17px; line-height: 1.3; font-weight: 480; }
+.story.panel .ph b { font-weight: 700; }
