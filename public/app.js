@@ -61,8 +61,41 @@ function learnFrom(i, kind) {
     readSent.add(i.id); store.set('readSent', [...readSent].slice(-300));
   }
   fetch('https://ntfy.sh/' + CFG.feedbackTopic, {
-    method: 'POST', body: JSON.stringify({ kind, id: i.id, title: i.origTitle || i.title, summary: (i.origSummary || i.summary || '').slice(0, 220) }),
+    method: 'POST', body: JSON.stringify({ kind, id: i.id, title: i.origTitle || i.title, summary: (i.origSummary || i.summary || '').slice(0, 220), ...(adminKey ? { me: 1 } : {}) }),
   }).catch(() => { /* offline: nothing lost but a hint */ });
+}
+
+// ---------------------------------------------------------------- how much Khabar is used (the owner's statistics)
+// Nothing the user sees, nothing stored for it, no number that follows a person: an opening says from the home screen
+// or a browser, which kind of phone, the phone's time zone and language, and how it came; going to the background
+// says for how long it was open, which tabs were looked at and how many stories opened. The owner's phone is left out.
+const visitOs = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'ios'
+  : /Android/.test(navigator.userAgent) ? 'android' : 'other';
+function cameVia() {
+  const r = document.referrer || '', ua = navigator.userAgent;
+  if (params.has('item') || params.has('digest')) return 'push';
+  if (/whatsapp/i.test(r)) return 'whatsapp';
+  if (/facebook|messenger|orca|instagram/i.test(r) || /FBAN|FBAV|FB_IAB|Instagram/.test(ua)) return 'facebook';
+  if (/google/i.test(r)) return 'google';
+  if (/mms|messag|sms/i.test(r)) return 'sms';
+  return r && !r.startsWith(location.origin) ? 'web' : 'direct';
+}
+function relay(body) {
+  if (!CFG.feedbackTopic || adminKey) return;
+  fetch('https://ntfy.sh/' + CFG.feedbackTopic, { method: 'POST', body: JSON.stringify(body), keepalive: true }).catch(() => {});
+}
+let visit = null;   // this opening: when it began, the tabs looked at, the stories opened
+function countVisit(via, first = false) {
+  let tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* an old phone */ }
+  relay({ kind: 'visit', app: matchMedia('(display-mode: standalone)').matches || navigator.standalone === true ? 1 : 0, os: visitOs,
+    tz, lang: (navigator.language || '').slice(0, 2).toLowerCase(), via, ...(first ? { first: 1 } : {}) });
+  visit = { at: Date.now(), tabs: { [tab]: 1 }, opened: 0 };
+}
+function countLeave() {
+  if (!visit) return;
+  relay({ kind: 'leave', secs: Math.round((Date.now() - visit.at) / 1000), tabs: visit.tabs, opened: visit.opened });
+  visit = null;
 }
 
 // ---------------------------------------------------------------- time
@@ -900,6 +933,7 @@ function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = find(id);
   if (open) foldOthers(el);
   if (open && i) {
+    if (visit) visit.opened++;
     el.querySelector('.x-in').innerHTML = detail(i);
     expanded.add(id);
     void el.offsetHeight;   // lay out the closed state first, so the opening animates
@@ -1101,6 +1135,7 @@ function setTab(next, opts = {}) {
   }
   seenTab[tab] = Date.now(); seenTab[next] = Date.now(); store.set('seenTab', seenTab);
   tab = next;
+  if (visit) visit.tabs[tab] = (visit.tabs[tab] || 0) + 1;
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
   placePill(tab, true);
   $('title').textContent = TITLES[tab] || SECTIONS[tab];
@@ -1266,11 +1301,14 @@ async function checkVersion() {
     location.reload();
   } catch { /* offline: the version one has will do */ }
 }
+let awaySince = 0;
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { store.set('hiddenAt', Date.now()); seenTab[tab] = Date.now(); store.set('seenTab', seenTab); return; }
+  if (document.hidden) { store.set('hiddenAt', Date.now()); seenTab[tab] = Date.now(); store.set('seenTab', seenTab); awaySince = Date.now(); countLeave(); return; }
   backFromBreak();
   load();
   checkVersion();
+  if (Date.now() - awaySince > 30 * 60e3) countVisit('resume');   // back after half an hour or more: a new opening
+  else visit = { at: Date.now(), tabs: {}, opened: 0 };            // a short trip (to WhatsApp, say): the same one goes on
 });
 setInterval(() => { if (!document.hidden) load(); }, 120000);
 setInterval(renderHeader, 30000);
@@ -1288,11 +1326,111 @@ function openSheet() {
   });
   $('sources').innerHTML = GROUP_ORDER.filter(g => by[g]).map(g => `<h4>${GROUPS[g]}</h4><ul>` + by[g].sort((a, b) => a[0].localeCompare(b[0], 'da'))
     .map(([n, v]) => `<li class="${v.bad ? 'bad' : ''}">${esc(n)}</li>`).join('') + '</ul>').join('');
+  $('adminStats').hidden = !adminKey;
+  if (adminKey) showStats();
   $('sheet').hidden = false;
   $('sheetScroll').scrollTop = 0;
   void $('sheet').offsetHeight;
   $('sheet').classList.add('on'); $('scrim').classList.add('on');
   refreshPushInfo();
+}
+// ---------------------------------------------------------------- the owner's statistics (in the settings, admin only)
+// The radar keeps the counts encrypted with a key made from the admin code (stats.py); only this phone can read them.
+const ZONES = { 'Europe/Copenhagen': 'Danmark', 'Atlantic/Faroe': 'Færøerne', 'America/Nuuk': 'Grønland', 'America/Godthab': 'Grønland',
+  'Europe/Stockholm': 'Sverige', 'Europe/Oslo': 'Norge', 'Europe/Helsinki': 'Finland', 'Europe/Berlin': 'Tyskland', 'Europe/Amsterdam': 'Holland',
+  'Europe/Brussels': 'Belgien', 'Europe/Paris': 'Frankrig', 'Europe/London': 'Storbritannien', 'Europe/Dublin': 'Irland', 'Europe/Vienna': 'Østrig',
+  'Europe/Zurich': 'Schweiz', 'Europe/Madrid': 'Spanien', 'Europe/Rome': 'Italien', 'Europe/Warsaw': 'Polen', 'Europe/Istanbul': 'Tyrkiet',
+  'Asia/Gaza': 'Palæstina', 'Asia/Hebron': 'Palæstina', 'Asia/Jerusalem': 'Palæstina/Israel', 'Asia/Amman': 'Jordan', 'Asia/Beirut': 'Libanon',
+  'Asia/Damascus': 'Syrien', 'Asia/Baghdad': 'Irak', 'Asia/Riyadh': 'Saudi-Arabien', 'Asia/Dubai': 'Emiraterne', 'Asia/Qatar': 'Qatar',
+  'Asia/Kuwait': 'Kuwait', 'Asia/Bahrain': 'Bahrain', 'Asia/Muscat': 'Oman', 'Asia/Aden': 'Yemen', 'Asia/Tehran': 'Iran', 'Asia/Kabul': 'Afghanistan',
+  'Asia/Karachi': 'Pakistan', 'Asia/Kolkata': 'Indien', 'Asia/Dhaka': 'Bangladesh', 'Asia/Jakarta': 'Indonesien', 'Asia/Kuala_Lumpur': 'Malaysia',
+  'Africa/Cairo': 'Egypten', 'Africa/Casablanca': 'Marokko', 'Africa/Tunis': 'Tunesien', 'Africa/Algiers': 'Algeriet', 'Africa/Tripoli': 'Libyen',
+  'Africa/Khartoum': 'Sudan', 'Africa/Mogadishu': 'Somalia', 'Africa/Nairobi': 'Kenya', 'America/New_York': 'USA', 'America/Chicago': 'USA',
+  'America/Los_Angeles': 'USA', 'America/Toronto': 'Canada' };
+const LANGS = { da: 'Dansk', ar: 'Arabisk', en: 'Engelsk', tr: 'Tyrkisk', ur: 'Urdu', so: 'Somali', fa: 'Persisk', ps: 'Pashto', ku: 'Kurdisk',
+  de: 'Tysk', sv: 'Svensk', nb: 'Norsk', no: 'Norsk', nn: 'Norsk', fr: 'Fransk', bs: 'Bosnisk', sq: 'Albansk', es: 'Spansk', it: 'Italiensk' };
+const VIA_NAMES = { push: 'En notifikation', whatsapp: 'WhatsApp', facebook: 'Facebook / Messenger', google: 'Google', sms: 'En sms',
+  web: 'Andre sider', direct: 'Direkte (ikon eller bogmærke)' };
+const TAB_NAMES = { home: 'Forside', dk: 'Danmark', me: 'Mellemøsten', world: 'Verden', threads: 'Udvikling', latest: 'Live', search: 'Søg' };
+async function loadStats() {
+  const url = CFG.statsUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 'stats.enc');
+  const r = await fetch(url, { cache: 'no-cache' });
+  if (!r.ok) throw new Error('none');
+  const raw = Uint8Array.from(atob((await r.text()).trim()), c => c.charCodeAt(0));
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('khabar-stats|' + adminKey.trim().toLowerCase()));
+  const key = await crypto.subtle.importKey('raw', hash, 'AES-GCM', false, ['decrypt']);
+  let plain;
+  try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, key, raw.slice(12)); } catch { throw new Error('key'); }
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+async function showStats() {
+  const box = $('adminStats');
+  box.innerHTML = '<h3>Statistik · kun for dig</h3><p class="hint">Henter …</p>';
+  try { box.innerHTML = statsHtml(await loadStats()); } catch (e) {
+    box.innerHTML = '<h3>Statistik · kun for dig</h3><p class="hint">' + (e.message === 'key'
+      ? 'Statistikken kunne ikke låses op med din admin-kode.'
+      : e.message === 'none' ? 'Ingen statistik endnu – den kommer med radarens næste kørsel efter de første besøg.'
+      : 'Kunne ikke hente statistikken lige nu.') + '</p>';
+  }
+}
+function statsHtml(st) {
+  const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Copenhagen' });   // YYYY-MM-DD, the Danish day
+  const keys = n => [...Array(n)].map((_, k) => fmt.format(new Date(Date.now() - k * 864e5))).reverse();
+  const D = st.days || {}, day = k => D[k] || {};
+  const sum = (ds, f) => ds.reduce((a, d) => a + (d[f] || 0), 0);
+  const merge = (ds, f) => ds.reduce((m, d) => { for (const [k, v] of Object.entries(d[f] || {})) m[k] = (m[k] || 0) + v; return m; }, {});
+  const total = o => Object.values(o).reduce((a, b) => a + b, 0);
+  const today = day(keys(1)[0]), w = keys(7).map(day), m = keys(30).map(day), all = Object.values(D);
+  const n = x => Number(x || 0).toLocaleString('da-DK');
+  const pct = (a, b) => b ? Math.round(100 * a / b) + ' %' : '–';
+  const rows = (pairs, of) => pairs.map(([label, v]) => `<div class="st-row"><span>${esc(label)}</span><span>${n(v)} · ${pct(v, of)}</span>`
+    + `<em><i style="width:${of ? Math.round(100 * v / of) : 0}%"></i></em></div>`).join('');
+  const ranked = (obj, name, k = 6) => Object.entries(Object.entries(obj).reduce((a, [key, v]) => { const l = name(key); a[l] = (a[l] || 0) + v; return a; }, {}))
+    .sort((a, b) => b[1] - a[1]).slice(0, k);
+  let h = '<h3>Statistik · kun for dig</h3>';
+  if (!all.length) return h + '<p class="hint">Ingen åbninger talt endnu. De kommer, når radaren har kørt efter de første besøg (hvert 5. minut).</p>';
+  const wOpens = sum(w, 'opens');
+  h += `<div class="st-big"><div><b>${n(today.opens)}</b><span>åbninger i dag</span></div><div><b>${n(wOpens)}</b><span>7 dage</span></div>`
+    + `<div><b>${n(sum(m, 'opens'))}</b><span>30 dage</span></div></div>`;
+  h += `<p class="hint">Nye brugere: <b>${n(today.new)}</b> i dag · <b>${n(sum(w, 'new'))}</b> på 7 dage · <b>${n(sum(all, 'new'))}</b> i alt.`
+    + ` Notifikationer: <b>${n(st.phones)}</b> telefoner.</p>`;
+  // the last 14 days, today the darkest
+  const k14 = keys(14), top14 = Math.max(1, ...k14.map(k => day(k).opens || 0));
+  h += '<h4 class="st-h">Åbninger pr. dag</h4><div class="st-bars">' + k14.map((k, i) => { const v = day(k).opens || 0;
+    return `<i class="${i === 13 ? 'on' : ''}" style="height:${Math.max(2, Math.round(80 * v / top14))}%"><b>${v || ''}</b></i>`; }).join('') + '</div>'
+    + '<div class="st-axis">' + k14.map(k => `<span>${'smtotfl'[new Date(k + 'T12:00').getDay()]}</span>`).join('') + '</div>';
+  // the hours of the day (7 days)
+  const hours = [...Array(24)].map((_, i) => w.reduce((a, d) => a + ((d.h || [])[i] || 0), 0)), topH = Math.max(1, ...hours);
+  const peak = hours.indexOf(Math.max(...hours)), hh = x => String(x).padStart(2, '0');
+  h += `<h4 class="st-h">Hvornår (7 dage)${wOpens ? ` – mest kl. ${hh(peak)}–${hh((peak + 1) % 24)}` : ''}</h4>`
+    + '<div class="st-bars hours">' + hours.map(v => `<i style="height:${Math.max(2, Math.round(100 * v / topH))}%"></i>`).join('') + '</div>'
+    + '<div class="st-axis hours"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>';
+  if (wOpens) {
+    h += '<h4 class="st-h">Hvordan (7 dage)</h4>' + rows([['Fra hjemmeskærmen', sum(w, 'app')], ['I en browser', wOpens - sum(w, 'app')]], wOpens)
+      + rows([['iPhone', sum(w, 'ios')], ['Android', sum(w, 'android')], ['Andet', sum(w, 'other')]].filter(r => r[1]), wOpens);
+    const tz = merge(w, 'tz');
+    if (total(tz)) h += '<h4 class="st-h">Land – efter telefonens tidszone</h4>' + rows(ranked(tz, z => ZONES[z] || z.split('/').pop().replace(/_/g, ' ')), total(tz));
+    const lang = merge(w, 'lang');
+    if (total(lang)) h += '<h4 class="st-h">Telefonens sprog</h4>' + rows(ranked(lang, l => LANGS[l] || l), total(lang));
+    const via = merge(w, 'via');
+    delete via.resume;
+    if (total(via)) h += '<h4 class="st-h">Kom ind via</h4>' + rows(ranked(via, v => VIA_NAMES[v] || v), total(via));
+  }
+  const secs = sum(w, 'secs');
+  if (sum(w, 'stays')) {
+    const tabs = merge(w, 'tabs'), per = x => n(Math.round(x / Math.max(1, wOpens) * 10) / 10);
+    h += `<h4 class="st-h">Tid i appen (7 dage)</h4><p class="hint">I alt <b>${n(Math.round(secs / 60))} min</b> · ca. <b>${per(secs / 60)} min</b> pr. åbning`
+      + ` · <b>${per(sum(w, 'opened'))}</b> historier foldet ud pr. åbning.</p>`;
+    if (total(tabs)) h += '<h4 class="st-h">Faner der bliver set</h4>' + rows(ranked(tabs, t => TAB_NAMES[t] || t, 7), total(tabs));
+  }
+  const top = w.reduce((a, d) => { for (const [id, [title, r, s]] of Object.entries(d.top || {})) { const x = a[id] ||= [title, 0, 0]; x[1] += r; x[2] += s; } return a; }, {});
+  const best = Object.values(top).sort((a, b) => (b[1] + 2 * b[2]) - (a[1] + 2 * a[2])).slice(0, 8);
+  if (best.length) h += '<h4 class="st-h">Mest læste og delte (7 dage)</h4><ol class="st-top">' + best.map(([title, r, s]) =>
+    `<li><span dir="auto">${esc(title)}</span><small>${r ? `${n(r)} læst` : ''}${r && s ? ' · ' : ''}${s ? `${n(s)} delt` : ''}</small></li>`).join('') + '</ol>';
+  const since = st.since ? new Date(st.since + 'T12:00').toLocaleDateString('da-DK', { day: 'numeric', month: 'long' }) : '';
+  return h + '<p class="hint st-foot">Tallene er åbninger, ikke personer – telefonerne gemmer intet til det, og ingen mærker noget. Land kommer af '
+    + 'telefonens tidszone (hvor i Danmark kan ikke ses uden at spørge brugeren). Din egen telefon tælles ikke med.'
+    + `${since ? ` Talt siden ${since}.` : ''}${st.updated ? ` Opdateret kl. ${clock(st.updated)}.` : ''}</p>`;
 }
 function closeSheet() {
   $('sheet').classList.remove('on', 'dragging');
@@ -1564,6 +1702,7 @@ const startTab = params.get('tab');
 if (startTab && (SECTIONS[startTab] || startTab === 'search' || startTab === 'latest')) setTab(startTab, { top: true });
 else render({ enter: true });
 load();
+if (store.get('introSeen', false)) setTimeout(() => countVisit(cameVia()), 1500);   // a first visit counts at 'Kom i gang'
 
 // ---------------------------------------------------------------- the pen: خبر written with a reed (the intro and pull to refresh)
 // The nib: a flat reed 50 wide, held at 60 degrees. Going up the first leg it moves almost along its own edge, so the
@@ -1630,7 +1769,7 @@ const fullInk = mask => {   // the last hair the nib missed: the whole word, onc
   };
   if (first) {
     $('introWhy').hidden = false; el.setAttribute('aria-hidden', 'false');
-    $('introGo').addEventListener('click', () => { store.set('introSeen', true); done(); });
+    $('introGo').addEventListener('click', () => { store.set('introSeen', true); countVisit(cameVia(), true); done(); });
   }
   // the pen needs the calligraphic letters; if they do not come within a second, the word simply shows
   let begun = false;

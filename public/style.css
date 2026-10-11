@@ -629,3 +629,28 @@ li.go, li.src { cursor: pointer; }
 li.go p::after { content: "›"; margin-left: 5px; font-weight: 700; color: var(--text-3); }
 li.src p::after { content: "↗"; margin-left: 5px; font-size: .85em; color: var(--text-3); }
 li.go:active, li.src:active { opacity: .6; }
+/* the owner's statistics (settings, admin only): numbers first, quiet bars, no colour */
+.admin-stats { padding-bottom: 6px; border-bottom: .5px solid var(--line); }
+.st-big { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 10px; }
+.st-big div { padding: 10px 12px; border-radius: 12px; background: var(--fill); }
+.st-big b { display: block; font-size: 24px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.st-big span { font-size: 12px; color: var(--text-3); }
+.st-h { margin: 16px 0 6px; font-size: 13px; font-weight: 650; color: var(--text-2); }
+.st-bars { display: flex; align-items: flex-end; gap: 3px; height: 84px; padding-top: 14px; }
+.st-bars i { flex: 1; position: relative; min-height: 2px; border-radius: 3px 3px 1px 1px; background: var(--fill-2); }
+.st-bars i.on { background: var(--text-2); }
+.st-bars i b { font-style: normal; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); padding-bottom: 2px; font-size: 9.5px; font-weight: 600;
+  color: var(--text-3); font-variant-numeric: tabular-nums; }
+.st-bars.hours { height: 56px; padding-top: 0; gap: 2px; }
+.st-axis { display: flex; gap: 3px; margin-top: 3px; font-size: 10px; color: var(--text-3); }
+.st-axis span { flex: 1; text-align: center; }
+.st-axis.hours { justify-content: space-between; }
+.st-axis.hours span { flex: none; }
+.st-row { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; align-items: center; padding: 4px 0; font-size: 14px; }
+.st-row span:last-of-type { color: var(--text-3); font-size: 13px; font-variant-numeric: tabular-nums; }
+.st-row em { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--fill); overflow: hidden; }
+.st-row em i { display: block; height: 100%; border-radius: 2px; background: var(--text-3); }
+.st-top { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.35; }
+.st-top li { padding: 4px 0; }
+.st-top small { display: block; color: var(--text-3); font-size: 12px; }
+.st-foot { margin-top: 14px; font-size: 12.5px; color: var(--text-3); }

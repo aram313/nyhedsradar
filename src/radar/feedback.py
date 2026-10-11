@@ -2,10 +2,23 @@
 
 The app posts each tap as a tiny message to a private ntfy.sh topic (a free message relay);
 every radar run picks up what arrived since last time. Only public headlines travel this way – and a phone's
-push address when its owner switches notifications on or off (see push.py)."""
+push address when its owner switches notifications on or off (see push.py), and a bare 'the app was opened'
+for the owner's statistics (see stats.py)."""
 import json
 import os
+import re
 import urllib.request
+
+ZONE = re.compile(r'^[A-Za-z]+(?:/[A-Za-z0-9_+\-]+){0,2}$')
+VIAS = ('push', 'whatsapp', 'facebook', 'google', 'sms', 'web', 'direct', 'resume')
+TABS = ('home', 'dk', 'me', 'world', 'threads', 'latest', 'search')
+
+
+def num(x, top):
+    try:
+        return max(0, min(top, int(x)))
+    except (TypeError, ValueError):
+        return 0
 
 
 def pull(since):
@@ -36,7 +49,18 @@ def pull(since):
             out.append({'kind': body['kind'], 'sub': body['sub'], 'at': msg.get('time')})
         elif body.get('kind') == 'admin':   # the owner removing or moving a story; admin.py checks the signature
             out.append({'kind': 'admin', **{k: str(body.get(k, ''))[:80] for k in ('act', 'id', 'why', 'sec', 'at', 'sig')}})
+        elif body.get('kind') == 'visit':   # the app was opened: counted for the owner's statistics (stats.py)
+            tz, lang = str(body.get('tz', ''))[:40], str(body.get('lang', ''))[:8].lower()
+            out.append({'kind': 'visit', 'app': body.get('app') in (1, True), 'first': body.get('first') in (1, True),
+                        'os': body.get('os') if body.get('os') in ('ios', 'android', 'other') else 'other',
+                        'tz': tz if ZONE.match(tz) else '', 'lang': lang if re.fullmatch(r'[a-z]{2,3}', lang) else '',
+                        'via': body.get('via') if body.get('via') in VIAS else 'direct', 'at': msg.get('time')})
+        elif body.get('kind') == 'leave':   # the app went to the background: how long, which tabs (stats.py)
+            tabs = body.get('tabs') if isinstance(body.get('tabs'), dict) else {}
+            out.append({'kind': 'leave', 'secs': num(body.get('secs'), 4 * 3600), 'opened': num(body.get('opened'), 200),
+                        'tabs': {k: num(v, 100) for k, v in tabs.items() if k in TABS}, 'at': msg.get('time')})
         elif body.get('kind') in ('up', 'share', 'read') and body.get('title'):
             out.append({'id': str(body.get('id', ''))[:32], 'kind': body['kind'], 'title': str(body['title'])[:300],
-                        'summary': str(body.get('summary', ''))[:300], 'at': msg.get('time')})
+                        'summary': str(body.get('summary', ''))[:300], 'at': msg.get('time'),
+                        'me': body.get('me') in (1, True)})   # the owner's own: teaches, but is not counted
     return out, last

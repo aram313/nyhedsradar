@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from radar import admin, feedback, push
+from radar import admin, feedback, push, stats
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all
 from radar.sections import Sections
@@ -320,7 +320,8 @@ def main():
     signups = [x for x in taps if x['kind'] in ('sub', 'unsub')]
     # the owner's own actions, signed with the admin code (admin.py ignores anything unsigned)
     acted = admin.apply(owner, [x for x in taps if x['kind'] == 'admin'], items, os.environ.get('ADMIN_KEY', ''), NOW, text)
-    taps = [x for x in taps if x['kind'] not in ('sub', 'unsub', 'admin')]
+    visits = [x for x in taps if x['kind'] in ('visit', 'leave')]   # the app opened and left: statistics (stats.py)
+    taps = [x for x in taps if x['kind'] not in ('sub', 'unsub', 'admin', 'visit', 'leave')]
     added = sum(1 for p in phones if p.get('at') and ts(p['at']) >= NOW - timedelta(hours=24))
     phones = push.sign_up(phones, signups, NOW.isoformat(), added)
     # the relay topic is readable in the public app, so anyone could post to it: learn only from stories the
@@ -742,6 +743,8 @@ def main():
     save(STATE / 'removed.json', owner)
     push.save_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''), phones)
     save(STATE / 'health.json', health)
+    readers = [x for x in taps if x['kind'] in ('read', 'share') and not x.get('me')]   # the stories read and shared
+    stats.update(STATE / 'stats.enc', os.environ.get('ADMIN_KEY', ''), visits + readers, len(push.everyone(phones)), NOW)
     keep = list(emb_store)
     np.savez_compressed(STATE / 'emb.npz', ids=np.array(keep, dtype='U32'),
                         m=np.array([emb_store[k] for k in keep], dtype=np.float16) if keep else np.zeros((0, 384), np.float16))
