@@ -913,11 +913,41 @@ function openFocus(all) {
 }
 
 // ---------------------------------------------------------------- open a story or a topic in place
+// The page moves only by the app's own hand: the browser's scroll anchoring is off on the pages (iPhone now anchors
+// too, which doubled the app's own correction – the page leapt up, then crawled back down), and its smooth scrolling
+// is not used here (on iPhone it can crawl). A short motion of our own instead, which a finger on the page stops.
+let moveT = 0;
+function movePage(dy, ms = 240) {
+  const p = cur(), from = p.scrollTop, t0 = performance.now();
+  cancelAnimationFrame(moveT);
+  if (reduceMotion || !dy) { p.scrollTop = from + dy; return; }
+  const step = now => {
+    if (touching) return;
+    const k = Math.min(1, (now - t0) / ms);
+    p.scrollTop = from + dy * (1 - Math.pow(1 - k, 3));
+    if (k < 1) moveT = requestAnimationFrame(step);
+  };
+  moveT = requestAnimationFrame(step);
+}
+// a story stays where it was tapped while the ones above it fold, their animations included
+function pin(el, top, ms = 380) {
+  const p = cur(), t0 = performance.now();
+  cancelAnimationFrame(moveT);
+  const step = now => {
+    if (touching || !el.isConnected) return;
+    const d = el.getBoundingClientRect().top - top;
+    if (Math.abs(d) >= 0.5) p.scrollTop += d;
+    if (now - t0 < ms) moveT = requestAnimationFrame(step);
+  };
+  step(t0);
+}
+// an opened story that reaches past the tabs comes up just enough – never with its headline under the top bar
 function keepInView(el) {
   setTimeout(() => {
+    if (touching || !el.isConnected) return;
     const r = el.getBoundingClientRect(), limit = innerHeight - $('dock').offsetHeight - 12;
-    if (r.bottom > limit) cur().scrollBy({ top: Math.min(r.bottom - limit, r.top - 70), behavior: reduceMotion ? 'auto' : 'smooth' });
-  }, 320);
+    if (r.bottom > limit) movePage(Math.max(0, Math.min(r.bottom - limit, r.top - $('bar').offsetHeight - 8)));
+  }, 400);
 }
 // one thing open at a time: opening a story folds the others (and an open card panel) back; those above it close at
 // once and the page moves with them, so the story one tapped stays where it is
@@ -933,8 +963,7 @@ function foldOthers(keep) {
     o.classList.remove('open'); expanded.delete(o.dataset.id);
     const tg = o.querySelector('[data-toggle]'); if (tg) tg.setAttribute('aria-expanded', false);
   }
-  const shift = keep.getBoundingClientRect().top - before;
-  if (shift) cur().scrollBy(0, shift);
+  pin(keep, before);
   requestAnimationFrame(() => others.forEach(o => o.classList.remove('snap')));
 }
 // every story's root is Live's chronological list: references elsewhere open the story there, opened and in view
