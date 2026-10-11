@@ -1255,10 +1255,22 @@ function backFromBreak() {
   if (away && Date.now() - away > 10 * 60e3 && away > lastSeen) { lastSeen = away; store.set('lastSeen', lastSeen); }
 }
 backFromBreak();   // also when the phone closed the app in the background and it starts afresh
+// a new version of the app: phones keep it open in the background for days, so on coming back it asks for the newest
+// page and, if that names other files than the ones running, starts afresh with them (once per version)
+const myVer = ((document.querySelector('script[src*="app.js"]') || {}).src || '').split('v=')[1];
+async function checkVersion() {
+  try {
+    const v = ((await (await fetch('./', { cache: 'no-cache' })).text()).match(/app\.js\?v=([\w-]+)/) || [])[1];
+    if (!v || !myVer || v === myVer || sessionStorage.getItem('reloadedFor') === v) return;
+    sessionStorage.setItem('reloadedFor', v);
+    location.reload();
+  } catch { /* offline: the version one has will do */ }
+}
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { store.set('hiddenAt', Date.now()); seenTab[tab] = Date.now(); store.set('seenTab', seenTab); return; }
   backFromBreak();
   load();
+  checkVersion();
 });
 setInterval(() => { if (!document.hidden) load(); }, 120000);
 setInterval(renderHeader, 30000);

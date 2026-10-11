@@ -1,5 +1,5 @@
 // Service worker: offline app shell, and notifications from the radar.
-const SHELL = 'radar-shell-v2';   // a new name clears the old copies on every phone
+const SHELL = 'radar-shell-v3';   // a new name clears the old copies on every phone
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {
@@ -8,11 +8,13 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== SHELL).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// App files: try the network first so updates arrive, fall back to the cached copy offline.
+// App files: always ask the server first (past the phone's own cache, which the host lets keep a page for ten minutes –
+// an unchanged file costs only a short 'not modified'), so updates arrive at once; the cached copy is for offline.
+const fresh = req => fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => r.redirected ? fetch(req) : r);
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  e.respondWith(fetch(e.request).then(r => {
+  e.respondWith(fresh(e.request).then(r => {
     const copy = r.clone();
     caches.open(SHELL).then(c => c.put(e.request, copy));
     return r;
