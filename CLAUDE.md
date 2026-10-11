@@ -39,7 +39,9 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   `label` is the readable name the app shows, `official` marks a news outlet's own Telegram channel (not an
   unverified channel) and `wire` a one-line statement feed (Al Jazeera urgent: counts as an outlet, feeds
   `lines.json` and the Bevægelser briefing, never a card of its own).
-- `src/radar/thumbs.py` gives every card a small picture (feed image → another outlet's → the page's og:image),
+- `src/radar/thumbs.py` gives every card a small picture (feed image → another outlet's → the og:image of the lead's
+  article page, then of up to four other outlets' pages → the editor's picture from summaries.json `images`, an archive
+  photo of which gets `pic_credit` and an 'Arkivfoto' tag in the app; the radar workflow fetches summaries.json),
   shrunk with Pillow to a 144 px JPEG in `state/t/` (served from the data branch); unverified Telegram channels
   never lend one. `state/pics.json` remembers page images and failed pictures for 3 days.
 - `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
@@ -72,10 +74,12 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
     those useful in the group's dawah), moves (stories in the wrong section), quotes (best statements, in Danish) and
     summaries (2–3 Danish sentences for up to 25 stories readers open most; `paywall: true` when the article could not
     be read – the app then says Khabar had no access), titles (its own Danish for up to 40 of the strongest foreign
-    headlines, which the app shows instead of the machine's), recap lines (at most 14 'Who: what' lines, filed under the Danish
+    headlines, which the app shows instead of the machine's), pictures (for up to 12 strong stories the radar found none
+    for: the story's own og:image, else a credited Wikimedia Commons photo of the person or place – never another
+    event's photo, a drawing, an AI picture or the dead and wounded), recap lines (at most 14 'Who: what' lines, filed under the Danish
     date they happened; a topic continued across days is a development on the app's Udvikling page), and runs
     `scripts/editor.py publish --push` → `digest.json` (the day shown + `editor` notes the app applies), `moves.json`
-    (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`; 4 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
+    (30 days) and `summaries.json` (summaries in `items`, checked headlines in `titles`, pictures in `images`; 4 days) on the orphan `digest` branch. Only the 21 update notifies the phones.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in

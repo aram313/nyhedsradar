@@ -311,7 +311,7 @@ function heroStory(i, n, opts) {
   const open = expanded.has(i.id), small = THUMBS + i.thumb;
   return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1" style="--i:${n}">
     <button class="hero-row" data-toggle aria-expanded="${open}"><img src="${esc(i.pic || small)}" alt="" decoding="async"
-      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'"><span class="hero-tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span>
+      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'">${i.pic_credit ? '<span class="arch-tag">Arkivfoto</span>' : ''}<span class="hero-tx"><span class="h" dir="auto">${bold(i.title, i.kw)}</span>
       <span class="m">${meta(i, opts)}</span></span></button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
@@ -329,7 +329,7 @@ function detail(i) {
       <a class="act primary" href="${esc(i.link)}" target="_blank" rel="noopener" data-read><svg><use href="#i-open"/></svg>Læs</a>
       <button class="act" data-share><svg><use href="#i-share"/></svg>Del</button>
       <button class="act" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
-    </div>${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}`;
+    </div>${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}${i.pic_credit ? `<p class="pic-credit">Billede: ${esc(i.pic_credit)}</p>` : ''}`;
 }
 function moreRow(i) {
   const t = threadFor(i), n = (i.outlets || 1) - 1;

@@ -606,7 +606,9 @@ def main():
     try:
         from radar import thumbs
         telegram = {f['name'] for f in feeds if f.get('type') == 'telegram' and not f.get('official')}
-        save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW))
+        chosen = load(os.environ.get('RADAR_SUMMARIES', CACHE / 'summaries.json'), {}).get('images') or {}   # the editor's
+        save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW,
+                                                chosen=chosen))
     except ImportError:   # no Pillow (local test runs): the cards simply have no pictures
         pass
     except Exception as e:  # noqa: BLE001 – pictures are a bonus; the radar must keep running
@@ -702,7 +704,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da')
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pic_credit', 'kw', 'kw_tr', 'kw_da')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {

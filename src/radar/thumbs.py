@@ -1,6 +1,8 @@
 """Small square pictures for the cards. Each card takes its own feed image, else another outlet's image of the
-same story, else the article page's share image (og:image), shrunk to a 216 px JPEG of a few kilobytes that the
-app loads from the data branch (t/<name>.jpg). Telegram channels never lend a picture: their photos are often
+same story, else the share image (og:image) of its article page and then of the other outlets' pages, and as a last
+resort the picture the editor found for it (summaries.json `images`: the story's own from an article, or an archive
+photo of the person or place from Wikimedia Commons, with its credit). Shrunk to a small JPEG of a few kilobytes that
+the app loads from the data branch (t/<name>.jpg). Telegram channels never lend a picture: their photos are often
 raw war footage. Pictures that cannot be fetched, icons and banners are skipped and remembered for a few days."""
 import hashlib
 import html
@@ -93,9 +95,10 @@ def shrink(raw):
         return None
 
 
-def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40):
+def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40, chosen=None):
     """Give each card a 'thumb' (a file name in `folder`) and delete the files no card uses any more.
-    memory: {'page': {article link: [its share image or '', when]}, 'bad': {image url: when}}, kept between runs."""
+    memory: {'page': {article link: [its share image or '', when]}, 'bad': {image url: when}}, kept between runs.
+    chosen: {story id: {'url', 'credit', 'kind'}} – the editor's pictures, tried when nothing else gives one."""
     import PIL  # noqa: F401 – without Pillow (local test runs) the caller skips pictures altogether
     now = now or datetime.now(timezone.utc)
     since, retry = (now - timedelta(days=3)).isoformat(), (now - timedelta(hours=6)).isoformat()
@@ -108,13 +111,24 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     def own(it):   # the card and its other outlets, without unverified channels
         return [m for m in [it] + members_of.get(it['id'], []) if m['source'] not in unverified]
 
+    chosen = chosen or {}
+    trusted = {c['url'] for c in chosen.values() if c.get('url')}   # the editor's: one portrait may serve two stories
+
+    def editors(it):
+        return next((chosen[m['id']] for m in [it] + members_of.get(it['id'], []) if chosen.get(m['id'], {}).get('url')), None)
+
     def options(it):
-        """Picture URLs for a card, best first; ('page', link) where only the article page can tell."""
+        """Picture URLs for a card, best first; ('page', link) where only the article page can tell: the feed
+        pictures, then the share pictures of the article pages (the lead's first), then the editor's."""
         mine = own(it)
         out = [m['img'] for m in mine if m.get('img')]
-        if mine and not NO_PAGE.match(mine[0]['link']):
-            known = pages.get(mine[0]['link'])
-            out.append(known[0] if known else ('page', mine[0]['link']))
+        for m in mine[:5]:
+            if not NO_PAGE.match(m['link']):
+                known = pages.get(m['link'])
+                out.append(known[0] if known else ('page', m['link']))
+        pick = editors(it)
+        if pick:
+            out.append(pick['url'])
         return [o for o in out if o]
 
     # a site's stand-in (its logo, a default picture) is no photo of the story: it is named so, or two
@@ -124,12 +138,12 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
         for o in options(it):
             if isinstance(o, str):
                 shown_by.setdefault(o, set()).add(it['id'])
-    leads = {mine[0]['link'] for it in cards for mine in [own(it)] if mine}
+    page_of = {m['link']: it['id'] for it in cards for m in own(it)}   # an article page counts for its own card
     for link, (url, _) in pages.items():
-        if url and link not in leads:
-            shown_by.setdefault(url, set()).add(link)
+        if url:
+            shown_by.setdefault(url, set()).add(page_of.get(link, link))
     for url, who in shown_by.items():
-        if len(who) > 1 or STAND_IN.search(url):
+        if url not in trusted and (len(who) > 1 or STAND_IN.search(url)):
             bad[url] = now.isoformat()
 
     todo = {}
@@ -166,7 +180,7 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
                 todo[k] = url
             else:
                 del todo[k]
-    for url in {u for u in todo.values() if list(todo.values()).count(u) > 1}:   # one stand-in, two new stories
+    for url in {u for u in todo.values() if list(todo.values()).count(u) > 1} - trusted:   # one stand-in, two stories
         bad[url] = now.isoformat()
         todo = {k: u for k, u in todo.items() if u != url}
 
@@ -189,6 +203,10 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     for it in cards:
         if 'thumb' not in it and todo.get(it['id']) in made:
             it['thumb'], it['pic'] = made[todo[it['id']]], todo[it['id']]
+        it.pop('pic_credit', None)
+        pick = editors(it)
+        if pick and it.get('pic') == pick['url'] and pick.get('kind') == 'archive':
+            it['pic_credit'] = pick.get('credit') or 'Arkivfoto'   # an archive photo says so, with its photographer
 
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):

@@ -697,3 +697,7 @@ html.intro-skip .intro { display: none; }
 .fol .now-more:active { background: var(--fill); }
 /* a card's picture lies over its initials tile (shown only where the picture is missing) */
 .card-pic img { position: relative; }
+/* an archive photo (found by the editor where the story had no picture of its own) says so, and names its photographer */
+.arch-tag { position: absolute; z-index: 1; top: 10px; left: 10px; padding: 3px 7px; border-radius: 6px; background: rgba(0, 0, 0, .55);
+  color: rgba(255, 255, 255, .9); font-size: 11px; font-weight: 650; letter-spacing: .03em; }
+.pic-credit { margin: 10px 0 0; font-size: calc(12px * var(--ts, 1)); color: var(--text-3); }

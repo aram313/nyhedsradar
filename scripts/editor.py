@@ -4,7 +4,8 @@ Each update does six things: picks the stories that matter most geopolitically (
 in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
 writes a short summary of the stories readers open most (what an opened story shows; behind a paywall the editor's
 best reading of headline and coverage, flagged as such), goes over the machine's Danish for the strongest foreign
-headlines (the app shows headlines in Danish), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
+headlines (the app shows headlines in Danish), finds a picture for the strongest stories that have none (the story's
+own from an article page, else an archive photo of the person or place from Wikimedia Commons, credited), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
 breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A line goes into the day it happened
 (Danish date), so at 07 what came before midnight completes yesterday's recap.
 
@@ -13,7 +14,8 @@ breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A
     python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
             [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
                                                     quotes), moves.json (the last 30 days) and summaries.json (the
-                                                    story summaries and checked Danish headlines of the last 4 days);
+                                                    story summaries, checked Danish headlines and found pictures of
+                                                    the last 4 days);
                                                     --push commits all three
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
@@ -39,6 +41,7 @@ SUM_LEN = 420    # characters in a summary: two or three sentences
 SUM_DAYS = 4     # how long a summary (and a checked headline) is kept
 MAX_TITLES = 40  # foreign headlines one update goes over in Danish: the strongest the app shows
 TITLE_LEN = 140  # characters in a headline
+MAX_PICS = 12    # strong stories without a picture one update looks for a picture for
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -181,6 +184,13 @@ def to_summarise(items, done, now):
     return strongest([i for i in items if day_old(i, now) and i['id'] not in done], 8, MAX_SUM)
 
 
+def to_picture(items, done, now):
+    """The strongest stories of the last day – the ones the app shows big – that the radar found no picture for and
+    the editor has not looked for yet, at most MAX_PICS."""
+    return [i for i in strongest([i for i in items if day_old(i, now)], 8, 40)
+            if not i.get('thumb') and i['id'] not in done][:MAX_PICS]
+
+
 def to_check(items, done, now):
     """The foreign headlines readers see in the machine's Danish: the strongest of each section in the last day,
     then the rest by rank – those the editor has not gone over yet, at most MAX_TITLES."""
@@ -227,6 +237,10 @@ TEMPLATE = {
                 'ids': ['<wire line id>'], 'story': '<or a story id>'}],
     'titles': [{'id': '<story id from "Danish headlines to check">',
                 'title': '<the headline in correct, natural Danish – the machine\'s own when it is right>'}],
+    'pictures': [{'id': '<story id from "Stories without a picture">',
+                  'url': '<the direct https address of the picture>',
+                  'kind': 'article (the story\'s own picture) | archive (a Wikimedia Commons photo of the person or place)',
+                  'credit': '<for an archive photo: Wikimedia Commons / the photographer, as Commons names them>'}],
     'summaries': [{'id': '<story id from "Stories to summarise">',
                    'text': '<2-3 Danish sentences from the article: what happened, who, why it matters>',
                    'paywall': '<true when you could not read the article and wrote your best reading of headline, teaser '
@@ -299,6 +313,19 @@ def cmd_input(args):
                 'your best reading of the headline, teaser and the other outlets\' headlines and set "paywall": true – the',
                 'app then says Khabar had no access to the article.', '']
         for i in todo:
+            out += story_lines(i)
+    bare = to_picture(items, set((summaries_of(args).get('images') or {})), now)
+    if bare:
+        out += [f'## Stories without a picture – {len(bare)} (the app shows these big; the radar found no picture)', '',
+                "For each, look for the story's own picture first: the og:image of its article page or of another outlet's",
+                "under 'Also' (curl -sL -A 'Mozilla/5.0' URL | grep -o 'og:image[^>]*'), skipping a site's logo or",
+                "default picture – kind 'article'. Only when no outlet has one: a real, freely licensed photo on Wikimedia",
+                'Commons of the main person or place the story is about (a portrait of the politician, the city, the',
+                'building) – kind \'archive\', with credit \'Wikimedia Commons / <photographer>\'; give a direct upload.wikimedia.org',
+                'address (a thumbnail about 1200 px wide is best). Never a photo of another event presented as this one,',
+                'never a drawing, a map or an AI-made picture, never the dead or wounded. When in doubt, skip the story:',
+                'no picture is better than a wrong one.', '']
+        for i in bare:
             out += story_lines(i)
     heads = to_check(items, set((summaries_of(args).get('titles') or {})), now)
     if heads:
@@ -436,6 +463,20 @@ def build(draft, data, lines, moves, now):
             problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
         else:
             quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
+    pics = []
+    for x in (draft.get('pictures') or [])[:MAX_PICS + 5]:
+        url, kind = str(x.get('url', '')).strip(), x.get('kind')
+        credit = ' '.join(str(x.get('credit', '')).split())
+        if x.get('id') not in by_id:
+            problems.append(f"pictures: unknown story id {x.get('id')!r}")
+        elif not url.startswith('https://') or len(url) > 800 or ' ' in url:
+            problems.append(f"pictures: {x['id']} needs a direct https address of the picture")
+        elif kind not in ('article', 'archive'):
+            problems.append(f"pictures: {x['id']} kind must be article or archive")
+        elif kind == 'archive' and (not credit or len(credit) > 140):
+            problems.append(f"pictures: {x['id']} is an archive photo and needs its credit (Wikimedia Commons / the photographer)")
+        else:
+            pics.append({'id': x['id'], 'url': url, 'kind': kind, 'credit': credit if kind == 'archive' else ''})
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
         title = ' '.join(str(x.get('title', '')).split())
@@ -473,7 +514,7 @@ def build(draft, data, lines, moves, now):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums, 'titles': heads}
+    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums, 'titles': heads, 'pictures': pics}
     return days, notes, []
 
 
@@ -491,14 +532,15 @@ def cmd_publish(args):
     archive = sorted(merged.values(), key=lambda d: d['date'], reverse=True)[:KEEP]
     today = days[dk(now).date().isoformat()]
     shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
-    sums, heads, before = notes.pop('summaries'), notes.pop('titles'), summaries_of(args)
+    sums, heads, pics, before = notes.pop('summaries'), notes.pop('titles'), notes.pop('pictures'), summaries_of(args)
     recent = lambda d: {k: v for k, v in (d or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}  # noqa: E731
-    kept, checked = recent(before.get('items')), recent(before.get('titles'))
+    kept, checked, found = recent(before.get('items')), recent(before.get('titles')), recent(before.get('images'))
     kept.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
     checked.update({x['id']: {'title': x['title'], 'at': notes['created']} for x in heads})
+    found.update({x['id']: {'url': x['url'], 'kind': x['kind'], 'credit': x['credit'], 'at': notes['created']} for x in pics})
     digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
     files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive},
-             'summaries.json': {'updated': notes['created'], 'items': kept, 'titles': checked}}
+             'summaries.json': {'updated': notes['created'], 'items': kept, 'titles': checked, 'images': found}}
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name, obj in files.items():
@@ -508,7 +550,7 @@ def cmd_publish(args):
         push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
           f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · {len(sums)} summaries · "
-          f"{len(heads)} headlines · "
+          f"{len(heads)} headlines · {len(pics)} pictures · "
           f"days: {', '.join(sorted(days))}")
 
 

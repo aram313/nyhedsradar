@@ -193,3 +193,26 @@ def test_a_headline_must_fit(folder, tmp_path, capsys):
             {'id': 'nope', 'title': 'x'}, {'id': 's1', 'title': 'x' * 200}, {'id': 's3', 'title': ' '}]})
     out = capsys.readouterr().out
     assert "titles: unknown story id 'nope'" in out and 'at most 140' in out and 'not 0' in out
+
+
+def test_pictures_are_asked_for_checked_and_kept(folder, tmp_path, capsys):
+    data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
+    data['items'][2]['thumb'] = 'abc.jpg'   # s3 has a picture already
+    (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
+    editor.main(['input', '--dir', str(folder), '--now', NOW])
+    text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
+    asked = text.split('## Stories without a picture')[1].split('## Al Jazeera')[0]
+    assert '[s1]' in asked and '[s3]' not in asked and '[s2]' not in asked   # has one; yesterday's
+    with pytest.raises(SystemExit):
+        publish(folder, tmp_path, {'lede': 'Dagen kort.', 'pictures': [
+            {'id': 's1', 'url': 'http://x.test/a.jpg', 'kind': 'article'},
+            {'id': 's4', 'url': 'https://upload.wikimedia.test/a.jpg', 'kind': 'archive'},
+            {'id': 'nope', 'url': 'https://x.test/a.jpg', 'kind': 'article'}]})
+    out = capsys.readouterr().out
+    assert 'direct https address' in out and 'needs its credit' in out and "unknown story id 'nope'" in out
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'pictures': [
+        {'id': 's1', 'url': 'https://dr.test/photo.jpg', 'kind': 'article', 'credit': 'ignored'},
+        {'id': 's4', 'url': 'https://upload.wikimedia.test/a.jpg', 'kind': 'archive', 'credit': 'Wikimedia Commons / Foto: X'}]})
+    images = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['images']
+    assert images['s1'] == {'url': 'https://dr.test/photo.jpg', 'kind': 'article', 'credit': '', 'at': '2026-10-10T20:01:00+00:00'}
+    assert images['s4']['credit'] == 'Wikimedia Commons / Foto: X'

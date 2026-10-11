@@ -88,3 +88,23 @@ def test_crop_keeps_the_subject_in_view():
     assert thumbs.crop_box((600, 1200), (330, 300), (.5, .15)) == (0, 0, 600, 545)
     # a wide picture with the face at the right: the box slides right as far as the picture allows
     assert thumbs.crop_box((1600, 900), (330, 300), (.85, .4)) == (610, 0, 1600, 900)
+
+
+def test_other_outlets_pages_then_the_editors_picture(tmp_path, monkeypatch, photo):
+    pages = {'https://pol.test/a': '', 'https://dr.test/a': 'https://dr.test/photo.jpg',     # the lead's page has none
+             'https://bt.test/b': ''}
+    monkeypatch.setattr(thumbs, 'get', lambda url, limit, accept, timeout=8:
+                        (f'<meta property="og:image" content="{pages[url]}">' if pages[url] else '<p>no picture</p>').encode()
+                        if url in pages else photo[0])
+    cards = [{'id': 'a', 'source': 'Politiken', 'link': 'https://pol.test/a', 'img': ''},
+             {'id': 'b', 'source': 'B.T.', 'link': 'https://bt.test/b', 'img': ''},
+             {'id': 'c', 'source': 'BBC', 'link': 'https://bbc.test/c', 'img': ''}]
+    members = {'a': [{'id': 'a2', 'source': 'DR', 'link': 'https://dr.test/a', 'img': ''}]}
+    chosen = {'b': {'url': 'https://upload.wikimedia.test/frederiksen.jpg', 'credit': 'Wikimedia Commons / Foto: X', 'kind': 'archive'},
+              'c': {'url': 'https://upload.wikimedia.test/frederiksen.jpg', 'credit': 'Wikimedia Commons / Foto: X', 'kind': 'archive'}}
+    memory = {}
+    for _ in range(3):   # a run looks at one page per card; the next run goes on to the next
+        memory = thumbs.attach(cards, members, set(), tmp_path, memory, chosen=chosen)
+    assert cards[0]['thumb'] == thumbs.name_of('https://dr.test/photo.jpg') and 'pic_credit' not in cards[0]   # another outlet's
+    assert cards[1]['pic'] == 'https://upload.wikimedia.test/frederiksen.jpg' and cards[1]['pic_credit'] == 'Wikimedia Commons / Foto: X'
+    assert cards[2]['pic'] == cards[1]['pic']   # the editor's portrait may serve two stories: no stand-in
