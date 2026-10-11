@@ -57,7 +57,7 @@ svg { width: 22px; height: 22px; flex: none; }
   box-shadow: 0 .5px 0 transparent; transition: box-shadow .25s; }
 .bar.scrolled { box-shadow: 0 .5px 0 var(--line); }
 .brand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }   /* held for the admin code */
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; cursor: pointer; }   /* a tap goes home; held, the admin code */
 /* the mark: خبر in the reed-pen hand of the intro (Aref Ruqaa), its red dot the live signal */
 .logo { flex: none; width: 43px; height: 31px; overflow: visible; }
 .logo text, .logo .ink-fix { font-family: 'Aref Ruqaa', var(--logo); font-weight: 700; font-size: 230px; fill: var(--text); }

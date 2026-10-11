@@ -804,10 +804,16 @@ function keepOwner() {   // the radar has long caught up after three days
 }
 const applyAdmin = () => document.documentElement.classList.toggle('admin', !!adminKey);
 applyAdmin(); keepOwner();
-let logoHold;
+let logoHold, logoHeld = false;
 const brand = document.querySelector('.brand');
-brand.addEventListener('pointerdown', () => { clearTimeout(logoHold); logoHold = setTimeout(openCode, 1500); });
+brand.addEventListener('pointerdown', () => {
+  clearTimeout(logoHold); logoHeld = false;
+  logoHold = setTimeout(() => { logoHeld = true; openCode(); }, 1500);
+});
 for (const ev of ['pointerup', 'pointercancel']) brand.addEventListener(ev, () => clearTimeout(logoHold));
+// a tap on the logo goes home, to the top of the front page (a long hold is the admin code, not a tap)
+brand.addEventListener('click', () => { if (logoHeld) { logoHeld = false; return; } setTab('home', { top: true }); });
+brand.addEventListener('keydown', e => { if (e.key === 'Enter') setTab('home', { top: true }); });
 brand.addEventListener('contextmenu', e => e.preventDefault());
 // the code goes in a small sheet of our own: a home-screen app may not show the browser's prompt
 function openCode() {
