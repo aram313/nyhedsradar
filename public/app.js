@@ -43,7 +43,7 @@ const list = $('list');
 const pageEl = t => list.querySelector(`.page[data-tab="${t}"]`);
 const cur = () => pageEl(tab);
 const pg$ = id => { const p = cur(); return p && p.querySelector('#' + CSS.escape(id)); };   // on the page one sees
-let touching = false, paging = false;                                    // a finger on the pages; the pager moving
+let touching = false, paging = false, scrubbing = false;                 // a finger on the pages; the pager moving; on the tab bar
 let searchIndex = null, searchState = 'idle';
 let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
@@ -782,7 +782,7 @@ function drawSoon() {
   clearTimeout(drawT);
   drawT = setTimeout(function step() {
     if (tab === 'search') return;
-    if (touching || paging) { drawT = setTimeout(step, 250); return; }
+    if (touching || paging || scrubbing) { drawT = setTimeout(step, 250); return; }
     const i = SWIPE_TABS.indexOf(tab);
     const t = [SWIPE_TABS[i - 1], SWIPE_TABS[i + 1]].find(x => x && +pageEl(x).dataset.ver !== ver) || SWIPE_TABS.find(x => !pageEl(x).dataset.ver);
     if (!t) return;
@@ -1052,14 +1052,19 @@ addEventListener('touchend', async () => {
 // title follow along; once the pages stand still, the page in view is the tab.
 const SWIPE_TABS = ['home', 'dk', 'me', 'world', 'threads', 'latest'];
 let settleT = 0, jumping = false;   // jumping: the pages moved by a tap on a tab, not by a finger
-list.addEventListener('touchstart', () => { touching = true; jumping = false; }, { passive: true });
+list.addEventListener('touchstart', () => { touching = true; jumping = false; list.style.scrollSnapType = ''; }, { passive: true });
 for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
   touching = false;
   if (paging) { clearTimeout(settleT); settleT = setTimeout(settle, 140); }
 }, { passive: true });
-const showTitle = t => { const s = TITLES[t] || SECTIONS[t]; if ($('title').textContent !== s) $('title').textContent = s; };
+// the title and the tab's bold label follow the page that fills most of the screen, already while it moves
+const showTitle = t => {
+  const s = TITLES[t] || SECTIONS[t];
+  if ($('title').textContent !== s) $('title').textContent = s;
+  document.querySelectorAll('.tabs [data-tab]').forEach(x => { const on = String(x.dataset.tab === t); if (x.getAttribute('aria-selected') !== on) x.setAttribute('aria-selected', on); });
+};
 list.addEventListener('scroll', () => {
-  if (tab === 'search') return;
+  if (tab === 'search' || scrubbing) return;   // sliding along the tab bar places the pill itself
   if (!jumping) paging = true;   // a finger or a trackpad; a tap on a tab has placed the pill itself
   if (paging) {
     const n = SWIPE_TABS.length, k = Math.max(0, Math.min(n - 1, list.scrollLeft / list.clientWidth)), i = Math.min(n - 2, Math.floor(k));
@@ -1070,9 +1075,13 @@ list.addEventListener('scroll', () => {
 }, { passive: true });
 if ('onscrollend' in window) list.addEventListener('scrollend', () => { clearTimeout(settleT); settle(); });
 function settle() {
-  if (touching || tab === 'search') return;   // the finger still holds the page
+  if (touching || scrubbing || tab === 'search') return;   // a finger still holds the pages
   const W = list.clientWidth, i = Math.round(list.scrollLeft / W);
-  if (Math.abs(list.scrollLeft - i * W) > 2) { clearTimeout(settleT); settleT = setTimeout(settle, 140); return; }   // still on its way
+  if (Math.abs(list.scrollLeft - i * W) > 2) {   // stopped between two pages: the snap points take it home (or, failing that, we do)
+    if (list.style.scrollSnapType) list.style.scrollSnapType = ''; else list.scrollTo({ left: i * W, behavior: reduceMotion ? 'auto' : 'smooth' });
+    clearTimeout(settleT); settleT = setTimeout(settle, 400); return;
+  }
+  list.style.scrollSnapType = '';
   const t = SWIPE_TABS[i];
   paging = false; jumping = false;
   if (t && t !== tab) setTab(t, { swipe: true }); else { placePill(tab, true); showTitle(tab); }
@@ -1178,10 +1187,16 @@ tabsEl.addEventListener('touchmove', e => {
   const first = pillX(bs[0].dataset.tab), last = pillX(bs[bs.length - 1].dataset.tab);
   const px = Math.min(last.x, Math.max(first.x, x - n.left - pill.offsetWidth / 2));
   movePill(px, first.y, false);
+  // the pages follow along: as far between two tabs as the pill is (no snapping while the finger leads them)
+  if (tab !== 'search') {
+    if (!scrubbing) { scrubbing = true; list.style.scrollSnapType = 'none'; }
+    list.scrollLeft = (px - first.x) / Math.max(1, last.x - first.x) * (bs.length - 1) * list.clientWidth;
+  }
   const over = tabAt(x).dataset.tab;
   if (over !== scrub.over) {
     scrub.over = over;
     tabsEl.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('scrub', b.dataset.tab === over));
+    if (scrubbing) showTitle(over);
     if (navigator.vibrate) navigator.vibrate(4);
   }
 }, { passive: false });
@@ -1192,9 +1207,17 @@ tabsEl.addEventListener('touchend', () => {
   tabsEl.querySelectorAll('.scrub').forEach(b => b.classList.remove('scrub'));
   if (!moved) return;   // a plain tap: the click does it
   scrubbed = true; setTimeout(() => { scrubbed = false; }, 400);
-  if (over !== tab) setTab(over, { top: false }); else placePill(tab, true);
+  if (!scrubbing) { if (over !== tab) setTab(over, { top: false }); else placePill(tab, true); return; }   // from the search page
+  glideTo(over);
 });
-tabsEl.addEventListener('touchcancel', () => { scrub = null; placePill(tab, true); });
+tabsEl.addEventListener('touchcancel', () => { scrub = null; tabsEl.querySelectorAll('.scrub').forEach(b => b.classList.remove('scrub')); if (scrubbing) glideTo(tab); else placePill(tab, true); });
+// the finger lifts: the pages glide the last bit to the tab under it, which then is the tab (as after a swipe)
+function glideTo(t) {
+  scrubbing = false; paging = true;
+  placePill(t, true); showTitle(t);
+  list.scrollTo({ left: SWIPE_TABS.indexOf(t) * list.clientWidth, behavior: reduceMotion ? 'auto' : 'smooth' });
+  clearTimeout(settleT); settleT = setTimeout(settle, 140);
+}
 $('openSearch').addEventListener('click', () => setTab('search', { top: true }));
 let typing;
 $('search').addEventListener('input', e => { clearTimeout(typing); typing = setTimeout(() => { query = e.target.value; render(); }, 60); });
