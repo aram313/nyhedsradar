@@ -712,3 +712,5 @@ html.intro-skip .intro { display: none; }
 /* a timeline step that opens something is one button or link across the whole row */
 .follow li > .step, .thr-steps li > .step { grid-column: 1 / -1; display: grid; grid-template-columns: 42px 1fr; column-gap: 22px;
   width: 100%; color: inherit; text-decoration: none; text-align: left; -webkit-tap-highlight-color: transparent; }
+/* scrolling with the middle mouse button */
+html.autoscroll, html.autoscroll * { cursor: ns-resize !important; }

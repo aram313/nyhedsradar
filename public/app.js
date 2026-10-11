@@ -1594,6 +1594,33 @@ document.addEventListener('scroll', cancelPress, { capture: true, passive: true 
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 $('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
+
+// the middle mouse button on a PC scrolls the page, as browsers do on ordinary pages (they do not on our fixed pager):
+// hold it and move, or click it and move – the further from where it began, the faster; any click or Esc stops it
+let auto = null, swallow = false;
+function stopAuto() { auto = null; document.documentElement.classList.remove('autoscroll'); }
+function autoStep() {
+  if (!auto) return;
+  const d = auto.y - auto.y0, a = Math.abs(d) - 12;
+  if (a > 0) auto.page.scrollTop += Math.sign(d) * Math.pow(a / 9, 1.35);
+  requestAnimationFrame(autoStep);
+}
+addEventListener('mousedown', e => {   // any button stops it, and that click does nothing else
+  if (!auto) return;
+  stopAuto(); swallow = true; setTimeout(() => { swallow = false; }, 500); e.preventDefault(); e.stopImmediatePropagation();
+}, true);
+$('list').addEventListener('mousedown', e => {
+  if (e.button !== 1 || e.target.closest('a')) return;   // a link keeps 'open in a new tab'
+  e.preventDefault();
+  auto = { y0: e.clientY, y: e.clientY, moved: false, page: cur() };
+  document.documentElement.classList.add('autoscroll');
+  requestAnimationFrame(autoStep);
+});
+addEventListener('mousemove', e => { if (auto) { auto.y = e.clientY; if (Math.abs(auto.y - auto.y0) > 12) auto.moved = true; } });
+addEventListener('mouseup', e => { if (auto && e.button === 1 && auto.moved) stopAuto(); });   // held and moved: let go to stop
+addEventListener('keydown', e => { if (auto && e.key === 'Escape') stopAuto(); });
+addEventListener('blur', () => { if (auto) stopAuto(); });
+addEventListener('click', e => { if (swallow) { swallow = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 function showOwnerSheet(title, html, item = null) {
   $('actTitle').textContent = title;
   $('actBtns').innerHTML = html + '<button class="wide soft" data-a="">Annuller</button>';
