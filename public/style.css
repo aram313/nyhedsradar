@@ -263,9 +263,9 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
   box-shadow: 0 -1px 0 var(--line), 0 -6px 18px rgba(0, 0, 0, .05); }
 .keyboard .dock { padding-bottom: 0; }
 .keyboard .tabs { display: none; }   /* while typing a search only the field sits above the keyboard */
-.tabs { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 640px; margin: 0 auto; }
+.tabs { display: grid; grid-template-columns: repeat(6, 1fr); max-width: 640px; margin: 0 auto; }
 .tabs button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: 56px; padding-top: 3px; font-size: 11px; font-weight: 600; letter-spacing: .01em; color: var(--text-2); transition: color .2s; }
+  min-height: 56px; padding-top: 3px; font-size: 10.5px; font-weight: 600; letter-spacing: 0; color: var(--text-2); transition: color .2s; }
 .tabs button svg { width: 25px; height: 25px; padding: 1px 0; border-radius: 13px; box-sizing: content-box; transition: transform .18s var(--out), background-color .2s; }
 .tabs button[aria-selected="true"] svg { width: 25px; padding: 1px 16px; background: var(--fill-2); }
 .tabs button:active svg { transform: scale(.88); }
@@ -553,16 +553,7 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .mv-b.up svg { transform: rotate(-90deg); }
 .mv-b:active { opacity: .6; }
 
-/* ------------------------------------------------------------ draft (?udkast=1): Følg udviklingen and search suggestions */
-html.draft .tabs { grid-template-columns: repeat(6, 1fr); }
-html.draft .tabs button span { font-size: 10.5px; letter-spacing: 0; }
-.follow-btn { display: flex; align-items: center; gap: 10px; width: 100%; margin: 10px 0 2px; padding: 10px 12px; border-radius: 12px;
-  background: var(--bg); text-align: left; }
-.follow-btn .ic { flex: none; width: 22px; height: 22px; color: var(--sec, var(--text)); }
-.follow-btn span { flex: 1; min-width: 0; }
-.follow-btn b { display: block; font-size: 15px; font-weight: 700; }
-.follow-btn em { display: block; margin-top: 1px; font-style: normal; font-size: 12.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.follow-btn > svg:last-child { flex: none; width: 16px; height: 16px; color: var(--text-3); }
+/* ------------------------------------------------------------ Følg udviklingen, search suggestions, the opened story's small buttons */
 .thr-intro { margin: 4px 16px 12px; font-size: 14px; line-height: 1.4; color: var(--text-2); }
 .thr { margin: 0 12px 10px; border-radius: 14px; background: var(--fill); }
 .thr-head { position: relative; display: block; width: 100%; padding: 12px 40px 12px 14px; text-align: left; }
@@ -593,3 +584,13 @@ html.draft .tabs button span { font-size: 10.5px; letter-spacing: 0; }
 .sug-row span { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; }
 .sug-row em { font-style: normal; font-size: 12.5px; color: var(--text-3); white-space: nowrap; }
 .sug-row svg { flex: none; width: 15px; height: 15px; color: var(--text-3); }
+.sum-note { margin: -6px 0 12px; font-size: 12.5px; line-height: 1.4; color: var(--text-3); font-style: italic; }
+.mini-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mini { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 999px; background: var(--bg);
+  font-size: 13.5px; font-weight: 650; color: var(--text); }
+.mini em { font-style: normal; font-weight: 600; color: var(--text-3); }
+.mini .ic { width: 16px; height: 16px; color: var(--sec, var(--text)); }
+.mini .chev { width: 12px; height: 12px; color: var(--text-3); transform: rotate(90deg); transition: transform .2s; }
+.mini.on .chev { transform: rotate(-90deg); }
+.mini:active { opacity: .6; }
+.mini-row + .cov { margin-top: 10px; }

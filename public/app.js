@@ -20,12 +20,13 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   il: ['israelsk', 'israelske'], channel: ['kanal', 'kanaler'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'channel'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg', threads: 'Følg udviklingen' };
+const TITLES = { home: 'Khabar', latest: 'Live feed', search: 'Søg', threads: 'Udvikling' };
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
 let data = store.get('lastData', null);
 let digest = store.get('lastDigest', null);
+let sums = store.get('lastSums', {});   // story id -> the editor's summary {text, paywall}
 let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
@@ -41,7 +42,6 @@ let searchIndex = null, searchState = 'idle';
 let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
-const DRAFT = params.get('udkast') === '1';   // the draft of 'Følg udviklingen' and search suggestions
 let threadOpen = params.get('forlob') || null; // the development opened on the Følg udviklingen tab
 const readSent = new Set(store.get('readSent', []));
 
@@ -110,6 +110,10 @@ async function load(manual) {
         if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; digest = d; store.set('lastDigest', digest); }
       }
     } catch { /* keep the last overview */ }
+    try {   // the editor's summaries of the stories readers open most (summaries.json next to digest.json)
+      const r = await fetch(CFG.summariesUrl || CFG.digestUrl.replace(/digest\.json$/, 'summaries.json'), { cache: 'no-cache' });
+      if (r.ok) { const x = (await r.json()).items || {}; if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); } }
+    } catch { /* keep the last summaries */ }
   }
   if (--busy === 0) document.body.classList.remove('loading');
   if (changed || manual || offline !== wasOffline) render({ fresh: true }); else renderHeader();
@@ -261,18 +265,26 @@ function heroStory(i, n, opts) {
       <span class="m">${meta(i, opts)}</span></span></button>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
+// An opened story is short: the editor's summary (or the outlet's own teaser while there is none), the three actions,
+// and two small buttons – the development it belongs to, and the other outlets' headlines, folded until asked for.
+const covOpen = new Set();
+const sumOf = i => [i.id, ...(i.also || []).map(a => a.id)].map(k => sums[k]).find(Boolean);
 function detail(i) {
-  const note = i.to ? `<p class="tr-note">Maskinoversat fra ${LANG[i.from] || i.from}</p>` : '';
-  return `${i.summary ? `<p class="sum" dir="auto">${esc(i.summary)}</p>` : ''}${note}
+  const ed = sumOf(i), note = !ed && i.to ? `<p class="tr-note">Maskinoversat fra ${LANG[i.from] || i.from}</p>` : '';
+  const text = ed ? ed.text : i.summary;
+  const pay = ed && ed.paywall ? '<p class="sum-note">Khabar har ikke adgang til artiklen – resuméet er redaktørens bedste bud ud fra overskriften og andre mediers dækning.</p>' : '';
+  return `${text ? `<p class="sum" dir="auto">${esc(text)}</p>` : ''}${pay}${note}
     <div class="acts">
       <a class="act primary" href="${esc(i.link)}" target="_blank" rel="noopener" data-read><svg><use href="#i-open"/></svg>Læs</a>
       <button class="act" data-share><svg><use href="#i-share"/></svg>Del</button>
       <button class="act" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
-    </div>${followButton(i)}${coverage(i)}`;
+    </div>${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}`;
 }
-function followButton(i) {
-  const t = DRAFT && threadFor(i);
-  return t ? `<button class="follow-btn" data-follow="${t.key}"><svg class="ic"><use href="#i-thread"/></svg><span><b>Følg udviklingen</b><em>${esc(t.name)} · ${t.lines.length} udviklinger</em></span><svg><use href="#i-chev"/></svg></button>` : '';
+function moreRow(i) {
+  const t = threadFor(i), n = (i.outlets || 1) - 1;
+  const follow = t ? `<button class="mini" data-follow="${t.key}"><svg class="ic"><use href="#i-thread"/></svg>Følg udviklingen<em>${t.lines.length}</em></button>` : '';
+  const cov = (i.also || []).length ? `<button class="mini${covOpen.has(i.id) ? ' on' : ''}" data-cov>Andre medier<em>${n}</em><svg class="chev"><use href="#i-chev"/></svg></button>` : '';
+  return follow || cov ? `<div class="mini-row">${follow}${cov}</div>` : '';
 }
 function coverSummary(cover) {
   return GROUP_ORDER.filter(g => cover && cover[g]).map(g => `${cover[g]} ${GROUP_SHORT[g][cover[g] === 1 ? 0 : 1]}`).join(' · ');
@@ -710,11 +722,11 @@ function suggestions(all, q) {
 function searchPage(all) {
   const q = fold(query.trim());
   const total = searchIndex ? searchIndex.items.length : (data.scanned_24h || 0);
-  if (!q) return (DRAFT ? suggestions(all, '') : '') + `<div class="empty">Søg i alle ${num(total)} nyheder, Khabar har læst de seneste to døgn – også dem, der ikke kom på listerne.</div>`;
+  if (!q) return suggestions(all, '') + `<div class="empty">Søg i alle ${num(total)} nyheder, Khabar har læst de seneste to døgn – også dem, der ikke kom på listerne.</div>`;
   const terms = q.split(/\s+/).filter(Boolean);
   const hit = t => { const f = fold(t); return terms.every(w => f.includes(w)); };
   const inApp = all.filter(i => hit(`${i.title} ${i.summary || ''} ${i.source} ${i.origTitle || ''}`)).sort((a, b) => when(b) - when(a));
-  let html = (DRAFT ? suggestions(all, query) : '') + (inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '');
+  let html = suggestions(all, query) + (inApp.length ? `<div class="day"><span>På Khabar · ${inApp.length}</span></div>` + inApp.slice(0, 40).map((i, n) => story(i, n, { tag: true })).join('') : '');
   if (searchIndex) {
     const onApp = new Set(data.items.map(i => i.id));
     const others = searchIndex.items.filter(x => !onApp.has(x.i) && hit(`${x.t} ${x.s}`));
@@ -843,6 +855,12 @@ async function share(text, i) {
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && find(el.dataset.id);
   if (t.closest('[data-go]')) { setTab(t.closest('[data-go]').dataset.go, { top: true }); return; }
+  if (t.closest('[data-cov]') && el) {
+    covOpen.has(el.dataset.id) ? covOpen.delete(el.dataset.id) : covOpen.add(el.dataset.id);
+    const i2 = find(el.dataset.id) || findStory(el.dataset.id), box = el.querySelector('.x-in');
+    if (i2 && box) box.innerHTML = el.classList.contains('panel') ? panelBody(i2) : detail(i2);
+    return;
+  }
   const follow = t.closest('[data-follow]');
   if (follow) {
     threadOpen = follow.dataset.follow;
@@ -976,7 +994,8 @@ const queueViewport = () => { if (!vvFrame) vvFrame = requestAnimationFrame(sync
 if (vv) { vv.addEventListener('resize', queueViewport); vv.addEventListener('scroll', queueViewport); }
 addEventListener('resize', queueViewport);
 syncViewport();
-if (DRAFT) { document.documentElement.classList.add('draft'); $('tabThreads').hidden = false; loadArchive(); if (params.get('q')) { query = params.get('q'); $('search').value = query; } }
+setTimeout(loadArchive, 1500);   // the earlier days: for 'Følg udviklingen' across days
+if (params.get('q')) { query = params.get('q'); $('search').value = query; }
 new ResizeObserver(() => document.documentElement.style.setProperty('--dock', $('dock').offsetHeight + 'px')).observe($('dock'));
 
 // what counts as seen moves on only after a real break (10 minutes): a quick trip to WhatsApp to paste a story

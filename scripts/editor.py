@@ -1,8 +1,9 @@
 """Tools for the Claude editor, who updates Khabar three times a day (07, 15 and 21 Danish time).
 
-Each update does four things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
+Each update does five things: picks the stories that matter most geopolitically (and, for Danmark, those most useful
 in the group's dawah), moves stories that landed in the wrong section, chooses the best statements for quote cards,
-and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
+writes a short summary of the stories readers open most (what an opened story shows; behind a paywall the editor's
+best reading of headline and coverage, flagged as such), and adds the day's most important movements to the recap – short 'Who: what' lines in the style of Al Jazeera's
 breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A line goes into the day it happened
 (Danish date), so at 07 what came before midnight completes yesterday's recap.
 
@@ -10,7 +11,8 @@ breaking wire and the group's own 'Politiske nyheder' posts, grouped by topic. A
                                                     stories and wire lines since the last update, and the format
     python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
             [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
-                                                    quotes) and moves.json (the last 30 days); --push commits both
+                                                    quotes), moves.json (the last 30 days) and summaries.json (the
+                                                    story summaries of the last 4 days); --push commits all three
 
 Reads data.json and lines.json from origin/data and moves.json from origin/digest, or all three from --dir.
 Options for test runs: --now ISO."""
@@ -30,6 +32,9 @@ MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august'
 KEEP = 30        # days in the archive
 MAX_NEW = 14     # lines one update may add: the most important movements, not everything
 MAX_TEXT = 220   # characters in a line: one short sentence
+MAX_SUM = 25     # stories one update summarises: the ones readers are most likely to open
+SUM_LEN = 420    # characters in a summary: two or three sentences
+SUM_DAYS = 4     # how long a summary is kept
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -146,6 +151,24 @@ def material(args):
     return data, lines, migrate(read(args, 'origin/digest', 'moves.json', {'days': []}), data, lines)
 
 
+def summaries_of(args):
+    return read(args, 'origin/digest', 'summaries.json', {'items': {}})
+
+
+def to_summarise(items, done, now):
+    """The stories an opened card is most likely to be: the strongest of each section in the last day, then the
+    rest by rank – those without a summary yet, at most MAX_SUM."""
+    fresh = [i for i in items if now - ts(i.get('published') or i['found']) < timedelta(hours=24) and i['id'] not in done]
+    by_rank = sorted(fresh, key=lambda i: -(i.get('rank') or 0))
+    first = [i for sec in SECTIONS for i in [x for x in by_rank if x.get('sec') == sec][:8]]
+    out, seen = [], set()
+    for i in first + by_rank:
+        if i['id'] not in seen:
+            seen.add(i['id'])
+            out.append(i)
+    return out[:MAX_SUM]
+
+
 def recent_days(moves, now):
     """Today's day and yesterday's, as far as they exist: the two an update may add to."""
     today = dk(now).date()
@@ -183,6 +206,10 @@ TEMPLATE = {
     'moves': [{'id': '<story id in the wrong section>', 'sec': 'dk | me | world'}],
     'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish, one or two sentences>', 'sec': 'dk | me | world',
                 'ids': ['<wire line id>'], 'story': '<or a story id>'}],
+    'summaries': [{'id': '<story id from "Stories to summarise">',
+                   'text': '<2-3 Danish sentences from the article: what happened, who, why it matters>',
+                   'paywall': '<true when you could not read the article and wrote your best reading of headline, teaser '
+                              'and the other outlets; else false>'}],
 }
 
 
@@ -242,6 +269,16 @@ def cmd_input(args):
     if owner.get('moved'):
         out += ['## Stories the owner moved to another section – the right place for stories like them', '']
         out += [f"- {i['title']} → {owner['moved'][i['id']]}" for i in items if i['id'] in owner['moved']] + ['']
+    todo = to_summarise(items, set((summaries_of(args).get('items') or {})), now)
+    if todo:
+        out += [f'## Stories to summarise – {len(todo)} (what readers see when they open a story)', '',
+                'For each: open the link (curl -sL with a browser user agent; for a Google News link try the outlets under',
+                '"Also"), and write 2-3 plain Danish sentences from the article: what happened, who, and why it matters. No',
+                'opinion, no "artiklen handler om". If no article text can be read (paywall, blocked, only a teaser), write',
+                'your best reading of the headline, teaser and the other outlets\' headlines and set "paywall": true – the',
+                'app then says Khabar had no access to the article.', '']
+        for i in todo:
+            out += story_lines(i)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -369,6 +406,17 @@ def build(draft, data, lines, moves, now):
             problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
         else:
             quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
+    sums = []
+    for x in (draft.get('summaries') or [])[:MAX_SUM + 5]:
+        text = ' '.join(str(x.get('text', '')).split())
+        if x.get('id') not in by_id:
+            problems.append(f"summaries: unknown story id {x.get('id')!r}")
+        elif not text or len(text) > SUM_LEN:
+            problems.append(f"summaries: {x['id']} needs 2-3 sentences (at most {SUM_LEN} characters, not {len(text)})")
+        elif not isinstance(x.get('paywall', False), bool):
+            problems.append(f"summaries: {x['id']} paywall must be true or false")
+        else:
+            sums.append({'id': x['id'], 'text': text, 'paywall': bool(x.get('paywall'))})
     if problems:
         return None, None, problems
     touched = set()
@@ -386,7 +434,7 @@ def build(draft, data, lines, moves, now):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes}
+    notes = {'created': stamp, 'lede': lede, 'picks': picks, 'moves': fixes, 'quotes': quotes, 'summaries': sums}
     return days, notes, []
 
 
@@ -404,8 +452,12 @@ def cmd_publish(args):
     archive = sorted(merged.values(), key=lambda d: d['date'], reverse=True)[:KEEP]
     today = days[dk(now).date().isoformat()]
     shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
+    sums = notes.pop('summaries')
+    kept = {k: v for k, v in (summaries_of(args).get('items') or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}
+    kept.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
     digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
-    files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive}}
+    files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive},
+             'summaries.json': {'updated': notes['created'], 'items': kept}}
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name, obj in files.items():
@@ -414,16 +466,16 @@ def cmd_publish(args):
     if args.push:
         push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
-          f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · "
+          f"{len(notes['picks'])} picks · {len(notes['moves'])} moves · {len(notes['quotes'])} quotes · {len(sums)} summaries · "
           f"days: {', '.join(sorted(days))}")
 
 
 def push(folder, message):
-    """One commit on the orphan digest branch holding just the two files; the working tree is not touched."""
+    """One commit on the orphan digest branch holding just these files; the working tree is not touched."""
     def git(*a, data=None):
         return subprocess.run(['git', *a], input=data, capture_output=True, check=True).stdout.decode().strip()
     tree = git('mktree', data=''.join(
-        f"100644 blob {git('hash-object', '-w', str(folder / n))}\t{n}\n" for n in ('digest.json', 'moves.json')).encode())
+        f"100644 blob {git('hash-object', '-w', str(folder / n))}\t{n}\n" for n in ('digest.json', 'moves.json', 'summaries.json')).encode())
     env = {'GIT_AUTHOR_NAME': 'Khabar redaktør', 'GIT_AUTHOR_EMAIL': 'redaktor@users.noreply.github.com'}
     env.update(GIT_COMMITTER_NAME=env['GIT_AUTHOR_NAME'], GIT_COMMITTER_EMAIL=env['GIT_AUTHOR_EMAIL'])
     commit = subprocess.run(['git', 'commit-tree', tree, '-m', message], capture_output=True, check=True,
@@ -435,7 +487,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('command', choices=['input', 'publish'])
     p.add_argument('file', nargs='?', default=str(WORK / 'update.json'))
-    p.add_argument('--dir', help='read data.json, lines.json and moves.json from this folder instead of git')
+    p.add_argument('--dir', help='read data.json, lines.json, moves.json and summaries.json from this folder instead of git')
     p.add_argument('--out', help='write the files here (default /tmp/editor/out)')
     p.add_argument('--push', action='store_true', help='commit the files to the digest branch')
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')

@@ -63,7 +63,7 @@ def test_input_shows_the_recap_so_far_top_stories_and_new_material(folder):
     assert '## Top stories of the last 24 hours' in text and '[s3] world · rank 95' in text   # top stories for picks
     w = text.split('## Al Jazeera wire lines')[1]
     assert '[w2]' in w and '[w3]' in w and '[w1]' not in w and '[h1]' not in w
-    new = text.split('for recap lines')[1]
+    new = text.split('for recap lines')[1].split('## Stories to summarise')[0]
     assert '[s1]' in new and '[s3]' not in new and '[s2]' not in new   # only what came after the last update
     assert 'update.json' in text
 
@@ -140,3 +140,27 @@ def test_window_starts_at_the_last_update():
     assert editor.window_start(now, ['2026-10-10T05:02:00+00:00']) == t('2026-10-10T05:02:00+00:00')
     assert editor.window_start(now, []) == t('2026-10-10T01:01:00+00:00')                                # 12 hours back
     assert editor.window_start(now, ['2026-10-09T05:00:00+00:00']) == t('2026-10-10T01:01:00+00:00')  # too old to count
+
+
+def test_summaries_are_asked_for_checked_and_kept(folder, tmp_path):
+    editor.main(['input', '--dir', str(folder), '--now', NOW])
+    text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
+    asked = text.split('## Stories to summarise')[1].split('## Al Jazeera')[0]
+    assert '[s1]' in asked and '[s2]' not in asked   # yesterday's story is no longer opened much
+    (folder / 'summaries.json').write_text(json.dumps({'items': {
+        'old': {'text': 'Gammelt.', 'paywall': False, 'at': '2026-10-01T10:00:00+00:00'},
+        's3': {'text': 'Fra i formiddags.', 'paywall': False, 'at': '2026-10-10T11:35:00+00:00'}}}), encoding='utf-8')
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'summaries': [
+        {'id': 's1', 'text': 'Regeringen vil stramme reglerne. Forslaget kommer i næste uge.', 'paywall': True}]})
+    kept = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['items']
+    assert set(kept) == {'s1', 's3'} and kept['s1']['paywall'] is True   # older than four days: dropped
+    digest = json.loads((tmp_path / 'out' / 'digest.json').read_text(encoding='utf-8'))
+    assert 'summaries' not in digest['editor']
+
+
+def test_a_summary_must_fit(folder, tmp_path, capsys):
+    with pytest.raises(SystemExit):
+        publish(folder, tmp_path, {'lede': 'Dagen kort.', 'summaries': [
+            {'id': 'nope', 'text': 'x'}, {'id': 's1', 'text': 'x' * 500}, {'id': 's3', 'text': 'Kort.', 'paywall': 'måske'}]})
+    out = capsys.readouterr().out
+    assert "unknown story id 'nope'" in out and 'at most 420' in out and 'paywall must be true or false' in out
