@@ -232,6 +232,16 @@ def cmd_input(args):
             'outlets; 0 = only Telegram/YouTube channels, so unconfirmed)', '']
     for i in stories[:100]:
         out += story_lines(i)
+    owner = read(args, 'origin/data', 'removed.json', {'removed': [], 'moved': {}})
+    gone = sorted(owner.get('removed') or [], key=lambda r: r['at'], reverse=True)[:40]
+    if gone:   # the owner's own verdicts from the app, stated plainly
+        out += ['## What the owner removed from the app (newest first) – learn from it', '',
+                'The owner held these down and removed them. Never pick, quote or recap stories like the irrelevant and not-news',
+                'ones; let them tell you what he finds uninteresting. Duplicates only say the radar missed a match.', '']
+        out += [f"- [{r['why']}] {r['title']} ({r['source']})" for r in gone] + ['']
+    if owner.get('moved'):
+        out += ['## Stories the owner moved to another section – the right place for stories like them', '']
+        out += [f"- {i['title']} → {owner['moved'][i['id']]}" for i in items if i['id'] in owner['moved']] + ['']
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:

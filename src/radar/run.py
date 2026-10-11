@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from radar import feedback, push
+from radar import admin, feedback, push
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all
 from radar.sections import Sections
@@ -122,7 +122,7 @@ def military(text):
 
 
 def is_noise(item):
-    return bool(NOISE_TITLE.search(item['title'].strip()) or NOISE_URL.search(item['link']))
+    return bool(item.get('removed') or NOISE_TITLE.search(item['title'].strip()) or NOISE_URL.search(item['link']))
 
 
 
@@ -171,9 +171,9 @@ def clusters(emb, order, threshold, langs=None, strict=None):
     return groups
 
 
-def load_learned_embeddings(embed, learned):
+def load_learned_embeddings(embed, learned, path=None):
     """Embeddings of self-learned entries, cached between runs so each is computed once."""
-    path = STATE / 'learned_emb.npz'
+    path = path or STATE / 'learned_emb.npz'
     cache = {}
     if path.exists():
         z = np.load(path, allow_pickle=False)
@@ -231,6 +231,7 @@ def main():
     health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
     phones = push.load_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''))   # signed up in the app
+    owner = admin.load(STATE / 'removed.json')      # what the owner removed or moved with a long press in the app
     emb_store = {}
     if (STATE / 'emb.npz').exists():
         z = np.load(STATE / 'emb.npz', allow_pickle=False)
@@ -290,7 +291,9 @@ def main():
     taps, relay['since'] = feedback.pull(relay['since'])
     # phones sign up by themselves through the same relay (push.py keeps them, encrypted)
     signups = [x for x in taps if x['kind'] in ('sub', 'unsub')]
-    taps = [x for x in taps if x['kind'] not in ('sub', 'unsub')]
+    # the owner's own actions, signed with the admin code (admin.py ignores anything unsigned)
+    acted = admin.apply(owner, [x for x in taps if x['kind'] == 'admin'], items, os.environ.get('ADMIN_KEY', ''), NOW, text)
+    taps = [x for x in taps if x['kind'] not in ('sub', 'unsub', 'admin')]
     added = sum(1 for p in phones if p.get('at') and ts(p['at']) >= NOW - timedelta(hours=24))
     phones = push.sign_up(phones, signups, NOW.isoformat(), added)
     # the relay topic is readable in the public app, so anyone could post to it: learn only from stories the
@@ -323,6 +326,27 @@ def main():
         scores = relevance(np.array([emb_store[k] for k in ids]), profile, weights, s['top_k'], ids, prof_ids)
         for k, sc in zip(ids, scores):
             items[k]['score'] = round(float(sc), 4)
+    # what the owner removed is gone for everyone; a story very like an 'irrelevant' or 'not news' one stays out
+    # too (same language: the model finds any two Arabic headlines rather alike), and near ones score lower
+    owner = admin.prune(owner, NOW, s.get('removed_days', 30))
+    owner['moved'] = {k: v for k, v in owner['moved'].items() if k in items}
+    for it in items.values():
+        it.pop('removed', None)
+    for r in owner['removed']:
+        if r['id'] in items:
+            items[r['id']]['removed'] = True
+    teach = [r for r in owner['removed'] if r['why'] in admin.LEARN and r['id'] in items]
+    if teach and ids:
+        r_emb = load_learned_embeddings(embed, [{**r, 'why': 'removed'} for r in teach], STATE / 'removed_emb.npz')
+        r_lang = [items[r['id']].get('lang', '') for r in teach]
+        sims = np.array([emb_store[k] for k in ids]) @ r_emb.T
+        lo, hi = s.get('removed_near', 0.72), s.get('removed_drop', 0.86)
+        for k, row in zip(ids, sims):
+            j = int(row.argmax())
+            if row[j] >= hi and items[k].get('lang', '') == r_lang[j]:
+                items[k]['removed'] = True
+            elif row[j] >= lo:
+                items[k]['score'] = round(items[k]['score'] - s.get('removed_penalty', 0.05) * min(1, (row[j] - lo) / (hi - lo)), 4)
     # rank within each language: the model scores some languages (Arabic) higher across the board
     ranked = {'': np.sort(np.array([items[k]['score'] for k in ids], dtype=np.float32))}
     for lang in {items[k].get('lang', '') for k in ids}:
@@ -434,6 +458,14 @@ def main():
         lead['_core'], lead['_core_dk'], lead['_dk_outlets'] = max(core, core_dk), core_dk, len(cover.get('dk', ()))
         if lead['source'] not in wire:   # a lone wire line is no story, so it must not shift the section's bar
             ranks.setdefault(secs[0], []).append(r)
+    # the owner moved it: the whole story goes to that section
+    for st in stories:
+        mv = next((owner['moved'][m['id']] for m in st if m['id'] in owner['moved']), None)
+        if mv and mv != st[0]['sec']:
+            for m in st:
+                m['sec'] = mv
+            st[0]['secs'] = [mv] + [x for x in st[0]['secs'] if x != mv]
+            ranks.setdefault(mv, []).append(st[0]['rank'])
     ranks = {k: np.sort(np.array(v, dtype=np.float32)) for k, v in ranks.items()}
 
     shown = []
@@ -672,6 +704,7 @@ def main():
     save(STATE / 'learned.json', learned)
     save(STATE / 'pushes.json', pushes)
     save(STATE / 'relay.json', relay)
+    save(STATE / 'removed.json', owner)
     push.save_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''), phones)
     save(STATE / 'health.json', health)
     keep = list(emb_store)
@@ -679,7 +712,7 @@ def main():
                         m=np.array([emb_store[k] for k in keep], dtype=np.float16) if keep else np.zeros((0, 384), np.float16))
     bad = [k for k, v in status.items() if not v['ok']]
     print(f"fetched {len(fetched)} · new {len(new)} · kept {len(items)} · shown {len(shown)} · "
-          f"learned {why_count} · pending pushes {len(pending)} · failed: {', '.join(bad) or 'none'}")
+          f"learned {why_count} · owner: {acted} new, {len(owner['removed'])} removed · pending pushes {len(pending)} · failed: {', '.join(bad) or 'none'}")
 
 
 if __name__ == '__main__':

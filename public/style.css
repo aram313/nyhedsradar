@@ -426,3 +426,14 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
   --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 :is(.card-pic, .hero-row)::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: var(--film); mix-blend-mode: multiply; opacity: .5; transition: opacity .4s; }
+
+/* ------------------------------------------------------------ the owner's hand: hold a story down to remove or move it (admin only) */
+html.admin .story { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.owner { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0; background: var(--bg); box-shadow: var(--shadow); transform: translateY(100%); transition: transform .3s var(--out); }
+.owner.on { transform: none; }
+.owner p { margin: 2px 4px 12px; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--text-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.owner #actBtns { display: grid; gap: 8px; }
+.owner .wide { margin: 0; min-height: 46px; font-size: 15.5px; }
+.owner .wide.warn { color: #c0392b; }

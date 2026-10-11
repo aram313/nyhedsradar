@@ -80,6 +80,7 @@ jobs:
           PYTHONPATH: src
           RADAR_STATE: state
           RADAR_DIGEST: .cache/digest.json
+          ADMIN_KEY: ${{ secrets.ADMIN_KEY }}       # checks the owner's long-press removals from the app (admin.py)
           PROFILE_KEY: ${{ secrets.PROFILE_KEY }}   # encrypts the list of signed-up phones (state/phones.bin)
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
           VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}

@@ -148,18 +148,22 @@ function bold(text, words = []) {
   return out + esc(text.slice(p));
 }
 const readable = t => !/[؀-ۿ]/.test(t || '');
-const visible = i => !i.foreign || foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr);
+// the owner's hand (admin): stories removed or moved from this phone, at once, before the radar has caught up
+let adminKey = store.get('adminKey', '');
+const ownerGone = store.get('ownerGone', {}), ownerMoved = store.get('ownerMoved', {});
+const gone = i => !!ownerGone[i.id] || (i.also || []).some(a => ownerGone[a.id]);
+const visible = i => !gone(i) && (!i.foreign || foreignMode === 'original' || (foreignMode === 'translate' && i.title_tr));
 // the editor (07, 15, 21) lifts stories that matter most, moves stories that landed in the wrong section and picks
 // the best statements; a story is known by any of its outlets' articles, since its card may change lead
 const notes = () => (digest && digest.editor) || { picks: [], moves: [], quotes: [] };
 const noteFor = (list, i) => list.find(x => x.id === i.id || (i.also || []).some(a => a.id === x.id));
-const secOf = i => (noteFor(notes().moves || [], i) || {}).sec || i.sec || (i.lang === 'da' ? 'dk' : 'world');
+const secOf = i => (ownerMoved[i.id] || noteFor(notes().moves || [], i) || {}).sec || i.sec || (i.lang === 'da' ? 'dk' : 'world');
 const pickRank = i => { const p = notes().picks || [], k = p.findIndex(x => x.id === i.id || (i.also || []).some(a => a.id === x.id)); return k < 0 ? 99 : k; };
 // the editor's picks first (in its order), then the radar's strongest
 const withPicks = (list, n) => { const mine = list.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b));
   return [...mine, ...pick(list.filter(i => pickRank(i) === 99), n)].slice(0, n); };
 // a story the editor moved lives only in its new section; otherwise it may also show where the radar saw it
-const inSection = (i, sec) => noteFor(notes().moves || [], i) ? secOf(i) === sec : secOf(i) === sec || (i.secs || []).includes(sec);
+const inSection = (i, sec) => ownerMoved[i.id] || noteFor(notes().moves || [], i) ? secOf(i) === sec : secOf(i) === sec || (i.secs || []).includes(sec);
 const rankOf = i => i.rank ?? i.pct ?? 0;
 const hot = i => rankOf(i) - 1.5 * Math.min(48, hours(i)) - (i.confirmed === 0 ? 6 : 0);   // strong, recent, confirmed first
 // the best n stories, at most one per source, so one busy channel never fills a whole block
@@ -754,6 +758,88 @@ function closeSheet() {
   setTimeout(() => { if (!$('sheet').classList.contains('on')) $('sheet').hidden = true; }, 460);
 }
 $('openSettings').addEventListener('click', openSheet);
+
+// ---------------------------------------------------------------- the owner's hand (admin)
+// Holding the logo for two seconds asks for the admin code. With it, holding a story down offers to remove it
+// (irrelevant, not news, a duplicate) or move it to another section. Each action is signed with the code, so only
+// the owner's phone counts: it hides here at once, for everyone at the next radar run, and the radar and the
+// editor learn from it. Nobody else sees any of this.
+const enc = new TextEncoder();
+async function sign(text) {
+  const k = await crypto.subtle.importKey('raw', enc.encode(adminKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(text)))].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function ownerAct(act, i, why = '', sec = '') {
+  if (!CFG.feedbackTopic) return false;
+  const at = String(Date.now()), m = { kind: 'admin', act, id: i.id, why, sec, at };
+  try {
+    m.sig = await sign(`${act}|${i.id}|${why}|${sec}|${at}`);
+    return (await fetch('https://ntfy.sh/' + CFG.feedbackTopic, { method: 'POST', body: JSON.stringify(m) })).ok;
+  } catch { return false; }
+}
+function keepOwner() {   // the radar has long caught up after three days
+  for (const o of [ownerGone, ownerMoved]) for (const [k, v] of Object.entries(o)) if (Date.now() - v.at > 3 * 864e5) delete o[k];
+  store.set('ownerGone', ownerGone); store.set('ownerMoved', ownerMoved);
+  cache = null;
+}
+const applyAdmin = () => document.documentElement.classList.toggle('admin', !!adminKey);
+applyAdmin(); keepOwner();
+let logoHold;
+const brand = document.querySelector('.brand');
+brand.addEventListener('pointerdown', () => {
+  logoHold = setTimeout(() => {
+    const c = prompt(adminKey ? 'Admin er slået til. Skriv koden igen, eller tøm feltet for at slå det fra.' : 'Admin-kode');
+    if (c === null) return;
+    adminKey = c.trim(); store.set('adminKey', adminKey); applyAdmin();
+    toast(adminKey ? 'Admin slået til – hold en nyhed nede' : 'Admin slået fra');
+  }, 2000);
+});
+for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) brand.addEventListener(ev, () => clearTimeout(logoHold));
+
+let press = null, pressed = false, actItem = null;
+const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
+$('list').addEventListener('pointerdown', e => {
+  const el = adminKey && e.target.closest('.story[data-id]');
+  if (!el) return;
+  press = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
+    press = null; pressed = true; setTimeout(() => { pressed = false; }, 900);
+    if (navigator.vibrate) navigator.vibrate(12);
+    openAct(findStory(el.dataset.id));
+  }, 550) };
+});
+$('list').addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
+for (const ev of ['pointerup', 'pointercancel']) $('list').addEventListener(ev, cancelPress);
+addEventListener('scroll', cancelPress, { passive: true });
+// the tap that ends a long press must not also open the story
+$('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+$('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story')) e.preventDefault(); });
+function openAct(i) {
+  if (!i) return;
+  const here = secOf(i);
+  $('actTitle').textContent = i.title;
+  $('actBtns').innerHTML = [['hide:irrelevant', 'Fjern · irrelevant'], ['hide:noise', 'Fjern · ikke en nyhed'], ['hide:dup', 'Fjern · dublet'],
+    ...Object.entries(SECTIONS).filter(([k]) => k !== here).map(([k, n]) => ['move:' + k, 'Flyt til ' + n])]
+    .map(([a, l]) => `<button class="wide${a.startsWith('hide') ? ' warn' : ''}" data-a="${a}">${esc(l)}</button>`).join('')
+    + '<button class="wide soft" data-a="">Annuller</button>';
+  actItem = i; $('act').hidden = false;
+  requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
+}
+function closeAct() {
+  $('act').classList.remove('on'); $('scrim').classList.remove('on');
+  setTimeout(() => { if (!$('act').classList.contains('on')) $('act').hidden = true; }, 300);
+}
+$('scrim').addEventListener('click', closeAct);
+$('act').addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]'), i = actItem;
+  if (!b) return;
+  closeAct();
+  if (!b.dataset.a || !i) return;
+  const [act, arg] = b.dataset.a.split(':');
+  if (act === 'hide') ownerGone[i.id] = { at: Date.now() }; else ownerMoved[i.id] = { at: Date.now(), sec: arg };
+  keepOwner(); render();
+  const ok = await ownerAct(act, i, act === 'hide' ? arg : '', act === 'move' ? arg : '');
+  toast(ok ? (act === 'hide' ? 'Fjernet – Khabar lærer af det' : 'Flyttet til ' + SECTIONS[arg]) : 'Kunne ikke sende – prøv igen', ok);
+});
 $('scrim').addEventListener('click', closeSheet);
 $('closeSheet').addEventListener('click', closeSheet);
 let drag = null;

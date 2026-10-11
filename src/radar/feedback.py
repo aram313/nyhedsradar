@@ -34,6 +34,8 @@ def pull(since):
             continue
         if body.get('kind') in ('sub', 'unsub') and isinstance(body.get('sub'), dict):   # a phone switching on/off
             out.append({'kind': body['kind'], 'sub': body['sub'], 'at': msg.get('time')})
+        elif body.get('kind') == 'admin':   # the owner removing or moving a story; admin.py checks the signature
+            out.append({'kind': 'admin', **{k: str(body.get(k, ''))[:80] for k in ('act', 'id', 'why', 'sec', 'at', 'sig')}})
         elif body.get('kind') in ('up', 'share', 'read') and body.get('title'):
             out.append({'id': str(body.get('id', ''))[:32], 'kind': body['kind'], 'title': str(body['title'])[:300],
                         'summary': str(body.get('summary', ''))[:300], 'at': msg.get('time')})
