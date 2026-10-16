@@ -38,5 +38,6 @@
   "max_channel_per_day": 6,
   "same_story_merge": 0.76,
   "same_story_other_city": 0.88,
-  "lines_hours": 36
+  "lines_hours": 36,
+  "max_added_per_day": 3
 }

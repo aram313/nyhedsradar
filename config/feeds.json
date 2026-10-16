@@ -3,14 +3,16 @@
   "name": "TV 2",
   "lang": "da",
   "url": "https://feeds.services.tv2.dk/api/feeds/nyheder/rss",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "DR",
   "lang": "da",
   "url": "https://www.dr.dk/nyheder/service/feeds/allenyheder",
   "outlet": "DR",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "DR Udland",
@@ -19,7 +21,8 @@
   "outlet": "DR",
   "group": "dk",
   "sec": "abroad",
-  "label": "DR"
+  "label": "DR",
+  "camp": "dk"
  },
  {
   "name": "DR Politik",
@@ -28,45 +31,52 @@
   "outlet": "DR",
   "group": "dk",
   "sec": "dk",
-  "label": "DR"
+  "label": "DR",
+  "camp": "dk"
  },
  {
   "name": "BT",
   "lang": "da",
   "url": "https://www.bt.dk/bt/seneste/rss",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Ekstra Bladet",
   "lang": "da",
   "url": "https://ekstrabladet.dk/rssfeed/all/",
   "outlet": "Ekstra Bladet",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Berlingske",
   "lang": "da",
   "url": "https://www.berlingske.dk/content/rss",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Politiken",
   "lang": "da",
   "url": "https://politiken.dk/rss/senestenyt.rss",
   "outlet": "Politiken",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Information",
   "lang": "da",
   "url": "https://www.information.dk/feed",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Altinget",
   "lang": "da",
   "url": "https://www.altinget.dk/rss",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "TV 2 Kosmopol",
@@ -74,14 +84,16 @@
   "url": "https://www.tv2kosmopol.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "Al Jazeera",
   "lang": "en",
   "url": "https://www.aljazeera.com/xml/rss/all.xml",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "qa"
  },
  {
   "name": "Middle East Eye",
@@ -91,7 +103,8 @@
   "sec": "me",
   "type": "gnews",
   "query": "site:middleeasteye.net when:1d",
-  "locale": "en-US:US"
+  "locale": "en-US:US",
+  "camp": "muslim_west"
  },
  {
   "name": "Middle East Monitor",
@@ -99,14 +112,16 @@
   "url": "https://www.middleeastmonitor.com/feed/",
   "community": true,
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "muslim_west"
  },
  {
   "name": "BBC",
   "lang": "en",
   "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
   "group": "west",
-  "sec": "world"
+  "sec": "world",
+  "camp": "uk"
  },
  {
   "name": "The Guardian",
@@ -114,7 +129,8 @@
   "url": "https://www.theguardian.com/world/rss",
   "outlet": "The Guardian",
   "group": "west",
-  "sec": "world"
+  "sec": "world",
+  "camp": "uk"
  },
  {
   "name": "The Guardian Mellemøsten",
@@ -123,76 +139,88 @@
   "outlet": "The Guardian",
   "group": "west",
   "sec": "me",
-  "label": "The Guardian"
+  "label": "The Guardian",
+  "camp": "uk"
  },
  {
   "name": "New York Times",
   "lang": "en",
   "url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml",
   "group": "west",
-  "sec": "me"
+  "sec": "me",
+  "camp": "us"
  },
  {
   "name": "Dawn",
   "lang": "en",
   "url": "https://www.dawn.com/feeds/home",
   "group": "mena",
-  "sec": "world"
+  "sec": "world",
+  "camp": "pk"
  },
  {
   "name": "Al-Monitor",
   "lang": "en",
   "url": "https://www.al-monitor.com/rss",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "us"
  },
  {
   "name": "Anadolu",
   "lang": "en",
   "url": "https://www.aa.com.tr/en/rss/default?cat=guncel",
-  "group": "mena"
+  "group": "mena",
+  "camp": "tr",
+  "voice": "officiel"
  },
  {
   "name": "France 24",
   "lang": "en",
   "url": "https://www.france24.com/en/middle-east/rss",
   "group": "west",
-  "sec": "me"
+  "sec": "me",
+  "camp": "fr"
  },
  {
   "name": "DW",
   "lang": "en",
   "url": "https://rss.dw.com/rdf/rss-en-world",
   "group": "west",
-  "sec": "world"
+  "sec": "world",
+  "camp": "de"
  },
  {
   "name": "Jerusalem Post",
   "lang": "en",
   "url": "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
   "group": "il",
-  "sec": "me"
+  "sec": "me",
+  "camp": "il"
  },
  {
   "name": "The National",
   "lang": "en",
   "url": "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "ae"
  },
  {
   "name": "5Pillars",
   "lang": "en",
   "url": "https://5pillarsuk.com/feed",
   "community": true,
-  "group": "mena"
+  "group": "mena",
+  "camp": "muslim_west"
  },
  {
   "name": "Islam21c",
   "lang": "en",
   "url": "https://islam21c.com/feed/",
   "community": true,
-  "group": "mena"
+  "group": "mena",
+  "camp": "muslim_west"
  },
  {
   "name": "الجزيرة",
@@ -200,7 +228,8 @@
   "lang": "ar",
   "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "qa"
  },
  {
   "name": "BBC عربي",
@@ -208,7 +237,8 @@
   "lang": "ar",
   "url": "https://feeds.bbci.co.uk/arabic/rss.xml",
   "group": "west",
-  "sec": "me"
+  "sec": "me",
+  "camp": "uk"
  },
  {
   "name": "CNN بالعربية",
@@ -216,7 +246,8 @@
   "lang": "ar",
   "url": "https://arabic.cnn.com/api/v1/rss/rss.xml",
   "group": "west",
-  "sec": "me"
+  "sec": "me",
+  "camp": "us"
  },
  {
   "name": "سكاي نيوز عربية",
@@ -224,7 +255,8 @@
   "lang": "ar",
   "url": "https://www.skynewsarabia.com/rss",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "ae"
  },
  {
   "name": "حزب التحرير",
@@ -233,7 +265,8 @@
   "max_age_hours": 240,
   "url": "https://www.hizb-ut-tahrir.info/ar/index.php?format=feed&type=rss",
   "community": true,
-  "group": "mena"
+  "group": "bevægelsen",
+  "camp": "bevægelsen"
  },
  {
   "name": "الجزيرة عاجل",
@@ -245,7 +278,8 @@
   "official": true,
   "wire": true,
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "qa"
  },
  {
   "name": "Reuters",
@@ -253,7 +287,8 @@
   "type": "gnews",
   "query": "site:reuters.com when:1d",
   "group": "west",
-  "sec": "world"
+  "sec": "world",
+  "camp": "uk"
  },
  {
   "name": "AP",
@@ -261,7 +296,8 @@
   "type": "gnews",
   "query": "site:apnews.com when:1d",
   "group": "west",
-  "sec": "world"
+  "sec": "world",
+  "camp": "us"
  },
  {
   "name": "Times of Israel",
@@ -269,7 +305,8 @@
   "type": "gnews",
   "query": "site:timesofisrael.com when:1d",
   "group": "il",
-  "sec": "me"
+  "sec": "me",
+  "camp": "il"
  },
  {
   "name": "The New Arab",
@@ -277,13 +314,15 @@
   "type": "gnews",
   "query": "site:newarab.com when:1d",
   "group": "mena",
-  "sec": "me"
+  "sec": "me",
+  "camp": "qa"
  },
  {
   "name": "Jyllands-Posten",
   "lang": "da",
   "group": "dk",
-  "url": "https://feeds.jp.dk/jp/seneste"
+  "url": "https://feeds.jp.dk/jp/seneste",
+  "camp": "dk"
  },
  {
   "name": "Kristeligt Dagblad",
@@ -291,7 +330,8 @@
   "type": "gnews",
   "query": "site:kristeligt-dagblad.dk",
   "locale": "da:DK",
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Weekendavisen",
@@ -300,7 +340,8 @@
   "query": "site:weekendavisen.dk",
   "locale": "da:DK",
   "max_age_hours": 168,
-  "group": "dk"
+  "group": "dk",
+  "camp": "dk"
  },
  {
   "name": "Stand 4 Palestine",
@@ -309,7 +350,8 @@
   "channel": "stand4palestine",
   "community": true,
   "group": "channel",
-  "sec": "me"
+  "sec": "me",
+  "camp": "channel"
  },
  {
   "name": "QudsN",
@@ -318,7 +360,8 @@
   "channel": "qudsnen",
   "community": true,
   "group": "channel",
-  "sec": "me"
+  "sec": "me",
+  "camp": "channel"
  },
  {
   "name": "شبكة قدس",
@@ -328,14 +371,16 @@
   "channel": "qudsn",
   "community": true,
   "group": "channel",
-  "sec": "me"
+  "sec": "me",
+  "camp": "channel"
  },
  {
   "name": "TMW Media",
   "lang": "en",
   "type": "telegram",
   "channel": "tmw_media",
-  "group": "channel"
+  "group": "channel",
+  "camp": "channel"
  },
  {
   "name": "DOAM",
@@ -343,7 +388,8 @@
   "type": "telegram",
   "channel": "doamuslims",
   "community": true,
-  "group": "channel"
+  "group": "channel",
+  "camp": "channel"
  },
  {
   "name": "Daily Islamist",
@@ -351,21 +397,24 @@
   "type": "telegram",
   "channel": "dailyislamist",
   "community": true,
-  "group": "channel"
+  "group": "channel",
+  "camp": "channel"
  },
  {
   "name": "Clash Report",
   "lang": "en",
   "type": "telegram",
   "channel": "clashreport",
-  "group": "channel"
+  "group": "channel",
+  "camp": "channel"
  },
  {
   "name": "Warfare Analysis",
   "lang": "en",
   "type": "telegram",
   "channel": "warfareanalysis",
-  "group": "channel"
+  "group": "channel",
+  "camp": "channel"
  },
  {
   "name": "Köklü Değişim",
@@ -373,7 +422,8 @@
   "type": "telegram",
   "channel": "kokludegisim",
   "community": true,
-  "group": "channel"
+  "group": "bevægelsen",
+  "camp": "bevægelsen"
  },
  {
   "name": "Islamisk Viden",
@@ -383,7 +433,8 @@
   "max_age_hours": 336,
   "community": true,
   "group": "channel",
-  "sec": "dk"
+  "sec": "dk",
+  "camp": "channel"
  },
  {
   "name": "DIP Podcast",
@@ -393,7 +444,8 @@
   "max_age_hours": 336,
   "community": true,
   "group": "channel",
-  "sec": "dk"
+  "sec": "dk",
+  "camp": "channel"
  },
  {
   "name": "DR Indland",
@@ -402,7 +454,8 @@
   "url": "https://www.dr.dk/nyheder/service/feeds/indland",
   "group": "dk",
   "sec": "dk",
-  "label": "DR"
+  "label": "DR",
+  "camp": "dk"
  },
  {
   "name": "DR Regionale",
@@ -411,7 +464,8 @@
   "url": "https://www.dr.dk/nyheder/service/feeds/regionale",
   "group": "dk",
   "sec": "dk",
-  "label": "DR"
+  "label": "DR",
+  "camp": "dk"
  },
  {
   "name": "Politiken Indland",
@@ -420,7 +474,8 @@
   "url": "https://politiken.dk/rss/indland.rss",
   "group": "dk",
   "sec": "dk",
-  "label": "Politiken"
+  "label": "Politiken",
+  "camp": "dk"
  },
  {
   "name": "Politiken Udland",
@@ -429,7 +484,8 @@
   "url": "https://politiken.dk/rss/udland.rss",
   "group": "dk",
   "sec": "abroad",
-  "label": "Politiken"
+  "label": "Politiken",
+  "camp": "dk"
  },
  {
   "name": "Ekstra Bladet Nyheder",
@@ -437,7 +493,8 @@
   "outlet": "Ekstra Bladet",
   "url": "https://ekstrabladet.dk/rssfeed/nyheder/",
   "group": "dk",
-  "label": "Ekstra Bladet"
+  "label": "Ekstra Bladet",
+  "camp": "dk"
  },
  {
   "name": "TV 2 Øst",
@@ -445,7 +502,8 @@
   "url": "https://www.tv2east.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "TV 2 Fyn",
@@ -453,7 +511,8 @@
   "url": "https://www.tv2fyn.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "TV 2 Nord",
@@ -461,7 +520,8 @@
   "url": "https://www.tv2nord.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "TV 2 Østjylland",
@@ -469,7 +529,8 @@
   "url": "https://www.tv2ostjylland.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "TV Midtvest",
@@ -477,7 +538,8 @@
   "url": "https://www.tvmidtvest.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
  },
  {
   "name": "TV Syd",
@@ -485,6 +547,332 @@
   "url": "https://www.tvsyd.dk/rss",
   "group": "dk",
   "sec": "dk",
-  "outlet": "TV 2 regionalt"
+  "outlet": "TV 2 regionalt",
+  "camp": "dk"
+ },
+ {
+  "name": "TASS",
+  "lang": "en",
+  "url": "https://tass.com/rss/v2.xml",
+  "group": "east",
+  "camp": "ru",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Kremlin",
+  "label": "Kreml",
+  "lang": "en",
+  "url": "http://en.kremlin.ru/events/president/news/feed",
+  "group": "official",
+  "camp": "ru",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "MFA Russia",
+  "label": "Ruslands udenrigsministerium",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "MFARussia",
+  "official": true,
+  "group": "official",
+  "camp": "ru",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "CGTN",
+  "lang": "en",
+  "url": "https://www.cgtn.com/subscribe/rss/section/world.xml",
+  "group": "east",
+  "camp": "cn",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Xinhua",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:english.news.cn when:1d",
+  "locale": "en-US:US",
+  "group": "east",
+  "camp": "cn",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Global Times",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:globaltimes.cn when:1d",
+  "locale": "en-US:US",
+  "group": "east",
+  "camp": "cn",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "IRNA",
+  "lang": "en",
+  "url": "https://en.irna.ir/rss",
+  "group": "mena",
+  "camp": "ir",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Al Mayadeen English",
+  "lang": "en",
+  "type": "telegram",
+  "channel": "AlMayadeenEnglish",
+  "official": true,
+  "group": "mena",
+  "camp": "ir",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Asharq Al-Awsat",
+  "lang": "en",
+  "url": "https://english.aawsat.com/feed",
+  "group": "mena",
+  "camp": "sa",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Saudi Press Agency",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:spa.gov.sa when:1d",
+  "locale": "en-US:US",
+  "group": "official",
+  "camp": "sa",
+  "voice": "officiel",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Ahram Online",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:english.ahram.org.eg when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "eg",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "The Hindu",
+  "lang": "en",
+  "url": "https://www.thehindu.com/news/international/feeder/default.rss",
+  "group": "east",
+  "camp": "in",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "India MEA",
+  "label": "Indiens udenrigsministerium",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:mea.gov.in when:3d",
+  "locale": "en-US:US",
+  "max_age_hours": 72,
+  "group": "official",
+  "camp": "in",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "European Commission",
+  "label": "Europa-Kommissionen",
+  "lang": "en",
+  "url": "https://ec.europa.eu/commission/presscorner/api/rss?language=en",
+  "group": "official",
+  "camp": "eu",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "White House",
+  "label": "Det Hvide Hus",
+  "lang": "en",
+  "url": "https://www.whitehouse.gov/news/feed/",
+  "group": "official",
+  "camp": "us",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "US State Department",
+  "label": "USA's udenrigsministerium",
+  "lang": "en",
+  "url": "https://www.state.gov/rss-feed/press-releases/feed/",
+  "group": "official",
+  "camp": "us",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "UK FCDO",
+  "label": "Storbritanniens udenrigsministerium",
+  "lang": "en",
+  "url": "https://www.gov.uk/government/organisations/foreign-commonwealth-development-office.atom",
+  "group": "official",
+  "camp": "uk",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "UN News",
+  "label": "FN Nyheder",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:news.un.org when:1d",
+  "locale": "en-US:US",
+  "group": "official",
+  "camp": "un",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Daily Sabah",
+  "lang": "en",
+  "url": "https://www.dailysabah.com/rss/home",
+  "group": "mena",
+  "camp": "tr",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "TRT World",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:trtworld.com when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "tr",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "APP",
+  "label": "Associated Press of Pakistan",
+  "lang": "en",
+  "url": "https://www.app.com.pk/feed/",
+  "group": "official",
+  "camp": "pk",
+  "voice": "officiel",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Ariana News",
+  "lang": "en",
+  "url": "https://www.ariananews.af/feed/",
+  "group": "mena",
+  "camp": "af",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "AKIpress",
+  "lang": "en",
+  "url": "https://akipress.com/rss/news_en.rss",
+  "group": "east",
+  "camp": "central_asia",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "AllAfrica",
+  "lang": "en",
+  "url": "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf",
+  "group": "west",
+  "camp": "au",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "WAFA",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:english.wafa.ps when:2d",
+  "locale": "en-US:US",
+  "max_age_hours": 48,
+  "group": "official",
+  "camp": "ps",
+  "voice": "officiel",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Enab Baladi",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:english.enabbaladi.net when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "sy",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Shafaq News",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:shafaq.com when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "iq",
+  "sec": "me",
+  "scale": false
+ },
+ {
+  "name": "Antara",
+  "lang": "en",
+  "url": "https://en.antaranews.com/rss/news.xml",
+  "group": "mena",
+  "camp": "id",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "SVT Nyheter",
+  "lang": "sv",
+  "url": "https://www.svt.se/nyheter/rss.xml",
+  "group": "west",
+  "camp": "se_no",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "NRK Urix",
+  "lang": "no",
+  "url": "https://www.nrk.no/urix/toppsaker.rss",
+  "group": "west",
+  "camp": "se_no",
+  "sec": "world",
+  "scale": false
+ },
+ {
+  "name": "Le Monde",
+  "lang": "en",
+  "url": "https://www.lemonde.fr/en/rss/une.xml",
+  "group": "west",
+  "camp": "fr",
+  "sec": "world",
+  "scale": false
  }
 ]

@@ -10,9 +10,10 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from radar import admin, feedback, push, stats
+from radar import admin, analyses, feedback, push, stats
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all
+from radar.method import Method
 from radar.sections import Sections
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +22,8 @@ STATE = Path(os.environ.get('RADAR_STATE', ROOT / 'state'))
 CACHE = Path(os.environ.get('RADAR_CACHE', ROOT / '.cache'))
 NOW = datetime.now(timezone.utc)
 READABLE = {'da', 'en'}   # languages the owner reads; others are translated or used only as signal
+# the kinds of media an opened story takes turns between (feeds.json 'group'), in this order
+KINDS = ('dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen')
 
 
 def load(path, default):
@@ -246,6 +249,16 @@ def main():
     group_of = {f['name']: f.get('group') or ('channel' if f['name'] in channel else 'dk' if f.get('lang') == 'da' else 'west')
                 for f in feeds}
     hint = {f['name']: f['sec'] for f in feeds if f.get('sec')}   # where a source's stories usually belong
+    # the state or bloc whose view a source carries ('camp'); the coverage of a story is compared by camp
+    camp_of = {f['name']: f.get('camp') or ('channel' if f['name'] in channel else 'dk' if f.get('lang') == 'da' else '')
+               for f in feeds}
+    # the movement's own outlets never count as an outlet or as confirmation of a fact, and never lead a story
+    # another outlet carries; governments' own channels (group 'official') never lead one either
+    movement = {f['name'] for f in feeds if 'bevægelsen' in (f.get('camp'), f.get('group'))}
+    official = {f['name'] for f in feeds if f.get('group') == 'official'}
+    # sources added for their camp's view (scale: false) are ranked against the established sources' scale and
+    # never move it: not the taste percentiles, not a section's bar, not the outlet count of the rank or a big story
+    off_scale = {f['name'] for f in feeds if f.get('scale') is False}
     sections = Sections(load(CONFIG / 'sections.json', {}))
     find_cities = place_finder(load(CONFIG / 'places.json', {}))
     city_of = lambda it: find_cities(f"{it['title']} {it.get('title_tr') or ''}")
@@ -375,10 +388,12 @@ def main():
                 items[k]['removed'] = True
             elif row[j] >= lo:
                 items[k]['score'] = round(float(items[k]['score'] - s.get('removed_penalty', 0.05) * min(1, (row[j] - lo) / (hi - lo))), 4)
-    # rank within each language: the model scores some languages (Arabic) higher across the board
-    ranked = {'': np.sort(np.array([items[k]['score'] for k in ids], dtype=np.float32))}
-    for lang in {items[k].get('lang', '') for k in ids}:
-        sc = [items[k]['score'] for k in ids if items[k].get('lang', '') == lang]
+    # rank within each language: the model scores some languages (Arabic) higher across the board. The scale is
+    # the established sources' own; a source added for its camp (scale: false) is placed on it without moving it
+    ref = [k for k in ids if items[k]['source'] not in off_scale] or ids
+    ranked = {'': np.sort(np.array([items[k]['score'] for k in ref], dtype=np.float32))}
+    for lang in {items[k].get('lang', '') for k in ref}:
+        sc = [items[k]['score'] for k in ref if items[k].get('lang', '') == lang]
         if lang and len(sc) >= 50:
             ranked[lang] = np.sort(np.array(sc, dtype=np.float32))
     for k in ids:
@@ -390,37 +405,62 @@ def main():
     recent = sorted((k for k in ids if ts(items[k]['found']) >= NOW - timedelta(hours=36) and not is_noise(items[k])),
                     key=lambda k: items[k]['found'])
     for it in items.values():
-        it.update(lead=True, outlets=1, also=[], big=False, important=False,
-                  confirmed=0 if it['source'] in channel else 1)
-        for k in ('cluster_pct', 'cluster_gpct', 'sec', 'secs', 'rank', 'spct', 'cover'):
+        alone = it['source'] in channel or it['source'] in movement
+        it.update(lead=True, outlets=1, also=[], big=False, important=False, confirmed=0 if alone else 1,
+                  _ref_out=1, _ref_est=0 if alone or it['source'] in off_scale else 1, members=[it['id']],
+                  camps={camp_of.get(it['source']) or 'ukendt': 1},
+                  first={'source': label_of.get(it['source'], it['source']), 'camp': camp_of.get(it['source']) or None,
+                         'published': it.get('published')})
+        for k in ('cluster_pct', 'cluster_gpct', 'sec', 'secs', 'rank', 'spct', 'cover', 'actors', 'tier', 'tags',
+                  'powers', 'method'):
             it.pop(k, None)
 
     def story(members):
         """One card for the members: a Danish/English article from an established outlet leads when there is
-        one (a channel post or a foreign-language article still counts as an outlet)."""
-        lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in channel, x['pct'], x['score']))
-        n_out = len({outlet_of.get(m['source'], m['source']) for m in members})
-        n_est = len({outlet_of.get(m['source'], m['source']) for m in members if m['source'] not in channel})
+        one (a channel post or a foreign-language article still counts as an outlet); the movement's outlets and
+        governments' own channels lead only a story no one else carries."""
+        lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in movement,
+                                           x['source'] not in official, x['source'] not in channel, x['pct'], x['score']))
+        outlets = lambda ms: len({outlet_of.get(m['source'], m['source']) for m in ms})
+        counted = [m for m in members if m['source'] not in movement]
+        n_out = outlets(counted) or 1
+        n_est = outlets([m for m in counted if m['source'] not in channel])
         for m in members:
             m.update(lead=m is lead, outlets=n_out, confirmed=n_est, also=[], member=m is not lead)
             m.pop('cluster_pct', None)
             m.pop('cluster_gpct', None)
+        # the outlets on the established sources' scale: what the rank and a big story count (scale: false never)
+        lead['_ref_out'] = outlets([m for m in counted if m['source'] not in off_scale]) or 1
+        lead['_ref_est'] = outlets([m for m in counted if m['source'] not in off_scale and m['source'] not in channel])
         # the other outlets, one article each, taking turns between kinds of media so a story shows how
-        # Danish, Western, Arab/Muslim and Israeli media and the channels each tell it
+        # Danish, Western, Arab/Muslim, Israeli and Eastern media, governments and the channels each tell it
         by_kind, seen_outlets = {}, {outlet_of.get(lead['source'], lead['source'])}
         for m in sorted(members, key=lambda x: -x['pct']):
             o = outlet_of.get(m['source'], m['source'])
             if m is not lead and o not in seen_outlets:
                 seen_outlets.add(o)
                 by_kind.setdefault(group_of.get(m['source'], 'west'), []).append(m)
+        kinds = [k for k in KINDS if k in by_kind] + sorted(k for k in by_kind if k not in KINDS)
         others = []
         while len(others) < 10 and any(by_kind.values()):
-            for kind in ('dk', 'west', 'mena', 'il', 'channel'):
-                if by_kind.get(kind) and len(others) < 10:
+            for kind in kinds:
+                if by_kind[kind] and len(others) < 10:
                     others.append(by_kind[kind].pop(0))
         lead['also'] = [{'id': m['id'], 'source': label_of.get(m['source'], m['source']), 'title': m['title'],
-                         'link': m['link'], 'lang': m.get('lang'),
-                         'group': group_of.get(m['source'], 'west'), 'title_tr': m.get('title_tr')} for m in others]
+                         'link': m['link'], 'lang': m.get('lang'), 'published': m.get('published'),
+                         'group': group_of.get(m['source'], 'west'), 'camp': camp_of.get(m['source']) or None,
+                         'title_tr': m.get('title_tr')} for m in others]
+        # every member (the story's lasting identity: the editor admits a story by any of them), the camps that
+        # carried it and who was first
+        lead['members'] = sorted(m['id'] for m in members)
+        camps = {}
+        for m in members:
+            c = camp_of.get(m['source']) or 'ukendt'
+            camps[c] = camps.get(c, 0) + 1
+        lead['camps'] = camps
+        first = min(members, key=lambda x: x.get('published') or x['found'])
+        lead['first'] = {'source': label_of.get(first['source'], first['source']),
+                         'camp': camp_of.get(first['source']) or None, 'published': first.get('published')}
         lead['cluster_pct'] = max(m['pct'] for m in members)
         lead['cluster_gpct'] = max(m.get('gpct', 0) for m in members)
         return [lead] + [m for m in members if m is not lead]
@@ -462,17 +502,27 @@ def main():
     lead_emb = np.array([emb_store[st[0]['id']] for st in stories]) if stories else np.zeros((0, 384), np.float32)
     placed = sections.place([[{'source': m['source'], 'lang': m.get('lang'), 'sig': sig[m['id']]} for m in st]
                              for st in stories], lead_emb, hint)
-    ranks = {}
+    # the brain (method.py): the books' order of importance and the powers by Hizb ut-Tahrir's newest answers weigh
+    # every story
+    meth = Method(wiki=load(ROOT / 'public' / 'viden' / 'begreber-index.json', None))
+    ranks, ranks_ref = {}, {}
     for st, secs in zip(stories, placed):
         lead, ls = st[0], sig[st[0]['id']]
         core = max(sig[m['id']]['core'] for m in st)
         core_dk = max(sig[m['id']]['core_dk'] for m in st) if secs[0] == 'dk' else 0
-        est = lead['confirmed']
+        est = lead['_ref_est']   # outlets on the established scale (an added camp's outlet confirms, but adds no rank)
         r = lead.get('cluster_pct', lead['pct']) + (s['rank_per_outlet'] * min(est - 1, 5) if est >= 2 else 0)
         if core_dk:   # Danish politics, Islam and Muslims, immigration
             r += s['rank_core_dk'] if core_dk >= 2 else s['rank_core_dk'] / 2
         elif core:
             r += s['rank_core'] if core >= 2 else s['rank_core'] / 2
+        lead['sec'] = secs[0]
+        lead['actors'] = meth.actors(meth.text(lead))
+        lead['tier'], lead['tags'], lead['powers'] = meth.weigh(lead, ls['trivia'], lead['actors'])
+        # the books' order: the leading state's acts up, ceremony down – a lift only for what an established outlet
+        # carries (a channel's post about a summit is no confirmed act)
+        up = meth.lift(lead['tier'])
+        r += up if up < 0 or lead['confirmed'] else 0
         lift = next(((owner.get('rank') or {})[m['id']]['v'] for m in st if m['id'] in (owner.get('rank') or {})), None)
         if lift:                                      # the owner raised or lowered it in the app
             r += s.get('owner_rank_step', 30) * (1 if lift == 'up' else -1)
@@ -491,6 +541,8 @@ def main():
         lead['_core'], lead['_core_dk'], lead['_dk_outlets'] = max(core, core_dk), core_dk, len(cover.get('dk', ()))
         if lead['source'] not in wire:   # a lone wire line is no story, so it must not shift the section's bar
             ranks.setdefault(secs[0], []).append(r)
+            if any(m['source'] not in off_scale for m in st):   # nor a story only the added camps carry
+                ranks_ref.setdefault(secs[0], []).append(r)
     # the owner moved it: the whole story goes to that section
     for st in stories:
         mv = next((owner['moved'][m['id']] for m in st if m['id'] in owner['moved']), None)
@@ -499,9 +551,12 @@ def main():
                 m['sec'] = mv
             st[0]['secs'] = [mv] + [x for x in st[0]['secs'] if x != mv]
             ranks.setdefault(mv, []).append(st[0]['rank'])
-    ranks = {k: np.sort(np.array(v, dtype=np.float32)) for k, v in ranks.items()}
+            ranks_ref.setdefault(mv, []).append(st[0]['rank'])
+    # each section's bar on the established scale (all its stories while it has hardly any of its own)
+    ranks = {k: np.sort(np.array(ranks_ref[k] if len(ranks_ref.get(k, ())) >= 10 else v, dtype=np.float32))
+             for k, v in ranks.items()}
 
-    shown = []
+    shown, bypassed = [], {}
     for st in sorted(stories, key=lambda st: -st[0]['rank']):
         it = st[0]
         if is_noise(it) or it['source'] in wire:
@@ -511,7 +566,7 @@ def main():
         # a big story must matter to the group across all languages, so a widely covered but off-topic
         # Danish story (weather, northern lights) never qualifies through the Danish-only ranking …
         gpct = it.get('cluster_gpct', it.get('gpct', 0))
-        it['big'] = (it['outlets'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
+        it['big'] = (it['_ref_out'] >= s['big_story_sources'] and cpct >= s['big_story_min_percentile']
                      and gpct >= s.get('big_story_min_global_percentile', 72))
         # … but a political story most Danish media carry at once is big news in Denmark
         if (it['sec'] == 'dk' and it['_dk_outlets'] >= s['big_dk_outlets'] and it['_core'] >= 2
@@ -526,9 +581,19 @@ def main():
                     and (it['_dk_outlets'] < s['big_dk_outlets'] - 1 or sig[it['id']]['trivia']))
         if it['big'] or (it['spct'] >= s['show_percentile'] and it['rank'] >= s['rank_floor'] and not everyday):
             shown.append(it)
+        elif (it['tier'] in meth.bypass_tiers and not sig[it['id']]['trivia'] and it['confirmed']
+              and it['rank'] >= meth.bypass_floor):
+            # below the taste bar, but the books weigh it (the leading state's acts, a coup, the campaign against
+            # Islam): the editor must see it – a few a day, the strongest first
+            day = int((NOW - ts(it['found'])).total_seconds() // 86400)
+            if bypassed.get(day, 0) < meth.bypass_per_day:
+                bypassed[day] = bypassed.get(day, 0) + 1
+                it['method'] = True
+                shown.append(it)
     # balance: one prolific source may fill at most a few important slots per day (big stories exempt),
-    # and a busy Telegram channel at most a handful of lines per day
-    per_source, per_channel, kept = {}, {}, []
+    # a busy Telegram channel at most a handful of lines per day, and a source added for its camp's view
+    # (scale: false) at most a few cards of its own
+    per_source, per_channel, per_added, kept = {}, {}, {}, []
     for it in shown:  # already sorted best first
         if it['important'] and not it['big'] and ts(it['found']) >= NOW - timedelta(hours=24):
             per_source[it['source']] = per_source.get(it['source'], 0) + 1
@@ -538,6 +603,11 @@ def main():
             day = (it['source'], int((NOW - ts(it['found'])).total_seconds() // 86400))   # per 24 hours back
             per_channel[day] = per_channel.get(day, 0) + 1
             if per_channel[day] > s['max_channel_per_day']:
+                continue
+        if it['source'] in off_scale and not it['big']:
+            day = (it['source'], int((NOW - ts(it['found'])).total_seconds() // 86400))
+            per_added[day] = per_added.get(day, 0) + 1
+            if per_added[day] > s.get('max_added_per_day', 3):
                 continue
         kept.append(it)
     # posts no established outlet carries fill at most about an eighth of a section (they were a quarter of Mellemøsten)
@@ -557,7 +627,7 @@ def main():
             learned.append({'id': it['id'], 't': text(it), 'at': NOW.isoformat(), 'why': 'big'})
             learned_ids.add(it['id'])
     for it in items.values():
-        for k in ('_core', '_core_dk', '_dk_outlets'):
+        for k in ('_core', '_core_dk', '_dk_outlets', '_ref_out', '_ref_est'):
             it.pop(k, None)
 
     # foreign-language cards (no Danish/English version of the story): translate to English once,
@@ -699,10 +769,21 @@ def main():
     pushes.update(pending=pending, notified=notified,
                   sent=[x for x in pushes['sent'] if ts(x) >= NOW - timedelta(days=2)])
 
+    # Hizb ut-Tahrir's new political answers (the amir's answers to questions): a layer of their own, never a card
+    # and never ranked with the news (analyses.py). The answers the app already holds (movement-index.json) are
+    # only listed; the text of a new one is kept for the editor. The cloud run sets RADAR_ANALYSES=1, local and
+    # test runs stay offline.
+    found_analyses = load(STATE / 'analyses.json', {})
+    if os.environ.get('RADAR_ANALYSES') == '1':
+        known = set((load(ROOT / 'public' / 'viden' / 'movement-index.json', {}).get('answers') or {}))
+        found_analyses = analyses.update(found_analyses, NOW, known=known)
+        save(STATE / 'analyses.json', found_analyses)
+
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da')
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da',
+                     'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method')
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     save(STATE / 'data.json', {
@@ -714,6 +795,8 @@ def main():
                         'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
         'learned': why_count,
+        # the movement's new answers the radar has found (titles, dates and links; the text stays in the state)
+        'analyses': analyses.for_app(found_analyses),
         # the owner's front-page choices: quote, main story, raised/lowered stories
         'owner': {'quote': (owner.get('quote') or {}).get('key'), 'lead': (owner.get('lead') or {}).get('id'),
                   'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()}},
