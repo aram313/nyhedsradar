@@ -50,6 +50,13 @@ Telefon-app (Khabar) der automatisk finder nyheder til Debat/Nyheder Shabab-grup
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
+- `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market) writes
+  `energy.json` for `public/energi/` (khabar.nu/energi) after every radar pass, stdlib only, a step in radar.yml that
+  may fail without stopping the save. Sources: Yahoo Finance chart API (futures, contract months for the curves,
+  USD/DKK), FRED CSV (EIA spot; FRED drops a browser-like User-Agent, so it gets a plain one), Circle K's public
+  price API (header X-App-Name: PRICES; Circle K + INGO) and q8.dk/Station/GetStationPrices (Q8 + F24). Each source
+  has its own clock (EVERY) and keeps its last good numbers; pump prices keep one point a day for 400 days. The
+  page holds all names, units and explanations; the file only numbers.
 - `public/` is the PWA. `config.js` and `data.json` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js`.
 - State lives on the force-pushed orphan branch `data` (no history), read back at the start of each run.

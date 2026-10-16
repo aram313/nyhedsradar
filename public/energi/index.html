@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Energi – Khabar</title>
+<meta name="description" content="Olie, benzin, diesel og gas: Brent, WTI, fysiske priser, crack spreads, terminskurven og danske pumpepriser – opdateret hvert 5. minut.">
+<meta property="og:title" content="Energi – Khabar">
+<meta property="og:description" content="Brent, WTI, crack spreads, det fysiske marked og danske pumpepriser – opdateret hvert 5. minut.">
+<meta property="og:image" content="https://khabar.nu/icons/icon-512.png">
+<meta name="theme-color" content="#eeeeeb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/icon-180.png">
+<link rel="icon" href="../icons/icon-192.png">
+<script>
+  // the app's own tone and light/dark choice, before the first paint (no flash)
+  try {
+    const q = new URLSearchParams(location.search), d = document.documentElement;
+    const get = (k, v) => q.get(k) || JSON.parse(localStorage.getItem(k) || JSON.stringify(v));
+    const tone = get('tone', 'daempet'), mode = get('mode', 'auto'), dark = get('dark', 'notion');
+    if (tone !== 'daempet') d.dataset.tone = tone;
+    if (mode !== 'auto') d.dataset.theme = mode;
+    if (dark !== 'notion') d.dataset.dark = dark;
+    document.querySelector('meta[name="color-scheme"]').content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
+    const ts = JSON.parse(localStorage.getItem('size') || '"auto"');
+    if (ts !== 'auto' && +ts) d.style.setProperty('--ts', ts);
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Energi: the same look as the app (its tones, bar, blocks and story rows come from style.css); prices are rows
+     that open in place with a chart, colour only for up/down next to an arrow */
+  :root { --up: #2f7a52; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --up: #4cc38a; } }
+  :root[data-theme="dark"] { --up: #4cc38a; }
+  main.en { max-width: 680px; margin: 0 auto; padding: calc(var(--barh) + 2px) 0 calc(36px + var(--bottom)); font-size: calc(16px * var(--ts, 1)); }
+  .bar > .brand { max-width: 680px; }
+  .en-home { flex: none; display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: -10px; padding: 0 4px; color: var(--text); }
+  .en-home > svg { width: 20px; height: 20px; color: var(--text-2); transform: scaleX(-1); }
+  .en-home .logo { width: 38px; height: 28px; }
+  .en-title { margin: 0 0 0 8px; font-size: calc(18px * var(--ts, 1)); font-weight: 720; letter-spacing: -.015em; }
+
+  .en-hint { margin: -6px 16px 4px; font-size: calc(13px * var(--ts, 1)); line-height: 1.4; color: var(--text-3); }
+  /* Lige nu: short 'Who: what' lines, like the wire */
+  .en-sig { list-style: none; margin: 0; padding: 0 16px; }
+  .en-sig li { padding: 9px 0 10px; font-size: calc(15.5px * var(--ts, 1)); line-height: 1.42; letter-spacing: -.005em; }
+  .en-sig li + li { border-top: 1px solid var(--line); }
+  .en-sig b { font-weight: 700; }
+  .en-sig .q { color: var(--text-2); }
+
+  /* one price: name and kind at the left, three months in a small line, price and day's move at the right */
+  .en-item { position: relative; transition: background-color .25s; }
+  .en-item + .en-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+  .en-item.open { background-color: var(--fill); }
+  .en-item.open::before, .en-item.open + .en-item::before { opacity: 0; }
+  .en-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 96px; align-items: center; gap: 12px; width: 100%;
+    min-height: calc(58px * var(--ts, 1)); padding: 8px 16px; transition: background-color .15s; }
+  .en-row:active { background-color: var(--fill); }
+  .en-name { min-width: 0; }
+  .en-name b { display: block; font-size: calc(16px * var(--ts, 1)); font-weight: 650; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .en-name small { display: block; margin-top: 2px; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  svg.en-spark { width: 64px; height: 26px; overflow: visible; }
+  .en-spark path { fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .en-spark circle { fill: var(--text); }
+  .en-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .en-v { display: block; font-size: calc(17px * var(--ts, 1)); font-weight: 650; letter-spacing: -.01em; }
+  .en-c { display: block; margin-top: 2px; font-size: calc(12.5px * var(--ts, 1)); font-weight: 600; color: var(--text-3); }
+  .en-c.up { color: var(--up); }
+  .en-c.down { color: var(--pulse); }
+  .en-c.old { font-weight: 500; }
+
+  /* opened: a chart you can touch, the range, what it is and where it comes from */
+  .en-more { padding: 0 16px 14px; }
+  .en-range { display: flex; gap: 2px; margin: -2px 0 2px -6px; }
+  .en-range button { min-height: 40px; padding: 0 6px; display: grid; place-items: center; }
+  .en-range span { padding: 4px 11px; border-radius: 14px; font-size: calc(13px * var(--ts, 1)); font-weight: 650; color: var(--text-2); }
+  .en-range button[aria-pressed="true"] span { background: var(--bg); color: var(--text); }
+  .en-chart { position: relative; height: 172px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+  .en-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .en-chart .grid { stroke: var(--line); stroke-width: 1; }
+  .en-chart .zero { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; }
+  .en-chart .ln { fill: none; stroke: var(--text); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .en-chart .ln.two { stroke: var(--text-3); stroke-dasharray: 5 4; }
+  .en-chart .pt { fill: var(--text); stroke: var(--fill); stroke-width: 2; }
+  .en-chart .lbl { fill: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .en-chart .tag { fill: var(--text-2); font-size: 11.5px; font-weight: 650; }
+  .en-chart .cross { stroke: var(--text-3); stroke-width: 1; }
+  .en-tip { position: absolute; top: -4px; transform: translate(-50%, -100%); padding: 3px 8px; border-radius: 8px; background: var(--text); color: var(--bg);
+    font-size: calc(12.5px * var(--ts, 1)); font-weight: 650; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .en-hl { margin: 8px 0 0; font-size: calc(13px * var(--ts, 1)); color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .en-what { margin: 6px 0 0; font-size: calc(14px * var(--ts, 1)); line-height: 1.45; color: var(--text-2); }
+  .en-src { margin: 6px 0 0; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); }
+  .en-seg { display: inline-flex; gap: 2px; margin: 0 0 2px -6px; }
+
+  /* Danish pump prices: one line per chain, the cheapest in bold */
+  .en-pump { width: calc(100% - 32px); margin: 0 16px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .en-pump th { padding: 6px 0; font-size: calc(12px * var(--ts, 1)); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); text-align: right; }
+  .en-pump th:first-child { text-align: left; }
+  .en-pump th + th, .en-pump td + td { padding-left: 12px; white-space: nowrap; }
+  .en-pump td { padding: 9px 0; border-top: 1px solid var(--line); font-size: calc(16px * var(--ts, 1)); text-align: right; color: var(--text-2); }
+  .en-pump td:first-child { text-align: left; color: var(--text); }
+  .en-pump td:first-child b { font-weight: 650; }
+  .en-pump td small { display: block; margin-top: 1px; font-size: calc(12px * var(--ts, 1)); color: var(--text-3); }
+  .en-pump td.low { color: var(--text); font-weight: 700; }
+  .en-note { margin: 8px 16px 0; font-size: calc(13px * var(--ts, 1)); line-height: 1.45; color: var(--text-3); }
+  .en-note b { color: var(--text-2); font-weight: 650; }
+  .en-plus { display: flex; align-items: center; gap: 2px; min-height: 44px; margin: 0 0 0 16px; font-size: calc(14px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
+  .en-plus svg { width: 15px; height: 15px; transition: transform .2s var(--ease); }
+  .en-plus[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .en-pchart { margin: 6px 16px 0; }
+  .en-pchart .en-chart { height: 140px; }
+
+  .en-news .row { text-align: left; }
+  .en-news .story:not(.open) .row { height: calc(78px * var(--ts, 1)); }
+  .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: calc(15px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
+  .en-showmore svg { width: 15px; height: 15px; transform: rotate(90deg); }
+  @media (prefers-reduced-motion: reduce) { .en-item, .en-row, .en-plus svg { transition: none; } }
+</style>
+</head>
+<body>
+<header class="bar" id="bar">
+  <div class="brand">
+    <a class="en-home" href="../" aria-label="Til Khabar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="logo" viewBox="162 112 272 196" aria-hidden="true"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="M302.7 200.5 C302.7 202.5 307 206.8 316 206.29 L317 213 L300 213 Z M296 241.27 C299 240.81 303 240.92 306 240.39 L306 236 L296 236 Z"/><circle class="dot" id="dot" cx="380" cy="128" r="12"/></svg></a>
+    <h1 class="en-title">Energi</h1>
+  </div>
+  <button class="status" id="status" aria-label="Opdater nu">henter …</button>
+</header>
+
+<main class="en" id="en">
+  <div class="block"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+</main>
+
+<script src="../config.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
+};
+const CFG = window.RADAR_CONFIG || {};
+// the radar saves energy.json next to data.json (the data branch); locally both sit in public/
+const SRC = CFG.energyUrl || new URL((CFG.dataUrl || 'data.json').replace(/data\.json(\?.*)?$/, 'energy.json'), new URL('../', location.href)).href;
+
+const FUT = 'ICE/NYMEX-future via Yahoo Finance, ca. 10 min. forsinket';
+const EIA = 'Det amerikanske energiministerium (EIA) via FRED – 1–3 dage bagud';
+const CALC = 'Beregnet ud fra futures';
+// every price the page knows: name, kind and unit, decimals, 'spread' (moves in $, not %), what it is, source
+const C = {
+  brent: { n: 'Brent', s: 'Future · $/tønde', d: 2, src: FUT,
+    what: 'Prisreferencen for omkring to tredjedele af verdens olie: Nordsø-olie, nærmeste månedskontrakt.' },
+  wti: { n: 'WTI', s: 'Future · $/tønde', d: 2, src: FUT,
+    what: 'Amerikansk råolie leveret i Cushing, Oklahoma – nærmeste månedskontrakt.' },
+  brent_spot: { n: 'Brent, fysisk', s: 'Laster, Nordsøen · $/tønde', d: 2, src: EIA,
+    what: 'Prisen på rigtige laster Nordsø-olie, der lastes nu (FOB) – ikke papirkontrakter.' },
+  wti_spot: { n: 'WTI, fysisk', s: 'Cushing, USA · $/tønde', d: 2, src: EIA,
+    what: 'Prisen på fysisk WTI-olie, der leveres i Cushing nu.' },
+  phys_prem: { n: 'Fysisk minus papir', s: 'Brent-laster − future · $/tønde', d: 2, spread: true, src: 'Beregnet: EIA-spot minus futures samme dag',
+    what: 'Over nul betaler køberne ekstra for olie, der kan leveres nu, frem for olie på papir – et tegn på knaphed i det rigtige marked.' },
+  curve: { n: 'Terminskurven', s: 'Nærmeste måned − 6 mdr. frem', d: 2, spread: true, src: 'NYMEX-kontrakter via Yahoo Finance',
+    what: 'Prisen for hver leveringsmåned. Falder kurven (backwardation), betaler markedet ekstra for olie nu – tegn på knaphed. Stiger den (contango), er der olie nok, og det kan betale sig at lagre den.' },
+  brent_wti: { n: 'Brent − WTI', s: 'Europa mod USA · $/tønde', d: 2, spread: true, src: CALC,
+    what: 'Forskellen mellem europæisk og amerikansk råolie. Vokser, når olie uden for USA bliver knap.' },
+  crack321: { n: '3-2-1 crack', s: 'Raffinørmargin, USA · $/tønde', d: 2, spread: true, src: CALC,
+    what: 'Raffinaderiernes bruttomargin: tre tønder WTI bliver til to tønder benzin og én tønde diesel. Højt tal = stor efterspørgsel efter brændstof eller for lidt raffineringskapacitet.' },
+  crack_diesel: { n: 'Diesel-crack', s: 'Diesel − Brent · $/tønde', d: 2, spread: true, src: CALC,
+    what: 'En tønde diesel (New York Harbor ULSD) minus en tønde Brent. Diesel driver lastbiler, skibe, landbrug og industri.' },
+  crack_gas: { n: 'Benzin-crack', s: 'Benzin − Brent · $/tønde', d: 2, spread: true, src: CALC,
+    what: 'En tønde benzin (RBOB) minus en tønde Brent.' },
+  rbob: { n: 'Benzin (RBOB)', s: 'Future, New York · $/gallon', d: 3, src: FUT,
+    what: 'Benzin til levering i New York Harbor, nærmeste måned. 1 gallon = 3,785 liter.' },
+  ulsd: { n: 'Diesel (ULSD)', s: 'Future, New York · $/gallon', d: 3, src: FUT,
+    what: 'Diesel med ultralavt svovlindhold (også fyringsolie) til levering i New York Harbor, nærmeste måned.' },
+  gas_nyh: { n: 'Benzin, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA, what: 'Fysisk benzin, der handles i New York Harbor nu.' },
+  ulsd_nyh: { n: 'Diesel, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA, what: 'Fysisk diesel, der handles i New York Harbor nu.' },
+  jet_gulf: { n: 'Jetbrændstof, fysisk', s: 'Golfkysten, USA · $/gallon', d: 3, src: EIA, what: 'Fysisk jetbrændstof ved den amerikanske Golfkyst.' },
+  brent_kr: { n: 'Brent i kroner', s: 'Råolie · kr./liter', d: 2, src: CALC, what: 'Brent omregnet til kroner pr. liter (1 tønde = 159 liter).' },
+  rbob_kr: { n: 'Benzin, råvaren', s: 'Før afgifter · kr./liter', d: 2, src: CALC,
+    what: 'Hvad selve benzinen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.' },
+  ulsd_kr: { n: 'Diesel, råvaren', s: 'Før afgifter · kr./liter', d: 2, src: CALC,
+    what: 'Hvad selve dieselen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.' },
+  usddkk: { n: 'Dollaren', s: 'Kroner pr. dollar', d: 3, src: 'Valutakurs via Yahoo Finance',
+    what: 'Olie handles i dollar, så en stærkere dollar gør brændstof dyrere i Danmark, selv når olien står stille.' },
+  ttf: { n: 'TTF-gas', s: 'Future, Europa · €/MWh', d: 2, src: 'ICE Endex-future via Yahoo Finance',
+    what: 'Europas prisreference for naturgas (Holland), nærmeste måned. Smitter af på gas- og elpriser i Danmark.' },
+  hh: { n: 'Henry Hub', s: 'Future, USA · $/MMBtu', d: 3, src: FUT, what: 'Amerikansk naturgas, nærmeste måned på NYMEX.' },
+  hh_spot: { n: 'Henry Hub, fysisk', s: 'Louisiana, USA · $/MMBtu', d: 2, src: EIA, what: 'Fysisk naturgas i Henry Hub, Louisiana.' },
+};
+const BLOCKS = [
+  { h: 'Råolie', keys: ['brent', 'wti', 'brent_spot', 'wti_spot'] },
+  { h: 'Det fysiske marked', hint: 'Rigtige laster mod papirkontrakter – her ses knaphed først.', keys: ['phys_prem', 'curve', 'brent_wti'] },
+  { h: 'Raffinørmargin', hint: 'Crack spreads: hvad raffinaderierne tjener på at lave brændstof af råolie.', keys: ['crack321', 'crack_diesel', 'crack_gas'] },
+  { h: 'Benzin, diesel og jet', keys: ['rbob', 'ulsd', 'gas_nyh', 'ulsd_nyh', 'jet_gulf'] },
+  { h: 'Danmark', pumps: true, keys: ['rbob_kr', 'ulsd_kr', 'brent_kr', 'usddkk'] },
+  { h: 'Gas', keys: ['ttf', 'hh', 'hh_spot'] },
+];
+const PUMP = { benzin: 'Benzin 95', diesel: 'Diesel', benzin_plus: 'Benzin', diesel_plus: 'Diesel', hvo: 'HVO100' };
+
+let D = null;
+const open = new Set(store.get('enOpen', []));
+const range = store.get('enRange', {});
+let curveOf = 'brent', pumpPlus = false, newsAll = false;
+
+// ---- numbers and time ----------------------------------------------------------------------------------------------
+const nf = (v, d = 2) => Number(v).toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
+const signed = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), d);
+const isDay = t => /^\d{4}-\d{2}-\d{2}$/.test(t);
+const asDate = t => isDay(t) ? new Date(t + 'T12:00:00') : new Date(t);
+const dayLabel = (t, opts = { day: 'numeric', month: 'short' }) => asDate(t).toLocaleDateString('da-DK', opts);
+const clock = t => new Date(t).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+const sameDay = (a, b) => a.toDateString() === b.toDateString();
+function when(t) {
+  if (!t) return '';
+  const d = asDate(t), now = new Date();
+  if (isDay(t)) return sameDay(d, now) ? 'i dag' : dayLabel(t);
+  if (sameDay(d, now)) return 'kl. ' + clock(t);
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (sameDay(d, y)) return 'i går ' + clock(t);
+  if (now - d < 6 * 864e5) return d.toLocaleDateString('da-DK', { weekday: 'long' }) + ' ' + clock(t);
+  return dayLabel(t);
+}
+const monthName = ym => new Date(ym + '-15T12:00:00').toLocaleDateString('da-DK', { month: 'short', year: '2-digit' }).replace('.', '');
+
+// the day's move: % for prices, $ for spreads; an arrow, so colour is never the only sign
+function move(k, x) {
+  if (x.p == null || x.v == null) return { cls: '', text: '' };
+  const diff = x.v - x.p;
+  if (Math.abs(diff) < 1e-9) return { cls: '', text: 'uændret' };
+  const cls = diff > 0 ? 'up' : 'down', arrow = diff > 0 ? '▲' : '▼';
+  if (C[k] && C[k].spread) return { cls, text: `${arrow} ${nf(Math.abs(diff), C[k].d)}` };
+  const pc = Math.abs(diff / x.p * 100);
+  return { cls, text: `${arrow} ${nf(pc, pc < .1 ? 2 : 1)} %` };
+}
+
+// ---- small and large charts ----------------------------------------------------------------------------------------
+function sparkPath(vals, w, h) {
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+  const pts = vals.map((v, i) => [vals.length < 2 ? w : i / (vals.length - 1) * w, h - 2 - (v - lo) / span * (h - 4)]);
+  return { d: 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L'), end: pts[pts.length - 1] };
+}
+function spark(vals) {
+  if (!vals || vals.length < 2) return '<svg class="en-spark" aria-hidden="true"></svg>';
+  const { d, end } = sparkPath(vals, 64, 26);
+  return `<svg class="en-spark" viewBox="0 0 64 26" aria-hidden="true"><path d="${d}"/><circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="2.4"/></svg>`;
+}
+function ticks(lo, hi, n = 4) {
+  const span = hi - lo || Math.abs(hi) || 1, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) || 10 * mag;
+  const out = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-6; v += step) out.push(+v.toFixed(10));
+  return { out, step };
+}
+// a line chart you can touch: series = [{ pts: [[label, value], ...], cls }]; x is the point's place in the list
+function chart(box, series, { d = 2, fmt, dots = false, tags = [] } = {}) {
+  const W = box.clientWidth || 320, H = box.clientHeight || 172, R = 46, T = 10, B = 22;
+  const all = series.flatMap(s => s.pts.map(p => p[1]));
+  if (!all.length) { box.innerHTML = ''; return; }
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const pad = (hi - lo) * .08 || Math.abs(hi) * .02 || 1;
+  lo -= pad; hi += pad;
+  const tk = ticks(lo, hi, 4);
+  const n = Math.max(...series.map(s => s.pts.length));
+  const X = i => n < 2 ? (W - R) / 2 : i / (n - 1) * (W - R - 4) + 2;
+  const Y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  const show = fmt || (v => nf(v, d));
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graf">`;
+  for (const v of tk.out) if (v >= lo && v <= hi)
+    svg += `<line class="grid" x1="0" x2="${W - R + 6}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="lbl" x="${W}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${esc(nf(v, tk.step < 1 ? (tk.step < .1 ? 2 : 1) : 0))}</text>`;
+  if (lo < 0 && hi > 0) svg += `<line class="zero" x1="0" x2="${W - R + 6}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"/>`;
+  const first = series[0].pts, labels = [0, Math.floor((first.length - 1) / 2), first.length - 1].filter((v, i, a) => a.indexOf(v) === i);
+  for (const i of labels) svg += `<text class="lbl" x="${X(i).toFixed(1)}" y="${H - 5}" text-anchor="${i === 0 ? 'start' : i === first.length - 1 ? 'end' : 'middle'}">${esc(first[i][2] || first[i][0])}</text>`;
+  for (const s of series) {
+    if (s.pts.length > 1) svg += `<path class="ln ${s.cls || ''}" d="M${s.pts.map((p, i) => X(i).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join('L')}"/>`;
+    if (dots || s.pts.length === 1) svg += s.pts.map((p, i) => `<circle class="pt" cx="${X(i).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="3.5"/>`).join('');
+  }
+  for (const t of tags) svg += `<text class="tag" x="${X(t.i).toFixed(1)}" y="${(Y(t.v) + t.dy).toFixed(1)}" text-anchor="${t.anchor || 'end'}">${esc(t.text)}</text>`;
+  svg += `<line class="cross" id="x" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"/>` + series.map((s, j) => `<circle class="pt" data-j="${j}" r="4" visibility="hidden"/>`).join('') + '</svg>';
+  box.innerHTML = svg + '<div class="en-tip" hidden></div>';
+  const tip = box.querySelector('.en-tip'), cross = box.querySelector('#x'), marks = box.querySelectorAll('circle[data-j]');
+  const at = ev => {
+    const r = box.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(n - 1, Math.round(n < 2 ? 0 : (x - 2) / (W - R - 4) * (n - 1))));
+    cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+    const parts = [];
+    marks.forEach((m, j) => {
+      const p = series[j].pts[i];
+      if (!p) { m.setAttribute('visibility', 'hidden'); return; }
+      m.setAttribute('cx', X(i)); m.setAttribute('cy', Y(p[1])); m.setAttribute('visibility', 'visible');
+      parts.push((series[j].name ? series[j].name + ' ' : '') + show(p[1]));
+    });
+    const p0 = (series.find(s => s.pts[i]) || series[0]).pts[i];
+    tip.textContent = `${p0[3] || p0[2] || p0[0]} · ${parts.join(' · ')}`;
+    tip.hidden = false;
+    const half = tip.offsetWidth / 2 / r.width * W;
+    tip.style.left = Math.max(half, Math.min(W - half, X(i))) / W * 100 + '%';
+  };
+  box.onpointerdown = box.onpointermove = ev => at(ev);
+  box.onpointerleave = ev => { if (ev.pointerType === 'mouse') { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); marks.forEach(m => m.setAttribute('visibility', 'hidden')); } };
+}
+const dated = h => h.map(([t, v]) => [t, v, dayLabel(t), dayLabel(t, { day: 'numeric', month: 'short', year: 'numeric' })]);
+
+// ---- the page ------------------------------------------------------------------------------------------------------
+function curveSpread(c) {
+  if (!c || c.length < 2) return null;
+  const a = c[0], z = c[Math.min(6, c.length - 1)];
+  return { a, z, v: a[1] - z[1] };
+}
+function rowFor(k) {
+  const c = C[k];
+  let x = D.s[k];
+  if (k === 'curve') {
+    const cs = curveSpread(D.curve && D.curve.brent);
+    if (!cs) return '';
+    x = { v: cs.v, p: null, h: [], t: D.ok && D.ok.curve };
+    const m = cs.v > 0 ? 'backwardation' : 'contango';
+    return item(k, `Brent ${monthName(cs.a[0])} − ${monthName(cs.z[0])}`, spark(D.curve.brent.map(p => p[1])), signed(cs.v, 2), { cls: '', text: m });
+  }
+  if (!x || x.v == null) return '';
+  const h = (x.h || []).slice(-66).map(p => p[1]);
+  const mv = move(k, x);
+  const old = x.t && (Date.now() - asDate(x.t)) > 4 * 864e5;
+  return item(k, c.s, spark(h), c.spread ? signed(x.v, c.d) : nf(x.v, c.d), old ? { cls: 'old', text: when(x.t) } : mv);
+}
+function item(k, sub, sp, val, mv) {
+  const isOpen = open.has(k);
+  return `<div class="en-item${isOpen ? ' open' : ''}" data-k="${k}">
+    <button class="en-row" aria-expanded="${isOpen}"><span class="en-name"><b>${esc(C[k].n)}</b><small>${esc(sub)}</small></span>${sp}
+    <span class="en-val"><span class="en-v">${esc(val)}</span><span class="en-c ${mv.cls}">${esc(mv.text)}</span></span></button>
+    ${isOpen ? `<div class="en-more">${more(k)}</div>` : ''}</div>`;
+}
+const RANGES = [['1m', '1 md.', 22], ['3m', '3 mdr.', 66], ['6m', '6 mdr.', 999]];
+function more(k) {
+  const c = C[k];
+  if (k === 'curve') {
+    const segs = ['brent', 'wti'].filter(q => D.curve && D.curve[q]).map(q => `<button data-curve="${q}" aria-pressed="${q === curveOf}"><span>${q === 'brent' ? 'Brent' : 'WTI'}</span></button>`).join('');
+    const cs = curveSpread(D.curve[curveOf]);
+    const hl = cs ? `${monthName(cs.a[0])}: <b>${nf(cs.a[1], 2)} $</b> · ${monthName(cs.z[0])}: <b>${nf(cs.z[1], 2)} $</b> · ${cs.v > 0 ? 'backwardation' : 'contango'} ${nf(Math.abs(cs.v), 2)} $` : '';
+    return `<div class="en-range en-seg">${segs}</div><div class="en-chart" data-chart="curve"></div><p class="en-hl">${hl}</p><p class="en-what">${esc(c.what)}</p><p class="en-src">${esc(c.src)} · ${esc(when(D.ok && D.ok.curve))}</p>`;
+  }
+  const x = D.s[k], r = range[k] || '3m';
+  const pts = (x.h || []).slice(-(RANGES.find(q => q[0] === r) || RANGES[1])[2]);
+  const vals = pts.map(p => p[1]);
+  const f = v => c.spread ? signed(v, c.d) : nf(v, c.d);
+  const hl = vals.length ? `Høj ${f(Math.max(...vals))} · lav ${f(Math.min(...vals))} · snit ${f(vals.reduce((a, b) => a + b, 0) / vals.length)}` : '';
+  const btns = RANGES.map(([id, label]) => `<button data-range="${id}" aria-pressed="${id === r}"><span>${label}</span></button>`).join('');
+  return `<div class="en-range">${btns}</div><div class="en-chart" data-chart="${k}"></div><p class="en-hl">${hl}</p><p class="en-what">${esc(c.what)}</p><p class="en-src">${esc(c.src)} · seneste ${esc(when(x.t))}</p>`;
+}
+function drawCharts(root = document) {
+  root.querySelectorAll('.en-chart[data-chart]').forEach(box => {
+    const k = box.dataset.chart;
+    if (k === 'curve') {
+      const c = D.curve[curveOf] || [];
+      const cs = curveSpread(c);
+      const pts = c.map(([m, v]) => [m, v, monthName(m), monthName(m)]);
+      return chart(box, [{ pts }], { d: 2, dots: true, fmt: v => nf(v, 2) + ' $' });
+    }
+    if (k === 'pumps') return pumpChart(box);
+    const x = D.s[k], r = range[k] || '3m';
+    const pts = dated((x.h || []).slice(-(RANGES.find(q => q[0] === r) || RANGES[1])[2]));
+    chart(box, [{ pts }], { d: C[k].d, fmt: v => C[k].spread ? signed(v, C[k].d) : nf(v, C[k].d) });
+  });
+}
+
+// Lige nu: the few lines that say where the market stands
+function signals() {
+  const s = D.s, out = [];
+  const pct = x => x && x.p ? (x.v - x.p) / x.p * 100 : null;
+  const b = s.brent;
+  if (b) {
+    const p = pct(b);
+    const mv = p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), 1)} %`;
+    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv : ''} <span class="q">${esc(when(b.t))}</span>`);
+  }
+  const pp = s.phys_prem;
+  if (pp && Math.abs(pp.v) >= .5) {
+    const what = pp.v > 3 ? 'rigtige laster er knappe' : pp.v < -3 ? 'rigeligt med olie på vandet' : 'tæt på normalt';
+    out.push(`<b>Fysisk olie:</b> ${nf(Math.abs(pp.v), 2)} $ ${pp.v > 0 ? 'over' : 'under'} papirprisen – ${what} <span class="q">${esc(when(pp.t))}</span>`);
+  }
+  const cs = curveSpread(D.curve && D.curve.brent);
+  if (cs) out.push(`<b>Terminskurven:</b> ${esc(monthName(cs.a[0]))} koster ${nf(Math.abs(cs.v), 2)} $ ${cs.v > 0 ? 'mere' : 'mindre'} end ${esc(monthName(cs.z[0]))} – ${cs.v > 0 ? 'markedet betaler for olie nu' : 'der er olie nok nu'}`);
+  const dc = s.crack_diesel;
+  if (dc && dc.h && dc.h.length > 20) {
+    const vals = dc.h.map(p => p[1]), avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const rel = dc.v >= Math.max(...vals) ? 'højeste i et halvt år' : dc.v <= Math.min(...vals) ? 'laveste i et halvt år' : `${dc.v > avg ? 'over' : 'under'} halvårets snit på ${nf(avg, 0)} $`;
+    out.push(`<b>Diesel-margin:</b> ${nf(dc.v, 2)} $ pr. tønde over Brent – ${rel}`);
+  }
+  const low = lowest();
+  if (low.benzin) out.push(`<b>Pumpen:</b> benzin ${nf(low.benzin.v, 2)} kr.${low.diesel ? ` · diesel ${nf(low.diesel.v, 2)} kr.` : ''} pr. liter <span class="q">billigste kæde</span>`);
+  return out;
+}
+function lowest() {
+  const out = {};
+  for (const c of (D.pumps && D.pumps.chains) || []) for (const [k, x] of Object.entries(c.p)) {
+    if (!out[k] || x.v < out[k].v) out[k] = { v: x.v, who: [c.c] };
+    else if (x.v === out[k].v) out[k].who.push(c.c);
+  }
+  return out;
+}
+function pumps() {
+  const P = D.pumps;
+  if (!P || !P.chains || !P.chains.length) return '<p class="en-note">Pumpepriserne kunne ikke hentes lige nu.</p>';
+  const low = lowest();
+  // never more than three price columns on a phone: premium and HVO get a table of their own
+  const table = (keys, first) => {
+    const cols = keys.filter(k => P.chains.some(c => c.p[k]));
+    if (!cols.length) return '';
+    let t = `<table class="en-pump"><thead><tr><th>${first}</th>${cols.map(k => `<th>${esc(PUMP[k])}</th>`).join('')}</tr></thead><tbody>`;
+    for (const c of P.chains) {
+      if (!cols.some(k => c.p[k])) continue;
+      t += `<tr><td><b>${esc(c.c)}</b>${first === 'Kæde' ? `<small>${c.n} stationer${c.chg ? ' · ændret ' + esc(when(c.chg)) : ''}</small>` : ''}</td>`;
+      t += cols.map(k => {
+        const x = c.p[k];
+        if (!x) return '<td>–</td>';
+        const cheaper = x.min < x.v - 1e-9 ? `<small>fra ${nf(x.min, 2)}</small>` : '';
+        return `<td class="${low[k] && x.v === low[k].v ? 'low' : ''}">${nf(x.v, 2)}${cheaper}</td>`;
+      }).join('') + '</tr>';
+    }
+    return t + '</tbody></table>';
+  };
+  let t = table(['benzin', 'diesel'], 'Kæde');
+  if (pumpPlus) t += '<div style="height:14px"></div>' + table(['benzin_plus', 'diesel_plus', 'hvo'], 'Premium');
+  const rb = D.s.rbob_kr, ul = D.s.ulsd_kr;
+  const raw = rb && ul && low.benzin && low.diesel
+    ? `<p class="en-note">Af en liter er <b>${nf(rb.v, 2)} kr.</b> selve benzinen og <b>${nf(ul.v, 2)} kr.</b> selve dieselen på råvaremarkedet – resten er afgifter, moms, transport og avance.</p>` : '';
+  const cheap = [];
+  for (const c of P.chains) for (const k of ['benzin', 'diesel']) {
+    const x = c.p[k];
+    if (x && x.min < x.v - 1e-9 && x.at && x.at.length) cheap.push(`${esc(c.c)} ${esc(x.at.join(', '))}: ${PUMP[k].toLowerCase()} ${nf(x.min, 2)}`);
+  }
+  const listNote = `<p class="en-note">Kædernes listepris i kr. pr. liter (den pris de fleste stationer har)${cheap.length ? '. Billigere enkeltstationer: ' + cheap.slice(0, 4).join(' · ') : ''}.</p>`;
+  const hist = (P.h || []).length >= 2
+    ? '<div class="en-pchart"><div class="en-chart" data-chart="pumps"></div></div>'
+    : `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((P.h && P.h[0] && P.h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
+  const plus = `<button class="en-plus" id="pumpPlus" aria-expanded="${pumpPlus}">${pumpPlus ? 'Kun benzin og diesel' : 'Premium og HVO'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+  return t + listNote + plus + raw + hist;
+}
+function pumpChart(box) {
+  const h = D.pumps.h || [];
+  const line = k => h.map(([day, chains]) => {
+    const vals = Object.values(chains).map(c => c[k]).filter(v => v != null);
+    return vals.length ? [day, Math.min(...vals), dayLabel(day), dayLabel(day)] : null;
+  }).filter(Boolean);
+  const b = line('benzin'), d = line('diesel');
+  const tags = [];
+  if (d.length) tags.push({ i: d.length - 1, v: d[d.length - 1][1], dy: -8, text: 'Diesel' });
+  if (b.length) tags.push({ i: b.length - 1, v: b[b.length - 1][1], dy: 16, text: 'Benzin' });
+  chart(box, [{ pts: d, name: 'Diesel' }, { pts: b, name: 'Benzin', cls: 'two' }], { d: 2, tags });
+}
+function news() {
+  const list = D.news || [];
+  if (!list.length) return '';
+  // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
+  const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
+  const pick = n => danish && n.da ? [n.da, n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
+  const tidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
+    .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
+  const words = (t, k) => {   // the app's bold: who and where
+    let out = esc(t);
+    for (const w of k || []) if (w && w.length > 1) out = out.replace(esc(w), `<b>${esc(w)}</b>`);
+    return out;
+  };
+  const shown = newsAll ? list : list.slice(0, 6);
+  const rows = shown.map(n => {
+    const [t, k] = pick(n);
+    return `<div class="story"><a class="row" href="${esc(n.u)}" target="_blank" rel="noopener"><span class="tx"><span class="h">${words(tidy(t), k)}</span><span class="m"><span class="src">${esc(n.s)}</span><span>${esc(when(n.p))}</span>${n.n > 1 ? `<span>${n.n} medier</span>` : ''}</span></span></a></div>`;
+  }).join('');
+  const moreBtn = !newsAll && list.length > 6 ? `<button class="en-showmore" id="newsMore">${list.length - 6} mere<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
+  return `<section class="block en-news"><div class="block-h"><h2>Energinyheder</h2></div>${rows}${moreBtn}</section>`;
+}
+function render() {
+  const y = scrollY;
+  let html = '';
+  const sig = signals();
+  if (sig.length) html += `<section class="block"><div class="block-h"><h2>Lige nu</h2></div><ul class="en-sig">${sig.map(s => `<li>${s}</li>`).join('')}</ul></section>`;
+  for (const b of BLOCKS) {
+    const rows = b.keys.map(rowFor).join('');
+    if (!rows && !b.pumps) continue;
+    html += `<section class="block"><div class="block-h"><h2>${esc(b.h)}</h2></div>${b.hint ? `<p class="en-hint">${esc(b.hint)}</p>` : ''}`;
+    if (b.pumps) html += pumps();
+    html += `<div class="en-rows">${rows}</div></section>`;
+    if (b.h === 'Danmark') html += news();
+  }
+  html += `<p class="foot">Futures fra ICE og NYMEX (ca. 10 min. forsinket) · fysiske priser fra EIA · pumpepriser fra Circle K og Q8's egne prislister · nyheder fra Khabar.<br>Opdateres hvert 5. minut.</p>`;
+  $("#en").innerHTML = html;
+  drawCharts();
+  scrollTo(0, y);
+}
+
+// ---- touch -----------------------------------------------------------------------------------------------------------
+$("#en").addEventListener('click', e => {
+  const t = e.target;
+  const rng = t.closest('[data-range]'), cur = t.closest('[data-curve]');
+  if (rng) {
+    const k = rng.closest('.en-item').dataset.k;
+    range[k] = rng.dataset.range; store.set('enRange', range);
+    const box = rng.closest('.en-more'); box.innerHTML = more(k); drawCharts(box);
+    return;
+  }
+  if (cur) {
+    curveOf = cur.dataset.curve;
+    const box = cur.closest('.en-more'); box.innerHTML = more('curve'); drawCharts(box);
+    return;
+  }
+  if (t.closest('#pumpPlus')) { pumpPlus = !pumpPlus; render(); return; }
+  if (t.closest('#newsMore')) { newsAll = true; render(); return; }
+  const row = t.closest('.en-row');
+  if (!row) return;
+  const it = row.closest('.en-item'), k = it.dataset.k;
+  if (open.has(k)) open.delete(k); else open.add(k);
+  store.set('enOpen', [...open]);
+  it.outerHTML = (BLOCKS.some(b => b.keys.includes(k)) ? rowFor(k) : '');
+  drawCharts($(`.en-item[data-k="${k}"]`) || document);
+});
+let resizeT;
+addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => D && drawCharts(), 150); });
+
+// ---- data ------------------------------------------------------------------------------------------------------------
+async function load() {
+  const st = $('#status');
+  try {
+    const r = await fetch(SRC, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(r.status);
+    D = await r.json();
+    render();
+  } catch (e) {
+    if (!D) $("#en").innerHTML = '<p class="empty">Priserne kunne ikke hentes lige nu. Prøv igen om lidt.</p>';
+  }
+  if (D && D.updated) {
+    const age = Date.now() - new Date(D.updated);
+    st.textContent = age < 6e4 ? 'opdateret nu' : 'opdateret ' + clock(D.updated);
+    st.classList.toggle('stale', age > 45 * 6e4);
+    $('#dot').classList.toggle('stale', age > 45 * 6e4);
+  } else st.textContent = 'ikke hentet';
+}
+$('#status').addEventListener('click', () => { $('#status').textContent = 'henter …'; load(); });
+addEventListener('scroll', () => $('#bar').classList.toggle('scrolled', scrollY > 4), { passive: true });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+setInterval(() => { if (!document.hidden) load(); }, 5 * 60e3);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
+load();
+</script>
+</body>
+</html>

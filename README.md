@@ -58,6 +58,12 @@ one tap away) or copy. Top stories and the most relevant news also trigger a not
 10. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
    for the app's search) and `lines.json` on the `data` branch. The app (`public/`, published to GitHub Pages
    by `pages.yml`) reads those files and Claude's `digest.json` and `moves.json` from the `digest` branch.
+11. **Energy prices** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi): after each radar pass
+   the job fetches Brent, WTI, RBOB, ULSD, TTF and Henry Hub futures and USD/DKK (Yahoo Finance), the Brent and
+   WTI forward curves, EIA's physical spot prices (via FRED), every Circle K/INGO and Q8/F24 station's pump
+   price, and computes crack spreads, physical-minus-paper Brent and prices in kroner per litre. The result is
+   `energy.json` on the data branch, with the energy stories of the last three days from `data.json` and
+   `lines.json`. Each source has its own clock and a failed fetch keeps the last good numbers.
 
 ## Secrets and settings (GitHub)
 
