@@ -80,3 +80,11 @@ def test_the_wiki_lends_its_danish_names_as_whole_words():
     assert actors('Golfstaternes ledere mødes') == ['golfstaterne']
     assert actors('Malibu brænder') == []
     assert actors('En sekulær stat') == []                                 # a concept is no actor
+
+
+def test_naming_denmark_does_not_take_a_danish_story_abroad():
+    m = Method(wiki={'items': {'danmark': {'kind': 'stat', 'name': 'Danmark', 'aliases': ['Danmark']}}})
+    weigh = lambda t: m.weigh({'title': t, 'sec': 'dk'})[0]
+    assert weigh('Attentatplaner i Danmark: to mænd dømt') == 12
+    assert weigh('Iran stod bag attentatplaner i Danmark') == 4
+    assert weigh('USA og Danmark indgår ny forsvarsaftale') == 2

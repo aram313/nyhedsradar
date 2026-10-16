@@ -46,6 +46,7 @@ class Method:
     def __init__(self, cfg=None, wiki=None):
         cfg = cfg or json.loads(CONFIG.read_text(encoding='utf-8'))
         self.leading = cfg['leading']
+        self.home = cfg.get('home')       # the group's own country: naming it does not take a story abroad
         self.great = set(cfg.get('great') or [])
         self.powers = set(cfg['powers'])
         self.ignore = re.compile('|'.join(re.escape(p) for p in cfg['ignore']), re.I) if cfg.get('ignore') else None
@@ -108,7 +109,7 @@ class Method:
                 continue
             if needs == 'leading_and_power' and not (self.leading in powers and len(powers) >= 2):
                 continue
-            if needs == 'abroad' and dk and not actors:
+            if needs == 'abroad' and dk and not set(actors) - {self.home}:
                 continue
             if needs == 'leading' and not (self.leading in powers and acting(self.leading)):
                 continue
