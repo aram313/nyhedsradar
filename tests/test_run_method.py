@@ -76,7 +76,7 @@ def test_the_movements_outlets_never_confirm_and_every_kind_takes_its_turn(tmp_p
     assert len(gaza) == 1, [i['title'] for i in data['items']]
     g = gaza[0]
     assert g['outlets'] == 4 and g['confirmed'] == 4            # DR, TV 2, TASS, White House – never the movement
-    assert g['source'] not in ('Hizb ut-Tahrir (arabisk)', 'Det Hvide Hus', 'Köklü Değişim')
+    assert g['source'] in ('DR', 'TV 2')                       # the established outlets lead, the camps follow
     assert set(g['members']) == {f'm{i:05d}' for i in range(1, 7)}
     assert g['camps'] == {'dk': 2, 'bevægelsen': 2, 'ru': 1, 'us': 1}
     assert {a['group'] for a in g['also']} >= {'east', 'official', 'bevægelsen'}

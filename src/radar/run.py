@@ -418,9 +418,11 @@ def main():
     def story(members):
         """One card for the members: a Danish/English article from an established outlet leads when there is
         one (a channel post or a foreign-language article still counts as an outlet); the movement's outlets and
-        governments' own channels lead only a story no one else carries."""
+        governments' own channels lead only a story no one else carries, and a source added for its camp's view
+        only one the established sources do not carry (the camps show in the coverage)."""
         lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in movement,
-                                           x['source'] not in official, x['source'] not in channel, x['pct'], x['score']))
+                                           x['source'] not in official, x['source'] not in off_scale,
+                                           x['source'] not in channel, x['pct'], x['score']))
         outlets = lambda ms: len({outlet_of.get(m['source'], m['source']) for m in ms})
         counted = [m for m in members if m['source'] not in movement]
         n_out = outlets(counted) or 1
