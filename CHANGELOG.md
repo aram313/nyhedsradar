@@ -9,6 +9,29 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A map of more countries, clean when zoomed out, zones to fly to; Økonomi as the fifth tab; the options at the
+  thumb** (2026-10-18, the owner: 'der er sket meget mere i ukraine', 'flere forskellige lande, små hændelser', 'når man
+  zoomer ud … alt bliver til en stor cirkelring', 'hvis man trykker på de forskellige zoner, så … flyver til forskellige
+  steder', 'lav det til en femte fane', 'man kan ikke nå det med tommelfingeren'; `?v=20261018q`).
+  - The radar's map keeps a story one established outlet reports alone (never an unverified channel's, a government's
+    or the movement's lone post), places 'Russia attacks Ukraine's energy grid' in Ukraine, merges the same place,
+    kind and three hours into one event (the outlets summed), and knows about 350 more places (653): Ukraine's front towns
+    and oblasts, Russia's struck cities and the Kerch bridge, Sudan, the Sahel, Somalia, Syria, southern Lebanon's
+    villages, the West Bank's villages and camps, Gaza's neighbourhoods, Myanmar, Pakistan, Afghanistan, Iraq, Yemen.
+  - 15 new sources for the places the radar missed: Ukrinform, Ukrainska Pravda, Kyiv Post, Meduza, The Moscow Times,
+    Novaya Gazeta Europe, Sudan Tribune, Hiiraan Online, Libya Review, North Press, LBCI, Kurdistan24, Myanmar Now, DVB
+    and TOLOnews (all added for their camp: they never move the established sources' scale).
+  - Kort: events close together are one quiet numbered bubble (Leaflet.markercluster 1.5.3, fetched with the map, with
+    SRI), a red ring only with an event of the last hour; a tap zooms in or fans them out. Zone chips with counts fly
+    the map to Gaza, Vestbredden, Libanon/Syrien, Irak/Iran, Jemen/Rødehavet, Ukraine/Rusland, Afrika or Hele kortet and
+    keep the list to the zone. The map stays in view while the list scrolls under it.
+  - Økonomi is the fifth tab (Forside · Live · Kort · Økonomi · Analyser) with the economy page filling it; the oil row
+    of a story, Indstillinger's 'Mere' and `?tab=priser` (kept as an alias of `?tab=okonomi`) open it. Kort is the map
+    only.
+  - One options dock above the tab bar on Live (Seneste/Vigtigste and the three filters), Kort (zones, window, kinds)
+    and Analyser (its chip row); the top bar keeps only Gemt, search and settings. It goes while the keyboard is up, and
+    an opened story's buttons come up above it.
+
 - **Fresh first, Live's filters, the day under Vigtigste** (2026-10-17, the owner: 'Hvordan kan en frisk historie blive
   gemt under vis flere ift en der er over 24 timer gammel?', '3 nemme filtre … verden mellemøsten og danmark', 'under
   vigtigste skal man også kunne se dato og tid'; `?v=20261018p`): a front-page list keeps the editor's order but puts

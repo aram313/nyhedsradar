@@ -3,9 +3,10 @@
 // lede, picks and recap of the day: the day's most important movements as short 'Who: what' lines by topic, in the
 // style of Al Jazeera's breaking wire), summaries.json (the editor's summaries and its informative headline for every
 // story) and front.json (the front page the editor composed).
-// Four tabs: Forside (the editor's front page), Live (every story of all sections, the newest or the most important
-// first), Kort (the attacks and fighting in the news on a map, map.json, and the oil and fuel prices, energi/) and
-// Analyser (Hizb ut-Tahrir's answers to political questions, newest first). Concepts named in the news open
+// Five tabs: Forside (the editor's front page), Live (every story of all sections, the newest or the most important
+// first), Kort (the attacks and fighting in the news on a map, map.json), Økonomi (the economy page, energi/, in a frame)
+// and Analyser (Hizb ut-Tahrir's answers to political questions, newest first). A page's own options (sort, filters,
+// time, zones) sit in one dock above the tabs, within the thumb's reach; the top bar keeps only Gemt, search and settings. Concepts named in the news open
 // a wiki page compiled only from those answers (public/viden). The app shows no analysis of its own: the movement's
 // text is always attributed and set in its own face. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
@@ -34,8 +35,10 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   'bevægelsen': ['fra bevægelsen', 'fra bevægelsen'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar.nu', latest: 'Live', kort: 'Kort', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
+const TITLES = { home: 'Khabar.nu', latest: 'Live', kort: 'Kort', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
   begreb: 'Begreber', begreber: 'Begreber', gemt: 'Gemt' };
+// the tab whose options the dock above the tabs shows (paintOpts)
+let dockTab = '';
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
@@ -955,9 +958,9 @@ function wikiChips(i, text) {
   const ids = [...new Set([...scan(i.title), ...scan(text || '')].map(f => f.id))].slice(0, 3);
   return ids.length ? `<div class="wk-chips st-chips">${ids.map(id => `<a class="chip ht-chip" href="?begreb=${encodeURIComponent(id)}" data-begreb="${esc(id)}">${chipName(id)}</a>`).join('')}</div>` : '';
 }
-// oil and fuel: the prices one quiet row away – the Kort tab's Priser view (khabar.nu/energi inside the app)
+// oil and fuel: the prices one quiet row away – the Økonomi tab (khabar.nu/energi inside the app)
 const OIL = /\b(?:olie\w*|benzin\w*|diesel\w*|brændstof\w*|brent|opec\w*|hormuz\w*|oil|petrol|gasoline|crude)\b/iu;
-const energyRow = () => '<a class="qrow" href="?tab=priser" data-priser><span>Olie og brændstof – priser nu</span><svg><use href="#i-chev"/></svg></a>';
+const energyRow = () => '<a class="qrow" href="?tab=okonomi" data-okonomi><span>Olie og brændstof – priser nu</span><svg><use href="#i-chev"/></svg></a>';
 const oilRow = text => (OIL.test(text || '') ? energyRow() : '');
 function moreRow(i) {
   const t = threadFor(i), n = (i.outlets || 1) - 1;
@@ -1516,7 +1519,7 @@ function ledeHead(lede, body = '', ids = null) {
     + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
     + (lede ? `<p class="lede-t">${ledeHtml(lede, pageStories(body), ids)}</p>` : '') + catchUpLine() + '</header>' + installCard();
 }
-// the foot: what Khabar read and chose (the prices live in the Kort tab)
+// the foot: what Khabar read and chose (the prices live in the Økonomi tab)
 function homeFoot(all) {
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   return `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn og valgt ${day} ud.</p>`;
@@ -1650,12 +1653,16 @@ let liveSort = store.get('liveSort', 'new'), liveTopAll = false;
 // three filters under the sort (the owner, 17/10: "3 nemme filtre … verden mellemøsten og danmark"): one tap shows one
 // section, a tap on it again all of Live; for the visit only, so Live never opens filtered
 let liveSec = '';
+// the dock's two rows for Live (the owner, 17/10: the options within the thumb's reach): the sort, then the three filters
+function liveOpts() {
+  return `<div class="o-row" id="o-live-s"><div class="seg two live-seg" role="radiogroup" aria-label="Sortér">${[['new', 'Seneste'], ['top', 'Vigtigste']].map(([v, l]) =>
+    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div></div>`
+    + `<div class="o-row live-secs" id="o-live-f" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
+    `<button class="chip${liveSec === k ? ' on' : ''}" data-live-sec="${k}" aria-pressed="${liveSec === k}"><i class="sd" data-sec="${k}"></i>${SECTIONS[k]}</button>`).join('')}</div>`;
+}
 function latestPage(all, opts) {
   const gone = focusMissing ? stateBlock('gone', 'Historien er ikke længere i Live.', [['Søg efter den', `data-find-item="${esc(focusMissing)}"`], ['Luk', 'data-gone-x']]) : '';
-  const secs = `<div class="live-secs" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
-    `<button class="chip${liveSec === k ? ' on' : ''}" data-live-sec="${k}" aria-pressed="${liveSec === k}"><i class="sd" data-sec="${k}"></i>${SECTIONS[k]}</button>`).join('')}</div>`;
-  const seg = gone + `<div class="seg two live-seg" role="radiogroup" aria-label="Sortér">${[['new', 'Seneste'], ['top', 'Vigtigste']].map(([v, l]) =>
-    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div>` + secs;
+  const seg = gone;   // the sort and the three filters sit in the dock above the tabs (liveOpts)
   if (liveSec) all = all.filter(i => secOf(i) === liveSec);
   if (liveSort === 'top') {
     const day = all.filter(i => hours(i) < 24);
@@ -1995,10 +2002,12 @@ function analysesPage() {
   const c = anCounts();
   return `<header class="an-top"><h1 class="ht">Hizb ut-Tahrirs svar</h1><small>${c.n ? `${c.n} svar${c.span ? ' · ' + c.span : ''}` : ''}</small></header>`
     + `<div class="an-strip" id="anStrip"><div class="an-qw"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="anQ" type="search" enterkeyhint="search" autocomplete="off"`
-    + ` placeholder="Søg i svarene" aria-label="Søg i svarene" value="${esc(anQuery)}"></div><nav class="an-chips" aria-label="Filtrér og gå til">${anChips()}</nav></div>`
+    + ` placeholder="Søg i svarene" aria-label="Søg i svarene" value="${esc(anQuery)}"></div></div>`
     + `<div class="an-list">${analysesList()}</div>`;
 }
-// the strip's chips: the wiki, the areas (a filter) and the years (a jump); what is saved is one tap away in the bar
+// the dock's row for Analyser: the wiki, the areas (a filter) and the years (a jump); what is saved is one tap away in
+// the bar. The search field stays under the bar: the dock goes while the keyboard is up, and the field must not go with it
+const anOpts = () => `<nav class="o-row an-chips" id="o-an" aria-label="Filtrér og gå til">${anChips()}</nav>`;
 function anChips() {
   const areas = anAreas(), ak = 'an|areas', all = unfolded.has(ak), shown = all ? areas : areas.slice(0, 10);
   const years = [...new Set(answers().list.filter(a => !a.fresh && (!anArea || areaIdOf(a) === anArea)).map(a => a.date.slice(0, 4)))];
@@ -2498,7 +2507,9 @@ function draw(t, opts = {}) {
   const pg = pageEl(t);
   if (!pg) return;
   pg.dataset.ver = ver;
+  if (t === dockTab && t !== 'kort') paintOpts(t);   // the page's options in the dock above the tabs
   if (t === 'kort') { kortPage(pg); return; }   // the map keeps its own elements: drawn in parts, never patched as a whole
+  if (t === 'okonomi') { okPage(pg); return; }   // the economy page in its frame, made when first shown
   const sig = SIG[t] ? SIG[t]() : '';
   if (sig && pg.dataset.sig === sig) return;
   pg.dataset.sig = sig;
@@ -2508,9 +2519,8 @@ function draw(t, opts = {}) {
     const inp = pg.querySelector('#anQ');
     if (inp && document.activeElement !== inp && !anT && inp.value !== anQuery) inp.value = anQuery;   // a search brought from elsewhere
     keep.innerHTML = analysesList();
-    const c = anCounts(), top = pg.querySelector('.an-top small'), ch = pg.querySelector('.an-chips');
+    const c = anCounts(), top = pg.querySelector('.an-top small');
     if (top) top.textContent = c.n ? `${c.n} svar${c.span ? ' · ' + c.span : ''}` : '';
-    if (ch) ch.innerHTML = anChips();
     return;
   }
   const html = !data && !OWN[t] ? noNews() : `<div>${pageHtml(t, data ? stories() : [], opts)}</div>`;
@@ -2577,7 +2587,7 @@ function redrawPages(tabs) {
   clearTimeout(redrawT);
   (function now() {   // never under a finger or a scroll that still moves
     if (handBusy()) { redrawT = setTimeout(now, 250); return; }
-    if (redrawFor.has(tab) && (data || OWN[tab] || tab === 'kort')) draw(tab, { keep: true });
+    if (redrawFor.has(tab) && (data || OWN[tab] || tab === 'kort' || tab === 'okonomi')) draw(tab, { keep: true });
     redrawFor.clear();
     drawSoon();
   })();
@@ -2794,7 +2804,7 @@ async function share(text, i) {
   if (await copyText(text)) { toast('Kopieret – sæt ind i WhatsApp'); if (i) markShared(i); }
 }
 
-$('list').addEventListener('click', async e => {
+async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
@@ -2847,7 +2857,7 @@ $('list').addEventListener('click', async e => {
     anArea = ar.dataset.area;
     if (tab !== 'analyses') { setTab('analyses', { top: true }); return; }
     draw('analyses');
-    const row = cur().querySelector('.an-chips'), on = row && row.querySelector('.chip.on');
+    const row = $('opts').querySelector('.an-chips'), on = row && row.querySelector('.chip.on');
     if (on) row.scrollLeft = Math.max(0, on.offsetLeft - 16);   // the chosen area in view in its row
     const l = pg$('anStrip'), lst = cur().querySelector('.an-list');
     if (l && lst && lst.getBoundingClientRect().top < l.getBoundingClientRect().bottom) scrollToEl(lst, l.offsetHeight);
@@ -2938,7 +2948,9 @@ $('list').addEventListener('click', async e => {
   else if (t.closest('[data-copy]')) { if (await copyText(shareText(i))) { toast('Kopieret'); markShared(i); } }
   else if (t.closest('[data-read]')) learnFrom(i, 'read');
   else if (t.closest('[data-toggle]')) toggle(el);
-});
+}
+$('list').addEventListener('click', onTap);
+$('opts').addEventListener('click', onTap);   // the page's options in the dock: the same buttons, the same ways
 $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
 // the page in view scrolls (scroll events do not bubble: caught on their way down)
 function onPageScroll() {
@@ -2997,24 +3009,77 @@ addEventListener('touchend', async () => {
   setTimeout(() => pg.classList.remove('settling'), 420);
 });
 
+// ---------------------------------------------------------------- the dock: a page's own options within the thumb's reach
+// The owner, 17/10: "man skal let med tommelfingeren kunne trykke frem og tilbage på de der forskellige knapper eller
+// valgmuligheder, der er under hver side". One shared dock above the tabs (#opts, inside the fixed .dock, so --dock and
+// the safe area count it): one or two rows of chips and segments that scroll sideways when they overflow, solid like the
+// bar (no blur), gone while the keyboard is up (the tabs go too) and on side pages, search and the front page. The
+// pages' bottom room is --dock, measured from the whole dock, so nothing hides under it, and an opened story's buttons
+// come up above it (keepInView measures the dock). The top bar keeps only the logo and title, Gemt, search and settings.
+// Live: the sort and the three filters; Kort: the zones, the window and the kinds; Analyser: its chip row.
+function paintOpts(t = tab) {
+  const box = $('opts');
+  if (!box) return;
+  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kort' ? kortOpts() : t === 'analyses' ? anOpts() : '';
+  const was = dockTab;
+  dockTab = t;
+  if (box.hidden !== !html) box.hidden = !html;
+  box.dataset.for = html ? t : '';
+  if (!html) { if (box.firstChild) box.textContent = ''; return; }
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  morph(box, tpl.content, []);   // a row's own element stays, so a chip row keeps its sideways place
+  if (was !== t && !reduceMotion) box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
+}
+
+// ---------------------------------------------------------------- Økonomi: the economy page in the app (the owner, 17/10:
+// "Kan du gøre kort separat fra priser, lav det til en femte fane"). energi/?embed=1 in a same-origin frame that fills
+// the page, made the first time the tab is shown (or a swipe heads for it): the page hides its own bar and back link and
+// follows the app's look and text size live (it watches the app's <html>). khabar.nu/energi stays a page of its own.
+function okPage(pg) {
+  if (!pg) return;
+  if (pg.querySelector('iframe')) return;
+  pg.innerHTML = netDown() ? `<div>${stateBlock('offline', 'Ingen forbindelse. Priserne kommer, så snart telefonen er på nettet.', [['Prøv igen', 'data-okframe']])}</div>`
+    : '<div class="ok-pr"><iframe src="energi/?embed=1" title="Økonomi – olie, brændstof og markeder"></iframe></div>';
+}
+// the oil row of a story, the settings' 'Mere' and ?tab=priser (kept as an alias of ?tab=okonomi): the Økonomi tab
+function openOkonomi() {
+  if (!$('sheet').hidden) closeSheet();
+  setTab('okonomi', { top: true });
+}
+
 // ---------------------------------------------------------------- Kort: the attacks and fighting in the news, on a map
 // The owner's wish (17/10): a tab of its own, 'a kind of live OSINT with a map and the latest attacks, a little like
-// LiveUAmap', with the oil and fuel prices beside it. map.json (src/radar/osint.py, on the data branch) holds the radar's
-// stories that say something violent happened, placed where their headline says, newest first, 72 hours. One segment
-// chooses the view: Kort – the map (Leaflet from cdnjs, fetched the first time the tab is in view or a swipe heads for
-// it, never at the start; CARTO's light or dark tiles with the app's look), a time window, the kinds as a quiet filter
-// and the events as rows – or Priser, the energy page (energi/?embed=1) in a frame, loaded when first shown. A drag on
-// the map pans the map (Leaflet's touch-action: none), never the pages; the page around it swipes as every tab does.
+// LiveUAmap'. map.json (src/radar/osint.py, on the data branch) holds the radar's stories that say something violent
+// happened, placed where their headline says, newest first, 72 hours, one event per place, kind and three hours. The
+// map (Leaflet from cdnjs with its cluster plugin, fetched the first time the tab is in view or a swipe heads for it,
+// never at the start) fills the page above the dock and stays put while the list scrolls under it; the dock holds the
+// zones (a tap flies there and keeps the list to the zone), the time window and the kinds. Zoomed out, events that lie
+// close together are one quiet numbered bubble (sized by the count, a red ring only with an event of the last hour);
+// a tap on one zooms in, or fans its events out at the closest zoom. A drag on the map pans the map (Leaflet's
+// touch-action: none), never the pages; the page around it swipes as every tab does.
 const KKINDS = { luft: 'Luftangreb', drone: 'Drone', missil: 'Missil og raket', artilleri: 'Artilleri', eksplosion: 'Eksplosion',
   'sø': 'Til søs', kamp: 'Kampe', angreb: 'Angreb' };
 const kGlyph = k => 'k-' + (k === 'sø' ? 'so' : KKINDS[k] ? k : 'angreb');
 const KWIN = [[6, '6 timer'], [24, '24 timer'], [72, '3 døgn']];
-const KVIEWS = ['kort', 'priser'];
-let kView = (v => (KVIEWS.includes(v) ? v : 'kort'))(store.get('kortView', 'kort'));   // remembered per phone
+// the zones (the owner, 17/10: "hvis man trykker på de forskellige zoner, så … flyver til forskellige steder"): each its
+// boxes [south, west, north, east]; an event belongs to the first zone that holds it; a tap flies to the zone's boxes
+const KZONES = [
+  ['gaza', 'Gaza', [[31.21, 34.2, 31.6, 34.58]]],
+  ['vb', 'Vestbredden', [[31.33, 34.93, 32.56, 35.6]]],
+  ['ls', 'Libanon/Syrien', [[32.6, 35.0, 37.35, 42.4]]],
+  ['ii', 'Irak/Iran', [[29.0, 38.8, 39.8, 61.0], [24.0, 48.5, 29.0, 61.0]]],
+  ['jr', 'Jemen/Rødehavet', [[12.0, 41.5, 19.5, 54.5], [15.0, 37.5, 22.0, 42.6]]],
+  ['ur', 'Ukraine/Rusland', [[43.0, 22.0, 61.0, 52.0]]],
+  ['af', 'Afrika', [[-35, -18, 37.3, 32.3], [-35, 32.3, 22.0, 37.5], [-12, 37.5, 12.0, 52.0], [12.0, 37.5, 15.0, 41.5]]],
+];
+const kZoneOf = e => (KZONES.find(([, , bs]) => bs.some(([s, w, n, o]) => e.la >= s && e.la <= n && e.lo >= w && e.lo <= o)) || [''])[0];
+const kZoneName = z => (KZONES.find(x => x[0] === z) || [, ''])[1];
 let kWin = (v => (KWIN.some(w => w[0] === v) ? v : 24))(store.get('kortWin', 24));
-let kKind = '', kSel = '', kSeen = false, kUser = false;   // a kind for the visit; the chosen event; seen; the reader moved the map
+let kKind = '', kZone = '', kSel = '', kSeen = false, kUser = false;   // a kind and a zone for the visit; the chosen event; seen; the reader moved the map
 let kMap = null, kLayer = null, kTiles = null, kDark = null, kMarks = [], kOf = null, kDrawn = '', kBuilt = '', kLeaf = 'idle';
 const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+const CLUSTER = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/';
 // CARTO's tiles need a key since September 2026 (free for non-commercial use; a person requests it at
 // carto.com/basemaps/apikey, pages.yml writes it from the repository variable CARTO_KEY). Without one the map uses
 // OpenStreetMap's own tiles, greyed (and turned dark with the app), so it stays as quiet
@@ -3022,7 +3087,7 @@ const OSM = '© <a href="https://www.openstreetmap.org/copyright" target="_blank
 const CARTO = OSM + ', © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
 const kLive = e => Date.now() - new Date(e.p) < 3600e3;   // an event of the last hour: the red 'live' ring
 const kWhere = e => `${KKINDS[e.k] || 'Angreb'}, ${e.pl}${e.ca ? ' (omtrentlig placering)' : ''}`;
-// Leaflet's two files, each asked for once (again only after it failed), the style before the app's own so ours wins
+// Leaflet's files, each asked for once (again only after it failed), the style before the app's own so ours wins
 const leafParts = {};
 function leafPart(tag, attrs) {
   const key = attrs.href || attrs.src;
@@ -3040,13 +3105,21 @@ function loadLeaflet() {
   return Promise.all([
     leafPart('link', { rel: 'stylesheet', href: LEAFLET + 'leaflet.min.css', integrity: 'sha256-tXCrvaljxgtN5LT/Syb5Mm9T+yzPFGH98JVcoJT7JTk=' }),
     leafPart('script', { src: LEAFLET + 'leaflet.min.js', async: true, integrity: 'sha256-XJrs/DDkVkUZ29zdzFOkGCJ9zHVo5hnpdi3c7HYJ7Uc=' }),
-  ]).then(() => { kLeaf = 'ok'; return window.L; }, e => { kLeaf = 'error'; throw e; });
+  ]).then(loadCluster).then(() => { kLeaf = 'ok'; return window.L; }, e => { kLeaf = 'error'; throw e; });
+}
+// the clusters (Leaflet.markercluster 1.5.3): asked for only once Leaflet is there (the plugin extends Leaflet's L);
+// without them the markers stand alone and the map still works
+function loadCluster() {
+  return Promise.all([
+    leafPart('link', { rel: 'stylesheet', href: CLUSTER + 'MarkerCluster.css', integrity: 'sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc=' }),
+    leafPart('script', { src: CLUSTER + 'leaflet.markercluster.js', async: true, integrity: 'sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg=' }),
+  ]).catch(() => null);
 }
 // a swipe on its way to the tab: its file and Leaflet start, so the map is there when the page stands still
 function kortWarm() {
   kSeen = true;
   need('map');
-  if (kView === 'kort') loadLeaflet().catch(() => {});
+  loadLeaflet().catch(() => {});
 }
 // the tab came into view (a tap, a swipe, a link)
 function kortShown() {
@@ -3061,52 +3134,20 @@ function kEvents() {
     .filter(e => e && e.i && Number.isFinite(e.la) && Number.isFinite(e.lo) && new Date(e.p).getTime() >= since && !seen.has(e.i) && seen.add(e.i))
     .sort((a, b) => new Date(b.p) - new Date(a.p));
 }
+// on the map: the window's events of the kind chosen; in the list: those of the zone chosen too
 const kShown = () => { const all = kEvents(); return kKind ? all.filter(e => e.k === kKind) : all; };
+const kListed = () => { const s = kShown(); return kZone ? s.filter(e => kZoneOf(e) === kZone) : s; };
 // The page is built once and then filled in parts: the map keeps its elements (a patch of the whole page would take
 // Leaflet's away), the list is patched row by row (morph), and a file the same as last time draws nothing
 function kortPage(pg) {
   if (!pg) return;
   if (!pg.querySelector('.k-wrap')) {
-    pg.innerHTML = '<div class="k-wrap"><div class="k-top"><div class="seg two" role="radiogroup" aria-label="Visning">'
-      + KVIEWS.map(v => `<button role="radio" data-kview="${v}" aria-checked="${v === kView}">${v === 'kort' ? 'Kort' : 'Priser'}</button>`).join('')
-      + '</div></div><div class="k-kort"><div class="k-chips" role="radiogroup" aria-label="Tidsrum"></div>'
-      + '<div class="k-box" role="region" aria-label="Kort over angreb og kampe"><div class="k-map"></div><div class="k-msg"></div><div class="k-card" hidden></div></div>'
-      + '<p class="k-n"></p><div class="k-kinds" role="group" aria-label="Type" hidden></div><div class="k-list"></div></div>'
-      + '<div class="k-pr" hidden></div></div>';
+    pg.innerHTML = '<div class="k-wrap"><div class="k-box" role="region" aria-label="Kort over angreb og kampe"><div class="k-map"></div><div class="k-msg"></div><div class="k-card" hidden></div></div>'
+      + '<p class="k-n"></p><div class="k-list"></div></div>';
     kDrawn = ''; kOf = null;
   }
-  kortView(pg);
+  if (tab === 'kort') kMapUp(pg);
   kortFill(pg);
-}
-// the segment's choice: the map or the prices (the page in view loads what it needs: Leaflet, or the frame)
-function kortView(pg = pageEl('kort')) {
-  if (!pg || !pg.querySelector('.k-wrap')) return;
-  const map = kView === 'kort';
-  pg.querySelectorAll('[data-kview]').forEach(b => b.setAttribute('aria-checked', b.dataset.kview === kView));
-  pg.querySelector('.k-kort').hidden = !map;
-  pg.querySelector('.k-pr').hidden = map;
-  pg.classList.toggle('k-pv', !map);
-  if (tab !== 'kort') return;
-  if (map) kMapUp(pg); else kFrame(pg);
-}
-function kSetView(v) {
-  if (!KVIEWS.includes(v) || v === kView) return;
-  kView = v; store.set('kortView', v);
-  const pg = pageEl('kort');
-  pg.scrollTop = 0;
-  kortView(pg);
-}
-// the oil row of a story and the settings' 'Mere': the prices, in this tab
-function openPriser() {
-  kView = 'priser'; store.set('kortView', 'priser');
-  if (!$('sheet').hidden) closeSheet();
-  if (tab === 'kort') kortView(); else setTab('kort', { top: true });
-}
-function kFrame(pg) {
-  const box = pg.querySelector('.k-pr');
-  if (box.querySelector('iframe')) return;
-  box.innerHTML = netDown() ? stateBlock('offline', 'Ingen forbindelse. Priserne kommer, så snart telefonen er på nettet.', [['Prøv igen', 'data-kframe']])
-    : '<iframe src="energi/?embed=1" title="Olie og brændstof – priser"></iframe>';
 }
 // the map: Leaflet when first needed; with no network or no Leaflet a quiet line in its place and another try
 function kMapUp(pg) {
@@ -3118,7 +3159,7 @@ function kMapUp(pg) {
     return;
   }
   msg.innerHTML = '';
-  loadLeaflet().then(Lf => { if (!kMap) kInit(Lf, pg); }, () => { if (tab === 'kort' && kView === 'kort') kMapUp(pg); });
+  loadLeaflet().then(Lf => { if (!kMap) kInit(Lf, pg); }, () => { if (tab === 'kort') kMapUp(pg); });
 }
 function kInit(Lf, pg) {
   const el = pg.querySelector('.k-map');
@@ -3127,14 +3168,26 @@ function kInit(Lf, pg) {
     fadeAnimation: !reduceMotion, zoomAnimation: !reduceMotion, markerZoomAnimation: !reduceMotion, inertia: !reduceMotion });
   kMap.setView([29, 40], 4, { animate: false });   // the Middle East until the events give the view
   Lf.control.attribution({ position: 'bottomright', prefix: false }).addTo(kMap);   // '© OpenStreetMap © CARTO', small
-  kLayer = Lf.layerGroup().addTo(kMap);
-  kMap.on('zoomend viewreset', kSpread);
+  // events close together: one bubble with their count (a wide reach zoomed out, so the world shows a handful); a tap
+  // zooms in, at the closest zoom it fans them out; Reduce Motion: no animation
+  kLayer = (Lf.markerClusterGroup ? Lf.markerClusterGroup({ showCoverageOnHover: false, zoomToBoundsOnClick: true, spiderfyOnMaxZoom: true,
+    removeOutsideVisibleBounds: true, animate: !reduceMotion, animateAddingMarkers: false, maxClusterRadius: z => (z <= 4 ? 72 : z <= 7 ? 52 : 36),
+    spiderfyDistanceMultiplier: 1.4, spiderLegPolylineOptions: { weight: 1, color: '#8f8f8c', opacity: 0.8 }, iconCreateFunction: kClusterIcon })
+    : Lf.layerGroup()).addTo(kMap);
   kMap.on('click', () => kPick(''));
   for (const ev of ['touchstart', 'mousedown', 'wheel']) el.addEventListener(ev, () => { kUser = true; }, { passive: true });
+  new ResizeObserver(() => { if (kMap) kMap.invalidateSize({ pan: false }); }).observe(el);   // the dock's rows change the room above it
   kortLook();
   pg.querySelector('.k-msg').innerHTML = '';
   kBuilt = ''; kDrawn = '';
   kortFill(pg);
+}
+// a bubble: a quiet circle with the count, larger with more events; a red ring only when one is of the last hour
+function kClusterIcon(c) {
+  const ms = c.getAllChildMarkers(), n = ms.length, live = ms.some(m => m.options.kLive);
+  const s = n < 5 ? 32 : n < 15 ? 38 : n < 40 ? 44 : 50;
+  return window.L.divIcon({ className: 'kci', iconSize: [s, s], iconAnchor: [s / 2, s / 2],
+    html: `<span class="kc" style="--kc:${s}px" role="img" aria-label="${n} hændelser – tryk for at se dem"><b>${n}</b>${live ? '<i class="live-dot"></i>' : ''}</span>` });
 }
 // The map's ground: OpenFreeMap's vector map (OpenStreetMap's data, free and without a key), drawn by MapLibre inside
 // Leaflet, so the app writes the names itself – in Danish where OpenStreetMap has a Danish name, else English – and
@@ -3207,95 +3260,105 @@ function kRow(e) {
   return `<div class="ke${e.i === kSel ? ' on' : ''}" id="ke-${esc(e.i)}"><div class="row"><button class="hit" data-kev="${esc(e.i)}" aria-label="${esc(`${kWhere(e)}: ${quoteIsrael(e.t)} – ${e.s}, ${stamp(e.p)}`)}"></button>`
     + `${kBadge(e, live)}<span class="tx" aria-hidden="true"><b class="k-pl">${esc(e.pl)}</b><span class="h" dir="auto">${esc(quoteIsrael(e.t))}</span><span class="m">${meta}</span></span></div></div>`;
 }
-// the Kort view's parts: the window's chips, the count, the kinds, the rows and the markers
+// the dock's two rows for Kort: the zones with their counts in the window (a tap flies there), then the window and – with
+// two kinds or more – the kinds as a quiet filter for the visit
+function kortOpts() {
+  const all = kEvents(), zc = {};
+  for (const e of all) { const z = kZoneOf(e); if (z) zc[z] = (zc[z] || 0) + 1; }
+  const inZone = kZone ? all.filter(e => kZoneOf(e) === kZone) : all, count = {};
+  for (const e of inZone) count[e.k] = (count[e.k] || 0) + 1;
+  const ks = Object.keys(KKINDS).filter(k => count[k]);
+  const zones = [...KZONES.map(([id, name]) => [id, name, zc[id] || 0]), ['', 'Hele kortet', all.length]];
+  return `<div class="o-row" id="o-kort-z" role="radiogroup" aria-label="Område">${zones.map(([id, name, n]) =>
+    `<button class="chip${id === kZone ? ' on' : ''}${n ? '' : ' nil'}" role="radio" aria-checked="${id === kZone}" data-kzone="${id}">${esc(name)}<small>${n}</small></button>`).join('')}</div>`
+    + `<div class="o-row" id="o-kort-t"><span class="o-grp" role="radiogroup" aria-label="Tidsrum">${KWIN.map(([h, l]) =>
+      `<button class="chip${h === kWin ? ' on' : ''}" role="radio" aria-checked="${h === kWin}" data-kwin="${h}">${l}</button>`).join('')}</span>`
+    + (ks.length < 2 ? '' : `<i class="sep" aria-hidden="true"></i><span class="o-grp" role="group" aria-label="Type">${ks.map(k =>
+      `<button class="chip${k === kKind ? ' on' : ''}" data-kkind="${esc(k)}" aria-pressed="${k === kKind}"><svg aria-hidden="true"><use href="#${kGlyph(k)}"/></svg>${KKINDS[k]}<small>${count[k]}</small></button>`).join('')}</span>`)
+    + '</div>';
+}
+// the Kort view's parts: the count, the rows and the markers (the options are the dock's)
 function kortFill(pg) {
   if (!pg || !pg.querySelector('.k-wrap')) return;
   const all = kEvents();
   if (kKind && !all.some(e => e.k === kKind)) kKind = '';
-  const shown = kKind ? all.filter(e => e.k === kKind) : all;
+  const shown = kKind ? all.filter(e => e.k === kKind) : all, listed = kZone ? shown.filter(e => kZoneOf(e) === kZone) : shown;
   if (kSel && !shown.some(e => e.i === kSel)) { kSel = ''; kCard(null); }
-  const sig = [vstate('map'), kSeen, kWin, kKind, !!kMap, shown.map(e => stamp(e.p) + (kLive(e) ? '!' : '')).join(',')].join('|');
+  if (dockTab === 'kort') paintOpts('kort');
+  const sig = [vstate('map'), kSeen, kWin, kKind, kZone, !!kMap, listed.map(e => stamp(e.p) + (kLive(e) ? '!' : '')).join(',')].join('|');
   if (sig === kDrawn && kOf === V('map')) return;
   kDrawn = sig; kOf = V('map');
-  pg.querySelector('.k-chips').innerHTML = KWIN.map(([h, l]) => `<button class="chip${h === kWin ? ' on' : ''}" role="radio" aria-checked="${h === kWin}" data-kwin="${h}">${l}</button>`).join('');
-  const n = shown.length;
-  pg.querySelector('.k-n').textContent = n ? `${n} ${n === 1 ? 'hændelse' : 'hændelser'} · seneste ${fromWhen(shown[0].p)}` : '';
-  const count = {};
-  for (const e of all) count[e.k] = (count[e.k] || 0) + 1;
-  const ks = Object.keys(KKINDS).filter(k => count[k]), kinds = pg.querySelector('.k-kinds');
-  kinds.hidden = ks.length < 2;
-  kinds.innerHTML = ks.length < 2 ? '' : ks.map(k => `<button class="chip${k === kKind ? ' on' : ''}" data-kkind="${esc(k)}" aria-pressed="${k === kKind}">`
-    + `<svg aria-hidden="true"><use href="#${kGlyph(k)}"/></svg>${KKINDS[k]}<small>${count[k]}</small></button>`).join('');
+  const n = listed.length, zn = kZoneName(kZone);
+  pg.querySelector('.k-n').textContent = n ? `${n} ${n === 1 ? 'hændelse' : 'hændelser'}${zn ? ' i ' + zn : ''} · seneste ${fromWhen(listed[0].p)}` : '';
   const win = (KWIN.find(w => w[0] === kWin) || KWIN[1])[1];
   const html = !V('map') ? (failed('map') ? retry('kortet', 'map') : loadingBlock('Henter kortet …'))
-    : !n ? stateBlock('empty', `Ingen angreb eller kampe i nyhederne de seneste ${win}.`, kWin < 72 ? [['Se 3 døgn', 'data-kwin="72"']] : [])
-    : shown.map(kRow).join('');
+    : !n ? stateBlock('empty', `Ingen angreb eller kampe${zn ? ' i ' + zn : ''} i nyhederne de seneste ${win}.`,
+      [...(kWin < 72 ? [['Se 3 døgn', 'data-kwin="72"']] : []), ...(kZone ? [['Hele kortet', 'data-kzone=""']] : [])])
+    : listed.map(kRow).join('');
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
   morph(pg.querySelector('.k-list'), tpl.content, []);
   if (kMap && kMarkers(shown) && !kUser) kFit(shown);
 }
-// the markers, drawn again only when the events or their red rings changed (the reader's view and choice stay)
+// the markers, drawn again only when the events or their red rings changed (the reader's view and choice stay); with
+// the cluster plugin they go in as one batch, and a marker that comes out of a bubble is marked again when chosen
 function kMarkers(shown) {
   const Lf = window.L, key = shown.map(e => e.i + (kLive(e) ? '!' : '')).join(',');
   if (!Lf || key === kBuilt) return false;
   kBuilt = key;
   kLayer.clearLayers();
   kMarks = [];
+  const ms = [];
   for (const e of [...shown].reverse()) {   // the oldest first, so the newest lies on top
     const m = Lf.marker([e.la, e.lo], { icon: Lf.divIcon({ className: 'kmi', html: kBadge(e, kLive(e)), iconSize: [26, 26], iconAnchor: [13, 13] }),
-      keyboard: true, riseOnHover: false, zIndexOffset: e.i === kSel ? 1000 : 0 });
+      keyboard: true, riseOnHover: false, zIndexOffset: e.i === kSel ? 1000 : 0, kLive: kLive(e) });
     m.on('click', () => kPick(e.i, 'map'));
-    m.addTo(kLayer);
-    const el = m.getElement();
-    if (el) { el.setAttribute('aria-label', `${kWhere(e)}: ${quoteIsrael(e.t)}`); if (e.i === kSel) el.firstElementChild.classList.add('on'); }
+    m.on('add', () => kPaint(m, e));
+    ms.push(m);
     kMarks.push({ e, m });
   }
-  kSpread();
+  if (kLayer.addLayers) kLayer.addLayers(ms); else ms.forEach(m => m.addTo(kLayer));
   return true;
 }
-// markers that lie on one another fan out in a small ring around their middle, so each can be tapped (on every zoom):
-// two groups whose rings would touch become one ring
-const kRing = n => (n < 2 ? 0 : 15 / Math.sin(Math.PI / n));   // neighbours on a ring 30 px apart
-function kSpread() {
-  if (!kMap || !kMap._loaded) return;   // no view yet: the first one spreads them
-  const pts = kMarks.map(x => kMap.latLngToLayerPoint(x.m.getLatLng()));
-  let groups = pts.map((p, i) => ({ x: p.x, y: p.y, ix: [i] })), merged = true;
-  while (merged) {
-    merged = false;
-    for (let a = 0; a < groups.length && !merged; a++) for (let b = a + 1; b < groups.length; b++) {
-      const A = groups[a], B = groups[b];
-      if (Math.hypot(A.x - B.x, A.y - B.y) >= kRing(A.ix.length) + kRing(B.ix.length) + 28) continue;
-      const n = A.ix.length + B.ix.length;
-      groups[a] = { x: (A.x * A.ix.length + B.x * B.ix.length) / n, y: (A.y * A.ix.length + B.y * B.ix.length) / n, ix: [...A.ix, ...B.ix] };
-      groups.splice(b, 1); merged = true; break;
-    }
-  }
-  for (const g of groups) {
-    g.c = { x: g.x, y: g.y };
-    g.ix.sort((i, j) => Math.atan2(pts[i].y - g.y, pts[i].x - g.x) - Math.atan2(pts[j].y - g.y, pts[j].x - g.x));   // each keeps its side
-    const n = g.ix.length, r = kRing(n);
-    g.ix.forEach((i, j) => {
-      const el = kMarks[i].m.getElement(), b = el && el.firstElementChild, a = -Math.PI + 2 * Math.PI * (j + 0.5) / n;
-      if (!b) return;
-      b.style.setProperty('--dx', (n < 2 ? 0 : g.c.x + r * Math.cos(a) - pts[i].x).toFixed(1) + 'px');
-      b.style.setProperty('--dy', (n < 2 ? 0 : g.c.y + r * Math.sin(a) - pts[i].y).toFixed(1) + 'px');
-    });
-  }
+function kPaint(m, e) {
+  const el = m.getElement(), b = el && el.firstElementChild;
+  if (!b) return;
+  el.setAttribute('aria-label', `${kWhere(e)}: ${quoteIsrael(e.t)}`);
+  b.classList.toggle('on', e.i === kSel);
 }
 // the default view holds the window's events; one far away does not zoom the map out to the world – the view holds the
-// events near the middle of them when those are most, else all
+// events near the middle of them when those are most, else all ('Hele kortet' flies there; Reduce Motion: no flight)
 const kDist = ([a, b], [c, d]) => { const r = Math.PI / 180; return 6371 * Math.hypot((d - b) * r * Math.cos((a + c) / 2 * r), (c - a) * r); };
-function kFit(shown) {
+function kFit(shown, fly) {
   const Lf = window.L;
   if (!kMap || !Lf) return;
   if (!shown.length) { kMap.setView([29, 40], 4, { animate: false }); return; }
   const mid = xs => xs.slice().sort((x, y) => x - y)[xs.length >> 1], c = [mid(shown.map(e => e.la)), mid(shown.map(e => e.lo))];
   const near = shown.filter(e => kDist(c, [e.la, e.lo]) < 2500), use = near.length >= Math.ceil(shown.length * 0.6) ? near : shown;
-  kMap.fitBounds(Lf.latLngBounds(use.map(e => [e.la, e.lo])), { padding: [32, 32], maxZoom: 6, animate: false });
+  const b = Lf.latLngBounds(use.map(e => [e.la, e.lo]));
+  if (fly && !reduceMotion) kMap.flyToBounds(b, { padding: [32, 32], maxZoom: 6, duration: 0.8 });
+  else kMap.fitBounds(b, { padding: [32, 32], maxZoom: 6, animate: false });
 }
-// one event chosen – from its row (the map flies there; Reduce Motion: no flight) or its marker (its row is marked and
-// a small card shows over the map's foot); '' lets go
+// a zone chosen in the dock: the map flies to its boxes (Reduce Motion: straight there) and the list keeps to it;
+// 'Hele kortet' gives the default view back
+function kZoneTo(z) {
+  kZone = KZONES.some(x => x[0] === z) ? z : '';
+  if (kSel) kPick('');
+  kDrawn = '';
+  const pg = pageEl('kort');
+  pg.scrollTop = 0;
+  kortFill(pg);
+  const chip = $('opts').querySelector(`[data-kzone="${kZone}"]`), row = chip && chip.parentElement;   // the chosen zone in view in its row
+  if (row) { const c = chip.getBoundingClientRect(), r = row.getBoundingClientRect(); if (c.left < r.left || c.right > r.right) row.scrollLeft += c.left - r.left - 12; }
+  if (!kMap || !window.L) return;
+  const zn = KZONES.find(x => x[0] === kZone);
+  if (!zn) { kUser = false; kFit(kShown(), true); return; }
+  kUser = true;   // the zone's view stays until the reader chooses another
+  const b = window.L.latLngBounds(zn[2].flatMap(([s, w, n, o]) => [[s, w], [n, o]]));
+  if (reduceMotion) kMap.fitBounds(b, { padding: [12, 12], animate: false }); else kMap.flyToBounds(b, { padding: [12, 12], duration: 0.8 });
+}
+// one event chosen – from its row (the map flies there and opens its bubble; Reduce Motion: no flight) or its marker
+// (its row is marked and a small card shows over the map's foot); '' lets go
 function kPick(id, from) {
   const pg = pageEl('kort'), e = id ? kShown().find(x => x.i === id) : null;
   kSel = e ? id : '';
@@ -3304,19 +3367,20 @@ function kPick(id, from) {
   if (row) row.classList.add('on');
   for (const { e: x, m } of kMarks) {
     const b = m.getElement() && m.getElement().firstElementChild, on = x.i === kSel;
-    if (b && b.classList.contains('on') !== on) { b.classList.toggle('on', on); m.setZIndexOffset(on ? 1000 : 0); }
+    if (b && b.classList.contains('on') !== on) b.classList.toggle('on', on);
+    m.setZIndexOffset(on ? 1000 : 0);
   }
   kCard(e);
   if (e && from === 'map' && kMap) {   // a marker the card would cover moves up into view
     const room = pg.querySelector('.k-card').offsetTop - 24, y = kMap.latLngToContainerPoint([e.la, e.lo]).y;
     if (y > room) { kUser = true; kMap.panBy([0, y - room / 2], { animate: !reduceMotion }); }
   }
-  if (!e || from !== 'row') return;
-  pg.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-  if (!kMap) return;
+  if (!e || from !== 'row' || !kMap) return;
   kUser = true;
-  const z = Math.max(kMap.getZoom(), 7);
-  if (reduceMotion) kMap.setView([e.la, e.lo], z, { animate: false }); else kMap.flyTo([e.la, e.lo], z, { duration: 0.7 });
+  const z = Math.max(kMap.getZoom(), 7), mk = kMarks.find(x => x.e.i === id);
+  const open = () => { if (mk && kLayer.zoomToShowLayer && !mk.m.getElement() && kSel === id) kLayer.zoomToShowLayer(mk.m, () => kPaint(mk.m, e)); };
+  if (reduceMotion) { kMap.setView([e.la, e.lo], z, { animate: false }); open(); }
+  else { kMap.once('moveend', open); kMap.flyTo([e.la, e.lo], z, { duration: 0.7 }); }
 }
 function kCard(e) {
   const c = pageEl('kort').querySelector('.k-card');
@@ -3333,27 +3397,35 @@ function kOpenStory(id) {
   focusId = id;
   if (data) openFocus(stories()); else setTab('latest', { top: true });
 }
-list.addEventListener('click', e => {
-  const t = e.target, pr = t.closest('[data-priser]');
-  if (pr) { e.preventDefault(); openPriser(); return; }
-  if (!t.closest('.page[data-tab="kort"]')) return;
-  const pg = pageEl('kort'), v = t.closest('[data-kview]'), w = t.closest('[data-kwin]'), k = t.closest('[data-kkind]'), ev = t.closest('[data-kev]');
-  if (v) kSetView(v.dataset.kview);
+// the Kort tab's own buttons, in its page or in the dock
+function kortTap(t) {
+  const pg = pageEl('kort'), w = t.closest('[data-kwin]'), k = t.closest('[data-kkind]'), z = t.closest('[data-kzone]'), ev = t.closest('[data-kev]');
+  if (z) kZoneTo(z.dataset.kzone);
   else if (w) {   // another window: its events and a view that holds them; the window shown again: the view back
     const h = +w.dataset.kwin;
     if (h !== kWin) { kWin = h; store.set('kortWin', h); }
-    kUser = false; kBuilt = ''; kDrawn = '';
+    kUser = !!kZone; kBuilt = ''; kDrawn = '';
     kortFill(pg);
-  } else if (k) { kKind = kKind === k.dataset.kkind ? '' : k.dataset.kkind; kUser = false; kBuilt = ''; kortFill(pg); }
+  } else if (k) { kKind = kKind === k.dataset.kkind ? '' : k.dataset.kkind; kUser = !!kZone; kBuilt = ''; kortFill(pg); }
   else if (ev) kPick(ev.dataset.kev, 'row');
   else if (t.closest('[data-kclose]')) kPick('');
   else if (t.closest('[data-kopen]')) kOpenStory(t.closest('[data-kopen]').dataset.kopen);
   else if (t.closest('[data-kleaf]')) { kLeaf = 'idle'; kMapUp(pg); }
-  else if (t.closest('[data-kframe]')) { pg.querySelector('.k-pr').innerHTML = ''; kFrame(pg); }
+}
+list.addEventListener('click', e => {
+  const t = e.target, ok = t.closest('[data-okonomi]');
+  if (ok) { e.preventDefault(); openOkonomi(); return; }
+  if (t.closest('[data-okframe]')) { pageEl('okonomi').innerHTML = ''; okPage(pageEl('okonomi')); return; }
+  if (t.closest('.page[data-tab="kort"]')) kortTap(t);
 });
-$('sheet').addEventListener('click', e => { if (e.target.closest('[data-priser]')) { e.preventDefault(); openPriser(); } });
+$('opts').addEventListener('click', e => { if ($('opts').dataset.for === 'kort') kortTap(e.target); });
+$('sheet').addEventListener('click', e => { if (e.target.closest('[data-okonomi]')) { e.preventDefault(); openOkonomi(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && tab === 'kort' && kSel) kPick(''); });
-addEventListener('online', () => { if (tab === 'kort' && kLeaf === 'error') { kLeaf = 'idle'; kortView(); } });
+addEventListener('online', () => {
+  if (tab === 'kort' && kLeaf === 'error') { kLeaf = 'idle'; kMapUp(pageEl('kort')); }
+  const ok = pageEl('okonomi');
+  if (ok && !ok.querySelector('iframe') && ok.firstElementChild) { ok.innerHTML = ''; if (tab === 'okonomi') okPage(ok); }
+});
 
 // ---------------------------------------------------------------- swipe left and right between the tabs
 // The tabs lie side by side as pages in one horizontal scroller that snaps to whole pages, so the phone itself carries
@@ -3361,8 +3433,9 @@ addEventListener('online', () => { if (tab === 'kort' && kLeaf === 'error') { kL
 // and last tab it gives a little and springs back, and a swipe up or down stays a scroll of the page. Nothing is drawn
 // or swapped while it moves (the neighbours are drawn beforehand), so nothing can hop. The pill in the tab bar and the
 // title follow along; once the pages stand still, the page in view is the tab.
-// Forside · Live · Kort · Analyser (the pages lie in this order in #list; a drag on the map pans the map, never the pages)
-const SWIPE_TABS = ['home', 'latest', 'kort', 'analyses'];
+// Forside · Live · Kort · Økonomi · Analyser (the pages lie in this order in #list; a drag on the map pans the map,
+// never the pages)
+const SWIPE_TABS = ['home', 'latest', 'kort', 'okonomi', 'analyses'];
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
 const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt']);
@@ -3442,7 +3515,9 @@ list.addEventListener('scroll', () => {
     const n = SWIPE_TABS.length, k = Math.max(0, Math.min(n - 1, list.scrollLeft / list.clientWidth)), i = Math.min(n - 2, Math.floor(k));
     pillBetween(SWIPE_TABS[i], SWIPE_TABS[i + 1], k - i);
     showTitle(SWIPE_TABS[Math.round(k)]);
+    paintOpts(SWIPE_TABS[Math.round(k)]);   // the dock's options follow the page that fills most of the screen
     if (!kSeen && Math.abs(k - SWIPE_TABS.indexOf('kort')) < 1) kortWarm();   // on its way to the map: its file and Leaflet start
+    if (Math.abs(k - SWIPE_TABS.indexOf('okonomi')) < 1) okPage(pageEl('okonomi'));   // on its way: the frame starts
   }
   clearTimeout(settleT); settleT = setTimeout(settle, 140);
 }, { passive: true });
@@ -3457,7 +3532,7 @@ function settle() {
   list.style.scrollSnapType = '';
   const t = SWIPE_TABS[i];
   paging = false; jumping = false;
-  if (t && t !== tab) setTab(t, { swipe: true }); else { placePill(tab, true); showTitle(tab); }
+  if (t && t !== tab) setTab(t, { swipe: true }); else { placePill(tab, true); showTitle(tab); paintOpts(tab); }
 }
 // a tab chosen by a tap (or a link to another tab): the pages go straight there; the pill glides, the page fades in
 function showPage(t) {
@@ -3497,7 +3572,9 @@ function setTab(next, opts = {}) {
   if (tab === 'search') { loadIndex(); cur().scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
   hidePages();
   $('freshPill').hidden = true;
+  paintOpts(tab);
   if (tab === 'kort') kortShown();
+  if (tab === 'okonomi') okPage(pageEl('okonomi'));
   if (opts.swipe) {   // the page is in view already, drawn beforehand: only what is around it follows
     if (!cur().dataset.ver) draw(tab);
     if (data) renderDots(stories());
@@ -3657,9 +3734,9 @@ list.addEventListener('input', e => {
   anT = setTimeout(() => {
     anT = 0;
     anQuery = e.target.value;
-    const pg = pageEl('analyses'), l = pg.querySelector('.an-list'), ch = pg.querySelector('.an-chips');
+    const pg = pageEl('analyses'), l = pg.querySelector('.an-list');
     if (l) l.innerHTML = analysesList();
-    if (ch) ch.innerHTML = anChips();
+    if (dockTab === 'analyses') paintOpts('analyses');
   }, 80);
 });
 list.addEventListener('keydown', e => { if (e.target.id === 'anQ' && e.key === 'Enter') e.target.blur(); });
@@ -4218,9 +4295,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rese
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 // links into the app: the old section tabs (?tab=dk|me|world, from notifications and shortcuts) open Live; a wiki page or
 // an answer opens over the front page
-const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kort: 'kort', priser: 'kort', search: 'search', analyses: 'analyses' };
+const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kort: 'kort', okonomi: 'okonomi', priser: 'okonomi', search: 'search', analyses: 'analyses' };
 const startTab = START[params.get('tab')];
-if (params.get('tab') === 'priser') kView = 'priser';   // ?tab=priser: the Kort tab's prices (this visit only)
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));

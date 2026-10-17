@@ -136,7 +136,8 @@ def test_the_share_sends_the_editors_sentence_and_the_way_back():
     share = fn('shareText')
     assert 'sumOf(d)' in share and 'firstSentence(ed && ed.text)' in share and 'cleanTeaser(d.summary' in share
     assert 'via ${itemUrl(d.id)}' in share and "const itemUrl = id => `khabar.nu/?item=" in CODE
-    assert 'asShown(el)' in CODE.split("$('list').addEventListener('click'")[1].split('\n')[1]
+    assert 'asShown(el)' in CODE.split('async function onTap(e) {')[1].split('\n')[1]
+    assert "$('list').addEventListener('click', onTap);" in CODE
 
 
 def test_the_teaser_cleaning_is_the_radars():

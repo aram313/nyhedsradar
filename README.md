@@ -9,7 +9,7 @@ answers, used only to choose and order the news; the app itself shows no analysi
 (**Danmark**, **Mellemøsten**, **Verden**). Every story carries an **informative headline** the editor writes – who
 did or said what, where – instead of the outlets' own, which often only make the reader curious (until the editor has
 written one: the outlet's headline in Danish, or for a plain teaser its first sentence; the original is in the opened
-story). Names of people, parties and places are in bold. Four tabs:
+story). Names of people, parties and places are in bold. Five tabs:
 
 - **Forside** – the front page the editor composes at each update by its own taste and the brain: the day in one
   sentence, **Dagens historie** (the main story with its picture, how it developed through the day, and the amir's
@@ -18,12 +18,17 @@ story). Names of people, parties and places are in bold. Four tabs:
   is no fresh composition).
 - **Live** – the stories of the day as the editor weighs them – fewer on a quiet day, more on a heavy one – the newest or
   the most important first.
-- **Kort** – the attacks and fighting in the news of the last hours on a map (a little like LiveUAmap): 6 hours, 24
-  hours or 3 days, the kinds as a quiet filter, the events as rows under the map; a tap on a row flies the map there, a
-  tap on a marker shows a small card with the outlet's link and the story in Live. Beside it, **Priser**: the oil and
-  fuel prices (khabar.nu/energi) inside the tab.
+- **Kort** – the attacks and fighting in the news of the last hours on a map (a little like LiveUAmap), in many
+  countries: zones to fly to (Gaza, Vestbredden, Libanon/Syrien, Irak/Iran, Jemen/Rødehavet, Ukraine/Rusland, Afrika),
+  6 hours, 24 hours or 3 days, the kinds as a quiet filter, events close together as one numbered bubble when zoomed
+  out, the events as rows scrolling under the map; a tap on a row flies the map there, a tap on a marker shows a small
+  card with the outlet's link and the story in Live.
+- **Økonomi** – the economy page (khabar.nu/energi: oil, fuel and the markets) inside the app.
 - **Analyser** – Hizb ut-Tahrir's answers to political questions, the newest first (321 from 2004 to 2026 and every new
   one), with a search field and the reader: the question, the answer in short, what it reads, the original.
+
+A page's own options (Live's sort and filters, the map's zones, window and kinds, Analyser's chips) sit in one dock
+right above the tab bar, within the thumb's reach; the top bar keeps only Gemt, search and settings.
 
 Concepts named in the news (states, powers, groups, issues, agreements, places, ideas) open a **wiki page** compiled only
 from those answers – each block labelled as Hizb ut-Tahrir's answer with its date, the newest answer governing – with its readings through the years and today's
@@ -101,7 +106,7 @@ with one tap (no code to send).
    branch. The app (`public/`, published to GitHub Pages by `pages.yml`) reads those files and the editor's files from
    the `digest` branch; the movement layer and the wiki (`public/viden/`, built by `scripts/build_movement.py` and
    `scripts/build_begreber.py`) are published with it.
-12. **Energy prices** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi, and the Kort tab's Priser view): after each radar pass
+12. **Energy prices** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi, and the Økonomi tab): after each radar pass
    the job fetches Brent, WTI, RBOB, ULSD, TTF and Henry Hub futures and USD/DKK (Yahoo Finance), the Brent and
    WTI forward curves, EIA's physical spot prices (via FRED), every Circle K/INGO and Q8/F24 station's pump
    price, and computes crack spreads, physical-minus-paper Brent and prices in kroner per litre. The result is

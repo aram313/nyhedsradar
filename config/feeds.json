@@ -1370,5 +1370,187 @@
   "camp": "kr",
   "scale": false,
   "fit": 0.6
+ },
+ {
+  "name": "Ukrinform",
+  "label": "Ukrinform",
+  "lang": "en",
+  "url": "https://www.ukrinform.net/rss/block-lastnews",
+  "group": "west",
+  "camp": "ua",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "Ukrainska Pravda",
+  "label": "Ukrainska Pravda",
+  "lang": "en",
+  "url": "https://www.pravda.com.ua/eng/rss/",
+  "group": "west",
+  "camp": "ua",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "Kyiv Post",
+  "label": "Kyiv Post",
+  "lang": "en",
+  "url": "https://www.kyivpost.com/feed",
+  "group": "west",
+  "camp": "ua",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.85
+ },
+ {
+  "name": "Meduza",
+  "label": "Meduza",
+  "lang": "en",
+  "url": "https://meduza.io/rss/en/all",
+  "group": "west",
+  "camp": "ru_exile",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "The Moscow Times",
+  "label": "The Moscow Times",
+  "lang": "en",
+  "url": "https://www.themoscowtimes.com/rss/news",
+  "group": "west",
+  "camp": "ru_exile",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "Novaya Gazeta Europe",
+  "label": "Novaya Gazeta Europe",
+  "lang": "en",
+  "url": "https://novayagazeta.eu/feed/rss/en",
+  "group": "west",
+  "camp": "ru_exile",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.85
+ },
+ {
+  "name": "Sudan Tribune",
+  "label": "Sudan Tribune",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:sudantribune.com when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "sd",
+  "sec": "me",
+  "scale": false,
+  "fit": 0.9,
+  "drop": [
+   "\\bArchives\\b",
+   "^(?:Test|\\d+)$"
+  ]
+ },
+ {
+  "name": "Hiiraan Online",
+  "label": "Hiiraan Online",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:hiiraan.com when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "so",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9,
+  "drop": [
+   "\\b(?:oo|iyo)\\b",
+   "^(?:Wararka|SOMALI LINKS|RSS)\\b"
+  ]
+ },
+ {
+  "name": "Libya Review",
+  "label": "Libya Review",
+  "lang": "en",
+  "url": "https://libyareview.com/feed/",
+  "group": "mena",
+  "camp": "ly",
+  "sec": "me",
+  "scale": false,
+  "fit": 0.85
+ },
+ {
+  "name": "North Press Agency",
+  "label": "North Press",
+  "lang": "en",
+  "url": "https://npasyria.com/en/feed/",
+  "group": "mena",
+  "camp": "sy_ne",
+  "sec": "me",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "LBCI",
+  "label": "LBCI",
+  "lang": "en",
+  "url": "https://www.lbcgroup.tv/Rss/News/en",
+  "group": "mena",
+  "camp": "lb",
+  "sec": "me",
+  "scale": false,
+  "fit": 0.85
+ },
+ {
+  "name": "Kurdistan24",
+  "label": "Kurdistan24",
+  "lang": "en",
+  "url": "https://www.kurdistan24.net/en/rss.xml",
+  "group": "mena",
+  "camp": "krd",
+  "sec": "me",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "Myanmar Now",
+  "label": "Myanmar Now",
+  "lang": "en",
+  "url": "https://myanmar-now.org/en/feed/",
+  "group": "west",
+  "camp": "mm",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9
+ },
+ {
+  "name": "DVB",
+  "label": "DVB (Democratic Voice of Burma)",
+  "lang": "en",
+  "url": "https://english.dvb.no/feed/",
+  "group": "west",
+  "camp": "mm",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.85
+ },
+ {
+  "name": "TOLOnews",
+  "label": "TOLOnews",
+  "lang": "en",
+  "type": "gnews",
+  "query": "site:tolonews.com when:1d",
+  "locale": "en-US:US",
+  "group": "mena",
+  "camp": "af",
+  "sec": "world",
+  "scale": false,
+  "fit": 0.9,
+  "drop": [
+   "^(?:TOLOnews|Afghanistan|Nightly News)$"
+  ]
  }
 ]
