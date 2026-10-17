@@ -145,7 +145,7 @@ da'wah.
   three words with it, `timeline_off`), files
   headlines under the story's id with its members (summaries.json `titles`; one that breaks today's rules covers no
   story and is removed at the next publish), writes `live.json` at every publish (today's and yesterday's Danish days;
-  take/drop add to today's) and `front.json` (the composition: at most 8 blocks – the app draws six – of top, liste, udvikling, citat, svar,
+  take/drop add to today's) and `front.json` (the composition: at most 6 blocks (`FRONT_BLOCKS`; the app draws no more) of top, liste, udvikling, citat, svar,
   live, linje; the lede's optional `lede_ids`, one story id per part of `lede_parts`, checked like the picks, kept with a
   kept lede, beside the lede in digest.json's notes and front.json; a story once; its stories in Live or taken in; a kept composition is re-dated, minus stories that left
   and – after midnight – its linje blocks). The check's Live line and two more reasons: 8 stories waiting for a

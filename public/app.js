@@ -1246,7 +1246,9 @@ const threadNamed = name => name && allThreads().find(t => t.key === thrKey(Stri
 // editor's picks first, then rank). Live and the radar keep their Danish rules; this is the front page's.
 const FRONT_MAX = 6;   // blocks after the lede, whatever the composition says
 const dayTops = () => new Set(frontCands(stories().filter(i => i.kind !== 'kommentar'), 5).map(i => i.id));
-const dkMatters = (i, tops) => !!i && (!!i.big || i.live === 'dk' || tops.has(i.id));
+// a Danish story matters when it is among the day's five strongest, or big and Danish politics on Islam, Muslims,
+// integration or foreign policy (the radar's 'dk' protection) – 'big' alone is a third of Live on a busy day
+const dkMatters = (i, tops) => !!i && (tops.has(i.id) || (!!i.big && i.live === 'dk'));
 // the composition's blocks in the order drawn: a list whose stories are all Danish and none of them matters is cut to
 // two rows (`dkQuiet`) and goes after the other blocks
 function frontOrder(blocks) {

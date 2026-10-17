@@ -135,7 +135,7 @@ def test_the_front_page_shows_less():
 
 
 def test_denmark_only_when_it_matters():
-    assert "!!i.big || i.live === 'dk' || tops.has(i.id)" in CODE
+    assert "tops.has(i.id) || (!!i.big && i.live === 'dk')" in CODE
     order = fn('frontOrder')
     assert "list.every(i => secOf(i) === 'dk')" in order and 'dkQuiet: true' in order and 'return [...rest, ...quiet]' in order
     fixed = fn('fixedHome')

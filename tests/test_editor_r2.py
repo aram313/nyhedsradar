@@ -163,7 +163,6 @@ GOOD_FRONT = {'blocks': [
     {'kind': 'udvikling', 'topics': ['Ukraine']},
     {'kind': 'citat', 'quote': 'q1'},
     {'kind': 'svar', 'nr': '30555'},
-    {'kind': 'live', 'n': 3},
     {'kind': 'linje', 'text': '14 nye angreb på Riyadh i dag'}]}
 
 
@@ -173,13 +172,13 @@ def test_the_editors_composition_is_checked_and_written_to_front_json(folder, tm
                                'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world', 'ids': ['w3']}]})
     front = out_file(tmp_path, 'front.json')
     assert front['updated'] == NOW and front['lede'] == 'Angreb på Riyadh og en ny lov i Folketinget.'
-    top, liste, udv, citat, svar, live, linje = front['blocks']
+    top, liste, udv, citat, svar, linje = front['blocks']
     assert top == {'kind': 'top', 'title': 'Houthi-angreb rammer Riyadh; 12 dræbt', 'story': 'm1', 'with': ['s4'],
                    'timeline': 'Ukraine', 'picture': True}                       # the topic's name as the recap writes it
     assert liste == {'kind': 'liste', 'title': 'Danmark', 'stories': ['d1', 'd2', 's1'], 'style': 'kompakt'}   # by member
     assert udv == {'kind': 'udvikling', 'topics': ['Ukraine']}
     assert citat['quote'] == 'q1' and citat['who'] == 'Kreml' and citat['link'] == 'https://t.me/ajanews/w3'
-    assert svar == {'kind': 'svar', 'nr': '30555'} and live == {'kind': 'live', 'n': 3}
+    assert svar == {'kind': 'svar', 'nr': '30555'}
     assert linje == {'kind': 'linje', 'text': '14 nye angreb på Riyadh i dag'}
     assert out_file(tmp_path, 'digest.json')['editor']['quotes'][0]['id'] == 'q1'
 
@@ -198,7 +197,7 @@ def test_a_composition_that_breaks_the_rules_is_refused(folder, tmp_path, capsys
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, {'lede': 'Dagen kort.', 'front': bad})
     out = capsys.readouterr().out
-    assert "front: 9 blocks – at most 8" in out and "front block 1: kind 'hero'" in out
+    assert "front: 9 blocks – at most 6" in out and "front block 1: kind 'hero'" in out
     assert 'front block 2 (top) title' in out and 'curiosity headline' in out
     assert "front block 4 (top): story – unknown story id 'nope'" in out
     assert "looks like a day marker" in out

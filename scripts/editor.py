@@ -84,7 +84,7 @@ LEVEL_SIZE = {'få': 25, 'normal': 45, 'mange': 80}   # the owner's first guess 
 LIVE_NOTE = 160  # characters of the level's note
 LINE_SHOWN = 6   # candidates shown just above and just below the radar's line
 FRONT_KINDS = ('top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje')   # the front page's palette
-FRONT_BLOCKS = 8     # blocks in a composition
+FRONT_BLOCKS = 6     # blocks in a composition (the app draws no more)
 FRONT_DRAWN = 6      # of which the app draws the first six (2026-10-17: overskuelighed før fuldstændighed)
 FRONT_TOPS = 2       # 'top' blocks: one, two on a day with two main stories
 FRONT_LIST = 8       # stories in one 'liste'
@@ -1400,7 +1400,7 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
     if len(blocks) > FRONT_BLOCKS:
         problems.append(f'front: {len(blocks)} blocks – at most {FRONT_BLOCKS}: overskuelighed før fuldstændighed')
     used, out, tops = {}, [], 0
-    for k, b in enumerate(blocks[:FRONT_BLOCKS], 1):
+    for k, b in enumerate(blocks, 1):      # every block is checked, so one round shows every problem
         if not isinstance(b, dict) or b.get('kind') not in FRONT_KINDS:
             kind = b.get('kind') if isinstance(b, dict) else b
             problems.append(f"front block {k}: kind {kind!r} – one of {', '.join(FRONT_KINDS)}")
