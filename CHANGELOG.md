@@ -9,6 +9,16 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Sideways chip rows start at their left and fade at their edges; A–Å's letters in a track, once the list begins**
+  (2026-10-18, the owner, with a screenshot: 'Ser lidt uprofessionelt ud med alfabetet i højre side, ligner en
+  eftertanke. Og den vandrette scrollbare emneliste fader ikke ud i siderne, burde den gøre på alle sider, og burde
+  starte på venstre side som standard, i dag starter den på slutningen'; `?v=20261018ay`): the dock's centring of a
+  few chips (Kalender, Analyser) is done by auto margins, so a row wider than the screen starts at its left (centring
+  had pushed the A–Å's kinds row off its start). Every sideways row (the dock's rows, the A–Å's kinds) fades out at the
+  side where more lies beyond (`edges`, a mask toggled by `fade-l` / `fade-r` as it is drawn and scrolled). The A–Å's
+  letters sit in a slim rounded track at the right edge, evenly spaced and vertically centred, shown only once the
+  list itself is reached (`azWatch`: not beside the header and 'Mest brugt'), fading in and out; the rows keep 40 px
+  clear of it.
 - **Dagens historie's picture smaller** (2026-10-18, the owner: 'dagens historie billede er for stort';
   `?v=20261018ax`): 16:9 instead of 4:3 and at most 40 % of the screen instead of 62 % – about a quarter lower on a phone
   (≈ 230 px at 430 px wide); a four-line headline and its line still fit on the fade.

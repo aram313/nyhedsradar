@@ -2682,7 +2682,9 @@ function draw(t, opts = {}) {
     }
   }
   pictures(pg);
+  edgesIn(pg);
   if (t === 'analyses') watchStrip(pg);
+  if (t === 'begreber') azWatch(pg);
   // a calendar event a link or the front page named: brought just below the bar once drawn (the tab in view)
   // (and again while the files and the news that follow redraw it for two seconds, until the reader's finger takes over)
   if (t === 'kalender' && t === tab) calAimAt(pg);
@@ -3186,6 +3188,7 @@ function paintOpts(t = tab) {
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
   morph(box, tpl.content, []);   // a row's own element stays, so a chip row keeps its sideways place
+  edgesIn(box);
   const pair = new Set([was, t]).size === 1 || (['analyses', 'begreber'].includes(was) && ['analyses', 'begreber'].includes(t));   // the toggle stays put
   if (!pair && !reduceMotion) box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
 }
@@ -4410,6 +4413,28 @@ const ownScroller = el => {   // something under the mouse that scrolls by itsel
   return null;
 };
 const pageFree = () => !$('scrim').classList.contains('on');
+// A sideways row of chips fades out at the side where more lies beyond it (the owner, 18/10: 'den vandrette scrollbare
+// emneliste fader ikke ud i siderne, burde den gøre på alle sider'); worked out when a row is drawn and as it scrolls
+const SIDEWAYS = '.o-row, .an-chips';
+function edges(row) {
+  const more = row.scrollWidth > row.clientWidth + 1, x = row.scrollLeft, end = row.scrollWidth - row.clientWidth;
+  row.classList.toggle('fade-l', more && x > 2);
+  row.classList.toggle('fade-r', more && x < end - 2);
+}
+const edgesIn = root => { for (const r of root.querySelectorAll(SIDEWAYS)) edges(r); };
+document.addEventListener('scroll', e => { const el = e.target; if (el instanceof Element && el.matches(SIDEWAYS)) edges(el); }, { capture: true, passive: true });
+addEventListener('resize', () => edgesIn(document));
+// A–Å's letters show once the list itself is reached – not beside the header and the most used pages above it (the
+// owner, 18/10: 'ser lidt uprofessionelt ud med alfabetet i højre side, ligner en eftertanke')
+let azIO = null;
+function azWatch(pg) {
+  const first = pg.querySelector('.az-at'), idx = pg.querySelector('.az-idx');
+  if (azIO) azIO.disconnect();
+  if (!first || !idx) return;
+  azIO = new IntersectionObserver(es => { for (const e of es) idx.classList.toggle('on', e.boundingClientRect.top < innerHeight * 0.55); },
+    { threshold: [0, 1], rootMargin: '0px 0px -45% 0px' });
+  azIO.observe(first);
+}
 // A–Å's letter column (the owner, 18/10: 'ligesom når man scroller i en telefonbog på iphone … holde fingeren nede og
 // slide … et stort bogstav på midten som fader ud efter et halv sekund når man står stille med fingeren'): a press
 // jumps to its letter, a slide runs through them, each step at once (no smooth scroll); the large letter fades half a

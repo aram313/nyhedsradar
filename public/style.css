@@ -399,7 +399,15 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .seg button { min-height: 44px; padding: 0 4px; text-align: center; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); border-radius: var(--r-btn); }
 .seg button[aria-checked="true"] { color: var(--text); font-weight: 700; background: var(--seg-on); box-shadow: inset 0 0 0 3px var(--fill); }
 .seg.two { grid-template-columns: repeat(2, 1fr); }
-.cal-tog, .an-chips { justify-content: center; }   /* the Kalender's two chips, Vigtige · Alle (18/10), in the middle of the dock */
+/* the dock's few chips in its middle – by auto margins, so a row wider than the screen still starts at its left (a
+   centred overflowing row hid its start: the A–Å's kinds opened at their end, 18/10) */
+.cal-tog > :first-child, .opts .an-chips > :first-child { margin-left: auto; }
+.cal-tog > :last-child, .opts .an-chips > :last-child { margin-right: auto; }
+/* a sideways row fades out at the side where more lies beyond it (the owner, 18/10: 'burde den gøre på alle sider') */
+.o-row, .an-chips { --fl: 0px; --fr: 0px; -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent); }
+.o-row.fade-l, .an-chips.fade-l { --fl: 32px; }
+.o-row.fade-r, .an-chips.fade-r { --fr: 32px; }
 .seg.four { grid-template-columns: repeat(4, 1fr); }
 .seg.four button { font-size: var(--fs-meta); }
   font-size: var(--fs-cap); font-weight: 600; color: var(--text-2); }
@@ -1055,13 +1063,17 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .wk-tl li > p.ht { margin: 0 0 10px; font-size: var(--fs-read); line-height: 1.5; color: var(--ht-text); }
 /* the wiki's index: the kinds, the most used pages, the letters that stay under the bar */
 .az-kinds { margin-top: 4px; }   /* the kinds: one sideways chip row, as Analyser's areas */
-/* A–Å's letters (18/10, the owner: as the iPhone's contacts; 'mere diskret' the same evening): a thin still column at the
-   window's right edge between the bar and the dock, small and grey; a finger slides through it (touch-action: none) */
-.az-idx { position: fixed; z-index: 7; top: calc(var(--barh) + 8px); bottom: calc(var(--dock) + 8px); right: 0;
-  display: flex; flex-direction: column; justify-content: center; width: 24px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.az-idx button { flex: 0 1 auto; min-height: 0; padding: 0; line-height: 1.15; font-size: var(--fs-cap); font-weight: 600; color: var(--text-3); }
+/* A–Å's letters (18/10, the owner: as the iPhone's contacts, then 'mere diskret', then 'ligner en eftertanke'): a
+   slim rounded track at the window's right edge, the letters in it evenly spaced, shown only once the list itself is
+   reached (`.on`, azWatch) and faded in and out; the rows keep clear of it; a finger slides through it */
+.az-idx { position: fixed; z-index: 7; top: 50%; right: 4px; transform: translateY(-50%); max-height: calc(var(--vvh, 100dvh) - var(--barh) - var(--dock) - 24px);
+  display: flex; flex-direction: column; justify-content: space-between; width: 22px; padding: 8px 0; border-radius: 11px; background: var(--fill);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease-out;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.az-idx.on { opacity: 1; pointer-events: auto; }
+.az-idx button { flex: 0 1 auto; min-height: 0; padding: 1px 0; line-height: 1.1; font-size: var(--fs-cap); font-weight: 650; color: var(--text-2); }
 .az-at { display: block; height: 0; }
-.page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 32px; }
+.page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 40px; }
 /* the letter bands stay under the bar while their letter lasts, in red */
 .page[data-tab="begreber"] .grp.az { position: sticky; top: var(--barh); z-index: 5; margin: 0; padding: 14px 40px 6px 16px; background: var(--bg); color: var(--red); }
 /* the large letter in the middle while one slides; it fades half a second after the last change */
@@ -1069,7 +1081,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
   border-radius: 24px; background: var(--fill-2); color: var(--text); font-size: calc(var(--fs-title) * 2); font-weight: 750; opacity: 0;
   pointer-events: none; transition: opacity .25s ease-out; }
 .az-bubble.on { opacity: .96; transition: none; }
-@media (prefers-reduced-motion: reduce) { .az-bubble { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .az-bubble, .az-idx { transition: none; } }
 .grp.az { margin-top: 20px; color: var(--text-2); font-size: var(--fs-small); }
 .az-item { position: relative; }
 .az-item + .az-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
