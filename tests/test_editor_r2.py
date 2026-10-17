@@ -350,3 +350,21 @@ def test_a_level_about_to_lapse_calls_for_an_update(folder, capsys):
                                 'days': {'2026-10-10': {'level': 'få', 'take': [], 'drop': [], 'note': ''}}})
     out = check(folder, capsys)                                                    # 5 h 31 min since live.json
     assert 'dagens niveau (få) holder kun 6 timer efter sidste opdatering' in out[-1]
+
+
+# ------------------------------------------------------------------ a story that changed its lead since the input
+
+def test_a_story_named_by_its_old_lead_is_filed_under_its_current_id(folder, tmp_path):
+    """The radar runs every five minutes and may give a story a new lead article between the editor's input and its
+    publish: the editor's recap line, pick and summary then name an id that is a member now – found by it and filed
+    under the story's current id (found in a real run on 17/10, where three of them refused the whole update)."""
+    add_items(folder, story('c1', 'Kort', '2026-10-10T19:00:00+00:00', members=['c0', 'c1']))
+    publish(folder, tmp_path, {
+        'lede': 'Dagen kort.',
+        'topics': [{'name': 'Et emne', 'section': 'world', 'lines': [{'who': 'Reuters', 'text': 'Noget skete.', 'story': 'c0'}]}],
+        'picks': [{'id': 'c0', 'why': 'stor'}],
+        'summaries': [{'id': 'c0', 'text': 'Noget skete i dag. Reuters melder det.', 'paywall': True}]})
+    digest = out_file(tmp_path, 'digest.json')
+    assert any(p['id'] == 'c1' for p in (digest.get('editor') or {}).get('picks') or [])
+    sums = out_file(tmp_path, 'summaries.json')['items']
+    assert 'c1' in sums and 'c0' not in sums

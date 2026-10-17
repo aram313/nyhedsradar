@@ -1462,6 +1462,11 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
 
     day_for(stamp)   # today exists, if only to keep the wire lines it was given
     by_id = {i['id']: i for i in data.get('items', [])}
+    # a story may have changed its lead article since the input (the radar runs every five minutes): its old id is
+    # one of its members now – find it by that, and file what the editor wrote under its current id
+    for i in data.get('items', []):
+        for m in i.get('members') or []:
+            by_id.setdefault(m, i)
     by_line = {v['i']: v for v in lines.get('items', [])}
     wire = {v['i']: v for v in uncovered(lines, moves)}
     told = {x['id'] for d in days.values() for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
@@ -1496,7 +1501,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
                 it = by_id.get(story)
                 if not it:
                     problems.append(f'{label}: unknown story id {story!r}')
-                elif story in told:
+                elif story in told or it['id'] in told:
                     problems.append(f'{label}: story {story} is in the recap already')
                 elif story in picked:
                     problems.append(f'{label}: story {story} is used twice (also in {picked[story]})')
@@ -1549,7 +1554,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
                 why = ' '.join(str(p.get('why', '')).split())[:120]
                 voice.check_voice(why, f"picks: {p['id']} why", problems)   # public in digest.json
                 voice.check_reality(why, f"picks: {p['id']} why", problems)
-                picks.append({'id': p['id'], 'why': why})
+                picks.append({'id': by_id[p['id']]['id'], 'why': why})
     fixes = {m['id']: m for m in prev.get('moves') or [] if isinstance(m, dict) and m.get('id') in by_id}
     for m in draft.get('moves') if isinstance(draft.get('moves'), list) else []:
         if not isinstance(m, dict) or m.get('id') not in by_id or m.get('sec') not in SECTIONS:
@@ -1605,7 +1610,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
         else:
             voice.check_voice(text, f"summaries: {x['id']}", problems)
             voice.check_reality(text, f"summaries: {x['id']}", problems)
-            sums.append({'id': x['id'], 'text': text, 'paywall': bool(x.get('paywall'))})
+            sums.append({'id': by_id[x['id']]['id'], 'text': text, 'paywall': bool(x.get('paywall'))})
     quotes = [{**q, 'id': f'q{k}'} for k, q in enumerate(quotes, 1)]   # a front page's 'citat' names one by its id
     extra = extra or {}
     live = live_day(draft, extra.get('live'), find, now, problems)
