@@ -376,3 +376,11 @@ def test_embedded_the_topics_are_the_apps_dock():
     page = PAGE
     assert 'html.embed .ec-dock { display: none; }' in page and 'parent.khabarOk(' in page and 'window.okJump' in page
     assert 'Math.min(end, Math.max(0, top))' in page   # a jump never asks for more than the page holds
+
+
+def test_the_crisis_topic_knows_a_state_under_borrowing_stress():
+    # 18/10, the owner: France and the ECB – bond yields, borrowing costs, ratings, the central bank
+    for t in ('Bank of France governor: Political uncertainty driving bond yields higher', 'Le Pen wants talks with the ECB',
+              'Frankrigs lånerenter stiger', "Moody's kreditvurdering af Frankrig", 'Renteforskellen til Tyskland vokser'):
+        assert energy.CRISIS.search(t), t
+    assert not energy.CRISIS.search('Gaza ceasefire talks resume in Cairo')

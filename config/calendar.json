@@ -298,6 +298,37 @@
    "place": "",
    "why": "Shanghai-samarbejdsorganisationens ledere mødes hvert år; dato og sted for 2027 er ikke offentliggjort.",
    "link": "https://en.wikipedia.org/wiki/Shanghai_Cooperation_Organisation"
+  },
+  {
+   "id": "moodys-frankrig-2026-10-23",
+   "date": "2026-10-23",
+   "title": "Moody's vurderer Frankrigs kreditværdighed",
+   "kind": "andet",
+   "place": "Frankrig",
+   "w": 2,
+   "why": "Moody's giver i dag Frankrig Aa3 med negative udsigter. En nedgradering gør det dyrere for staten at låne, mens renteforskellen til Tyskland 2. oktober nåede det højeste siden eurokrisen.",
+   "link": "https://selectra.info/finance/actualites/marche/moody-note-france-23-octobre-credit-immobilier"
+  },
+  {
+   "id": "sp-frankrig-2026-11-27",
+   "date": "2026-11-27",
+   "title": "S&P vurderer Frankrigs kreditværdighed",
+   "kind": "andet",
+   "place": "Frankrig",
+   "w": 2,
+   "why": "S&P giver i dag Frankrig A+ med stabile udsigter. Vurderingen afgør, hvad investorerne kræver for at låne den franske stat penge.",
+   "link": "https://selectra.info/finance/actualites/marche/moody-note-france-23-octobre-credit-immobilier"
+  },
+  {
+   "id": "frankrig-finanslov-2027",
+   "date": "2026-12",
+   "approx": true,
+   "title": "Frankrigs finanslov for 2027 skal vedtages",
+   "kind": "frist",
+   "place": "Frankrig",
+   "w": 2,
+   "why": "Premierminister Lecornu vil have finansloven med 54 mia. euro i besparelser vedtaget inden årets udgang; regeringen har ikke flertal i Nationalforsamlingen, og underskuddet var 5,4 % af BNP i 2026.",
+   "link": "https://lcp.fr/actualites/budget-2027-pour-sebastien-lecornu-attendre-la-presidentielle-c-est-choisir-le-desordre"
   }
  ]
 }

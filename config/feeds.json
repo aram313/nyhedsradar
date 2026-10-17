@@ -1552,5 +1552,57 @@
   "drop": [
    "^(?:TOLOnews|Afghanistan|Nightly News)$"
   ]
+ },
+ {
+  "name": "Scout · økonomi",
+  "label": "Google News",
+  "lang": "en",
+  "type": "gnews",
+  "scout": true,
+  "scale": false,
+  "query": "(\"bond yields\" OR \"borrowing costs\" OR \"credit rating\" OR downgrade OR \"debt crisis\" OR bailout OR \"IMF loan\" OR default) (France OR Italy OR Britain OR Turkey OR Egypt OR Pakistan OR \"Saudi Arabia\" OR China OR Japan OR \"United States\") when:1d",
+  "locale": "en-US:US",
+  "group": "west",
+  "sec": "world",
+  "fit": 0.9
+ },
+ {
+  "name": "Scout · centralbanker",
+  "label": "Google News",
+  "lang": "en",
+  "type": "gnews",
+  "scout": true,
+  "scale": false,
+  "query": "(ECB OR \"European Central Bank\" OR Lagarde OR \"Federal Reserve\" OR \"Bank of Japan\") (crisis OR intervene OR rescue OR emergency OR \"bond buying\" OR spread) when:1d",
+  "locale": "en-US:US",
+  "group": "west",
+  "sec": "world",
+  "fit": 0.9
+ },
+ {
+  "name": "Scout · frister",
+  "label": "Google News",
+  "lang": "en",
+  "type": "gnews",
+  "scout": true,
+  "scale": false,
+  "query": "(deadline OR ultimatum OR expires OR \"vote on\" OR summit) (Gaza OR Iran OR Israel OR Ukraine OR Russia OR China OR tariffs OR sanctions OR \"Security Council\") when:1d",
+  "locale": "en-US:US",
+  "group": "west",
+  "sec": "world",
+  "fit": 0.9
+ },
+ {
+  "name": "Scout · frister DK",
+  "label": "Google News",
+  "lang": "da",
+  "type": "gnews",
+  "scout": true,
+  "scale": false,
+  "query": "(frist OR udløber OR afstemning OR topmøde OR finanslov) (regeringen OR Folketinget OR EU) when:1d",
+  "locale": "da-DK:DK",
+  "group": "dk",
+  "sec": "dk",
+  "fit": 0.9
  }
 ]

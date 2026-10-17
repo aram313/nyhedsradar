@@ -113,7 +113,7 @@ def parse(xml_bytes, feed):
             summary = summary[len(title):].strip(' -–:|')
         date = parse_date(_text(el, 'pubdate', 'date', 'published', 'updated'))
         link = link.strip()
-        items.append({
+        item = {
             'id': hashlib.sha1(link.encode()).hexdigest()[:16],
             'title': title,
             'summary': summary,
@@ -122,7 +122,15 @@ def parse(xml_bytes, feed):
             'lang': feed.get('lang', ''),
             'published': date.isoformat() if date else None,
             'img': image(el),
-        })
+        }
+        # a scout (18/10, the owner: the French debt crisis and the ECB never reached Khabar – a search of Google News
+        # on fixed subjects, across outlets): each item keeps the outlet Google names, not the scout's own name
+        if feed.get('scout'):
+            outlet = clean(_text(el, 'source'), 80)
+            if outlet:
+                item['source'] = outlet
+            item['scout'] = feed['name']
+        items.append(item)
     return items
 
 

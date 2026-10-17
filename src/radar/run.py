@@ -342,7 +342,14 @@ def main():
     official = {f['name'] for f in feeds if f.get('group') == 'official'}
     # sources added for their camp's view (scale: false) are ranked against the established sources' scale and
     # never move it: not the taste percentiles, not a section's bar, not the outlet count of the rank or a big story
-    off_scale = {f['name'] for f in feeds if f.get('scale') is False}
+    # off the scale: the sources added for their camp, and every outlet a scout brings that is no source of ours (a
+    # scout's item keeps the outlet Google names – 18/10): it may reach Live, never move the established sources' scale
+    names = {f['name'] for f in feeds}
+
+    class OffScale(set):
+        def __contains__(self, name):
+            return set.__contains__(self, name) or name not in names
+    off_scale = OffScale(f['name'] for f in feeds if f.get('scale') is False)
     # how well a source serves the editor (measured 2026-10-17, docs/hjerne/kilder-maaling.md): a small weight in the
     # rank, and above all which outlet leads a story
     fit_of = {f['name']: float(f.get('fit') or 1.0) for f in feeds}

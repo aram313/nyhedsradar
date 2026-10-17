@@ -47,3 +47,20 @@ def test_telegram_posts_become_clean_headlines():
     assert 'x.com' not in a['summary'] and '[Ak]' not in a['summary']
     assert b['title'].startswith('Students were denied entry to Secondary School No. 9 in Jelilabad'), b['title']
     assert feeds.clean('president ​Mahmoud ​Abbas') == 'president Mahmoud Abbas'
+
+
+def test_a_scout_keeps_the_outlet_google_names():
+    # 18/10, the owner: the French debt crisis and the ECB never reached Khabar – scouts search Google News on subjects
+    xml = (b'<rss><channel><item><title>Bank of France: bond yields higher - CNBC</title>'
+           b'<link>https://news.google.com/x/1</link><source url="https://www.cnbc.com">CNBC</source></item>'
+           b'<item><title>No outlet named</title><link>https://news.google.com/x/2</link></item></channel></rss>')
+    scout = {'name': 'Scout · økonomi', 'type': 'gnews', 'lang': 'en', 'scout': True}
+    a, b = feeds.parse(xml, scout)
+    assert a['source'] == 'CNBC' and a['scout'] == 'Scout · økonomi'
+    assert b['source'] == 'Scout · økonomi'                        # no outlet named: the scout's own name
+    plain = feeds.parse(xml, {'name': 'Reuters', 'type': 'gnews', 'lang': 'en'})
+    assert plain[0]['source'] == 'Reuters' and 'scout' not in plain[0]   # a site's own feed is unchanged
+    import json
+    src = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
+    scouts = [f for f in src if f.get('scout')]
+    assert len(scouts) >= 4 and all(f['type'] == 'gnews' and f.get('scale') is False and 'when:1d' in f['query'] for f in scouts)

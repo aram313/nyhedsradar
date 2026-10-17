@@ -137,7 +137,13 @@ CRISIS = re.compile(
     r"valutakrise\w*|devaluering\w*|recession\w*|lavkonjunktur\w*|redningspakke\w*|nødlån\w*|bankkrak\w*|"
     r"børskrak\w*|børsfald\w*|kursfald\w*|handelskrig\w*|toldmur\w*|toldsats\w*|toldkrig\w*|told på|told mod|"
     r"straftold\w*|sanktion\w*|nedgradering\w*|"
-    r"inflation\w*|hyperinflation\w*|IMF)(?![\w-])", re.I)
+    r"inflation\w*|hyperinflation\w*|IMF|"
+    # a state's borrowing under stress and the central bank asked to step in (18/10: the French debt crisis and the
+    # ECB never reached the page): bond yields, borrowing costs, the spread to German bonds, ratings, a budget crisis
+    r"bond yields?|bond market|borrowing costs?|yield spread|bond spread|spread (?:over|to|with) (?:german )?bunds?|"
+    r"ECB|European Central Bank|Lagarde|bond[- ]buying|credit (?:outlook|downgrade)|budget crisis|fiscal crisis|"
+    r"lånerente\w*|renteforskel\w*|renten på (?:franske |italienske )?statsobligationer|statsobligation\w*|"
+    r"kreditvurdering\w*|Den Europæiske Centralbank|budgetkrise\w*|gældsloft\w*)(?![\w-])", re.I)
 
 
 def now():

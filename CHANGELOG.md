@@ -9,6 +9,22 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Scouts, a wider crisis topic and France's rating days** (2026-10-18, the owner: 'frankrig har spurgt om et
+  massivt lån fra ECB, hvordan skal vi inkorporere sådan nogle informationer … og hvorfor er de ikke med i dag' – no
+  formal request was found, but the French debt stress was real and none of the radar's 697 stories named it; he chose
+  three of four proposals, the editor keeps no internet):
+  - **Scouts** (`config/feeds.json`, `"scout": true`): four Google News searches on fixed subjects across outlets –
+    states' borrowing stress (bond yields, borrowing costs, ratings, debt crises, bailouts, IMF loans), central banks
+    stepping in (ECB, Fed, BoJ), deadlines (ultimatums, votes, summits on Gaza, Iran, Ukraine, tariffs, the Security
+    Council) and Danish deadlines (frist, finanslov, afstemning). An item keeps the outlet Google names (`feeds.parse`);
+    an outlet that is no source of ours stays off the scale (`run.OffScale`: it may reach Live, at most three cards of
+    its own a day, never moves the established sources' scale). Polled with the radar, so they are there within
+    minutes, not once a day.
+  - **Økonomi → Kriser** (`energy.CRISIS`) also knows bond yields, borrowing costs, the spread to German bonds, the
+    ECB and Lagarde, bond-buying, credit outlooks, budget and fiscal crises, lånerenter, renteforskel,
+    statsobligationer, kreditvurdering, budgetkrise.
+  - **Kalender:** Moody's review of France 23/10, S&P's 27/11 (each of middle weight, checked), France's 2027 budget
+    to be adopted in December (forventet; the prime minister's own aim, no fixed day).
 - **Sideways chip rows start at their left and fade at their edges; A–Å's letters in a track, once the list begins**
   (2026-10-18, the owner, with a screenshot: 'Ser lidt uprofessionelt ud med alfabetet i højre side, ligner en
   eftertanke. Og den vandrette scrollbare emneliste fader ikke ud i siderne, burde den gøre på alle sider, og burde
