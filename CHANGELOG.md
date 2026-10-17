@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Gem on Live's rows** (2026-10-17, the owner: 'gør det samme for "Live" oversigten'; `?v=20261018x`): every row of
+  Live (Seneste and Vigtigste) has the bookmark at its right, beside the row's button, filled when the story is saved;
+  the row's and the opened story's bookmarks change together.
+
 - **Gem on the answers' list** (2026-10-17, the owner: 'tilføj en "gem" knap til højre på listen over analyser, så man
   ikke skal trykke sig ind på dem og så man kan se hvilke man har gemt'; `?v=20261018w`): every answer row has a
   bookmark at its right, beside the link (never inside it), filled when the answer is saved; it changes at once.

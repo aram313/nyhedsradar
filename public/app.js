@@ -906,9 +906,13 @@ function story(i, n, opts = {}) {
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
   const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</div>
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : thumb(i.source, i.thumb)}</div>
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
+// Live's rows carry the bookmark at their right (the owner, 17/10: "gør det samme for 'Live' oversigten"): saved
+// without opening the story, and one sees which are saved; it sits beside the row's button, never inside it
+const rowSave = i => { const on = isSaved('s', i.id);
+  return `<button class="st-save${on ? ' on' : ''}" data-save aria-pressed="${on}" aria-label="${on ? 'Gemt' : 'Gem'}"><svg aria-hidden="true"><use href="#i-${on ? 'saved' : 'save'}"/></svg></button>`; };
 // what a screen reader says for a row: the headline once, then the outlet, the time and its label
 const rowLabel = (i, opts = {}) => [i.title + '.', [i.source, stamp(i.published || i.found), i.kind === 'kommentar' ? 'Kommentar'
   : i.big && !opts.top && topNow().has(i.id) ? 'Topnyhed' : '', isNew(i) ? 'ny' : ''].filter(Boolean).join(', ')].join(' ');
@@ -3011,8 +3015,11 @@ async function onTap(e) {
   const sb = t.closest('[data-save]');
   if (sb && i) {   // the bookmark: the story kept on the phone with what it shows
     const on = toggleSave('s', i.id, i);
-    sb.classList.toggle('on', on); sb.setAttribute('aria-pressed', on); sb.setAttribute('aria-label', on ? 'Gemt' : 'Gem');
-    sb.querySelector('use').setAttribute('href', on ? '#i-saved' : '#i-save');
+    // every bookmark of the story changes: the row's and the opened story's
+    document.querySelectorAll(`[id="s-${CSS.escape(i.id)}"] [data-save]`).forEach(b => {
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); b.setAttribute('aria-label', on ? 'Gemt' : 'Gem');
+      b.querySelector('use').setAttribute('href', on ? '#i-saved' : '#i-save');
+    });
     return;
   }
   if (t.closest('[data-share]')) share(shareText(i), i);

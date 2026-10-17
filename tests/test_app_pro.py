@@ -333,7 +333,10 @@ def test_the_whole_english_text_is_one_tap_away():
 
 
 def test_an_answer_can_be_saved_from_its_row():
-    row = CODE.split('const anRow = ')[1].split('
-};')[0] if 'const anRow = ' in CODE else ''
-    assert 'class="an-save' in CODE and 'data-ksave="a:${esc(a.nr)}"' in CODE and '</a>`' in CODE
+    assert 'class="an-save' in CODE and 'data-ksave="a:${esc(a.nr)}"' in CODE
     assert re.search(r'\.an-save \{[^}]*width: 44px; height: 44px', RULES)
+
+
+def test_a_live_story_can_be_saved_from_its_row():
+    assert "${opts.tick ? rowSave(i) : thumb(i.source, i.thumb)}" in CODE and 'class="st-save' in CODE
+    assert 'pointer-events: auto' in RULES.split('.story .row > .st-save {')[1].split('}')[0]

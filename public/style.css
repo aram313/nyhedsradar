@@ -438,6 +438,13 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .story.tick .tt .nd { margin-right: 4px; }
 .story.tick .h { font-size: var(--fs-body); line-height: 1.33; }
 .story.tick .m { margin-top: 4px; }
+/* Live's bookmark at the row's right (17/10): 44 px to hit, filled when the story is saved */
+.story.tick .row { padding-right: 4px; }
+.story .row > .st-save { position: relative; z-index: 2; pointer-events: auto; flex: none; display: grid; place-items: center;
+  width: 44px; height: 44px; margin: -10px -4px -10px 0; border-radius: 50%; color: var(--text-3); align-self: center; }
+.story .row > .st-save svg { width: 20px; height: 20px; }
+.story .row > .st-save.on { color: var(--text); }
+.story .row > .st-save:active { background: var(--fill); }
 .story.tick + .story.tick::before { left: calc(16px + 44px * var(--ts, 1) + 12px); }
 .live-seg { margin: 0; }
 /* Live's three filters (17/10): Danmark · Mellemøsten · Verden, each with its section's small dot */
