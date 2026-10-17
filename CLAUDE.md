@@ -164,8 +164,8 @@ da'wah.
   lines; on a weekend the page says the exchanges are closed and shows Friday's closes as such. The
   page holds all names, units and explanations; the file only numbers.
 - `public/` is the PWA. `config.js`, `data.json` and `dev/` there are local-preview only (gitignored);
-  `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses and energy
-  URLs). A local preview of round 2's data: `public/dev/r2/` with `?dev=r2` (`&front=0` the fixed front page, `&app=0`
+  `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses, energy
+  and map URLs, and the CARTO key from the repository variable `CARTO_KEY`). A local preview of round 2's data: `public/dev/r2/` with `?dev=r2` (`&front=0` the fixed front page, `&app=0`
   data.json instead of app.json) in the local config.js.
 - State lives on the force-pushed orphan branch `data` (no history), read back at the start of each run.
 - `config/profile.enc` = output of `scripts/build_profile.py` (shared links + statement lines from link-less briefings;
@@ -234,8 +234,30 @@ da'wah.
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- **The app (2026-10-17, the owner's decision): three tabs, Forside · Live · Analyser** (Danmark, Mellemøsten and Verden
-  are gone; a fourth tab – live world data, made in another session – may join: a tab button, a page and `SWIPE_TABS`).
+- **The app (2026-10-17, the owner's decision): four tabs, Forside · Live · Kort · Analyser** (Danmark, Mellemøsten and
+  Verden are gone; Kort joined the same day, the owner: 'en slags live osint med kort og seneste angreb lidt ligesom
+  LiveUAmap', instead of a link to the fuel prices). **Kort** (`kortPage` and its section in app.js, its own section in
+  style.css, tests/test_app_kort.py) has two views under one 44 px segment, remembered per phone (`kortView`): **Kort** –
+  map.json's events (`src/radar/osint.py`, `CFG.mapUrl`; fetched first when the tab is in view or a swipe heads for it,
+  then with the news's reload cycle, `VFRESH.map`; an unchanged file draws nothing) on a Leaflet 1.9.4 map from cdnjs
+  (with SRI; loaded the first time the map is needed, never at the start – `loadLeaflet`, not `leaflet`: Leaflet's file
+  takes that global name), about 55 % of the screen high, a panel 12 from the edge with `touch-action: none` (a drag pans
+  the map, never the tabs; no pull to refresh there); the tiles light or dark with the app (`kortLook`, called from
+  `applyLook`): CARTO's `light_all`/`dark_all` with `?key=` from `CFG.cartoKey` (pages.yml, repository variable
+  `CARTO_KEY` – CARTO needs a free non-commercial key since September 2026, requested by a person at
+  carto.com/basemaps/apikey), without a key OpenStreetMap's own tiles greyed (`.k-osm`); Leaflet's small attribution
+  ('© OpenStreetMap contributors, © CARTO'). The default view holds the window's events, the ones near their middle
+  when those are most (`kFit`, max zoom 6). The window chips 6 timer · 24 timer · 3 døgn (24, remembered: `kortWin`), the
+  count ('26 hændelser · seneste kl. 14.24'), the kinds as one quiet sideways chip row (for the visit, shown with two
+  kinds or more), the rows (the marker's badge, the place in bold, the headline, the meta line with `stamp()`, 'N medier'
+  from three, 'omtrentlig placering'; `.hit` under the row). Markers: the kind's glyph (`#k-<kind>` in index.html) in
+  the text colour on the panel colour, a dashed hollow ring for `ca`, a red ring (`.km .live-dot`) for the last hour,
+  fanned out in a ring where they lie on one another (`kSpread`, on every zoom). A row flies the map to its event
+  (Reduce Motion: no flight); a marker marks its row and shows one card over the map's foot ('Læs', 'Åbn historien' –
+  `openFocus` as a `?item=` link). **Priser** – `energi/?embed=1` in a same-origin frame, made when first shown: the
+  energy page hides its bar and back link and follows the app's look and text size live (it watches the app's `<html>`).
+  The oil row of an opened story and Indstillinger's 'Mere' open Priser (`data-priser`, `openPriser`); `?tab=kort` and
+  `?tab=priser` open the tab; khabar.nu/energi stays a page of its own.
   The look stays as khabar.nu. **Live** is the stories the radar admits at the editor's level (app.json; data.json
   filtered by its `live` marks when app.json is missing), sorted 'Seneste' or 'Vigtigste' (the editor's
   picks, then rank; remembered per phone), each row with its small section dot; the owner's long-press 'move' sets the
@@ -357,9 +379,9 @@ da'wah.
     scroll; it stores nothing new), the answer line right under the main story, its development named and opened by its
     label – the editor's timeline or the story's own development (`threadFor`) only when the development's name shares a
     specific subject with the headline (a wiki page or a word, never only Trump, Putin or the USA) or the editor filed
-    the story in it (`topicFits`, `topicOf`), else none, and only such a development's name helps find the answer line, the Live block without commentary, 'Olie og brændstof – priser nu' at the
-    foot (links `energi/`, its code untouched), the fixed page's 'Danmark' block, the iPhone install hint once. An opened
-    story: up to three ochre wiki chips, 'Udvikling: <name> ›', the bookmark, an oil row when the text names oil or fuel.
+    the story in it (`topicFits`, `topicOf`), else none, and only such a development's name helps find the answer line, the Live block without commentary (the prices' link at the
+    foot went to the Kort tab on 17/10), the fixed page's 'Danmark' block, the iPhone install hint once. An opened
+    story: up to three ochre wiki chips, 'Udvikling: <name> ›', the bookmark, an oil row when the text names oil or fuel (it opens the Kort tab's Priser view).
     Udvikling: its own address (`?forlob=<key>`), Del/Kopiér per card, a long course three days at a time, its name
     sticky inside it. Analyser: one title line, a strip under the bar with the field and one chip row (A–Å, the areas as
     a filter for the visit, the years), the page a query names first, 'via <page>', the question's phrase,
@@ -371,7 +393,7 @@ da'wah.
     six groups as one chip row (Stater · Aktører – magt, gruppe, organisation – · Steder · Sager – sag, proces – ·
     Begreber · Aftaler: every page in one), the most used pages, a state's issue under it, the letters sticky. Tabs: Analyser stays selected on
     its side pages; a tap on the tab of a side page goes back to its list. Settings: notifications with three switches,
-    'Mere' (Energi, the install guides, the offline library's line). Accessibility: tab panels, the pages not in view
+    'Mere' (the prices – the Kort tab's Priser view –, the install guides, the offline library's line). Accessibility: tab panels, the pages not in view
     `aria-hidden`, a row's label read once, headings for days, years, letters and sections.
   - **New functions:** Gem (`localStorage 'saved'`, ≤ 200, written in idle time, nothing sent anywhere: a story's
     snapshot – so it opens offline and after it left Live –, an answer's number, a page's id; the side page 'Gemt',

@@ -9,6 +9,23 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The Kort tab** (2026-10-17, the owner: 'i stedet for et link til benzinpriser, få en fane for sig selv der bliver
+  en slags live osint med kort og seneste angreb lidt ligesom LiveUAmap'; `?v=20261017x`): the tabs are Forside · Live
+  · Kort · Analyser. Kort has two views under one segment (remembered per phone): **Kort** – map.json's events on a
+  map (Leaflet 1.9.4 from cdnjs, fetched only when the map is first needed; light or dark tiles with the app's look),
+  6 timer · 24 timer · 3 døgn (24 by default, remembered), a count line, the kinds as a quiet filter for the visit, the
+  events as rows (glyph, place, headline, outlet, time, 'N medier', 'omtrentlig placering'); a row flies the map to its
+  event (no flight with Reduce Motion), a marker marks its row and shows a small card with 'Læs' and 'Åbn historien'
+  (the story in Live, as a `?item=` link opens it). Markers are the kind's glyph in the text colour on the panel colour,
+  a dashed ring when only the country is known, a red ring for the last hour; markers on one another fan out. A drag
+  on the map pans the map, never the tabs. **Priser** – the energy page in a frame (`energi/?embed=1`: no bar or back
+  link of its own, the app's look and text size followed live). The front page's foot link to the prices is gone; an
+  oil story's row and Indstillinger's 'Mere' open Priser; `?tab=kort` and `?tab=priser` open the tab. map.json follows
+  the news's reload cycle once the tab was seen, and an unchanged file draws nothing. CARTO's tiles need a free key
+  since September 2026: `pages.yml` writes `cartoKey` from the repository variable `CARTO_KEY`; without it the map uses
+  OpenStreetMap's own tiles, greyed. The energy page now reads the app's text size (`textSize`). Tests:
+  `tests/test_app_kort.py`.
+
 - **The map's events** (2026-10-17, the owner: 'en slags live osint med kort og seneste angreb lidt ligesom LiveUAmap'):
   `src/radar/osint.py` writes `map.json` after every radar pass (a step in radar.yml): the attacks and armed events of
   the last 72 hours in the stories Live shows, confirmed or big, with the editor's headline, placed by

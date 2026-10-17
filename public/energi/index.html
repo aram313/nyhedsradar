@@ -24,8 +24,27 @@
     if (mode !== 'auto') d.dataset.theme = mode;
     if (dark !== 'notion') d.dataset.dark = dark;
     document.querySelector('meta[name="color-scheme"]').content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
-    const ts = JSON.parse(localStorage.getItem('size') || '"auto"');
+    // the app's text size ('textSize'; 'size' before 17/10)
+    const ts = JSON.parse(localStorage.getItem('textSize') || localStorage.getItem('size') || '"auto"');
     if (ts !== 'auto' && +ts) d.style.setProperty('--ts', ts);
+  } catch (e) {}
+  // ?embed=1: the app's Kort tab shows this page in a frame under its own bar (its Priser view). The page's bar and its
+  // way back go, and it wears exactly the look the app wears now – the app's light or dark, tone, palette and text size
+  // (the app's own setting, a ?theme= of its address, or the phone's text size), and again whenever the app changes it
+  try {
+    if (new URLSearchParams(location.search).get('embed') === '1' && parent !== window) {
+      const d = document.documentElement, p = parent.document.documentElement;
+      d.classList.add('embed');
+      const follow = () => { try {
+        for (const k of ['theme', 'tone', 'dark']) { if (p.dataset[k]) d.dataset[k] = p.dataset[k]; else delete d.dataset[k]; }
+        const ts = p.style.getPropertyValue('--tsu').trim();
+        if (+ts) d.style.setProperty('--ts', ts); else d.style.removeProperty('--ts');
+        const m = p.dataset.theme;
+        document.querySelector('meta[name="color-scheme"]').content = m === 'light' ? 'light' : m === 'dark' ? 'dark' : 'light dark';
+      } catch (e) {} };
+      follow();
+      new MutationObserver(follow).observe(p, { attributes: true, attributeFilter: ['data-theme', 'data-tone', 'data-dark', 'style'] });
+    }
   } catch (e) {}
 </script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,6 +138,12 @@
   .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: calc(15px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
   .en-showmore svg { width: 15px; height: 15px; transform: rotate(90deg); }
   @media (prefers-reduced-motion: reduce) { .en-item, .en-row, .en-plus svg { transition: none; } }
+  /* inside the app's Kort tab (?embed=1): no bar and no way back of its own – the app's bar is above it; a sideways
+     swipe passes on to the app's tabs, a scroll stays in the frame */
+  html.embed .bar { display: none; }
+  html.embed main.en { padding-top: 0; }
+  html.embed main.en > .block:first-child { margin-top: 12px; }
+  html.embed, html.embed body { overscroll-behavior-x: auto; overscroll-behavior-y: none; }
 </style>
 </head>
 <body>
