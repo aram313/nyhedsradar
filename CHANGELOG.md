@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front page's 'Det sker snart' only of high and middle weight** (2026-10-18, the owner: 'forsidens "sker snart"
+  burde kun have middel og høj betydning'; `?v=20261018aw`): the block's next three or four events of the coming 14
+  days leave out what is of low weight (`calWOf(e) > 1`); with none of weight in the fortnight there is no block.
 - **'Leksikon', and a Svar · Leksikon toggle; search words underlined in red** (2026-10-18, the owner: 'Burde begreber
   a-å ikke hedde måske opslagsværk og være lidt mere fremtrædende?' – he chose 'Leksikon' and the toggle – and 'når man
   søger burde ordet … være markeret med en rød [under]stregning, i dag er den grå'; `?v=20261018av`): Analyser's dock is

@@ -3392,7 +3392,8 @@ function calShown() { if (calFocus || calPend) redrawPages(['kalender']); }
 // the page draws, 'Alle ›' to the tab; none in the fortnight: no block
 function calBlock() {
   need('cal'); need('kal');
-  const today = calToday(), list = calItems().filter(e => calExact(e) && calEnd(e) >= today && calDay(e.date) - today <= 14).slice(0, 4);
+  // only what is of high or middle weight (the owner, 18/10: 'forsidens "sker snart" burde kun have middel og høj betydning')
+  const today = calToday(), list = calItems().filter(e => calExact(e) && calWOf(e) > 1 && calEnd(e) >= today && calDay(e.date) - today <= 14).slice(0, 4);
   if (!list.length) return '';
   return `<section class="block cal-b" id="cal-front">${blockHead('Det sker snart', moreLink('Alle', 'kalender'))}`
     + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
