@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Gemt made calm, and saves that outlive updates** (2026-10-18, the owner: 'Ser lidt uprofessionelt ud, analyser bør
+  også være over nyheder (kald det ikke historier)' and 'hvordan kan vi sørge for en bruger aldrig mister sine gemte
+  bookmarks?'; `?v=20261018y`): the page lists Analyser first, then Nyheder, then Begreber; every row is the Analyser
+  list's row with ONE filled bookmark at the right (the answers had two); a saved story is a quiet row – the headline
+  Live shows (in Danish, “israel” in the house style), two lines of its summary, outlet and time – that opens it in Live,
+  or the outlet's article once it has left Live; no Læs/Del buttons. A snapshot now keeps the headline the reader saw.
+  The list is read leniently (an unusable entry is skipped, never the whole list), a second copy (`saved-bak`) stands in
+  when the first cannot be read, and the phone is asked to keep the app's storage (`navigator.storage.persist`, silent
+  in Safari and Chrome; not asked in Firefox, which would prompt).
 - **Gem on Live's rows** (2026-10-17, the owner: 'gør det samme for "Live" oversigten'; `?v=20261018x`): every row of
   Live (Seneste and Vigtigste) has the bookmark at its right, beside the row's button, filled when the story is saved;
   the row's and the opened story's bookmarks change together.

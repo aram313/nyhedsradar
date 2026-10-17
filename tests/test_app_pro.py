@@ -158,7 +158,7 @@ def test_an_answer_shows_once_on_the_front_page():
 # ------------------------------------------------------------------ the five new functions
 
 def test_gem_keeps_snapshots_on_the_phone_in_idle_time():
-    assert "SAVE_MAX = 200" in CODE and "idle(() => store.set('saved', saved))" in fn('toggleSave')
+    assert "SAVE_MAX = 200" in CODE and "idle(storeSaved)" in fn('toggleSave')
     snap = fn('snapshot')
     for f in ('title', 'source', 'link', 'summary', 'also'):
         assert f in snap, f
@@ -209,7 +209,18 @@ def test_gem_has_one_home_in_the_bar_and_sends_nothing():
     assert 'learnFrom' not in save and 'relay(' not in save and "['Se Gemt', () => openSide('gemt')]" in save
     gemt = fn('gemtPage')
     assert "stateBlock('empty', 'Intet gemt endnu.', [['Til Live', 'data-go=\"latest\"']])" in gemt
-    assert "unsave('a', a.nr)" in gemt and "unsave('b', x.id)" in gemt
+    # 18/10, the owner: 'Ser lidt uprofessionelt ud, analyser bør også være over nyheder (kald det ikke historier)'
+    assert gemt.index('Analyser · ') < gemt.index('Nyheder · ') < gemt.index('Begreber · ') and 'Historier' not in gemt
+    assert 'rows.map(a => anRow(a))' in gemt and "svBtn('b', x.id" in gemt   # one bookmark a row: the answers' own
+    story = CODE.split('const savedStory = x => {')[1].split('\n};')[0]
+    assert 'class="act' not in story and "svBtn('s', x.id" in story and 'data-live=' in story   # a quiet row, no Læs/Del
+
+
+def test_saves_outlive_an_update():
+    # 18/10, the owner: 'hvordan kan vi sørge for en bruger aldrig mister sine gemte bookmarks?'
+    assert "for (const key of ['saved', 'saved-bak'])" in CODE and 'v.filter(okSave)' in CODE
+    assert "store.set('saved', saved); store.set('saved-bak', saved)" in CODE
+    assert 'idle(storeSaved)' in fn('toggleSave') and 'st.persist()' in CODE and 'Firefox' in CODE
     assert 'data-go="gemt"' not in CODE   # no scattered ways in: the bar's bookmark is the one
 
 

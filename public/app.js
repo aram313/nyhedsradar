@@ -52,7 +52,16 @@ let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 // Gem (pro-plan 5.1): what the reader saved on this phone, newest first – a story with its snapshot (so it opens offline
 // and after it has left Live), an answer by its number, a wiki page by its id. Nothing leaves the phone.
-let saved = (() => { const v = store.get('saved', []); return Array.isArray(v) ? v : []; })();   // [{k: 's'|'a'|'b', id, at, …}]
+// A save must outlive every update of the app (the owner, 18/10: 'en bruger aldrig mister sine gemte'): the list is read
+// leniently – an entry it cannot use is skipped, never the whole list –, a second copy ('saved-bak') stands in when the
+// first cannot be read, and once something is saved the phone is asked to keep the app's storage (storage.persist:
+// silent in Safari and Chrome; Firefox would show a prompt, so it is not asked there)
+const okSave = x => !!x && typeof x === 'object' && ['s', 'a', 'b'].includes(x.k) && x.id != null && x.id !== '';
+let saved = (() => { for (const key of ['saved', 'saved-bak']) { const v = store.get(key, null);
+  if (Array.isArray(v)) return v.filter(okSave).map(x => ({ ...x, id: String(x.id) })); } return []; })();   // [{k: 's'|'a'|'b', id, at, …}]
+const keepStorage = () => { try { const st = navigator.storage;
+  if (st && st.persist && !/Firefox\//.test(navigator.userAgent)) st.persisted().then(p => p || st.persist()).catch(() => {}); } catch { /* old browser */ } };
+const storeSaved = () => { store.set('saved', saved); store.set('saved-bak', saved); if (saved.length) keepStorage(); };
 const isSaved = (k, id) => saved.some(x => x.k === k && x.id === String(id));
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
 let danish = store.get('danish', true);                                  // show and share in Danish (the standard)
@@ -2435,14 +2444,15 @@ function begreberPage() {
 const SAVE_MAX = 200;
 function snapshot(i) {
   const ed = sumOf(i);
-  return { k: 's', id: i.id, at: Date.now(), title: i.title, source: i.source, time: i.published || i.found, link: i.link, sec: secOf(i),
+  return { k: 's', id: i.id, at: Date.now(), title: display(i).title,   // the headline the reader saw, in Danish
+    source: i.source, time: i.published || i.found, link: i.link, sec: secOf(i),
     summary: (ed && ed.text) || i.summary || '', also: (i.also || []).slice(0, 5).map(a => ({ source: a.source, title: a.title_tr || a.title, link: a.link })) };
 }
 function toggleSave(k, id, i = null) {
   id = String(id);
   const on = isSaved(k, id);
   saved = on ? saved.filter(x => !(x.k === k && x.id === id)) : [k === 's' ? snapshot(i) : { k, id, at: Date.now() }, ...saved].slice(0, SAVE_MAX);
-  idle(() => store.set('saved', saved));   // nothing is sent anywhere: a save stays on the phone
+  idle(storeSaved);   // nothing is sent anywhere: a save stays on the phone
   if (!on && k !== 's') prefetchLibrary();
   paintSaved();
   if (on) toast('Fjernet fra Gemt'); else toast('Gemt på telefonen', true, tab === 'gemt' ? null : ['Se Gemt', () => openSide('gemt')]);
@@ -2455,34 +2465,34 @@ function paintSaved() {
   b.querySelector('use').setAttribute('href', saved.length ? '#i-saved' : '#i-save');
   b.setAttribute('aria-label', saved.length ? `Gemt, ${saved.length}` : 'Gemt');
 }
+// a saved story as a quiet row like Live's: the headline, two lines of its summary, the outlet and the time; a tap opens
+// it in Live while it is there, else the outlet's article; the filled bookmark at the right takes it out of Gemt
+const svBtn = (k, id, title) => `<button class="an-save on" data-unsave="${k}:${esc(id)}" aria-pressed="true" aria-label="Fjern fra Gemt: ${esc(title)}"><svg aria-hidden="true"><use href="#i-saved"/></svg></button>`;
 const savedStory = x => {
-  const live = findStory(x.id);
-  return `<article class="saved-s" data-sec="${esc(x.sec || '')}" data-saved="${esc(x.id)}"><div class="sv-h">${live
-    ? `<button class="sv-t" data-live="${esc(live.id)}">${esc(x.title)}</button>` : `<span class="sv-t">${esc(x.title)}</span>`}</div>`
-    + `<p class="m"><span class="sec"><i></i>${esc(SECTIONS[x.sec] || '')}</span><span class="src">${esc(x.source)}</span><span>${esc(stamp(x.time))}</span>${live ? '' : '<span>ikke længere i Live</span>'}</p>`
-    + (x.summary ? `<p class="sum">${esc(x.summary)}</p>` : '')
-    + `<div class="acts"><a class="act primary" href="${esc(x.link)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-open"/></svg>Læs</a>`
-    + `<button class="act" data-sshare="${esc(x.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button>`
-    + `<button class="act sq on" data-unsave="s:${esc(x.id)}" aria-label="Fjern fra Gemt"><svg aria-hidden="true"><use href="#i-saved"/></svg></button></div></article>`;
+  const live = findStory(x.id), title = live ? display(live).title : quoteIsrael(x.title);   // the headline Live shows
+  const open = live ? `href="?item=${encodeURIComponent(live.id)}" data-live="${esc(live.id)}"` : `href="${esc(x.link)}" target="_blank" rel="noopener"`;
+  const meta = [x.source, stamp(x.time), live ? '' : 'ikke længere i Live'].filter(Boolean).map(esc).join(' · ');
+  return `<div class="an-item sv-item" data-sec="${esc(x.sec || '')}" data-saved="${esc(x.id)}"><a class="an-row sv-s" ${open}><b>${esc(title)}</b>`
+    + (x.summary ? `<span class="sv-sum">${esc(x.summary)}</span>` : '') + `<span>${meta}</span></a>${svBtn('s', x.id, title)}</div>`;
 };
 function gemtPage() {
   const s = saved.filter(x => x.k === 's'), an = saved.filter(x => x.k === 'a'), bg = saved.filter(x => x.k === 'b');
-  // the bar says 'Gemt'; the page only how much, on this phone
+  // the bar says 'Gemt'; the page only how much, on this phone. The answers first, then the news, then the wiki's pages
+  // (the owner, 18/10: 'analyser bør også være over nyheder'); one bookmark on every row, the one that takes it out
   if (!saved.length) return stateBlock('empty', 'Intet gemt endnu.', [['Til Live', 'data-go="latest"']]);
   let h = `<p class="an-n sv-n">${saved.length} gemt på denne telefon</p>`;
-  const unsave = (k, id) => `<button class="sv-x" data-unsave="${k}:${esc(id)}" aria-label="Fjern fra Gemt"><svg aria-hidden="true"><use href="#i-saved"/></svg></button>`;
-  if (s.length) h += `<h2 class="grp">Historier · ${s.length}</h2>` + s.map(savedStory).join('');
   if (an.length) {
     need('mix'); need('ans');
     const A = answers(), rows = an.map(x => A.by.get(x.id)).filter(Boolean);
-    h += `<h2 class="grp">Svar · ${an.length}</h2>` + (rows.length ? `<div class="rd-list">${rows.map(a => `<div class="sv-row">${anRow(a)}${unsave('a', a.nr)}</div>`).join('')}</div>`
+    h += `<h2 class="grp">Analyser · ${an.length}</h2>` + (rows.length ? `<div class="rd-list">${rows.map(a => anRow(a)).join('')}</div>`
       : waiting('mix') ? loadingBlock('Henter svarene …') : retry('svarene', 'mix', 'ans'));
   }
+  if (s.length) h += `<h2 class="grp">Nyheder · ${s.length}</h2><div class="rd-list">${s.map(savedStory).join('')}</div>`;
   if (bg.length) {
     need('bix');
     const ix = V('bix');
-    h += `<h2 class="grp">Begreber · ${bg.length}</h2>` + (ix ? `<div class="sv-pages">${bg.filter(x => ix.items[x.id]).map(x => { const e = ix.items[x.id];
-      return `<div class="sv-row"><a class="qrow ht-row" href="?begreb=${encodeURIComponent(x.id)}" data-begreb="${esc(x.id)}"><span><b>${esc(pageTitle(e))}</b> · ${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</span></a>${unsave('b', x.id)}</div>`; }).join('')}</div>`
+    h += `<h2 class="grp">Begreber · ${bg.length}</h2>` + (ix ? `<div class="rd-list">${bg.filter(x => ix.items[x.id]).map(x => { const e = ix.items[x.id];
+      return `<div class="an-item"><a class="an-row" href="?begreb=${encodeURIComponent(x.id)}" data-begreb="${esc(x.id)}"><b>${esc(pageTitle(e))}</b><span>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</span></a>${svBtn('b', x.id, pageTitle(e))}</div>`; }).join('')}</div>`
       : waiting('bix') ? loadingBlock('Henter …') : retry('begreberne', 'bix'));
   }
   return h;
@@ -2955,12 +2965,6 @@ async function onTap(e) {
       b.querySelector('use').setAttribute('href', on ? '#i-saved' : '#i-save');
     });
     render(); return;
-  }
-  const ssh = t.closest('[data-sshare]');   // a saved story, shared from its snapshot
-  if (ssh) {
-    const x = saved.find(y => y.k === 's' && y.id === ssh.dataset.sshare), f = x && firstSentence(x.summary);
-    if (x) share(`*${x.title}*\n${f ? f + '\n' : ''}${x.link}\n\nvia ${itemUrl(x.id)}`);
-    return;
   }
   const fi = t.closest('[data-find-item]');   // a story that left Live: looked for among everything the radar read
   if (fi) { focusMissing = ''; findGone(fi.dataset.findItem); return; }
