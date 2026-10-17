@@ -894,11 +894,11 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    movement's (a page's lead and readings, an answer's question, note, readings and text) is set in a serif on a soft
    ochre tint, always with its attribution; everything else keeps the app's face */
 :root { --serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif;
-  --ht-bg: #f0ebe1; --ht-line: #dfd7c7; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
+  --ht-bg: #f0ede6; --ht-line: #dedad0; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --ht-bg: #24211c; --ht-line: #35302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+  :root:not([data-theme="light"]) { --ht-bg: #22201c; --ht-line: #33302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
 }
-:root[data-theme="dark"] { --ht-bg: #24211c; --ht-line: #35302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+:root[data-theme="dark"] { --ht-bg: #22201c; --ht-line: #33302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
 .ht { font-family: var(--serif); font-variant-numeric: lining-nums; }
 .ht-box { margin: 10px 12px; padding: 12px; border-radius: var(--r-panel); background: var(--ht-bg); color: var(--ht-text); }
 .ht-box p.ht { margin: 0; font-size: var(--fs-read); line-height: 1.5; text-wrap: pretty; }
