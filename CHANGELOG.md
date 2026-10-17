@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Dagens historie's picture in the press style** (2026-10-17, the owner: 'på den stilede måde med tekst på og en
+  mørkere fade i bunden … de 15-30 % med grain'; `?v=20261018e`): the headline and its line in white on a dark fade at
+  the bottom of the picture, the app's press photo look (15 % colour, 30 % opened) with film grain; the map's tiles name
+  places in Latin letters (OpenStreetMap's German server).
+
 - **A calmer answer reader** (2026-10-17, the owner on the as-Suwayda answer: 'uoverskuelig'; `?v=20261017z`): one
   ochre panel instead of five boxes. The question sits under the title as plain serif text; Del · Kopiér · Gem are one
   row of small quiet buttons (the wiki page's too); 'Svaret kort' and the answer's readings share the panel, each

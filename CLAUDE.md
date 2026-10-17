@@ -272,8 +272,9 @@ da'wah.
   naming another outlet that carries it shows that outlet, and a government, state or person stays as who speaks
   (`outletKey`, `NEWS_GROUPS`). **The front page the editor
   composed** (front.json, round 2): its blocks in its order with the app's own pieces – top (the Dagens historie card:
-  since 17/10 the story's own full-size picture (`pic`, never the small copy or an initials tile) large above the
-  headline, 16:9 across the panel, `leadPicFailed` remembers a failed one in `badPics` and leaves the text lead; none: a
+  since 17/10 the story's own full-size picture (`pic`, never the small copy or an initials tile) across the panel, 4:3,
+  the headline and its line in white on a dark fade at its bottom, in the press photo look (15 % colour, 30 % opened,
+  film grain – the owner's choice), `leadPicFailed` remembers a failed one in `badPics` and leaves the text lead; none: a
   text lead; `picture: false` holds only for a second main story – then its timeline's two newest updates and 'Hele
   udviklingen ›', one `with` story and the answer line), liste (three stories, a quiet Danish one two, the rest behind
   'Alle ›', which unfolds them in place; `billeder`: the first story with a picture large), udvikling (three), citat

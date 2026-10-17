@@ -113,14 +113,17 @@ def test_the_lede_is_one_paragraph_of_quiet_links_without_the_wikis_underline():
 
 # ------------------------------------------------------------------ Dagens historie's picture, less clutter, Denmark
 
-def test_dagens_historie_has_its_own_picture_above_the_headline():
+def test_dagens_historie_has_its_own_picture_with_the_headline_on_it():
     lead = APP[APP.index('const leadPic = '):APP.index('function thumb(')]
     assert 'i.pic' in lead and 'badPics.has(x)' in lead and 'thumb' not in lead.split('\n')[0]   # never the small copy
     assert 'badPics.add(' in fn('leadPicFailed') and "classList.remove('lp')" in fn('leadPicFailed')
     st = fn('story')
     assert 'onerror="leadPicFailed(this)"' in st and 'loading="lazy"' not in st.split('const lp =')[1].split('\n')[0]
     assert 'first || b.picture !== false ? leadPic(i)' in fn('composedHome') and 'pic: leadPic(lead)' in fn('fixedHome')
-    assert re.search(r'\.lead-pic \{[^}]*aspect-ratio: 16 / 9;[^}]*border-radius: var\(--r-panel\)', RULES)
+    assert re.search(r'\.lead-pic \{[^}]*aspect-ratio: 4 / 3;', RULES)                     # colour, text on a fade
+    assert re.search(r'\.lead-pic::after \{[^}]*linear-gradient\(to top, rgba\(0, 0, 0, \.9\)', RULES)
+    assert re.search(r'\.story\.lp \.row > \.tx \{[^}]*position: absolute;[^}]*bottom: 14px', RULES)
+    assert re.search(r'\.lead-pic img \{[^}]*filter: var\(--press\)', RULES) and '.lead-pic::before' in RULES   # 15 % colour, grain
     assert re.search(r'\.lead-pic img \{[^}]*object-fit: cover', RULES)
 
 
