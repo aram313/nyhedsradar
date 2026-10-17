@@ -29,9 +29,11 @@ jobs:
           cat > public/config.js <<CFG
           window.RADAR_CONFIG = {
             dataUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/data.json",
+            appUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/app.json",
             digestUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/digest.json",
             searchUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/search.json",
             movesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/moves.json",
+            frontUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/front.json",
             answersUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/answers.json",
             analysesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/analyses.json",
             energyUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/energy.json",
@@ -39,7 +41,7 @@ jobs:
             feedbackTopic: "${{ vars.FEEDBACK_TOPIC }}"
           };
           CFG
-          sed -i "s/radar-shell-v1/radar-shell-${GITHUB_SHA::8}/" public/sw.js
+          sed -i -E "s/radar-shell-v[0-9]+/radar-shell-${GITHUB_SHA::8}/" public/sw.js
           rm -f public/data.json
       - uses: actions/configure-pages@v5
       # stay on v3 (or v5 with include-hidden-files: true): v4 silently drops dot-folders such as .well-known,

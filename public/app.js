@@ -1,6 +1,8 @@
-// Khabar – phone app. Reads data.json (stories with their section, rank, coverage and a small picture, written
-// by the radar every few minutes) and digest.json (the editor's front page and recap of the day: the day's most
-// important movements as short 'Who: what' lines by topic, in the style of Al Jazeera's breaking wire).
+// Khabar – phone app. Reads app.json (the stories Live admits, with their section, rank, coverage and a small picture,
+// written by the radar every few minutes; data.json, the whole pool, when it is missing), digest.json (the editor's
+// lede, picks and recap of the day: the day's most important movements as short 'Who: what' lines by topic, in the
+// style of Al Jazeera's breaking wire), summaries.json (the editor's summaries and its informative headline for every
+// story) and front.json (the front page the editor composed).
 // Three tabs: Forside (the editor's front page), Live (every story of all sections, the newest or the most important
 // first) and Analyser (Hizb ut-Tahrir's answers to political questions, newest first). Concepts named in the news open
 // a wiki page compiled only from those answers (public/viden). The app shows no analysis of its own: the movement's
@@ -36,7 +38,8 @@ let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
 let danish = store.get('danish', true);                                  // show and share in Danish (the standard)
-let titles = store.get('lastTitles', {});                                // story id -> the editor's checked Danish headline
+let titles = store.get('lastTitles', {});                                // article id -> the editor's headline of its story
+let front = store.get('lastFront', null);                                // the front page the editor composed (front.json)
 const expanded = new Set();                                              // opened stories
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
@@ -132,43 +135,55 @@ const num = n => Number(n || 0).toLocaleString('da-DK');
 // 'no-cache' asks the server whether the file changed (a few bytes when it did not); the files live behind a
 // cache that ignores query strings, so adding one never made them fresher
 let busy = 0, offline = false, redrawAfterLoad = false;
+// Live and the front page's pool: the radar's slim app.json (the stories Live admits, with only what the app reads);
+// data.json – the whole pool of candidates – when app.json is missing
+const getJson = async url => { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); };
+async function loadNews() {
+  if (CFG.appUrl) { try { return await getJson(CFG.appUrl); } catch { /* not there yet: the whole pool */ } }
+  return getJson(CFG.dataUrl);
+}
+const FRONT_URL = () => CFG.frontUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'front.json');
 async function load(manual) {
   busy++; document.body.classList.add('loading');
   let changed = false;
   const wasOffline = offline;
-  try {
-    const r = await fetch(CFG.dataUrl, { cache: 'no-cache' });
-    if (!r.ok) throw new Error(r.status);
-    const fresh = await r.json();
+  // the files are asked for side by side, not one after another
+  const dig = CFG.digestUrl;
+  const [news, dg, sm, fr] = await Promise.allSettled([loadNews(), dig ? getJson(dig) : null,
+    dig ? getJson(CFG.summariesUrl || dig.replace(/digest\.json$/, 'summaries.json')) : null,
+    dig ? fetch(FRONT_URL(), { cache: 'no-cache' }).then(r => r.ok ? r.json() : r.status === 404 ? null : Promise.reject(r.status)) : null]);
+  if (news.status === 'fulfilled') {
+    const fresh = news.value;
     offline = false;
     if (!data || fresh.updated !== data.updated) { changed = true; data = fresh; store.set('lastData', data); }
-  } catch (e) {
+  } else {
     offline = true;
     if (manual) toast('Ingen forbindelse', false);
   }
-  if (CFG.digestUrl) {
-    try {
-      const r = await fetch(CFG.digestUrl, { cache: 'no-cache' });
-      if (r.ok) {
-        const d = await r.json();
-        const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}|${JSON.stringify(x.editor || '').length}`;
-        if (stamp(d) !== stamp(digest)) {   // the earlier days again only when they were fetched before this edition
-          changed = true;
-          if (archiveState !== 'loading' && Date.now() - movesAt > 60e3) { moves = null; archiveState = 'idle'; }
-          digest = d; store.set('lastDigest', digest);
-        }
-      }
-    } catch { /* keep the last overview */ }
-    try {   // the editor's summaries of the stories readers open most (summaries.json next to digest.json)
-      const r = await fetch(CFG.summariesUrl || CFG.digestUrl.replace(/digest\.json$/, 'summaries.json'), { cache: 'no-cache' });
-      if (r.ok) {
-        const all = await r.json(), x = all.items || {};
-        if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); }
-        // the headlines the editor has gone over in Danish (id -> {title, at})
-        const t = Object.fromEntries(Object.entries(all.titles || {}).map(([k, v]) => [k, v && v.title]).filter(([, v]) => v));
-        if (JSON.stringify(t) !== JSON.stringify(titles)) { titles = t; titlesVer++; store.set('lastTitles', titles); changed = true; }
-      }
-    } catch { /* keep the last summaries */ }
+  if (dg.status === 'fulfilled' && dg.value) {
+    const d = dg.value;
+    const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}|${JSON.stringify(x.editor || '').length}`;
+    if (stamp(d) !== stamp(digest)) {   // the earlier days again only when they were fetched before this edition
+      changed = true;
+      if (archiveState !== 'loading' && Date.now() - movesAt > 60e3) { moves = null; archiveState = 'idle'; }
+      digest = d; store.set('lastDigest', digest);
+    }
+  }   // else: keep the last overview
+  if (sm.status === 'fulfilled' && sm.value) {   // the editor's summaries and headlines (summaries.json next to digest.json)
+    const all = sm.value, x = all.items || {};
+    if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); }
+    // the editor's headline of every story: filed under the story's id with its other articles (members), so it still
+    // finds the story when another outlet's article leads it; the newest one wins
+    const t = {}, at = {};
+    for (const [k, v] of Object.entries(all.titles || {})) {
+      if (!v || !v.title) continue;
+      for (const id of [k, ...(v.members || [])]) if (!t[id] || String(v.at || '') > at[id]) { t[id] = v.title; at[id] = String(v.at || ''); }
+    }
+    if (JSON.stringify(t) !== JSON.stringify(titles)) { titles = t; titlesVer++; store.set('lastTitles', titles); changed = true; }
+  }
+  if (fr.status === 'fulfilled' && dig) {   // the front page the editor composed (front.json; none: the fixed one)
+    const f = fr.value && Array.isArray(fr.value.blocks) ? fr.value : null;
+    if (JSON.stringify(f) !== JSON.stringify(front)) { front = f; store.set('lastFront', front); changed = true; }
   }
   if (--busy === 0) document.body.classList.remove('loading');
   need('ans');   // the editor's filed answers: looked for again after a quarter of an hour
@@ -184,16 +199,64 @@ const TAGS = new RegExp('^(?:[\\u2190-\\u2bff\\u{1f000}-\\u{1faff}\\ufe0f\\u200d
   + '|(?:gaza|west bank|lebanon|lebanese|syria|syrian|yemen|yemeni|iran|iranian|iraqi|israeli|hebrew|palestinian|local|medical|security)'
   + ' sources\\s+(?!say|said|report|told|claim))+', 'iu');
 const tidy = t => (t || '').replace(TAGS, '') || t;
+// A curiosity headline withholds the news instead of stating it (the owner's rule of 2026-10-17): a question, 'Derfor …',
+// 'Se …', 'Her er …', 'Sådan …', 'Det skal du vide', a label before a colon, a line that only names who speaks, a
+// quotation with no one named after it. The radar's own test (src/radar/headlines.py), Danish and English.
+const CUR_OPEN = /^(?:derfor|se\b|se:|her er|her får|sådan|det skal du vide|hvorfor|hvad|hvem|hvordan|hvornår|hvis du|du skal|du kan|tjek|test dig|quiz|overblik|kommentar|analyse|leder|debat|klumme|interview|essay|why|how|what|who|when|where|which|is|are|can|could|should|would|will|does|do|did|has|have|here'?s|here is|here are|this is|these are|that'?s|watch|explainer|explained|analysis|opinion|comment|editorial|op-ed|inside|the blogs|q&a|podcast|in pictures|in photos|photos|video)\b/iu;
+const CUR_LABEL = /^(?:[\p{L}\p{N}_]+\s)?(?:fund|chok|afsløring|drama|kaos|skandale|overraskelse|vending|nyhed|besked|opråb|analyse|analysis|kommentar|comment|opinion|leder|debat|explainer|overblik|live|watch|video|blog)\s*:/iu;
+const CUR_TEASE = /(?:\bog det er ikke godt\b|\bdet er derfor\b|\bher er grunden\b|\bundrer sig\b|\bdu ikke vidste\b|\bsådan gør du\b|\bdet betyder det\b|\bhere'?s why\b|\bhere'?s what\b|\bwhat we know\b|\bwhat to know\b|\byou need to know\b|\bwhat it means\b|\band why\b|\bthis is why\b|\bthe reason\b|\bmight surprise\b|\bnever guess\b)/iu;
+const CUR_TAIL = /\s[-–]\s(?:opinion|analysis|comment|editorial|op-ed|udtalelse|analyse|kommentar)\s*$/iu;
+const CUR_SPEAKER = /[«»"“”’'][,.]?\s*(?:[:,–-]\s*\S+\s+\S+|(?:\S+\s+){0,4}(?:says|said|tells|told|warns|siger|sagde|fortæller|advarer)\b)/u;
+function curious(title) {
+  const t = String(title || '').trim();
+  if (!t) return true;
+  if (/\?\s*[»"“”'’]?\s*$/u.test(t)) return true;
+  if (t.includes('?') && /^(?:kan|skal|vil|er|har|bliver|får|bør|må)\b/iu.test(t)) return true;   // 'Kan Europa stole på USA? …'
+  const first = t.split(/\s+/)[0], bare = first.replace(/^[.,:]+|[.,:]+$/g, '');
+  const acronym = first === first.toUpperCase() && first !== first.toLowerCase() && bare.length >= 2;   // 'WHO advarer …'
+  if ((CUR_OPEN.test(t) && !acronym) || CUR_LABEL.test(t) || CUR_TEASE.test(t) || CUR_TAIL.test(t)) return true;
+  if (t.endsWith(':')) return true;   // only who speaks, nothing of what was said
+  if ('»"“”\'‘’„«'.includes(t[0]) && !CUR_SPEAKER.test(t.slice(1))) return true;
+  return false;
+}
+// a curiosity headline's stand-in until the editor has written one: the first sentence of the teaser, shortened at a
+// word boundary (none when the teaser has no plain sentence of its own)
+const HEAD_MAX = 120;
+function teaserHead(text) {
+  let t = tidy(String(text || '')).replace(/\s+/g, ' ').trim();
+  t = t.replace(/^.{0,90}?\((?:Reuters|AP|AFP|Ritzau|Anadolu)\)\s*[-–—]\s*/u, '');   // a wire's dateline
+  const s = ((t.match(/^.+?[.!?](?=\s+["»“(]?[\p{Lu}\p{N}]|$)/u) || [t])[0]).trim();
+  if (s.length < 25 || /^[\p{Ll}]/u.test(s) || /^(?:https?:|www\.)/i.test(s) || curious(s)) return null;
+  const plain = s.replace(/[.!]$/, '');
+  if (plain.length <= HEAD_MAX) return { title: plain, rest: t.slice(s.length).trim(), cut: false };
+  const at = plain.lastIndexOf(' ', HEAD_MAX - 2);
+  return { title: plain.slice(0, at > 60 ? at : HEAD_MAX - 2).replace(/[\s,;:–-]+$/, '') + ' …', rest: '', cut: true };
+}
+// the editor's headline for a story: filed under any of its articles (its id, its members, its other outlets')
+const edTitle = i => titles[i.id] || (i.members || []).map(m => titles[m]).find(Boolean) || (i.also || []).map(a => titles[a.id]).find(Boolean) || '';
+// What a story is called: the editor's informative headline first (Danish outlets too); else the outlet's – in Danish,
+// the machine's, where the phone shows Danish; a plain curiosity headline gives way to its teaser's first sentence.
+// `how` says where the headline came from: 'ed' the editor, 'mt' the machine's translation, '' the outlet's own;
+// `teased` that the teaser stands in for a curiosity headline.
 function display(i) {
-  let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [] };
-  if (i.foreign && foreignMode !== 'original' && i.title_tr) {
-    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en', kw: i.kw_tr || [] };
+  let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [], how: '', teased: false };
+  const keepOrig = i.foreign && foreignMode === 'original';
+  if (i.foreign && !keepOrig && i.title_tr) {
+    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en', kw: i.kw_tr || [], how: 'mt' };
   }
-  const checked = titles[i.id];   // the editor's own Danish for the headline, where it has gone over the machine's
-  if (danish && (checked || i.title_da) && !(i.foreign && foreignMode === 'original')) {
-    d = { ...d, title: checked || i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [], checked: !!checked };
+  const ed = edTitle(i);
+  if (ed && (danish || i.lang === 'da') && !keepOrig) {
+    const kw = i.lang === 'da' ? d.kw : [...new Set([...(i.kw_da || []), ...(i.kw || [])])];
+    d = { ...d, title: ed, summary: i.lang === 'da' ? i.summary : danish ? i.summary_da || '' : d.summary, from: i.lang, to: 'da', kw, how: 'ed' };
+  } else if (danish && i.title_da && !keepOrig) {
+    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [], how: 'mt' };
   }
   d.title = tidy(d.title);
+  if (d.how !== 'ed' && curious(tidy(['da', 'en'].includes(i.lang) ? i.title : i.title_tr || ''))) {
+    // the teaser in the language shown, else the outlet's own (a headline that says the news beats one that hides it)
+    const own = !d.summary && i.summary && readable(i.summary), th = teaserHead(d.summary) || (own ? teaserHead(i.summary) : null);
+    if (th) d = { ...d, title: th.title, summary: th.cut ? d.summary || i.summary : th.rest, teased: true };
+  }
   return d;
 }
 // the words that say who and where (the radar finds them) in bold; the rest of the headline stays plain
@@ -469,20 +532,34 @@ function answerFor(i, extra = '') {
 const answerLine = a => `<button class="ht-line" data-svar="${esc(a.nr)}"><span class="ht-tx"><span class="ht-k"><b>Hizb ut-Tahrirs svar</b>`
   + ` · ${esc(dSlash(a.date))}</span><span class="ht ht-t">${esc(a.title)}</span></span><svg><use href="#i-chev"/></svg></button>`;
 // the line under a story: at once when the files are here, else a quiet place that is filled when they come
-function answerRef(i, extra = '') {
+function answerRef(i, extra = '', skip = '') {
   const a = V('bix') && V('mix') ? answerFor(i, extra) : null;
-  if (a) return `<div class="ans-ref">${answerLine(a)}</div>`;
-  return V('bix') && V('mix') ? '' : `<div class="ans-ref" data-ans-for="${esc(i.id)}"${extra ? ` data-ans-x="${esc(extra)}"` : ''}></div>`;
+  if (a && a.nr !== skip) return `<div class="ans-ref">${answerLine(a)}</div>`;
+  return V('bix') && V('mix') ? '' : `<div class="ans-ref" data-ans-for="${esc(i.id)}"${extra ? ` data-ans-x="${esc(extra)}"` : ''}${skip ? ` data-ans-skip="${esc(skip)}"` : ''}></div>`;
+}
+// a quiet place is filled in where it stands; one above the reader moves nothing in view. An empty place is not drawn
+// (no box to measure), so where it stands is told by what comes before it
+function fillIn(el, html, edge) {
+  const ref = el.offsetParent ? el : el.previousElementSibling || el.parentElement;
+  const above = (el.offsetParent ? ref.getBoundingClientRect().top : ref.getBoundingClientRect().bottom) < edge;
+  const h0 = el.offsetHeight, pg = el.closest('.page');
+  el.innerHTML = html;
+  if (above && pg && el.offsetHeight !== h0) pg.scrollTop += el.offsetHeight - h0;
 }
 function fillAnswerRefs() {
   if (!V('bix') || !V('mix')) return;
   const edge = $('bar').getBoundingClientRect().bottom;
   for (const el of list.querySelectorAll('[data-ans-for]')) {
     const i = findStory(el.dataset.ansFor), a = i && answerFor(i, el.dataset.ansX || '');
-    const above = el.getBoundingClientRect().top < edge, h0 = el.offsetHeight, pg = el.closest('.page');
     el.removeAttribute('data-ans-for');
-    el.innerHTML = a ? answerLine(a) : '';
-    if (above && pg && el.offsetHeight !== h0) pg.scrollTop += el.offsetHeight - h0;   // above the reader: nothing moves
+    fillIn(el, a && a.nr !== el.dataset.ansSkip ? answerLine(a) : '', edge);
+  }
+  // the answer the editor set on the front page, by its number
+  for (const el of list.querySelectorAll('[data-ans-nr]')) {
+    const a = answers().by.get(el.dataset.ansNr);
+    if (!a && (waiting('mix') || waiting('ans'))) continue;
+    el.removeAttribute('data-ans-nr');
+    fillIn(el, a ? answerLine(a) : '', edge);
   }
 }
 // the owner's hand (admin): stories removed or moved from this phone, at once, before the radar has caught up
@@ -544,7 +621,7 @@ function stories() {
 }
 const find = id => (stories(), cache && cache.byId.get(id));
 // a story can be found by any of its outlets' articles: its card follows whichever article leads it right now
-const findStory = id => find(id) || stories().find(i => (i.also || []).some(a => a.id === id));
+const findStory = id => id && (find(id) || stories().find(i => (i.members || []).includes(id) || (i.also || []).some(a => a.id === id)));
 
 function shareText(d) {
   let first = (d.summary || '').split(/(?<=[.!?])\s/)[0].replace(/\s*…$/, '').trim();
@@ -586,7 +663,7 @@ function meta(i, opts = {}) {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', opts.tick ? 'tick' : 'pic', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
     opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''} style="--i:${n}">
     <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(i.title)}"></button>${opts.tick ? `<time class="tt">${clock(i.published || i.found)}</time>` : ''}<span class="tx"><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</div>
@@ -614,8 +691,7 @@ const shownAs = new Map();
 const asShown = el => (el.classList.contains('hero') && shownAs.get(el.dataset.id)) || find(el.dataset.id);
 const storySession = i => { const s = linkSession(); pickLinks(i.title, s); return s; };
 function detail(i, o = {}) {
-  const ed = sumOf(i), note = i.to ? `<p class="tr-note">${i.checked ? 'Oversat' : 'Maskinoversat'} fra ${LANG[i.from] || i.from}${i.checked ? ' og tjekket af redaktøren' : ''}`
-    + ` · original: <span dir="auto">»${esc(tidy(i.origTitle))}«</span></p>` : '';
+  const ed = sumOf(i), note = origNote(i);
   const text = ed ? ed.text : i.summary;
   const pay = ed && ed.paywall ? '<p class="sum-note">Resuméet bygger på overskrifterne og mediernes indledninger.</p>' : '';
   return `${text ? `<p class="sum" dir="auto">${rich(text, storySession(i))}</p>` : ''}${pay}${note}
@@ -624,6 +700,16 @@ function detail(i, o = {}) {
       <button class="act" data-share><svg><use href="#i-share"/></svg>Del</button>
       <button class="act" data-copy><svg><use href="#i-copy"/></svg>Kopiér</button>
     </div>${o.noAns ? '' : answerRef(i)}${moreRow(i)}${covOpen.has(i.id) ? coverage(i) : ''}`;
+}
+// the opened story names the outlet's own headline small, where the one shown is another (the editor's, the teaser's
+// first sentence, a translation)
+const sameText = (a, b) => fold(a).replace(/[^\p{L}\p{N}]+/gu, ' ').trim() === fold(b).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function origNote(i) {
+  const orig = tidy(i.origTitle || ''), lang = LANG[i.lang] || i.lang;
+  if (!orig || sameText(orig, i.title)) return '';
+  const o = ` <span dir="auto">»${esc(orig)}«</span>`;
+  if (i.how === 'mt' && !i.teased) return `<p class="tr-note">Maskinoversat fra ${esc(lang)} · original:${o}</p>`;
+  return `<p class="tr-note">Originaloverskrift${i.lang && i.lang !== 'da' ? ` på ${esc(lang)}` : ''}:${o}</p>`;
 }
 function moreRow(i) {
   const t = threadFor(i), n = (i.outlets || 1) - 1;
@@ -765,8 +851,8 @@ async function loadWire() {
   staleOn(['home']);
 }
 // 'Live' on the front page: the three newest stories of the Live list (established outlets); a tap opens the story there
-function nowStrip() {
-  const last = stories().filter(i => i.confirmed !== 0).sort((a, b) => when(b) - when(a)).slice(0, 3);
+function nowStrip(n = 3) {
+  const last = stories().filter(i => i.confirmed !== 0).sort((a, b) => when(b) - when(a)).slice(0, n);
   if (!last.length) return '';
   return `<section class="now"><div class="now-h"><i></i>Live</div><ul>${last.map(i =>
     `<li><button data-live="${esc(i.id)}"><time>${clock(i.published || i.found)}</time><span dir="auto">${esc(i.title)}</span><em>${esc(i.source)}</em></button></li>`).join('')}</ul></section>`;
@@ -866,12 +952,100 @@ function followStrip(skip) {
   if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
   const list = threads().filter(t => !skip || t.name.trim().toLowerCase() !== skip.name.trim().toLowerCase()).slice(0, 3);
   const all = '<button class="now-more" data-go="threads">Hele dagen og alle udviklinger<svg><use href="#i-chev"/></svg></button>';
-  if (!list.length) return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${all}</section>`;
-  return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${list.map(t => { const l = t.lines[t.lines.length - 1];
-    return `<button class="fol-row" data-follow="${t.key}" data-sec="${esc(t.section || '')}"><span class="fol-m"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} udviklinger · senest ${ago(t.last)}</span>`
-      + `<b>${esc(t.name)}</b><span class="fol-l">${l.who ? `<em>${esc(l.who)}:</em> ` : ''}${esc(l.text)}</span><svg><use href="#i-chev"/></svg></button>`; }).join('')}${all}</section>`;
+  return `<section class="fol"><div class="fol-h">Følg udviklingen</div>${folRows(list)}${all}</section>`;
+}
+const folRows = list => list.map(t => { const l = t.lines[t.lines.length - 1];
+  return `<button class="fol-row" data-follow="${t.key}" data-sec="${esc(t.section || '')}"><span class="fol-m"><i></i>${SECTIONS[t.section] || ''} · ${t.lines.length} ${t.lines.length === 1 ? 'udvikling' : 'udviklinger'} · senest ${ago(t.last)}</span>`
+    + `<b>${esc(t.name)}</b><span class="fol-l">${l.who ? `<em>${esc(l.who)}:</em> ` : ''}${esc(l.text)}</span><svg><use href="#i-chev"/></svg></button>`; }).join('');
+
+// ---------------------------------------------------------------- the front page the editor composed
+// The editor composes the front page at each update by its own taste and the brain (front.json on the digest branch,
+// the owner's rule of 2026-10-17): which blocks, in what order, which stories, what a block is called. The app draws the
+// blocks with its own pieces in its own look – the main story's card with its timeline, compact rows, the developments,
+// the quote, the amir's answer, the Live preview, one line of reality. A block it cannot draw (an unknown kind, a story
+// no longer in Live) is left out; a composition that is missing, cannot be read or is older than six hours between 06
+// and 24 gives way to the fixed front page below.
+const FRONT_KINDS = new Set(['top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje']);
+function dkHour() {
+  try { return +new Intl.DateTimeFormat('da-DK', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Copenhagen' }).format(new Date()); }
+  catch { return new Date().getHours(); }
+}
+function frontNow() {
+  const f = front;
+  if (!f || !Array.isArray(f.blocks) || !f.blocks.some(b => b && FRONT_KINDS.has(b.kind))) return null;
+  const age = Date.now() - Date.parse(f.updated || '');
+  if (!(age < 6 * 3600e3) && (Number.isNaN(age) || dkHour() >= 6)) return null;
+  return f;
+}
+const threadNamed = name => name && allThreads().find(t => t.key === thrKey(String(name)));
+function composedHome(all, opts, f) {
+  const used = new Set();
+  const take = id => { const i = findStory(String(id || '')); if (!i || used.has(i.id)) return null; used.add(i.id); return i; };
+  // the owner's own choice of the main story (held on the front page) leads the first main block
+  const pin = owner().lead && findStory(owner().lead);
+  let html = '', n = 0, filled = 0, tops = 0;
+  // the answer the editor set in a block of its own is not said again under a main story
+  const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
+  for (const b of f.blocks) {
+    if (!b || !FRONT_KINDS.has(b.kind)) continue;
+    if (b.kind === 'top') {
+      const first = !tops++, i = take(first && pin ? pin.id : b.story);
+      if (!i) continue;
+      // the editor's headline for the front page; the owner's pick wears its own
+      const t = first && pin && pin.id !== (findStory(b.story) || {}).id ? '' : String(b.title || '');
+      const shown = t ? { ...i, title: t, kw: [...new Set([...(i.kw || []), ...(i.kw_da || [])])] } : i;
+      const hero = b.picture !== false && !!(i.thumb || i.pic);
+      html += `<section class="block top pkg${hero ? '' : ' text'}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
+        + story(shown, n++, { ...opts, tag: true, top: true, hero, lead: !hero });
+      const tp = threadNamed(b.timeline) || (first && pin ? packageFor(i).topic : null);
+      if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
+      for (const w of (b.with || []).map(take).filter(Boolean)) html += story(w, n++, { ...opts, tag: true, top: true });
+      html += answerRef(i, tp ? tp.name : '', svarSet) + '</section>';
+      filled++;
+    } else if (b.kind === 'liste') {
+      const list = (b.stories || []).map(take).filter(Boolean);
+      if (!list.length) continue;
+      // 'billeder': the first story with the outlet's own picture is set large, the rest as rows
+      const big = b.style === 'billeder' ? list.find(i => i.pic) : null;
+      html += `<section class="block f-list">${blockHead(esc(b.title || ''))}`
+        + (big ? story(big, n++, { ...opts, tag: true, top: true, hero: true }) : '')
+        + list.filter(i => i !== big).map(i => story(i, n++, { ...opts, tag: true, top: true })).join('') + '</section>';
+      filled++;
+    } else if (b.kind === 'udvikling') {
+      const list = (b.topics || []).map(threadNamed).filter(Boolean);
+      if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
+      if (list.length) html += `<section class="fol"><div class="fol-h">Følg udviklingen</div>${folRows(list)}`
+        + '<button class="now-more" data-go="threads">Hele dagen og alle udviklinger<svg><use href="#i-chev"/></svg></button></section>';
+    } else if (b.kind === 'citat') {
+      const q = pinnedQuote() || (b.who && b.text ? b : (notes().quotes || []).find(x => x.id === b.quote));
+      if (q) html += `<section class="qday" data-sec="${esc(q.sec || '')}"><div class="qday-h">Dagens citat</div>${quoteCard(q, true)}</section>`;
+    } else if (b.kind === 'svar') {
+      need('mix'); need('ans');
+      const a = answers().by.get(String(b.nr || ''));
+      if (a) html += `<div class="ans-ref f-svar">${answerLine(a)}</div>`;
+      else if (waiting('mix') || waiting('ans')) html += `<div class="ans-ref f-svar" data-ans-nr="${esc(b.nr || '')}"></div>`;
+    } else if (b.kind === 'live') {
+      const strip = nowStrip(Math.max(1, Math.min(10, +b.n || 3)));
+      if (strip) html += strip.replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
+    } else if (b.kind === 'linje' && b.text) {
+      html += `<p class="f-line">${rich(String(b.text), linkSession())}</p>`;
+    }
+  }
+  return filled ? html : null;   // a composition with none of its stories left: the fixed page
 }
 function home(all, opts) {
+  const f = frontNow(), composed = f && composedHome(all, opts, f);
+  if (composed) {
+    const lede = f.lede || notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
+    const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
+    return `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${rich(lede, linkSession())}</p>` : ''}</header>${composed}`
+      + `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
+  }
+  return fixedHome(all, opts);
+}
+// the fixed front page, while the editor has composed none today: the day's main story as a package, the rest of the
+// day's top, the developments, the day's quote, Live
+function fixedHome(all, opts) {
   const top = frontCands(all), pkg = mainChoice(top);
   const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
   let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${rich(lede, linkSession())}</p>` : ''}</header>`;
@@ -882,8 +1056,8 @@ function home(all, opts) {
   let pq = null;
   if (lead) {
     // a Danish outlet's headline for the package when the story has one
-    const dk = lead.lang !== 'da' && (lead.also || []).find(a => a.group === 'dk');
-    const shown = dk ? { ...lead, title: dk.title, source: dk.source, kw: [] } : lead;
+    const dk = lead.lang !== 'da' && lead.how !== 'ed' && (lead.also || []).find(a => a.group === 'dk' && !curious(a.title));
+    const shown = dk ? { ...lead, title: dk.title, origTitle: dk.title, source: dk.source, kw: [] } : lead;
     html += `<section class="block top pkg" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, hero: !!lead.thumb })}`;
     if (pkg && pkg.topic) {
       const tl = storyline(pkg.topic);
