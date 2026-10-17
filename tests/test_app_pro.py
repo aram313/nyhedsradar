@@ -55,7 +55,7 @@ def test_red_is_used_only_for_live_big_and_new():
     # review of 2026-10-17: the stale box, search marks, the switches, the focus ring and the offline logo were red
     # and since 17/10 the front page's accents (the owner: "Forsiden bliver for monoton, brug gerne lidt rød")
     allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root',
-               '.page[data-tab="home"]', '.page[data-tab="kalender"]')
+               '.page[data-tab="home"]', '.page[data-tab="kalender"]', '.page[data-tab="latest"] .story.tick.w3')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         sel, decl = ' '.join(m.group(1).split()), m.group(2)
         if 'var(--pulse' in decl:
@@ -343,7 +343,8 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
         assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
     # the readable red only on the front page, the chosen tab's icon (17/10) and the Kalender tab's Economist accents (its
     # fly title, its block titles' rule and the dot of an event in the next 48 hours)
-    calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i')
+    # and since 18/10 Live's weights, as the calendar's (a red edge on high, a short red mark on middle)
+    calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i', '.page[data-tab="latest"] .story.tick.w')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         if 'var(--red)' in m.group(2):
             sel = m.group(1)
@@ -364,3 +365,14 @@ def test_an_answer_can_be_saved_from_its_row():
 def test_a_live_story_can_be_saved_from_its_row():
     assert "${opts.tick ? rowSave(i) : thumb(i.source, i.thumb)}" in CODE and 'class="st-save' in CODE
     assert 'pointer-events: auto' in RULES.split('.story .row > .st-save {')[1].split('}')[0]
+
+
+def test_live_is_one_list_whose_rows_show_their_weight():
+    # 18/10, the owner: 'Nyheder skal have én fane … fremhæve dem med høj betydning medium og lav som … kalenderen'
+    w = CODE.split('const weightOf = i =>')[1].split(';')[0]
+    assert "i.kind === 'kommentar' ? 1" in w and 'topNow().has(i.id) ? 3' in w and 'pickRank(i) < 99' in w
+    assert "w > 1 && 'w' + w" in fn('story') and 'tick: true' in fn('latestPage')
+    assert re.search(r'\.story\.tick\.w3 > \.row \{[^}]*var\(--pulse-soft\)', RULES)
+    assert re.search(r'\.story\.tick\.w2 \.tt::after \{[^}]*var\(--red\)', RULES)
+    # 'Topnyhed' is now 'Høj betydning', in the rows, the notifications' switch and the screen reader's label
+    assert "'<span class=\"big\">Høj betydning</span>'" in fn('meta') and 'Topnyhed' not in INDEX

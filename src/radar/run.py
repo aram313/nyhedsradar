@@ -227,7 +227,7 @@ def story_kind(it, members):
 
 
 def top_now(shown, picks, now_local, n=5, hours=12):
-    """The stories the app marks 'Topnyhed' (topNow in public/app.js – keep the two alike): the strongest big stories of
+    """The stories the app marks 'Høj betydning' (topNow in public/app.js – keep the two alike): the strongest big stories of
     the Danish day, the editor's picks first, then rank, each for twelve hours after it was published; no commentary."""
     order = {}
     for k, p in enumerate(picks or []):
@@ -865,8 +865,8 @@ def main():
         headline = push_headline(lead, ed_titles)
         if len(batch) == 1:
             where = ' i Danmark' if lead.get('sec') == 'dk' else ''
-            # 'Topnyhed' only where the app says it too (its five of the day); another big story is 'Vigtig nyhed'
-            title = (f"{'Topnyhed' if lead['id'] in tops else 'Vigtig nyhed'}{where} · {lead['outlets']} medier" if lead['big']
+            # 'Høj betydning' (the app's term since 18/10, before 'Topnyhed') only where the app says it too (its five of the day); another big story is 'Vigtig nyhed'
+            title = (f"{'Høj betydning' if lead['id'] in tops else 'Vigtig nyhed'}{where} · {lead['outlets']} medier" if lead['big']
                      else label_of.get(lead['source'], lead['source']))
             body = headline
         else:

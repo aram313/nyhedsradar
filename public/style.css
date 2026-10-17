@@ -446,7 +446,14 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .story .row > .st-save.on { color: var(--text); }
 .story .row > .st-save:active { background: var(--fill); }
 .story.tick + .story.tick::before { left: calc(16px + 44px * var(--ts, 1) + 12px); }
-.live-seg { margin: 0; }
+/* Live's weights (18/10, the owner: 'som vi har gjort på kalenderen'): high on a soft red ground with a red edge and
+   'Høj betydning' in its line, middle a short red mark under its time, low quiet */
+.page[data-tab="latest"] .story.tick.w3 > .row { background-color: var(--pulse-soft); }
+.page[data-tab="latest"] .story.tick.w3 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
+.page[data-tab="latest"] .story.tick.w3 .h { font-weight: 700; }
+.page[data-tab="latest"] .story.tick.w3 + .story.tick::before, .page[data-tab="latest"] .story.tick + .story.tick.w3::before { opacity: 0; }
+.page[data-tab="latest"] .story.tick.w2 .tt::after { content: ""; display: block; width: 16px; height: 2px; margin-top: 6px; background: var(--red); }
+.page[data-tab="latest"] .story.tick.w2 .h { font-weight: 620; }
 /* Live's three filters (17/10): Danmark · Mellemøsten · Verden, each with its section's small dot */
 .live-secs { display: flex; gap: var(--s2); }
 .live-secs .chip { flex: 1; justify-content: center; }

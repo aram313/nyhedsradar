@@ -117,7 +117,8 @@ def test_the_dock_holds_the_pages_options_above_the_tabs():
     assert 'morph(box, tpl.content, [])' in paint   # a row keeps its element and its sideways place
     assert '!reduceMotion' in paint
     # Live, Kalender and Analyser: their options are the dock's, not a strip under the bar
-    assert 'data-live-sort' in fn('liveOpts') and 'data-live-sec' in fn('liveOpts') and 'data-live-sort' not in fn('latestPage')
+    # Live is one list since 18/10 (the owner: 'ingen "seneste" og "vigtigste"'): only the three filters
+    assert 'data-live-sec' in fn('liveOpts') and 'data-live-sort' not in CODE and 'liveSort' not in CODE
     assert 'data-cal-f' in fn('calOpts') and 'data-cal-win' in fn('calOpts') and 'data-cal-f' not in fn('kalenderPage')
     assert 'class="o-row an-chips"' in CODE and 'an-chips' not in fn('analysesPage')
     # Økonomi (18/10): its topics are the app's dock; the frame has no fixed dock of its own when embedded

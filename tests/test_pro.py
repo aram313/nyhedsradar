@@ -94,7 +94,7 @@ def test_topnyhed_in_a_notification_is_the_apps_five_of_the_day():
     if (now - timedelta(hours=1)).astimezone(local.tzinfo).date() == local.date():   # the Danish day did not just begin
         assert tops == {'s6', 's0', 's1', 's2', 's3'}
     src = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
-    assert "'Topnyhed' if lead['id'] in tops else 'Vigtig nyhed'" in src
+    assert "'Høj betydning' if lead['id'] in tops else 'Vigtig nyhed'" in src
     # a new answer's notification is in Danish: its title machine-translated, else a plain Danish line
     assert "translator([en], 'en', 'da')[0]" in src and "'body': tidy(da) if da else analyses.NO_TITLE" in src
 

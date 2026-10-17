@@ -878,12 +878,12 @@ function thumb(source, file) {
   return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${ok
     ? `<img src="${esc(src)}" alt="" width="64" height="64"${nearPics.has(src) ? '' : ' loading="lazy"'} decoding="async" onerror="picFailed(this)">` : ''}</span>`;
 }
-// The meta line: 'Kommentar' or the rationed 'Topnyhed', the section (on mixed lists), the outlet – never cut –, the
+// The meta line: 'Kommentar' or the rationed 'Høj betydning', the section (on mixed lists), the outlet – never cut –, the
 // time; the line breaks between its items, never inside one, and never starts with '·'
 function meta(i, opts = {}) {
   const m = [];
   if (i.kind === 'kommentar') m.push('<span class="kind">Kommentar</span>');
-  else if (i.big && !opts.top && topNow().has(i.id)) m.push('<span class="big">Topnyhed</span>');   // in a chosen block it goes without saying
+  else if (i.big && !opts.top && topNow().has(i.id)) m.push('<span class="big">Høj betydning</span>');   // in a chosen block it goes without saying
   // mixed lists say where it belongs; a list of mostly one section says it only on the story from another
   if (opts.tag && secOf(i) !== opts.msec) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);
   m.push(`<span class="src">${esc(i.source)}</span>`);
@@ -893,9 +893,17 @@ function meta(i, opts = {}) {
   if (shared[i.id]) m.push('<span class="done">delt</span>');
   return m.join('');
 }
-// 'Topnyhed' keeps its meaning: the five strongest big stories of the Danish day carry it (the editor's picks first,
-// then rank), each for twelve hours after it was published – the radar's big flag still drives push and rank
+// 'Høj betydning' (called 'Topnyhed' until 18/10, the owner: 'måske topnyhed termet burde ændres til høj betydning')
+// keeps its meaning: the five strongest big stories of the Danish day carry it (the editor's picks first, then rank),
+// each for twelve hours after it was published – the radar's big flag still drives push and rank
 const TOP_MAX = 5, TOP_HOURS = 12;
+// a story's weight in Live, shown as the calendar shows its events' (the owner, 18/10: 'fremhæve dem med høj betydning
+// medium og lav som vi har gjort på kalenderen'): 3 – 'Høj betydning', a soft red ground and a red edge; 2 – a short red
+// mark under its time: a big story, one of the editor's picks or of the books' two heaviest tiers (about a quarter of a
+// day's Live; the radar's 'important' marks half of it, too many to stand out); 1 – the rest, quiet. A commentary is
+// never weighted.
+const weightOf = i => i.kind === 'kommentar' ? 1 : i.big && topNow().has(i.id) ? 3
+  : i.big || pickRank(i) < 99 || (i.tier && i.tier <= 2) ? 2 : 1;
 let topMemo = null;
 function topNow() {
   const all = stories(), at = Math.floor(Date.now() / 600e3);   // worked out again every ten minutes, or with the news
@@ -911,7 +919,8 @@ function topNow() {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', i.important && 'imp', open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  const w = opts.tick ? weightOf(i) : 1;   // Live's rows show their weight
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
   const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
@@ -924,7 +933,7 @@ const rowSave = i => { const on = isSaved('s', i.id);
   return `<button class="st-save${on ? ' on' : ''}" data-save aria-pressed="${on}" aria-label="${on ? 'Gemt' : 'Gem'}"><svg aria-hidden="true"><use href="#i-${on ? 'saved' : 'save'}"/></svg></button>`; };
 // what a screen reader says for a row: the headline once, then the outlet, the time and its label
 const rowLabel = (i, opts = {}) => [i.title + '.', [i.source, stamp(i.published || i.found), i.kind === 'kommentar' ? 'Kommentar'
-  : i.big && !opts.top && topNow().has(i.id) ? 'Topnyhed' : '', isNew(i) ? 'ny' : ''].filter(Boolean).join(', ')].join(' ');
+  : i.big && !opts.top && topNow().has(i.id) ? 'Høj betydning' : opts.tick && weightOf(i) === 2 ? 'Middel betydning' : '', isNew(i) ? 'ny' : ''].filter(Boolean).join(', ')].join(' ');
 // an opened story on the front page does not say the answer again that the page shows already (pro-plan 3.4)
 const frontAns = new Set();
 const detailOpts = (i, opts = {}) => (opts.home ? { skip: [...frontAns].join(',') } : {});
@@ -1622,8 +1631,8 @@ function catchUpLine() {
   const moved = threads().map(t => ({ t, n: t.lines.filter(l => l.added && Date.parse(l.added) > since).length })).filter(x => x.n).sort((a, b) => b.n - a.n)[0];
   const ans = answers().list.filter(a => a.fresh && !ansSeen.has(a.nr));
   const parts = [];
-  if (fresh.length) parts.push(`<button data-go="latest" data-sort="new">${fresh.length} ${fresh.length === 1 ? 'ny' : 'nye'}</button>`);
-  if (tops) parts.push(`<button data-go="latest" data-sort="new">${tops} ${tops === 1 ? 'topnyhed' : 'topnyheder'}</button>`);
+  if (fresh.length) parts.push(`<button data-go="latest">${fresh.length} ${fresh.length === 1 ? 'ny' : 'nye'}</button>`);
+  if (tops) parts.push(`<button data-go="latest">${tops} med høj betydning</button>`);
   if (moved) parts.push(`<button data-follow="${moved.t.key}">${updWord(moved.n)} i ${esc(moved.t.name)}</button>`);
   if (ans.length) parts.push(`<button data-svar="${esc(ans[0].nr)}">${ans.length} ${ans.length === 1 ? 'nyt svar' : 'nye svar'}</button>`);
   if (!parts.length) return '';
@@ -1678,38 +1687,21 @@ function briefText() {
   return [`*Dagens nyheder – ${dateDa(FMT.ymd.format(new Date()), true)}*`, lede,
     rows.map(x => `- *${x.title}* (${x.i.source}) ${cleanLink(x.i.link)}`).join('\n\n'), 'via khabar.nu'].filter(Boolean).join('\n\n');
 }
-// Live, sorted two ways, chosen at the top (the phone remembers which): 'Seneste' – everything as it comes in, all
-// sections mixed, newest first; 'Vigtigste' – the last 24 hours by weight: the editor's picks in its order, then the
-// radar's strongest, with pictures
-let liveSort = store.get('liveSort', 'new'), liveTopAll = false;
-// three filters under the sort (the owner, 17/10: "3 nemme filtre … verden mellemøsten og danmark"): one tap shows one
-// section, a tap on it again all of Live; for the visit only, so Live never opens filtered
+// Live is one list (the owner, 18/10: 'Nyheder skal have én fane, ingen "seneste" og "vigtigste"'): everything as it
+// comes in, all sections mixed, newest first, each row showing its weight (weightOf) – the old choice 'Vigtigste' is gone
+// three filters (the owner, 17/10: "3 nemme filtre … verden mellemøsten og danmark"): one tap shows one section, a tap on
+// it again all of Live; for the visit only, so Live never opens filtered
 let liveSec = '';
-// the dock's two rows for Live (the owner, 17/10: the options within the thumb's reach): the sort, then the three filters
+// the dock's row for Live (the options within the thumb's reach): the three filters
 function liveOpts() {
-  return `<div class="o-row" id="o-live-s"><div class="seg two live-seg" role="radiogroup" aria-label="Sortér">${[['new', 'Seneste'], ['top', 'Vigtigste']].map(([v, l]) =>
-    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div></div>`
-    + `<div class="o-row live-secs" id="o-live-f" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
+  return `<div class="o-row live-secs" id="o-live-f" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
     `<button class="chip${liveSec === k ? ' on' : ''}" data-live-sec="${k}" aria-pressed="${liveSec === k}"><i class="sd" data-sec="${k}"></i>${SECTIONS[k]}</button>`).join('')}</div>`;
 }
 function latestPage(all, opts) {
   const gone = focusMissing ? stateBlock('gone', 'Historien er ikke længere i Live.', [['Søg efter den', `data-find-item="${esc(focusMissing)}"`], ['Luk', 'data-gone-x']]) : '';
-  const seg = gone;   // the sort and the three filters sit in the dock above the tabs (liveOpts)
   if (liveSec) all = all.filter(i => secOf(i) === liveSec);
-  if (liveSort === 'top') {
-    // the day's most important – the editor's picks and the radar's strongest – shown as time runs, newest first, like
-    // Seneste (the owner, 17/10: "det er forvirrende at 'vigtigste' nyheder ikke er kronologiske"): the two views
-    // differ in what they hold, never in their order
-    const day = all.filter(i => hours(i) < 24);
-    const ranked = [...day.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b)),
-      ...day.filter(i => pickRank(i) === 99).sort((a, b) => rankOf(b) - rankOf(a))];
-    const most = liveTopAll ? 60 : 30, chosen = new Set(ranked.slice(0, most).map(i => i.id));
-    const list = day.filter(i => chosen.has(i.id));   // in Live's own order: newest first
-    return seg + timeline(list, { ...opts, tag: !liveSec, tick: true })
-      + (!liveTopAll && ranked.length > most ? `<button class="qbtn" data-live-top-all>Vis flere vigtige (${Math.min(ranked.length, 60) - most})</button>` : '');
-  }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = seg + timeline(recent, { ...opts, tag: !liveSec, tick: true });
+  let html = gone + timeline(recent, { ...opts, tag: !liveSec, tick: true });
   if (recent.length < all.length) html += `<button class="qbtn" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -2872,7 +2864,6 @@ function openInLive(id) {
   const i = findStory(id);
   if (!i) return;
   if (!latestAll && hours(i) >= 24) latestAll = true;
-  liveSort = 'new';   // found by its time; the phone's own choice returns next time
   expanded.clear(); expanded.add(i.id);
   ver++;   // the story opened is a change: Live drawn ahead of time is drawn again, with it open
   if (tab === 'latest') render(); else setTab('latest', { top: true });
@@ -3035,7 +3026,6 @@ async function onTap(e) {
   if (t.closest('[data-search-retry]')) { searchState = 'idle'; searchLoaded = 0; loadIndex(); render(); return; }
   if (t.closest('[data-go]')) {
     const g = t.closest('[data-go]'), go = g.dataset.go;
-    if (g.dataset.sort) { liveSort = g.dataset.sort; expanded.clear(); }
     if (SIDE.has(go)) openSide(go); else setTab(go, { top: true });
     return;
   }
@@ -3072,9 +3062,6 @@ async function onTap(e) {
     if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
-  const ls = t.closest('[data-live-sort]');
-  if (ls) { liveSort = ls.dataset.liveSort; store.set('liveSort', liveSort); expanded.clear(); render(); cur().scrollTop = 0; return; }
-  if (t.closest('[data-live-top-all]')) { liveTopAll = true; render(); return; }
   if (t.closest('[data-cal-f], [data-cal-win], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
   const lsec = t.closest('[data-live-sec]');
   if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
@@ -4612,7 +4599,7 @@ async function refreshPushInfo() {
     info.textContent = 'Vælg, hvad du vil have besked om. Aldrig mellem kl. 23 og 7.';
     off.hidden = false;
   } else {
-    info.textContent = 'Få besked ved topnyheder, dagens resumé og nye svar fra Hizb ut-Tahrir – du vælger selv hvilke.';
+    info.textContent = 'Få besked ved nyheder med høj betydning, dagens resumé og nye svar fra Hizb ut-Tahrir – du vælger selv hvilke.';
     btn.hidden = false;
   }
 }

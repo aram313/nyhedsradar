@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Live is one list that shows each story's weight; 'Topnyhed' is 'Høj betydning'** (2026-10-18, the owner: 'Nyheder
+  skal have én fane, ingen "seneste" og "vigtigste" men … fremhæve dem med høj betydning medium og lav som vi har gjort
+  på kalenderen' and 'måske topnyhed termet burde ændres til høj betydning'; `?v=20261018ad`): Seneste/Vigtigste is
+  gone – Live is everything as it comes in, newest first, with the three section filters in the dock. A row's weight
+  (`weightOf`) is shown as the calendar's: high – the day's five strongest big stories, as 'Topnyhed' was – on a soft
+  red ground with a red edge and 'Høj betydning'; middle – a big story, an editor's pick or one of the books' two
+  heaviest tiers (about a quarter of a day) – a short red mark under its time; the rest quiet. The term is 'Høj
+  betydning' everywhere: rows, 'Mens du var væk', the notification switch and the notifications' title.
 - **Økonomi's topics in the app's dock, and three small fixes** (2026-10-18, the owner; `?v=20261018ab`): after
   'Råvarer' on a phone the economy page's own dock (fixed inside the frame) could not be tapped until one scrolled up –
   the topics are now chips in the app's dock above the tabs (`okOpts`, `khabarOk`, the frame's `okJump`), the frame
