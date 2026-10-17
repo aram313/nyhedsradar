@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **No more ochre ground: the movement's text is marked by a thin warm rule** (2026-10-18, the owner: 'den gule
+  baggrund skal genovervejes, det gør det svært at læse'; `?v=20261018ak`): Hizb ut-Tahrir's blocks (an answer's panel
+  and text, a wiki page's lead, readings and timeline, the answer line under a story) stand on the page's own ground in
+  the page's own text colours, in the serif, with a 2 px warm rule at their left (`--ht-rule`, #a8884f light, #9a8256
+  dark) and their one label; the wiki chips take the ordinary chip ground.
 - **'Læs hele svaret (engelsk)' clearer, still quiet** (2026-10-18, the owner: 'mere tydelig, dog … ikke stor og
   klodset'; `?v=20261018aj`): one hairline-framed row (radius 12, 44 px) with a small book, the words in the text's
   colour and a chevron that points down while folded and up when open.

@@ -388,9 +388,10 @@ da'wah.
   never Danmark and never inside an outlet's name. **A link is never inside a button**: a row's button or link lies under
   the whole row (`.hit`) and its words on top let the tap through. A wiki page: the lead (the newest answer governs),
   'Gennem årene', relations, the answers, related pages, today's stories that name it. **Everything that is Hizb
-  ut-Tahrir's** (leads, timelines, notes, readings, answer texts, the answer lines) is set in the serif (`--serif`) on the
-  soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark; the one exception is the answer reader's question,
-  serif in `--text-2` on the page inside the header its byline labels); every such block carries ONE label with the name and
+  ut-Tahrir's** (leads, timelines, notes, readings, answer texts, the answer lines) is set in the serif (`--serif`) and
+  marked by a thin warm rule at its left (`--ht-rule`) – since 18/10 on the page's own ground in the page's own text
+  colours (the owner: 'den gule baggrund … gør det svært at læse'; the ochre tint `--ht-bg` is gone, the `--ht-*`
+  tokens equal the page's; the answer reader's question is serif in `--text-2` inside the header its byline labels); every such block carries ONE label with the name and
   date ('Hizb ut-Tahrirs svar · d/m/åååå': the answer line, the reader's header, a wiki lead's `htLabel`), a block of
   several answers' texts (the wiki's timeline and relations) a small date on each row (`htDate`), and the texts
   themselves never say 'Ifølge …'; everything else keeps the app's face.
