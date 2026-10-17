@@ -3121,7 +3121,8 @@ function kortLook() {
   kTiles = CFG.cartoKey
     ? Lf.tileLayer(`https://basemaps.cartocdn.com/rastertiles/${dark ? 'dark_all' : 'light_all'}/{z}/{x}/{y}.png?key=${encodeURIComponent(CFG.cartoKey)}`,
       { maxZoom: 20, attribution: CARTO })
-    : Lf.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM, className: dark ? 'k-osm dark' : 'k-osm' });
+    // OpenStreetMap's German server: place names in Latin letters (Kairo, Damaskus, Teheran), close to Danish
+    : Lf.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', { maxZoom: 18, attribution: OSM, className: dark ? 'k-osm dark' : 'k-osm' });
   kTiles.addTo(kMap);
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', kortLook);
