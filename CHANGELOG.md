@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The calendar weighs its events** (2026-10-17, the owner: 'vægte de begivenheder på kalenderen der har højeste
+  betydning med en indikator eller en baggrundsfarve'; `?v=20261018s`): `calendar.weight` gives every event 3, 2 or 1 –
+  3 the elections in the great powers and the states at the centre of the Muslim world, Denmark's general election, the
+  summits where the powers meet (G20, NATO, BRICS, the UN); 2 the other elections in the Muslim world, the Fed, OPEC+,
+  the G7, the SCO, the Arab League and the OIC; 1 the rest (climate summits, ceremonial presidents) – and the editor may
+  give his own entries a `weight`. In the tab an event of weight 3 stands on a soft red ground with a red edge and
+  'Høj betydning', one of weight 2 has a short red mark under its day.
+
 - **Kalender instead of the map** (2026-10-17, the owner: "Du skal kassere kortvisningen, eller gemme den … Så synes jeg
   godt, vi kunne have en kalender i stedet for den … Og den skal have en fane for sig selv"; the Islamic dates left out at
   his wish the same day; `?v=20261018r`).

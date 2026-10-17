@@ -3128,10 +3128,13 @@ function calRow(e, today, o = {}) {
     `<span class="ck${near ? ' near' : ''}" data-k="${esc(e.kind)}"><i></i>${esc(CAL_KINDS[e.kind])}</span>`,
     ...(e.place ? [`<span>${esc(e.place)}</span>`] : []), ...(calUntil(e) ? [`<span>${calUntil(e)}</span>`] : []),
     ...(e.approx ? ['<span>forventet</span>'] : [])];
-  const label = `${calExact(e) ? FMT.full.format(d) : FMT.my.format(d)}: ${e.title}${e.place ? ', ' + e.place : ''}${e.approx ? ', forventet' : ''}${o.count ? ', ' + calCount(e, today) : ''}`;
+  const label = `${calExact(e) ? FMT.full.format(d) : FMT.my.format(d)}: ${e.title}${e.place ? ', ' + e.place : ''}${e.approx ? ', forventet' : ''}${e.w === 3 ? ', høj betydning' : ''}${o.count ? ', ' + calCount(e, today) : ''}`;
   const hit = o.front ? `<button class="hit" data-cal-go="${esc(e.id)}" aria-label="${esc(label)}"></button>`
     : `<button class="hit" data-cal="${esc(e.id)}" aria-expanded="${open}" aria-label="${esc(label)}"></button>`;
-  return `<div class="ce${open ? ' open' : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
+  // the weight (17/10): 3 a soft red ground, a red edge and 'Høj betydning'; 2 a short red mark by the day
+  const w = e.w === 3 || e.w === 2 ? e.w : 1;
+  if (w === 3) parts.unshift('<span class="cw">Høj betydning</span>');
+  return `<div class="ce${open ? ' open' : ''}${w > 1 ? ' w' + w : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
     + `<span class="tx" aria-hidden="true"><span class="h">${esc(e.title)}</span><span class="m">${parts.join('')}</span></span></div>`
     + (open ? calDetail(e) : '') + '</div>';
 }

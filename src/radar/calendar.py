@@ -349,6 +349,44 @@ def merge(groups, today):
     return sorted(out, key=lambda e: (e['date'] if len(e['date']) > 7 else e['date'] + '-32', e['id']))
 
 
+# How much an event weighs (the owner, 17/10: "vægte de begivenheder … der har højeste betydning med en indikator eller
+# en baggrundsfarve"): 3 the events that move the balance of the powers or the group's own country – elections in the
+# great powers and the states at the centre of the Muslim world, Denmark's general election, the summits where the
+# powers meet; 2 the elections in the rest of the Muslim world, the Fed (the dollar and oil), OPEC+, the G7, the SCO,
+# the Arab League and the OIC; 1 the rest. A curated or editor's entry may set its own `w`.
+HEAVY_STATES = {'USA', 'Kina', 'Rusland', 'Storbritannien', 'Frankrig', 'Tyskland', 'Indien', 'Ukraine', '“israel”',
+                'Tyrkiet', 'Iran', 'Egypten', 'Pakistan', 'Saudi-Arabien', 'Irak', 'Syrien', 'Palæstina', 'Danmark'}
+MUSLIM_STATES = set(list(COUNTRIES.values())[:list(COUNTRIES).index('Austria')])
+HEAVY_SUMMIT = re.compile(r'\b(?:G20|NATO|BRICS|FN|Generalforsamling)', re.I)
+MID_SUMMIT = re.compile(r'\b(?:G7|OPEC|SCO|Shanghai|Arabiske Liga|OIC|Islamisk Samarbejde)', re.I)
+# a head of state the parliament elects, whose office is ceremonial: not an election that moves a power
+CEREMONIAL = {('Præsidentvalg', 'Indien'), ('Præsidentvalg', 'Tyskland'), ('Præsidentvalg', '“israel”'), ('Præsidentvalg', 'Irak')}
+
+
+def weight(e):
+    if e.get('w') in (1, 2, 3):
+        return e['w']
+    kind, title, place = e.get('kind'), e.get('title') or '', e.get('place') or ''
+    if kind in ('valg', 'dansk') and 'Folketingsvalg' in title:
+        return 3
+    if kind == 'valg':
+        if any(title.startswith(k) and p in place for k, p in CEREMONIAL):
+            return 1
+        heavy = any(s in place for s in HEAVY_STATES)
+        if heavy and not re.search(r'\bSenat|Folkeafstemning', title):
+            return 3
+        if heavy or any(s in place for s in MUSLIM_STATES):
+            return 2
+        return 1
+    if kind == 'topmøde':
+        if re.search(r'klima|COP\d', title):
+            return 1     # the climate summits move no power's position
+        return 3 if HEAVY_SUMMIT.search(title) else 2 if MID_SUMMIT.search(title) else 1
+    if kind == 'centralbank':
+        return 2 if title.startswith('Fed') else 1
+    return 1
+
+
 def run(state, fetchers=None, t=None):
     path = state / 'calendar.json'
     try:
@@ -379,7 +417,7 @@ def run(state, fetchers=None, t=None):
             tried.pop(key, None)
     groups = {k: v for k, v in groups.items() if k in fetchers}   # last year's Wikipedia page leaves with its year
     groups['fast'] = curated()
-    items = merge(groups, today)
+    items = [{**e, 'w': weight(e)} for e in merge(groups, today)]
     out = {'updated': t.isoformat(), 'ok': ok, 'tried': tried,
            'src': {k: v for k, v in groups.items() if k != 'fast'}, 'items': items}
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')

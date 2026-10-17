@@ -1173,6 +1173,15 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cd b.mo { font-size: var(--fs-small); line-height: 1.7; }
 .cd small { margin-top: 2px; font-size: var(--fs-cap); font-weight: 650; letter-spacing: .03em; color: var(--text-3); }
 .ce .h { font-weight: 600; }
+/* the weight (the owner, 17/10: "vægte de begivenheder … med en indikator eller en baggrundsfarve"): an event of high
+   weight on a soft red ground with a red edge and 'Høj betydning', one of middle weight a short red mark by its day */
+.page[data-tab="kalender"] .ce.w3 { background-color: var(--pulse-soft); }
+.page[data-tab="kalender"] .ce.w3::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
+.page[data-tab="kalender"] .ce.w3 .h { font-weight: 750; }
+.page[data-tab="kalender"] .ce.w3 + .ce::before, .page[data-tab="kalender"] .ce + .ce.w3::before { opacity: 0; }
+.page[data-tab="kalender"] .ce .cw { color: var(--red); font-weight: 750; }
+.page[data-tab="kalender"] .ce.w2 .cd::after { content: ""; display: block; width: 16px; height: 2px; margin: 4px auto 0; background: var(--red); }
+.page[data-tab="kalender"] .ce.w2 .h { font-weight: 680; }
 .ce .m .cn { color: var(--text); font-weight: 650; }
 .ce-x { padding: 0 var(--s4) var(--s3) 72px; }
 .ce-why { margin: 0 0 var(--s2); font-size: var(--fs-read); line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
@@ -1187,3 +1196,4 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cal-none { margin: 2px 16px 0 72px; font-size: var(--fs-small); color: var(--text-3); }
 .cal-past { margin-top: var(--s5); }
 .cal-pb small { font-weight: 500; color: var(--text-3); }
+.page[data-tab="home"] .ce .cw { color: var(--red); font-weight: 750; }

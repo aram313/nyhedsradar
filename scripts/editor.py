@@ -1971,7 +1971,11 @@ def calendar_file(entries, current, find, now, problems):
         ident = str(x.get('id') or '').strip() or f'ed-{date}-{cal_slug(title)}'
         if not re.match(r'^[a-z0-9][a-z0-9-]{2,80}$', ident):
             problems.append(f'{where}: id must be lowercase letters, digits and hyphens')
+        w = x.get('weight', x.get('w'))   # 3 high, 2 middle, 1 the rest (the owner, 17/10); left out: the app's 1
+        if w is not None and w not in (1, 2, 3):
+            problems.append(f'{where}: weight is 1, 2 or 3 (3 the events that move the balance of the powers)')
         item = {'id': ident, 'date': date, **({'end': end} if end else {}), **({'approx': True} if approx else {}),
+                **({'w': w} if w in (1, 2, 3) else {}),
                 'title': title, 'kind': kind, **({'place': place} if place else {}), 'why': why,
                 'link': link or (stories[0].get('link') if stories else ''), **({'ids': ids} if ids else {}),
                 'at': stamp, 'src': 'ed'}

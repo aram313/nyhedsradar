@@ -55,7 +55,7 @@ def test_red_is_used_only_for_live_big_and_new():
     # review of 2026-10-17: the stale box, search marks, the switches, the focus ring and the offline logo were red
     # and since 17/10 the front page's accents (the owner: "Forsiden bliver for monoton, brug gerne lidt rød")
     allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root',
-               '.page[data-tab="home"]')
+               '.page[data-tab="home"]', '.page[data-tab="kalender"]')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         sel, decl = ' '.join(m.group(1).split()), m.group(2)
         if 'var(--pulse' in decl:
