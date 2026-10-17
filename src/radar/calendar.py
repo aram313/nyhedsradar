@@ -390,6 +390,35 @@ def weight(e):
     return 1
 
 
+WHY_FILE = ROOT / 'config' / 'calendar-why.json'
+
+
+def why_rules(path=WHY_FILE):
+    try:
+        return json.loads(Path(path).read_text(encoding='utf-8')).get('rules') or []
+    except Exception:
+        return []
+
+
+def deeper(e, rules):
+    """The fuller explanation of an event of weight 2 or 3 (config/calendar-why.json, the owner 17/10); an editor's own
+    'why' and an event of weight 1 keep theirs."""
+    if e.get('w', 1) < 2 or e.get('src') == 'ed':
+        return e
+    place, title = e.get('place') or '', e.get('title') or ''
+    for r in rules:
+        if r.get('kind') != e.get('kind'):
+            continue
+        if r.get('place') and r['place'] not in place:
+            continue
+        if r.get('title') and not re.search(r['title'], title):
+            continue
+        if r.get('muslim') and not any(s in place for s in MUSLIM_STATES):
+            continue
+        return {**e, 'why': r['why'].replace('{place}', place)}
+    return e
+
+
 def run(state, fetchers=None, t=None):
     path = state / 'calendar.json'
     try:
@@ -420,7 +449,8 @@ def run(state, fetchers=None, t=None):
             tried.pop(key, None)
     groups = {k: v for k, v in groups.items() if k in fetchers}   # last year's Wikipedia page leaves with its year
     groups['fast'] = curated()
-    items = [{**e, 'w': weight(e)} for e in merge(groups, today)]
+    rules = why_rules()
+    items = [deeper({**e, 'w': weight(e)}, rules) for e in merge(groups, today)]
     out = {'updated': t.isoformat(), 'ok': ok, 'tried': tried,
            'src': {k: v for k, v in groups.items() if k != 'fast'}, 'items': items}
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')

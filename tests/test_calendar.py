@@ -310,3 +310,15 @@ def test_eu_summits_weigh_in_the_middle_and_climate_summits_low():
     assert c.weight({'kind': 'topmøde', 'title': "FN's klimatopmøde COP31"}) == 1
     assert c.weight({'kind': 'topmøde', 'title': 'G20-topmøde'}) == 3
     assert c.weight({'kind': 'topmøde', 'title': 'EU-topmøde', 'w': 3}) == 3   # raised by the editor
+
+
+def test_events_of_weight_get_their_fuller_explanation_in_reality_only():
+    from radar import calendar as c
+    rules = c.why_rules()
+    ev = c.deeper({'kind': 'valg', 'title': 'Midtvejsvalg i USA', 'place': 'USA', 'w': 3, 'why': 'kort'}, rules)
+    assert 'Repræsentanternes Hus' in ev['why']
+    assert c.deeper({'kind': 'valg', 'title': 'Præsidentvalg i Gambia', 'place': 'Gambia', 'w': 2, 'why': 'kort'}, rules)['why'].startswith('Gambia er')
+    assert c.deeper({'kind': 'valg', 'title': 'Senatsvalg i Tjekkiet', 'place': 'Tjekkiet', 'w': 1, 'why': 'kort'}, rules)['why'] == 'kort'
+    assert c.deeper({'kind': 'frist', 'title': 'x', 'w': 3, 'why': 'eget', 'src': 'ed'}, rules)['why'] == 'eget'   # the editor's own
+    for r in rules:   # the owner's house style, and no forecast
+        assert 'Israel' not in r['why'] and not re.search(r'forventes|sandsynligvis|vil føre til|kan føre til', r['why']), r

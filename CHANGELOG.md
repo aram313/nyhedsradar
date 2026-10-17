@@ -9,11 +9,18 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A fuller explanation for the calendar's weighty events** (2026-10-17, the owner: 'de ting i kalenderen med høj og
+  middel betydning må gerne få en lidt mere uddybende forklaring'): `config/calendar-why.json` holds two or three
+  sentences of reality for each kind – the elections in the USA (midterms, president), “israel”, Denmark, France,
+  Russia, Turkey, Iran, Egypt, Pakistan, Iraq, Syria, Palestine, Ukraine, India, Britain, Germany, Morocco, Nigeria,
+  Kyrgyzstan, Oman and the rest of the Muslim world, the Fed, G20, the UN's general debate, NATO, BRICS, OPEC+, the EU
+  summits, G7, the SCO, the Arab League and the OIC: what is decided, who takes part and what the outcome governs.
+
 - **The English texts matched by address** (2026-10-17): an answer is matched to its texts by its source page's url (as
   `build_movement.py` numbers the answers), no longer by its number alone – the Arabic and the English sites number
   their pages each in their own way, so eight answers had another answer's text. 318 of 321 now have their own English
   text: 274 from the English editions, 44 translated from their Arabic (each translation names the Arabic file it came
-  from, `src`, and is kept only while that is the answer's own); the last three are being translated.
+  from, `src`, and is kept only while that is the answer's own); since the same day all 321 – the last three, Sri Lanka, Central Asia and Yemen 27/9/2026, translated too.
 
 - **Vigtigste runs as time runs** (2026-10-17, the owner: 'det er forvirrende at "vigtigste" nyheder ikke er
   kronologiske'; `?v=20261018u`): the day's 30 most important stories (the editor's picks, then the radar's strongest;
