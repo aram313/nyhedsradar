@@ -1,0 +1,1594 @@
+{
+ "fires": [
+  {
+   "at": "2026-10-17T09:08:11+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:7aaeb9be074945bb",
+    "tier:7b9b8baff3e29087",
+    "tier:c7b84794a02a8e4b",
+    "tier:7d9e936c4f488761",
+    "tier:e67b1fcb24cc71e5",
+    "heads:2026-10-17T09:03:28+00:00"
+   ],
+   "why": "tier 1 med 3 medier: Trump blokerer Rusland sanktioner et \"historisk øjeblik\": Putin 's udsending (+4 mere); 53 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:11:59+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "21 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:16:52+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "24 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:21:58+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "25 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:26:46+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "25 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:31:51+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "25 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:37:21+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "26 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:41:33+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "27 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:46:27+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "26 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:52:19+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "27 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T09:56:46+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "27 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:01:56+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "heads:2026-10-17T09:11:53+00:00"
+   ],
+   "why": "27 historier i Live venter på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:06:51+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:11:56+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige…",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:17:02+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 11 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:21:41+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 16 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:26:50+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 21 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:32:06+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 26 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:36:00+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 30 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:37:54+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 32 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:42:00+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 36 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:46:55+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 41 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:52:06+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 46 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T10:56:52+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:01:45+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:15059d81e8100008",
+    "tier:0a5fcaeb0187523d",
+    "tier:55ba74cf2b2bacbd",
+    "late:fd80234bf9b8551c"
+   ],
+   "why": "stor historie siden sidst: Flere demonstrationer i København; tier 1 med 2 medier: Global sikkerhed fjender utilfredse med fortsatte Rusland-USA dialog og særlige… (+1 mere); en historie i Live har ventet 1 t 56 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:07:04+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:cea9eaae8a2ab1e8"
+   ],
+   "why": "stor historie siden sidst: Protest uden for Aserbajdsjan Ambassade i London mod hijab forbud i skoler",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:12:07+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: Protest uden for Aserbajdsjan Ambassade i London mod hijab forbud i skoler (+1 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:17:08+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: Protest uden for Aserbajdsjan Ambassade i London mod hijab forbud i skoler (+1 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:21:56+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: Protest uden for Aserbajdsjan Ambassade i London mod hijab forbud i skoler (+1 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:26:57+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: Protest uden for Aserbajdsjan Ambassade i London mod hijab forbud i skoler (+1 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:31:54+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:36:48+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:41:50+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:46:38+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:51:42+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T11:57:11+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T12:02:13+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:8d1af434c06e6d29",
+    "big:cea9eaae8a2ab1e8",
+    "big:15059d81e8100008",
+    "late:94aaa4a5ae707b2f"
+   ],
+   "why": "stor historie siden sidst: 2 palæstinensere såret i angreb af israelske besættere på Vestbredden landmænd (+2 mere); en historie i Live har ventet 46 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T12:46:55+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:a8e01fec8e7d79d7"
+   ],
+   "why": "stor historie siden sidst: For kort tid siden bombede israelske besættelsesfly et hjem vest for Jabalia fl…",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T12:52:00+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:a8e01fec8e7d79d7",
+    "late:6120577c58929dfb"
+   ],
+   "why": "stor historie siden sidst: For kort tid siden bombede israelske besættelsesfly et hjem vest for Jabalia fl…; en historie i Live har ventet 3 t 46 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T12:57:12+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:a8e01fec8e7d79d7",
+    "late:6120577c58929dfb",
+    "late:851aabce31f905ca"
+   ],
+   "why": "stor historie siden sidst: For kort tid siden bombede israelske besættelsesfly et hjem vest for Jabalia fl…; en historie i Live har ventet 3 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T13:01:42+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:a8e01fec8e7d79d7",
+    "late:6120577c58929dfb",
+    "late:851aabce31f905ca"
+   ],
+   "why": "en historie i Live har ventet 3 t 56 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T13:51:33+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:0090c33dd91883f1",
+    "late:7b888ba68a577d9b",
+    "late:385ef7e2cb4497c6",
+    "late:2a313211a6072fef",
+    "late:cc3acea1756a0ff7"
+   ],
+   "why": "stor historie siden sidst: En israelsk drone er rettet mod en gruppe civile i Jabalia, det nordlige Gazast…; en historie i Live har ventet 4 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T13:55:43+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:0090c33dd91883f1",
+    "late:7b888ba68a577d9b",
+    "late:b88bbbd1705fcd49",
+    "late:385ef7e2cb4497c6",
+    "late:2a313211a6072fef",
+    "late:cc3acea1756a0ff7"
+   ],
+   "why": "stor historie siden sidst: En israelsk drone er rettet mod en gruppe civile i Jabalia, det nordlige Gazast…; en historie i Live har ventet 4 t 50 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T13:57:20+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:0090c33dd91883f1",
+    "late:7b888ba68a577d9b",
+    "late:b88bbbd1705fcd49",
+    "late:385ef7e2cb4497c6",
+    "late:2a313211a6072fef",
+    "late:cc3acea1756a0ff7"
+   ],
+   "why": "stor historie siden sidst: En israelsk drone er rettet mod en gruppe civile i Jabalia, det nordlige Gazast…; en historie i Live har ventet 4 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:01:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:7b888ba68a577d9b",
+    "late:b88bbbd1705fcd49",
+    "late:385ef7e2cb4497c6",
+    "late:2a313211a6072fef",
+    "late:cc3acea1756a0ff7"
+   ],
+   "why": "en historie i Live har ventet 4 t 55 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:06:37+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 00 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:11:25+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 05 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:16:24+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 10 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:21:00+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 15 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:26:09+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 20 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:31:52+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f"
+   ],
+   "why": "en historie i Live har ventet 5 t 26 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:36:25+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 30 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:41:21+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 35 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:46:49+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 41 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:51:07+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T14:56:46+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:01:37+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:9f864d1145d001a6",
+    "late:5784a853639dadf0",
+    "late:b002cddbbdc4876f",
+    "late:22650ff9cd6867a0"
+   ],
+   "why": "en historie i Live har ventet 5 t 55 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:11:20+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:16:27+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:21:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:26:32+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:31:39+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:36:46+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:41:28+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:46:27+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:51:10+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T15:56:28+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a",
+    "late:befd0f1997cd5b9a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere); en historie i Live har ventet 46 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:01:47+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "big:fc7b991c31f78917",
+    "tier:befd0f1997cd5b9a",
+    "tier:b603859d5ec870ac",
+    "tier:1f4e742be50e7d58",
+    "tier:1235f531a29413af",
+    "tier:01ab0354219bb7b7",
+    "tier:ffaf218644a31c7a",
+    "late:5f2dd014e793aa2b",
+    "late:befd0f1997cd5b9a"
+   ],
+   "why": "stor historie siden sidst: Fem palæstinensere dræbt af Israel i Gaza; tier 1 med 4 medier: Trump giver afkald på nogle sanktioner, restriktioner, afgifter på Rusland i Gr… (+5 mere); en historie i Live har ventet 6 t 21 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:11:28+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 00 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:16:59+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 06 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:21:41+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 11 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:26:28+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 15 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:31:30+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 21 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:36:07+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:773179cfc6b47139",
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 30 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:41:16+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:773179cfc6b47139",
+    "late:733b82ca3f9bc83c"
+   ],
+   "why": "en historie i Live har ventet 7 t 35 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:46:37+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c",
+    "late:86724c2503f602a2"
+   ],
+   "why": "en historie i Live har ventet 7 t 36 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:51:35+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c",
+    "late:86724c2503f602a2"
+   ],
+   "why": "en historie i Live har ventet 7 t 41 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:53:40+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c",
+    "late:86724c2503f602a2"
+   ],
+   "why": "en historie i Live har ventet 7 t 43 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T16:56:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c",
+    "late:86724c2503f602a2"
+   ],
+   "why": "en historie i Live har ventet 7 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:01:30+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:733b82ca3f9bc83c",
+    "late:86724c2503f602a2"
+   ],
+   "why": "en historie i Live har ventet 7 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:06:42+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:773179cfc6b47139"
+   ],
+   "why": "en historie i Live har ventet 8 t 01 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:11:50+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09"
+   ],
+   "why": "en historie i Live har ventet 8 t 06 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:16:06+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:773179cfc6b47139"
+   ],
+   "why": "en historie i Live har ventet 8 t 10 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:21:24+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:773179cfc6b47139"
+   ],
+   "why": "en historie i Live har ventet 8 t 15 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:26:52+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09"
+   ],
+   "why": "en historie i Live har ventet 8 t 21 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:31:45+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 26 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:36:18+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 30 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:41:31+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:15111a2fb0d6e47a",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 35 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:46:25+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:15111a2fb0d6e47a",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 40 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:51:28+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:15111a2fb0d6e47a",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T17:56:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:15111a2fb0d6e47a",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 50 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:01:41+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:68b71dd6b726d1e5",
+    "late:62564407153b9c09",
+    "late:15111a2fb0d6e47a",
+    "late:ffa77e45035e9f08"
+   ],
+   "why": "en historie i Live har ventet 8 t 56 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:26:54+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:d450f1f73cc2b231"
+   ],
+   "why": "en historie i Live har ventet 3 t 16 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:31:42+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231"
+   ],
+   "why": "en historie i Live har ventet 3 t 46 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:36:35+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231"
+   ],
+   "why": "en historie i Live har ventet 3 t 50 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:41:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231"
+   ],
+   "why": "en historie i Live har ventet 3 t 55 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:46:47+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231",
+    "late:32cb389eb68426ae"
+   ],
+   "why": "en historie i Live har ventet 4 t 01 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:51:12+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231",
+    "late:32cb389eb68426ae",
+    "late:05bd926094afae7a"
+   ],
+   "why": "en historie i Live har ventet 4 t 05 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:56:36+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:943afbddaf7ddda7",
+    "late:f5eb8dc5e5e6e493",
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231",
+    "late:32cb389eb68426ae",
+    "late:05bd926094afae7a"
+   ],
+   "why": "en historie i Live har ventet 9 t 50 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T18:59:44+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:943afbddaf7ddda7",
+    "late:f5eb8dc5e5e6e493",
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231",
+    "late:32cb389eb68426ae",
+    "late:05bd926094afae7a"
+   ],
+   "why": "en historie i Live har ventet 9 t 54 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:01:04+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:943afbddaf7ddda7",
+    "late:f5eb8dc5e5e6e493",
+    "late:51f3d734dfdadb24",
+    "late:d450f1f73cc2b231",
+    "late:32cb389eb68426ae",
+    "late:05bd926094afae7a",
+    "evening:2026-10-17"
+   ],
+   "why": "en historie i Live har ventet 9 t 55 min på redaktørens overskrift; dagens resumé til telefonerne (første opdatering efter kl. 21)",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:36:40+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:6eb2571646d9f387"
+   ],
+   "why": "en historie i Live har ventet 8 t 31 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:41:31+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:f1c07aa3152e39b7",
+    "late:6eb2571646d9f387",
+    "late:a122684353fa4452"
+   ],
+   "why": "tier 2 med 2 medier: Libanon for at deltage i USA-støttede trilaterale samtaler med Israel den 20. o…; en historie i Live har ventet 8 t 35 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:46:40+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:f1c07aa3152e39b7",
+    "late:6eb2571646d9f387",
+    "late:a122684353fa4452"
+   ],
+   "why": "tier 2 med 2 medier: Libanon for at deltage i USA-støttede trilaterale samtaler med Israel den 20. o…; en historie i Live har ventet 8 t 41 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:51:30+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:f1c07aa3152e39b7",
+    "late:6eb2571646d9f387",
+    "late:a122684353fa4452"
+   ],
+   "why": "tier 2 med 2 medier: Libanon for at deltage i USA-støttede trilaterale samtaler med Israel den 20. o…; en historie i Live har ventet 8 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T19:56:35+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:f1c07aa3152e39b7",
+    "late:6eb2571646d9f387",
+    "late:a122684353fa4452"
+   ],
+   "why": "tier 2 med 2 medier: Libanon for at deltage i USA-støttede trilaterale samtaler med Israel den 20. o…; en historie i Live har ventet 8 t 50 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:01:15+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:f1c07aa3152e39b7",
+    "late:6eb2571646d9f387",
+    "late:a122684353fa4452",
+    "late:55ba74cf2b2bacbd"
+   ],
+   "why": "tier 2 med 2 medier: Libanon for at deltage i USA-støttede trilaterale samtaler med Israel den 20. o…; en historie i Live har ventet 8 t 55 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:11:34+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:a122684353fa4452",
+    "late:579e2d755d01f785",
+    "late:460cbefeeb2e92ad",
+    "late:1e41b3293ae71131"
+   ],
+   "why": "tier 2 med 3 medier: Ukrainsk præsident Zelenskyy taler på EU-topmødet midt med Donald Trump; en historie i Live har ventet 11 t 05 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:16:13+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:a122684353fa4452",
+    "late:579e2d755d01f785",
+    "late:460cbefeeb2e92ad",
+    "late:1e41b3293ae71131",
+    "late:35f7b5ee4e371b89"
+   ],
+   "why": "tier 2 med 3 medier: Ukrainsk præsident Zelenskyy taler på EU-topmødet midt med Donald Trump; en historie i Live har ventet 11 t 10 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:21:29+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:a122684353fa4452",
+    "late:579e2d755d01f785",
+    "late:460cbefeeb2e92ad",
+    "late:35f7b5ee4e371b89"
+   ],
+   "why": "tier 2 med 3 medier: Ukrainsk præsident Zelenskyy taler på EU-topmødet midt med Donald Trump; en historie i Live har ventet 11 t 15 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:26:53+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:579e2d755d01f785",
+    "late:460cbefeeb2e92ad",
+    "late:35f7b5ee4e371b89",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 21 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:31:12+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:579e2d755d01f785",
+    "late:460cbefeeb2e92ad",
+    "late:35f7b5ee4e371b89",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 25 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:36:47+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:460cbefeeb2e92ad",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 31 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:41:41+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:460cbefeeb2e92ad",
+    "late:7e6869cbae25801c",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 36 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:46:32+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:460cbefeeb2e92ad",
+    "late:7e6869cbae25801c",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 40 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:51:29+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:8011baf038abd448",
+    "late:460cbefeeb2e92ad",
+    "late:7e6869cbae25801c",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b"
+   ],
+   "why": "tier 2 med 2 medier: EU 's ledere lover støtte til Ukraines Zelenskyy på topmødet i Bruxelles som am…; en historie i Live har ventet 11 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T20:56:56+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:460cbefeeb2e92ad",
+    "late:7e6869cbae25801c",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b",
+    "late:f1c07aa3152e39b7"
+   ],
+   "why": "en historie i Live har ventet 11 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:01:40+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "tier:e7b49d5f4c53ceb2",
+    "tier:862fc8d4976d370e",
+    "late:460cbefeeb2e92ad",
+    "late:7e6869cbae25801c",
+    "late:579e2d755d01f785",
+    "late:9ef0e84823fa4f73",
+    "late:102b96d8b399390b",
+    "late:f1c07aa3152e39b7"
+   ],
+   "why": "tier 1 med 4 medier: Præsident Zelenskyy siger, G20-topmødet kunne være vært for trilateralt møde me… (+1 mere); en historie i Live har ventet 11 t 56 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:11:54+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131"
+   ],
+   "why": "en historie i Live har ventet 12 t 06 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:16:36+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131"
+   ],
+   "why": "en historie i Live har ventet 12 t 10 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:21:43+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131"
+   ],
+   "why": "en historie i Live har ventet 12 t 16 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:24:18+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131"
+   ],
+   "why": "en historie i Live har ventet 12 t 18 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:26:31+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131"
+   ],
+   "why": "en historie i Live har ventet 12 t 20 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:31:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 25 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:36:40+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 31 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:41:52+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 36 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:46:26+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 40 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:51:05+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:1e41b3293ae71131",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 45 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  },
+  {
+   "at": "2026-10-17T21:56:53+00:00",
+   "day": "2026-10-17",
+   "keys": [
+    "late:cd11619998d6aa21",
+    "late:1e41b3293ae71131",
+    "late:35f7b5ee4e371b89",
+    "late:08644731ad50b078"
+   ],
+   "why": "en historie i Live har ventet 12 t 51 min på redaktørens overskrift",
+   "ok": false,
+   "result": "dry run (no --fire)"
+  }
+ ]
+}
