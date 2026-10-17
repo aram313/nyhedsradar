@@ -3346,7 +3346,6 @@ function kalenderPage() {
   const name = (CAL_FILTERS.find(f => f[0] === calF) || CAL_FILTERS[0])[1];
   let h = `<header class="cal-top" id="cal-top"><p class="cal-fly">Kalender${calF ? ' · ' + esc(name) : ''}</p>`
     + `<h2 class="cal-next">${next ? `Næste: ${esc(next.title)} ${calCount(next, today)}` : 'Intet planlagt foreløbig'}</h2></header>`;
-  if (calImp) h += impNote(all.filter(e => calIn(calF, e) && calWOf(e) < 2 && calEnd(e) >= today).length, 'data-cal-imp');
   if (calGone) h += `<p class="notice" id="cal-gone"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Begivenheden er ikke længere i kalenderen.</span></p>`;
   h += `<section class="block cal-soon" id="cal-soon">${blockHead('Det sker snart')}`
     + (soon.length ? soon.map(e => calRow(e, today, { count: true })).join('') : '<p class="cal-none">Intet planlagt de næste syv dage.</p>') + '</section>';
@@ -3393,17 +3392,23 @@ function calBlock() {
   return `<section class="block cal-b" id="cal-front">${blockHead('Det sker snart', moreLink('Alle', 'kalender'))}`
     + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
 }
-// the dock: 'Kun vigtige', then the kinds (Alle, then each with its calm dot)
+// the dock: one toggle, Vigtige · Alle (the owner, 18/10: 'filter kun være "Vigtige" og "alle" og det skal være en
+// toggle'); the kinds' chips are gone – the kind still shows by its dot on every row
 function calOpts() {
-  return `<div class="o-row" id="o-cal-k">${impChip(calImp, 'data-cal-imp')}<span role="radiogroup" aria-label="Vis" class="o-grp">${CAL_FILTERS.map(([f, l]) =>
-    `<button class="chip${f === calF ? ' on' : ''}" role="radio" aria-checked="${f === calF}" data-cal-f="${f}">${f ? `<i class="ck-d" data-k="${CAL_DOT[f]}" aria-hidden="true"></i>` : ''}${l}</button>`).join('')}</span></div>`;
+  return `<div class="o-row" id="o-cal-k"><div class="seg two cal-seg" role="radiogroup" aria-label="Vis">`
+    + `<button role="radio" data-cal-imp="1" aria-checked="${calImp}">Vigtige</button>`
+    + `<button role="radio" data-cal-imp="0" aria-checked="${!calImp}">Alle</button></div></div>`;
 }
 // the calendar's own taps, in the page, on the front page and in the dock (onTap sends them here)
 async function calTap(t) {
   const f = t.closest('[data-cal-f]'), w = t.closest('[data-cal-imp]'), r = t.closest('[data-cal]'), go = t.closest('[data-cal-go]');
   const sh = t.closest('[data-cal-share]') || t.closest('[data-cal-copy]');
   if (f) { calF = f.dataset.calF; calGone = ''; render(); cur().scrollTop = 0; return true; }
-  if (w) { calImp = !calImp; store.set('calImp', calImp); calGone = ''; render(); cur().scrollTop = 0; return true; }
+  if (w) {   // the toggle's side, or the page's 'Vis alt'
+    const v = w.dataset.calImp, next = v === '1' ? true : v === '0' ? false : !calImp;
+    if (next !== calImp) { calImp = next; store.set('calImp', calImp); calGone = ''; render(); cur().scrollTop = 0; }
+    return true;
+  }
   if (t.closest('[data-cal-past]')) { calPast = !calPast; render(); return true; }
   if (go) { calOpen.add(go.dataset.calGo); calPend = go.dataset.calGo; calF = ''; ver++; if (tab === 'kalender') render(); else setTab('kalender', { top: true }); return true; }
   if (r) {   // an event opens in place, one at a time; the row stays under the finger

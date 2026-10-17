@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The Kalender's dock is one toggle: Vigtige · Alle** (2026-10-18, the owner: 'filter kun være "Vigtige" og "alle"
+  og det skal være en toggle'; `?v=20261018ar`): a two-part segment replaces 'Kun vigtige' and the kinds' chips (Valg,
+  Topmøder, Centralbanker, Frister, Danmark); the kind still shows by its dot on each row. The choice is remembered;
+  the page's 'skjult' line is gone in the Kalender (the toggle says it). Live keeps its chip.
 - **No flash of the stand-in faces on a reload** (2026-10-18, the owner: on F5 'gamle logo, gamle overskrift
   skrifttype' for a split second; `?v=20261018aq`): the two Google font sheets (the mark's Aref Ruqaa, the headline's
   Source Serif 4) are read before the first paint instead of after it (they were loaded with the `media="print"`
