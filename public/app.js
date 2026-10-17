@@ -16,6 +16,13 @@ const store = {
 };
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = ms => new Promise(r => setTimeout(r, ms));
+// work that can wait for a quiet moment (the phone's copy of the news, the pages beside the one in view)
+const idle = cb => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 3000 }) : setTimeout(cb, 600));
+// the news files as the server sent them: a file that has not changed is not read again, and the phone keeps the very
+// text it got (no stringify of a large object, and written in a quiet moment, not in the middle of a reload)
+const rawOf = k => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+const parse = (t, d) => { try { return (t && JSON.parse(t)) ?? d; } catch { return d; } };
+const keepRaw = (k, text) => idle(() => { try { localStorage.setItem(k, text); } catch { /* full, or a private window */ } });
 
 const SECTIONS = { dk: 'Danmark', me: 'Mellemøsten', world: 'Verden' };
 const GROUPS = { dk: 'Danske medier', west: 'Vestlige medier', mena: 'Arabiske og muslimske medier', il: 'Israelske medier',
@@ -31,15 +38,16 @@ const TITLES = { home: 'Khabar.nu', latest: 'Live', analyses: 'Analyser', search
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
 
-let data = store.get('lastData', null);
-let digest = store.get('lastDigest', null);
-let sums = store.get('lastSums', {});   // story id -> the editor's summary {text, paywall}
+const RAW = { news: rawOf('lastData'), digest: rawOf('lastDigest'), sums: rawOf('lastSummaries'), front: rawOf('lastFront'), moves: rawOf('lastMoves') };
+idle(() => { try { localStorage.removeItem('lastSums'); localStorage.removeItem('lastTitles'); } catch { /* nothing kept */ } });   // the old copies (before 17/10)
+let data = parse(RAW.news, null);
+let digest = parse(RAW.digest, null);
+let { sums, titles } = readSummaries(parse(RAW.sums, null));   // story id -> the editor's summary {text, paywall}; article id -> its headline
 let tab = 'home', query = '';
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 let foreignMode = store.get('foreignMode', 'translate');                 // translate | hide | original
 let danish = store.get('danish', true);                                  // show and share in Danish (the standard)
-let titles = store.get('lastTitles', {});                                // article id -> the editor's headline of its story
-let front = store.get('lastFront', null);                                // the front page the editor composed (front.json)
+let front = parse(RAW.front, null);                                      // the front page the editor composed (front.json)
 const expanded = new Set();                                              // opened stories
 const params = new URLSearchParams(location.search);
 let focusId = params.get('item');
@@ -54,7 +62,9 @@ const cur = () => pageEl(tab);
 const pg$ = id => { const p = cur(); return p && p.querySelector('#' + CSS.escape(id)); };   // on the page one sees
 let touching = false, paging = false, scrubbing = false;                 // a finger on the pages; the pager moving; on the tab bar
 let searchIndex = null, searchState = 'idle';
-let moves = null, archiveState = 'idle', movesAt = 0;                                 // earlier days, fetched on request
+// the earlier days (moves.json): the phone keeps its copy, so the developments across days are on the very first screen
+// (fetched afresh a moment after the start, and after each new edition)
+let moves = parse(RAW.moves, null), archiveState = 'idle', movesAt = 0;
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
 const udOpen = new Set(params.get('forlob') ? [params.get('forlob')] : []);   // developments unfolded on the Udvikling page
@@ -108,28 +118,38 @@ function countLeave() {
 }
 
 // ---------------------------------------------------------------- time
-const clock = iso => new Date(iso).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+// One formatter per format, made once: toLocaleTimeString with options builds a new one at every call, and a list of
+// eighty rows called it some three hundred times (a tenth of a second on a phone)
+const FMT = {
+  time: new Intl.DateTimeFormat('da-DK', { hour: '2-digit', minute: '2-digit' }),
+  wd: new Intl.DateTimeFormat('da-DK', { weekday: 'short' }),
+  full: new Intl.DateTimeFormat('da-DK', { weekday: 'long', day: 'numeric', month: 'long' }),
+  dm: new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }),
+  ymd: new Intl.DateTimeFormat('sv-SE'),
+  num: new Intl.NumberFormat('da-DK'),
+};
+const clock = iso => FMT.time.format(new Date(iso));
+const dayKey = d => d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate();   // the local day, cheaply
+const yesterday = () => { const y = new Date(); y.setDate(y.getDate() - 1); return y; };
 function ago(iso) {
-  const m = (Date.now() - new Date(iso)) / 60000, d = new Date(iso), y = new Date();
-  y.setDate(y.getDate() - 1);
+  const d = new Date(iso), m = (Date.now() - d) / 60000;
   if (m < 1) return 'nu';
   if (m < 60) return Math.round(m) + ' min';
-  if (d.toDateString() === new Date().toDateString()) return 'kl. ' + clock(iso);
-  if (d.toDateString() === y.toDateString()) return 'i går kl. ' + clock(iso);
-  return d.toLocaleDateString('da-DK', { weekday: 'short' }) + ' ' + clock(iso);
+  const k = dayKey(d);
+  if (k === dayKey(new Date())) return 'kl. ' + clock(iso);
+  if (k === dayKey(yesterday())) return 'i går kl. ' + clock(iso);
+  return FMT.wd.format(d) + ' ' + clock(iso);
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function dayLabel(iso) {
-  const d = new Date(iso), t = new Date(), y = new Date(t);
-  y.setDate(t.getDate() - 1);
-  const full = d.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long' });
-  if (d.toDateString() === t.toDateString()) return 'I dag · ' + full;
-  if (d.toDateString() === y.toDateString()) return 'I går · ' + full;
+  const d = new Date(iso), k = dayKey(d), full = FMT.full.format(d);
+  if (k === dayKey(new Date())) return 'I dag · ' + full;
+  if (k === dayKey(yesterday())) return 'I går · ' + full;
   return cap(full);
 }
 const when = i => new Date(i.published || i.found).getTime();
 const hours = i => Math.max(0, (Date.now() - when(i)) / 3600e3);
-const num = n => Number(n || 0).toLocaleString('da-DK');
+const num = n => FMT.num.format(Number(n || 0));
 
 // ---------------------------------------------------------------- data
 // 'no-cache' asks the server whether the file changed (a few bytes when it did not); the files live behind a
@@ -137,57 +157,65 @@ const num = n => Number(n || 0).toLocaleString('da-DK');
 let busy = 0, offline = false, redrawAfterLoad = false;
 // Live and the front page's pool: the radar's slim app.json (the stories Live admits, with only what the app reads);
 // data.json – the whole pool of candidates – when app.json is missing
-const getJson = async url => { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); };
+const getText = async url => { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.text(); };
 async function loadNews() {
-  if (CFG.appUrl) { try { return await getJson(CFG.appUrl); } catch { /* not there yet: the whole pool */ } }
-  return getJson(CFG.dataUrl);
+  if (CFG.appUrl) { try { return await getText(CFG.appUrl); } catch { /* not there yet: the whole pool */ } }
+  return getText(CFG.dataUrl);
 }
 const FRONT_URL = () => CFG.frontUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'front.json');
+// the editor's summaries and its headline of every story: a headline is filed under the story's id with its other
+// articles (members), so it still finds the story when another outlet's article leads it; the newest one wins
+function readSummaries(all) {
+  const t = {}, at = {};
+  for (const [k, v] of Object.entries((all && all.titles) || {})) {
+    if (!v || !v.title) continue;
+    for (const id of [k, ...(v.members || [])]) if (!t[id] || String(v.at || '') > at[id]) { t[id] = v.title; at[id] = String(v.at || ''); }
+  }
+  return { sums: (all && all.items) || {}, titles: t };
+}
 async function load(manual) {
   busy++; document.body.classList.add('loading');
   let changed = false;
   const wasOffline = offline;
   // the files are asked for side by side, not one after another
   const dig = CFG.digestUrl;
-  const [news, dg, sm, fr] = await Promise.allSettled([loadNews(), dig ? getJson(dig) : null,
-    dig ? getJson(CFG.summariesUrl || dig.replace(/digest\.json$/, 'summaries.json')) : null,
-    dig ? fetch(FRONT_URL(), { cache: 'no-cache' }).then(r => r.ok ? r.json() : r.status === 404 ? null : Promise.reject(r.status)) : null]);
+  const [news, dg, sm, fr] = await Promise.allSettled([loadNews(), dig ? getText(dig) : null,
+    dig ? getText(CFG.summariesUrl || dig.replace(/digest\.json$/, 'summaries.json')) : null,
+    dig ? fetch(FRONT_URL(), { cache: 'no-cache' }).then(r => r.ok ? r.text() : r.status === 404 ? 'null' : Promise.reject(r.status)) : null]);
+  // a file the same as last time is neither read nor drawn again (most reloads: the radar writes every five minutes)
+  const fresh = (k, res) => res.status === 'fulfilled' && typeof res.value === 'string' && res.value !== RAW[k] ? res.value : null;
   if (news.status === 'fulfilled') {
-    const fresh = news.value;
     offline = false;
-    if (!data || fresh.updated !== data.updated) { changed = true; data = fresh; store.set('lastData', data); }
+    const t = fresh('news', news), d = t && parse(t, null);
+    if (d && Array.isArray(d.items)) { RAW.news = t; data = d; changed = true; keepRaw('lastData', t); }
   } else {
     offline = true;
     if (manual) toast('Ingen forbindelse', false);
   }
-  if (dg.status === 'fulfilled' && dg.value) {
-    const d = dg.value;
-    const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}|${JSON.stringify(x.editor || '').length}`;
-    if (stamp(d) !== stamp(digest)) {   // the earlier days again only when they were fetched before this edition
-      changed = true;
-      if (archiveState !== 'loading' && Date.now() - movesAt > 60e3) { moves = null; archiveState = 'idle'; }
-      digest = d; store.set('lastDigest', digest);
-    }
-  }   // else: keep the last overview
-  if (sm.status === 'fulfilled' && sm.value) {   // the editor's summaries and headlines (summaries.json next to digest.json)
-    const all = sm.value, x = all.items || {};
-    if (JSON.stringify(x) !== JSON.stringify(sums)) { sums = x; store.set('lastSums', sums); }
-    // the editor's headline of every story: filed under the story's id with its other articles (members), so it still
-    // finds the story when another outlet's article leads it; the newest one wins
-    const t = {}, at = {};
-    for (const [k, v] of Object.entries(all.titles || {})) {
-      if (!v || !v.title) continue;
-      for (const id of [k, ...(v.members || [])]) if (!t[id] || String(v.at || '') > at[id]) { t[id] = v.title; at[id] = String(v.at || ''); }
-    }
-    if (JSON.stringify(t) !== JSON.stringify(titles)) { titles = t; titlesVer++; store.set('lastTitles', titles); changed = true; }
+  const td = fresh('digest', dg), d = td && parse(td, null);
+  if (d) {   // else: keep the last overview; the earlier days again only when they were fetched before this edition
+    RAW.digest = td; digest = d; changed = true; keepRaw('lastDigest', td);
+    if (archiveState !== 'loading' && Date.now() - movesAt > 60e3) setTimeout(loadArchive, 0);   // the last copy shows meanwhile
   }
-  if (fr.status === 'fulfilled' && dig) {   // the front page the editor composed (front.json; none: the fixed one)
-    const f = fr.value && Array.isArray(fr.value.blocks) ? fr.value : null;
-    if (JSON.stringify(f) !== JSON.stringify(front)) { front = f; store.set('lastFront', front); changed = true; }
+  const ts = fresh('sums', sm), all = ts && parse(ts, null);
+  if (all) {   // the editor's summaries and headlines (summaries.json next to digest.json)
+    RAW.sums = ts; ({ sums, titles } = readSummaries(all)); titlesVer++; changed = true; keepRaw('lastSummaries', ts);
+  }
+  const tf = dig && fresh('front', fr);
+  if (tf) {   // the front page the editor composed (front.json; none: the fixed one)
+    const f = parse(tf, null);
+    RAW.front = tf; front = f && Array.isArray(f.blocks) ? f : null; changed = true; keepRaw('lastFront', tf);
   }
   if (--busy === 0) document.body.classList.remove('loading');
   need('ans');   // the editor's filed answers: looked for again after a quarter of an hour
-  if (changed || manual || offline !== wasOffline || redrawAfterLoad) { redrawAfterLoad = false; render({ fresh: true }); } else renderHeader();
+  if (changed || manual || offline !== wasOffline || redrawAfterLoad) { redrawAfterLoad = false; renderSoon({ fresh: true, keep: true }); } else renderHeader();
+}
+// a reload's drawing waits while a finger is on the screen or the page still moves, so a scroll is never interrupted
+let lastScroll = 0, renderT = 0;
+function renderSoon(opts) {
+  clearTimeout(renderT);
+  if (touching || paging || scrubbing || pull || performance.now() - lastScroll < 300) { renderT = setTimeout(() => renderSoon(opts), 250); return; }
+  render(opts);
 }
 
 // ---------------------------------------------------------------- what a story shows
@@ -305,6 +333,11 @@ const LINK_SKIP = new Set(['danmark']);   // named in every Danish story, and it
 // the wiki's files and the movement's answers: fetched when first needed (again after a failure at most every ten
 // minutes); the two that grow – the editor's answers.json and the radar's analyses.json – again after a quarter of an hour
 const vd = {};
+// the two small files the first screen needs (the wiki's names, the answers' index) are kept on the phone too, so the
+// links and the answer line are in the very first screen instead of pushing it down when they come; fetched afresh
+// behind it, and drawn again only when they changed
+const VKEEP = { bix: 'viden-bix', mix: 'viden-mix' };
+for (const [k, key] of Object.entries(VKEEP)) { const t = rawOf(key), v = parse(t, null); if (v) vd[k] = { v, raw: t, state: 'idle', at: 0 }; }
 const VFILES = {
   bix: () => VIDEN + 'begreber-index.json', bfull: () => VIDEN + 'begreber.json',
   mix: () => VIDEN + 'movement-index.json', mfull: () => VIDEN + 'movement.json',
@@ -320,13 +353,15 @@ function need(k) {
     const url = VFILES[k]();
     if (!url) { x.state = 'error'; x.at = Date.now(); return x.v; }
     x.state = 'loading';
-    fetch(url, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(v => { x.v = v; x.state = 'ok'; }, () => { x.state = x.v ? 'ok' : 'error'; })
-      .then(() => { x.at = Date.now(); vLoaded(k); });
+    // a file asked for again that has not changed (the answers every quarter of an hour) draws nothing again
+    getText(url).then(t => ({ t, v: t === x.raw ? undefined : JSON.parse(t) }))
+      .then(({ t, v }) => { const news = v !== undefined; if (news) { x.v = v; if (VFRESH[k] || VKEEP[k]) x.raw = t; if (VKEEP[k]) keepRaw(VKEEP[k], t); } x.state = 'ok'; return news; },
+        () => { x.state = x.v ? 'ok' : 'error'; return true; })
+      .then(news => { x.at = Date.now(); if (news) vLoaded(k); });
   }
   return x.v;
 }
-const waiting = k => !vd[k] || vd[k].state === 'idle' || (vd[k].state === 'loading' && !vd[k].v);
+const waiting = k => !vd[k] || (!vd[k].v && vd[k].state !== 'ok' && vd[k].state !== 'error');
 // a file came: the pages that show it are drawn again (the one in view at once), the answer lines filled in place
 function vLoaded(k) {
   if (k === 'bix') lk = null;
@@ -591,8 +626,6 @@ const pickRank = i => {
 // the editor's picks first (in its order), then the radar's strongest
 const withPicks = (list, n) => { const mine = list.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b));
   return [...mine, ...pick(list.filter(i => pickRank(i) === 99), n)].slice(0, n); };
-// a story the editor moved lives only in its new section; otherwise it may also show where the radar saw it
-const inSection = (i, sec) => ownerMoved[i.id] || noteFor(notes().moves || [], i) ? secOf(i) === sec : secOf(i) === sec || (i.secs || []).includes(sec);
 const rankOf = i => {
   const base = i.rank ?? i.pct ?? 0, x = (ownerLocal.rank || {})[i.id];
   return data && x && x.at > Date.parse(data.updated) ? base + (x.v === 'up' ? 30 : x.v === 'down' ? -30 : 0) : base;
@@ -645,7 +678,7 @@ function monogram(name) {
 // a story's small picture; where it has none, or it cannot be loaded, the outlet's initials on a quiet tile
 function thumb(source, file) {
   return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${file
-    ? `<img src="${esc(THUMBS + file)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
+    ? `<img src="${esc(THUMBS + file)}" alt="" width="64" height="64" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
 }
 function meta(i, opts = {}) {
   const m = [];
@@ -663,9 +696,8 @@ function meta(i, opts = {}) {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', i.important && 'imp', open && 'open', isNew(i) && 'new', opts.enter && n < 12 && 'enter',
-    opts.fresh && shownIds.size && !shownIds.has(i.id) && 'fresh'].filter(Boolean).join(' ');
-  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''} style="--i:${n}">
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', i.important && 'imp', open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}>
     <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(i.title)}"></button>${opts.tick ? `<time class="tt">${clock(i.published || i.found)}</time>` : ''}<span class="tx"><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</div>
     <div class="x"><div><div class="x-in">${open ? detail(i) : ''}</div></div></div></article>`;
 }
@@ -673,7 +705,7 @@ function story(i, n, opts = {}) {
 function heroStory(i, n, opts) {
   const open = expanded.has(i.id), small = THUMBS + i.thumb;
   shownAs.set(i.id, i);
-  return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1" style="--i:${n}">
+  return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1">
     <div class="hero-row"><img src="${esc(i.pic || small)}" alt="" decoding="async"
       onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(i.title)}"></button><span class="hero-tx"><span class="h" dir="auto">${headHtml(i, open)}</span>
       <span class="m">${meta(i, opts)}</span></span></div>
@@ -742,9 +774,8 @@ function coverage(i) {
 // of Al Jazeera's breaking wire and the group's own 'Politiske nyheder' posts – grouped by topic, newest first. It
 // closes the front page and replaces the day before; earlier days wait in the archive below it.
 const SHOW = 4;   // lines a topic shows before '+ n mere'
-const ymd = iso => new Date(iso).toLocaleDateString('sv-SE');   // the local date as 2026-10-10
-const dateDa = (ymdStr, weekday) => new Date(ymdStr + 'T12:00:00').toLocaleDateString('da-DK',
-  weekday ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long' });
+const ymd = iso => FMT.ymd.format(new Date(iso));   // the local date as 2026-10-10
+const dateDa = (ymdStr, weekday) => (weekday ? FMT.full : FMT.dm).format(new Date(ymdStr + 'T12:00:00'));
 // a day from the editor; an edition from before days existed (an old copy in the phone's memory) becomes one
 function dayOf(d) {
   if (!d || !d.created) return null;
@@ -794,12 +825,13 @@ async function loadArchive() {
   if (archiveState === 'loading') return;
   archiveState = 'loading'; movesAt = Date.now();
   const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
+  let changed = false;
   try {
-    const r = await fetch(url, { cache: 'no-cache' });
-    if (!r.ok) throw new Error(r.status);
-    moves = await r.json(); archiveState = 'ok';
-  } catch { archiveState = 'error'; }
-  staleOn(['home', 'threads', 'search']);
+    const t = await getText(url);
+    if (t !== RAW.moves) { const m = JSON.parse(t); RAW.moves = t; moves = m; changed = true; keepRaw('lastMoves', t); }
+    archiveState = 'ok';
+  } catch { archiveState = moves ? 'ok' : 'error'; changed = !moves; }
+  if (changed) staleOn(['home', 'threads', 'search']);
 }
 // earlier days: one row each, opened in place
 // earlier days: the last three always in view (one row each, opened in place), the rest behind 'Vis flere dage'
@@ -1036,7 +1068,7 @@ function composedHome(all, opts, f) {
 function home(all, opts) {
   const f = frontNow(), composed = f && composedHome(all, opts, f);
   if (composed) {
-    const lede = f.lede || notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
+    const lede = f.lede || notes().lede, todayStr = FMT.ymd.format(new Date());
     const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
     return `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${rich(lede, linkSession())}</p>` : ''}</header>${composed}`
       + `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
@@ -1047,7 +1079,7 @@ function home(all, opts) {
 // day's top, the developments, the day's quote, Live
 function fixedHome(all, opts) {
   const top = frontCands(all), pkg = mainChoice(top);
-  const lede = notes().lede, todayStr = new Date().toLocaleDateString('sv-SE');
+  const lede = notes().lede, todayStr = FMT.ymd.format(new Date());
   let html = `<header class="lede"><span>${cap(dateDa(todayStr, true))}</span>${lede ? `<p>${rich(lede, linkSession())}</p>` : ''}</header>`;
   const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
   // the package's other stories about the same thing stay out of the lists below
@@ -1119,7 +1151,15 @@ function mark(text, terms) {
 // A development is one of the editor's recap topics followed across the days it ran (the editor continues a topic
 // by its exact name): its headline is the topic's name, its steps the recap's 'Who: what' lines, oldest first.
 const thrKey = name => qkey({ who: 'tråd', text: name.trim().toLowerCase() });
+// worked out once per edition and archive (the front page asks for it in every block that names a development)
+let thrMemo = null;
 function allThreads() {
+  if (thrMemo && thrMemo.digest === digest && thrMemo.moves === moves) return thrMemo.list;
+  const list = buildThreads();
+  thrMemo = { digest, moves, list };
+  return list;
+}
+function buildThreads() {
   const days = [dayOf(digest), ...((moves && moves.days) || [])].filter(Boolean), seenDay = new Set(), by = new Map();
   for (const d of days) {
     if (seenDay.has(d.date)) continue;
@@ -1139,7 +1179,8 @@ function allThreads() {
     return t;
   }).filter(t => t.lines.length).sort((a, b) => b.last.localeCompare(a.last));
 }
-const threads = () => allThreads().filter(t => t.lines.length >= 2);   // a development has at least two steps
+let thr2 = null;
+const threads = () => (thr2 && thr2.all === allThreads() ? thr2 : (thr2 = { all: allThreads(), list: allThreads().filter(t => t.lines.length >= 2) })).list;   // a development has at least two steps
 // the development a story belongs to: one of its lines is the story, or it shares enough words with it
 function threadFor(i) {
   const ids = new Set([i.id, ...(i.also || []).map(a => a.id)]), list = threads();
@@ -1193,7 +1234,7 @@ function threadsPage() {
   const by = new Map(allThreads().map(t => [t.key, t]));
   let html;
   if (shown) {
-    const n = lineCount(shown), today = shown.date === new Date().toLocaleDateString('sv-SE');
+    const n = lineCount(shown), today = shown.date === FMT.ymd.format(new Date());
     html = `<header class="ud-top" data-day="${esc(shown.date)}"><span><b>${today ? 'I dag' : cap(dateDa(shown.date, true))}</b>`
       + `<small>${n} ${n === 1 ? 'linje' : 'linjer'} · opdateret kl. ${clock(shown.created)}</small></span>`
       + '<button class="ud-share" data-day-share><svg><use href="#i-share"/></svg>Del resumé</button></header>'
@@ -1289,7 +1330,6 @@ function analysesPage() {
     + `<button class="an-beg" data-begreber><span><b>Begreber</b><small>${esc(c.pages)}</small></span><svg><use href="#i-chev"/></svg></button></div>`
     + `<div class="an-list">${analysesList()}</div>`;
 }
-let anYear = '', azLetter = '';
 function analysesList() {
   need('mix'); need('ans');
   const A = answers();
@@ -1518,8 +1558,47 @@ function pageHtml(t, all, opts = {}) {
 let ver = 0;
 // Analyser and the wiki's index show no news: drawn again only when what they show has changed (not at every reload)
 const vstate = k => (vd[k] || {}).state || '';
-const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, vstate('bfull'), vstate('mix'), vstate('ans'), anYear].join('|'),
-  begreber: () => [!!V('bix'), vstate('bix'), azLetter].join('|') };
+const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, vstate('bfull'), vstate('mix'), vstate('ans')].join('|'),
+  begreber: () => [!!V('bix'), vstate('bix')].join('|') };
+// The pages are patched, not rebuilt: the new page is laid out as a fragment and set against what stands. A row that
+// has not changed keeps its very elements – its picture, its place, nothing to lay out again –, a changed one gets only
+// its changed words and attributes, a new one is put in. A reload that brings two stories touches two rows.
+function morph(from, to, added) {
+  const keyed = new Map();
+  for (let n = from.firstChild; n; n = n.nextSibling) if (n.nodeType === 1 && n.id) keyed.set(n.id, n);
+  let at = from.firstChild;
+  for (let n = to.firstChild; n;) {
+    const next = n.nextSibling;
+    let m = null;
+    if (n.nodeType === 1 && n.id) { m = keyed.get(n.id) || null; if (m && m.tagName !== n.tagName) m = null; if (m) keyed.delete(n.id); }
+    else if (at && at.nodeType === n.nodeType && !(at.nodeType === 1 && (at.id || at.tagName !== n.tagName))) m = at;
+    if (!m) { from.insertBefore(n, at); if (n.nodeType === 1) added.push(n); }
+    else {
+      if (m === at) at = at.nextSibling; else from.insertBefore(m, at);
+      if (m.nodeType !== 1) { if (m.nodeValue !== n.nodeValue) m.nodeValue = n.nodeValue; }
+      else if (!m.isEqualNode(n)) {
+        for (const a of [...m.attributes]) if (!n.hasAttribute(a.name)) m.removeAttribute(a.name);
+        for (const a of n.attributes) if (m.getAttribute(a.name) !== a.value) m.setAttribute(a.name, a.value);
+        if (m.tagName !== 'INPUT') morph(m, n, added);   // a field keeps what is typed in it
+      }
+    }
+    n = next;
+  }
+  while (at) { const x = at.nextSibling; from.removeChild(at); at = x; }
+}
+// the reader's place: the first row (or block with a name) below the top bar stays where it stood when rows come or go
+// above it – the page moves only by the reader's hand
+function placeOf(pg) {
+  const edge = $('bar').getBoundingClientRect().bottom;
+  for (const el of pg.querySelectorAll('[id]')) { const top = el.getBoundingClientRect().top; if (top >= edge) return { id: el.id, top }; }
+  return null;
+}
+function restorePlace(pg, a) {
+  const el = a && pg.querySelector('#' + CSS.escape(a.id));
+  if (!el) return;
+  const d = el.getBoundingClientRect().top - a.top;
+  if (Math.abs(d) >= 0.5) pg.scrollTop += d;
+}
 function draw(t, opts = {}) {
   const pg = pageEl(t);
   if (!pg) return;
@@ -1536,39 +1615,54 @@ function draw(t, opts = {}) {
     if (beg) beg.textContent = c.pages;
     return;
   }
-  pg.innerHTML = !data && !OWN[t] ? '<div class="skel"></div>'.repeat(8)
-    : `<div class="${opts.view && !reduceMotion ? 'view' : ''}">${pageHtml(t, data ? stories() : [], opts)}</div>`;
+  const html = !data && !OWN[t] ? '<div class="skel"></div>'.repeat(8) : `<div>${pageHtml(t, data ? stories() : [], opts)}</div>`;
+  const place = opts.keep && t === tab && pg.scrollTop > 0 ? placeOf(pg) : null, added = [];
+  if (pg.firstElementChild && !pg.firstElementChild.classList.contains('skel')) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    morph(pg, tpl.content, added);
+  } else pg.innerHTML = html;
+  if (place) restorePlace(pg, place);
+  // a tab chosen or a side page opened fades in (opacity only); a row that is really new rises in once and glows
+  if (opts.view && !reduceMotion && pg.firstElementChild) pg.firstElementChild.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
+  if (opts.fresh && shownIds.size && !reduceMotion) {
+    for (const el of added) for (const s of el.matches('article.story') ? [el] : el.querySelectorAll('article.story')) {
+      if (shownIds.has(s.dataset.id)) continue;
+      s.classList.add('fresh');
+      const end = e => { if (e.animationName === 'glow') { s.classList.remove('fresh'); s.removeEventListener('animationend', end); } };
+      s.addEventListener('animationend', end);
+    }
+  }
   pictures(pg);
 }
-// the pages beside the one in view are drawn again in a quiet moment (never while a finger is on the screen or the
-// pages move), so a swipe always finds its neighbour ready; a page never drawn gets drawn too
+// the pages beside the one in view are drawn again in a quiet moment (never while a finger is on the screen, the pages
+// move or the intro writes), so a swipe always finds its neighbour ready; a page never drawn gets drawn too
 let drawT = 0;
+const introOn = () => document.documentElement.classList.contains('intro-on');
+const handBusy = () => touching || paging || scrubbing || pull || performance.now() - lastScroll < 300;
 function drawSoon() {
   clearTimeout(drawT);
   drawT = setTimeout(function step() {
     if (ASIDE.has(tab)) return;
-    if (touching || paging || scrubbing) { drawT = setTimeout(step, 250); return; }
+    if (handBusy() || introOn()) { drawT = setTimeout(step, 250); return; }
     const i = SWIPE_TABS.indexOf(tab);
-    const t = [SWIPE_TABS[i - 1], SWIPE_TABS[i + 1]].find(x => x && +pageEl(x).dataset.ver !== ver) || SWIPE_TABS.find(x => !pageEl(x).dataset.ver);
+    // the page in view first (a swipe may have brought one drawn before the last change), then its neighbours
+    const t = [tab, SWIPE_TABS[i - 1], SWIPE_TABS[i + 1]].find(x => x && +pageEl(x).dataset.ver !== ver) || SWIPE_TABS.find(x => !pageEl(x).dataset.ver);
     if (!t) return;
-    draw(t);
-    drawT = setTimeout(step, 40);
+    idle(() => {
+      if (handBusy() || ASIDE.has(tab)) { drawT = setTimeout(step, 250); return; }
+      if (+pageEl(t).dataset.ver !== ver) draw(t, { keep: t === tab });
+      drawT = setTimeout(step, 40);
+    });
   }, 120);
 }
 // something only some pages show has changed: draw the page in view if it is one of them, the rest in a quiet moment
-function staleOn(tabs) { if (tabs.includes(tab)) render(); else { ver++; drawSoon(); } }
-// a file of the wiki or the answers came: only the pages that show it are drawn again – the one in view at once, in place
+function staleOn(tabs) { if (tabs.includes(tab)) render({ keep: true }); else { ver++; drawSoon(); } }
+// a file of the wiki or the answers came: only the pages that show it are drawn again – the one in view at once, in
+// place (an answer line or a link that arrives above what one reads moves nothing)
 function redrawPages(tabs) {
   for (const t of tabs) { const p = pageEl(t); if (p && p.dataset.ver) p.dataset.ver = -1; }
-  if (tabs.includes(tab) && (data || OWN[tab])) {
-    // what the reader is reading stays where it is: an answer line or a link that arrives above it moves nothing
-    const p = cur(), y = p.scrollTop, edge = $('bar').getBoundingClientRect().bottom;
-    const anchor = y > 0 ? [...p.querySelectorAll('[id]')].find(x => x.getBoundingClientRect().top >= edge) : null;
-    const at = anchor && anchor.getBoundingClientRect().top;
-    draw(tab); p.scrollTop = y;
-    const again = anchor && pg$(anchor.id);
-    if (again) p.scrollTop += again.getBoundingClientRect().top - at;
-  }
+  if (tabs.includes(tab) && (data || OWN[tab])) draw(tab, { keep: true });
   drawSoon();
 }
 // pictures: the first ones on a page load at once (on a page beside the one in view too, so a swipe shows them), the
@@ -1640,14 +1734,13 @@ function openFocus(all) {
   }, 150);
 }
 // a row opens: its summary and actions, and its headline's links to the wiki
-function openRow(el, i, animate = false) {
+function openRow(el, i) {
   el.querySelector('.x-in').innerHTML = detail(i, { noAns: el.classList.contains('hero') });
   const h = el.querySelector('.h');
   if (h) h.innerHTML = headHtml(i, true);
   const tg = el.querySelector('[data-toggle]');
   if (tg) tg.setAttribute('aria-expanded', true);
-  if (animate) void el.offsetHeight;   // lay out the closed state first, so the opening animates
-  el.classList.add('open');
+  el.classList.add('open');   // laid out at once; its contents fade in (style.css)
 }
 
 // ---------------------------------------------------------------- open a story or a topic in place
@@ -1667,8 +1760,9 @@ function movePage(dy, ms = 240) {
   };
   moveT = requestAnimationFrame(step);
 }
-// a story stays where it was tapped while the ones above it fold, their animations included
-function pin(el, top, ms = 380) {
+// a story stays where it was tapped while the ones above it fold (at once; a frame or two more for the rows that only
+// now come into sight and are laid out)
+function pin(el, top, ms = 140) {
   const p = cur(), t0 = performance.now();
   cancelAnimationFrame(moveT);
   const step = now => {
@@ -1692,7 +1786,7 @@ function keepInView(el) {
     if (touching || !el.isConnected) return;
     const r = el.getBoundingClientRect(), limit = innerHeight - $('dock').offsetHeight - 12;
     if (r.bottom > limit) movePage(Math.max(0, Math.min(r.bottom - limit, r.top - $('bar').offsetHeight - 8)));
-  }, 400);
+  }, 90);
 }
 // one thing open at a time: opening a story folds the others back; those above it close at once and the page moves
 // with them, so the story one tapped stays where it is
@@ -1701,13 +1795,10 @@ function foldOthers(keep) {
   if (!others.length) return;
   const before = keep.getBoundingClientRect().top;
   for (const o of others) {
-    const above = !!(o.compareDocumentPosition(keep) & Node.DOCUMENT_POSITION_FOLLOWING);
-    if (above) o.classList.add('snap');
     o.classList.remove('open'); expanded.delete(o.dataset.id);
     const tg = o.querySelector('[data-toggle]'); if (tg) tg.setAttribute('aria-expanded', false);
   }
   pin(keep, before);
-  requestAnimationFrame(() => others.forEach(o => o.classList.remove('snap')));
 }
 // every story's root is Live's chronological list: references elsewhere open the story there, opened and in view
 function openInLive(id) {
@@ -1725,7 +1816,7 @@ function toggle(el) {
   if (open && i) {
     if (visit) visit.opened++;
     expanded.add(id);
-    openRow(el, i, true);
+    openRow(el, i);
     keepInView(el);
   } else {
     el.classList.remove('open'); expanded.delete(id);
@@ -1805,8 +1896,6 @@ $('list').addEventListener('click', async e => {
   }
   const live = t.closest('[data-live]');
   if (live) { e.preventDefault(); openInLive(live.dataset.live); return; }   // 'Lige nu', a development's step, a recap line
-  const src = t.closest('[data-src]');
-  if (src) { window.open(src.dataset.src, '_blank', 'noopener'); return; }
   const follow = t.closest('[data-follow]');
   if (follow) {
     udOpen.add(follow.dataset.follow);
@@ -1850,10 +1939,10 @@ $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; c
 // the page in view scrolls (scroll events do not bubble: caught on their way down)
 function onPageScroll() {
   const y = cur() ? cur().scrollTop : 0;
-  if (y < 120) $('freshPill').hidden = true;
+  if (y < 120 && !$('freshPill').hidden) $('freshPill').hidden = true;
   $('bar').classList.toggle('scrolled', y > 4);
 }
-document.addEventListener('scroll', e => { if (e.target === cur()) onPageScroll(); }, { capture: true, passive: true });
+document.addEventListener('scroll', e => { lastScroll = performance.now(); if (e.target === cur()) onPageScroll(); }, { capture: true, passive: true });
 
 // ---------------------------------------------------------------- pull down to refresh: the logo answers
 // The list follows the pull; far enough down, the red dot of the logo in the top bar swells, and when one lets go it
@@ -2014,8 +2103,8 @@ function setTab(next, opts = {}) {
   document.querySelectorAll('.tabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === tab));
   placePill(tab, true);
   $('title').textContent = TITLES[tab] || SECTIONS[tab];
-  $('title').classList.remove('swap');
-  if (!opts.swipe) { void $('title').offsetWidth; $('title').classList.add('swap'); }   // a swipe has its own motion
+  // a swipe has its own motion; a tap lets the new title come up (opacity and transform only, no forced layout)
+  if (!opts.swipe && !reduceMotion) $('title').animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.16, 1, .3, 1)' });
   $('searchbar').hidden = tab !== 'search';
   // searching: the field sits under the top bar, the page stands still and only the results scroll, so the phone has
   // no reason to push the page up when the keyboard comes
@@ -2032,7 +2121,12 @@ function setTab(next, opts = {}) {
     if (data) renderDots(stories());
     drawSoon();
   } else {
-    render({ view: true });
+    // a tab page drawn since the last change (the neighbours are drawn ahead) is only shown, not drawn again
+    if (!SIDE.has(tab) && tab !== 'search' && +cur().dataset.ver === ver) {
+      if (!reduceMotion && cur().firstElementChild) cur().firstElementChild.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
+      if (data) renderDots(stories());
+      drawSoon();
+    } else render({ view: true });
     if (opts.top) cur().scrollTop = 0;
     showPage(tab);
   }
@@ -2065,12 +2159,22 @@ $('tabs').addEventListener('click', e => {
 const tabsEl = $('tabs'), pill = document.createElement('i');
 pill.className = 'tab-pill'; pill.setAttribute('aria-hidden', 'true'); tabsEl.prepend(pill);
 const tabBtn = t => tabsEl.querySelector(`[data-tab="${t}"]`);
-function pillX(t) {   // the pill's left edge under a tab's icon, relative to the bar
-  const b = tabBtn(t);
-  if (!b) return null;
-  const r = b.querySelector('svg').getBoundingClientRect(), n = tabsEl.getBoundingClientRect();
-  return { x: r.left - n.left + r.width / 2 - pill.offsetWidth / 2, y: r.top - n.top + r.height / 2 - pill.offsetHeight / 2 };
+// the pill's place under each tab's icon, relative to the bar: measured once (and again when the bar changes size), so
+// neither a tap nor a swipe makes the browser lay out the page to ask
+let pillPos = null;
+function pillX(t) {
+  if (!pillPos) {
+    const n = tabsEl.getBoundingClientRect();
+    if (!n.width) return null;   // the tabs are hidden (the keyboard is up)
+    pillPos = {};
+    for (const b of tabsEl.querySelectorAll('[data-tab]')) {
+      const r = b.querySelector('svg').getBoundingClientRect();
+      pillPos[b.dataset.tab] = { x: r.left - n.left + r.width / 2 - pill.offsetWidth / 2, y: r.top - n.top + r.height / 2 - pill.offsetHeight / 2 };
+    }
+  }
+  return tabBtn(t) ? pillPos[t] || null : null;
 }
+new ResizeObserver(() => { pillPos = null; placePill(tab, false); }).observe(tabsEl);
 function movePill(x, y, animate) {
   pill.style.transition = animate && !reduceMotion ? 'transform .38s cubic-bezier(.3,1.25,.4,1)' : 'none';
   pill.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
@@ -2080,9 +2184,9 @@ function placePill(t, animate) {
   const p = pillX(t);
   if (p) movePill(p.x, p.y, animate); else pill.style.opacity = 0;   // the search page has no tab
 }
-addEventListener('resize', () => placePill(tab, false));
+addEventListener('resize', () => { pillPos = null; placePill(tab, false); });
 requestAnimationFrame(() => placePill(tab, false));
-setTimeout(() => placePill(tab, false), 300);   // once the fonts have set the labels
+setTimeout(() => { pillPos = null; placePill(tab, false); }, 300);   // once the fonts have set the labels
 // a page swipe takes the pill along between the two tabs
 function pillBetween(a, b, k) {
   const p = pillX(a), q = pillX(b);
@@ -2676,13 +2780,13 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 // an answer opens over the front page
 const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', search: 'search', analyses: 'analyses' };
 const startTab = START[params.get('tab')];
-need('bix');   // the wiki's small index: the names the news link
+need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (startTab) setTab(startTab, { top: true });
-else render({ enter: true });
+else render();
 load();
-setTimeout(() => { need('mix'); need('ans'); }, 700);   // the answers: for the front page's line and the Analyser tab
+setTimeout(() => need('ans'), 700);   // the editor's filed answers
 if (store.get('introSeen', false)) setTimeout(() => countVisit(cameVia()), 1500);   // a first visit counts at 'Kom i gang'
 
 // ---------------------------------------------------------------- the pen: خبر written with a reed (the intro and pull to refresh)
@@ -2704,24 +2808,53 @@ const hull = pts => {
   for (const q of pts.reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
   return lo.slice(0, -1).concat(up.slice(0, -1));
 };
-// the pen's polygons in writing order: {el, stroke (0 the word, 1 the dot under ب), x (0..1 along its stroke, eased)}
-function penStrokes(mask, behind, path1, path2) {
-  const out = [];
-  [[path1, true], [path2, false]].forEach(([path, thin], stroke) => {
-    const L = path.getTotalLength(), n = Math.ceil(L / 1.5);
+// the pen's polygons in writing order: {p (the hull's points), s (0 the word, 1 the dot under ب), x (0..1 along its
+// stroke, eased), b (1: drawn behind the line's band)}. The path is fixed, so this is worked out once and kept on the
+// phone; the path is asked for every fourth point only (asking is slow on a phone), the points between laid on the
+// straight line – on the tightest curve, the loop of ح, a third of a pixel from it at most.
+const INK_KEY = 'ink1';
+function penGeometry(path1, path2) {
+  const src = path1.getAttribute('d') + '|' + path2.getAttribute('d'), kept = parse(rawOf(INK_KEY), null);
+  if (kept && kept.src === src && Array.isArray(kept.p)) return kept.p;
+  const out = [], K = 4;
+  [[path1, true], [path2, false]].forEach(([path, thin], s) => {
+    const L = path.getTotalLength(), n = Math.ceil(L / 1.5), at = [];
+    for (let i = 0; i <= n; i += K) at[i] = path.getPointAtLength(L * i / n);
+    if (!at[n]) at[n] = path.getPointAtLength(L);
+    const point = i => {
+      if (at[i]) return at[i];
+      const a = i - i % K, b = Math.min(n, a + K), k = (i - a) / (b - a);
+      return { x: at[a].x + (at[b].x - at[a].x) * k, y: at[a].y + (at[b].y - at[a].y) * k };
+    };
     let prev = null;
     for (let i = 0; i <= n; i++) {
-      const len = L * i / n, p = path.getPointAtLength(len);
-      const nib = nibAt(p, thin ? 10 + 24 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26);
-      const r = document.createElementNS(NS, 'polygon');
-      r.setAttribute('class', 'nib'); r.setAttribute('fill', '#fff');
-      r.setAttribute('points', hull(prev ? prev.concat(nib) : nib).map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' '));
+      const len = L * i / n, nib = nibAt(point(i), thin ? 10 + 24 * Math.min(1, Math.max(0, (len - 70) / 40)) : 26);
+      out.push({ p: hull(prev ? prev.concat(nib) : nib).map(q => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' '), s,
+        x: +(Math.acos(1 - 2 * (i / n)) / Math.PI).toFixed(4), b: thin && len < 200 ? 1 : 0 });   // the pen speeds up and slows down
       prev = nib;
-      (thin && len < 200 ? behind : mask).appendChild(r);
-      out.push({ el: r, stroke, x: Math.acos(1 - 2 * (i / n)) / Math.PI });   // the pen speeds up and slows down
     }
   });
+  idle(() => { try { localStorage.setItem(INK_KEY, JSON.stringify({ src, p: out })); } catch { /* a private window: worked out again next time */ } });
   return out;
+}
+// The polygons the pen lays down within one frame (a sixtieth of a second) are one shape: the same writing, seen frame
+// by frame, from some seventy shapes instead of six hundred and fifty, each shown when the pen gets there.
+function penStrokes(mask, behind, path1, path2, D) {
+  const groups = [];
+  let g = null;
+  for (const q of penGeometry(path1, path2)) {
+    const t = q.s ? 0.1 + D + 0.1 + q.x * D * 0.15 : 0.1 + q.x * D, f = Math.floor(t * 60);
+    if (!g || g.f !== f || g.b !== q.b || g.s !== q.s) groups.push(g = { f, b: q.b, s: q.s, t, d: '' });
+    g.d += 'M' + q.p.replace(/ /g, 'L') + 'Z';
+  }
+  const into = [document.createDocumentFragment(), document.createDocumentFragment()];
+  for (const x of groups) {
+    const r = document.createElementNS(NS, 'path');
+    r.setAttribute('class', 'nib'); r.setAttribute('fill', '#fff'); r.setAttribute('d', x.d);
+    r.style.setProperty('--t', x.t.toFixed(3) + 's');
+    into[x.b].appendChild(r);
+  }
+  mask.appendChild(into[0]); behind.appendChild(into[1]);
 }
 const fullInk = mask => {   // the last hair the nib missed: the whole word, once the pen lifts
   const r = document.createElementNS(NS, 'rect');
@@ -2743,8 +2876,7 @@ const fullInk = mask => {   // the last hair the nib missed: the whole word, onc
   const mask = $('inkMask'), behind = document.createElementNS(NS, 'g');
   behind.setAttribute('mask', 'url(#inkBehind)'); mask.appendChild(behind);
   const start = () => {
-    for (const s of penStrokes(mask, behind, $('inkPath'), $('inkDot')))
-      s.el.style.setProperty('--t', (s.stroke ? 0.1 + D + 0.1 + s.x * D * 0.15 : 0.1 + s.x * D).toFixed(3) + 's');
+    penStrokes(mask, behind, $('inkPath'), $('inkDot'), D);
     fullInk(mask).style.setProperty('--t', (0.1 + D + 0.4) + 's');
     el.style.setProperty('--dot', (0.1 + D + 0.45).toFixed(2) + 's');
     if (first) $('introWhy').style.animationDelay = (0.1 + D + 0.8).toFixed(2) + 's';

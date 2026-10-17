@@ -32,6 +32,21 @@ self.addEventListener('fetch', e => {
     })));
     return;
   }
+  // the page itself, its config and the wiki's files (they change only with a new version, which renames this cache):
+  // the copy on the phone at once – a start never waits for the network, which on a weak connection can take seconds –
+  // and the newest fetched behind it for the next time (the app also asks for the newest page when it comes back, and
+  // starts afresh when that names a new version). Kept under the plain path, so ?item=… and the app's own check for
+  // the newest page share one copy.
+  if (e.request.mode === 'navigate' || /\/config\.js$|\/viden\/[\w-]+\.json$/.test(url.pathname)) {
+    const key = url.origin + url.pathname;
+    const net = fresh(e.request).then(r => {
+      if (r.ok) { const copy = r.clone(); caches.open(SHELL).then(c => c.put(key, copy)); }
+      return r;
+    });
+    e.waitUntil(net.then(() => {}, () => {}));
+    e.respondWith(caches.match(key).then(hit => hit || net).catch(() => net));
+    return;
+  }
   e.respondWith(fresh(e.request).then(r => {
     const copy = r.clone();
     caches.open(SHELL).then(c => c.put(e.request, copy));
