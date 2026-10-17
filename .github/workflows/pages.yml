@@ -38,6 +38,7 @@ jobs:
             analysesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/analyses.json",
             energyUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/energy.json",
             mapUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/map.json",
+            cartoKey: "${{ vars.CARTO_KEY }}",
             vapidPublicKey: "${{ vars.VAPID_PUBLIC }}",
             feedbackTopic: "${{ vars.FEEDBACK_TOPIC }}"
           };

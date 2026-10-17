@@ -1,4 +1,4 @@
-"""The phone app's fixed points, checked on its files (public/): the three tabs, the versioned files, the config the
+"""The phone app's fixed points, checked on its files (public/): the four tabs, the versioned files, the config the
 deploy writes, the wiki files the app reads, and the owner's rule that the app never names Claude."""
 import json
 import re
@@ -11,16 +11,16 @@ APP = (PUBLIC / 'app.js').read_text(encoding='utf-8')
 CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
 
 
-def test_three_tabs_forside_live_analyser_in_that_order():
+def test_four_tabs_forside_live_kort_analyser_in_that_order():
     nav = INDEX[INDEX.index('<nav class="tabs"'):INDEX.index('</nav>')]
-    assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'analyses']
-    assert [s for s in re.findall(r'<span>([^<]+)</span>', nav)] == ['Forside', 'Live', 'Analyser']
-    assert "const SWIPE_TABS = ['home', 'latest', 'analyses'];" in APP
+    assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'kort', 'analyses']
+    assert [s for s in re.findall(r'<span>([^<]+)</span>', nav)] == ['Forside', 'Live', 'Kort', 'Analyser']
+    assert "const SWIPE_TABS = ['home', 'latest', 'kort', 'analyses'];" in APP
 
 
 def test_every_page_the_app_draws_has_its_section():
     pages = re.findall(r'<section class="page[^"]*" data-tab="(\w+)"', INDEX)
-    assert pages == ['home', 'latest', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'search']
+    assert pages == ['home', 'latest', 'kort', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'search']
     for side in ('threads', 'begreb', 'begreber', 'svar', 'gemt'):
         assert f'<section class="page side" data-tab="{side}"' in INDEX
 
