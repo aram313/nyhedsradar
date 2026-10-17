@@ -1276,17 +1276,24 @@ const FRONT_MAX = 6;   // blocks after the lede, whatever the composition says
 const dayTops = () => new Set(frontCands(stories().filter(i => i.kind !== 'kommentar'), 5).map(i => i.id));
 // a Danish story matters when it is among the day's five strongest, or big and Danish politics on Islam, Muslims,
 // integration or foreign policy (the radar's 'dk' protection) – 'big' alone is a third of Live on a busy day
-const dkMatters = (i, tops) => !!i && (tops.has(i.id) || (!!i.big && i.live === 'dk'));
-// the composition's blocks in the order drawn: a list whose stories are all Danish and none of them matters is cut to
-// two rows (`dkQuiet`) and goes after the other blocks
+// (17/10 later the same day, the owner: "danmark er heller ikke såå vigtigt, kun kæmpe nyheder skal ramme forsiden for
+// danmark": a Danish story reaches the front page only when it is big and among the day's five strongest)
+const dkMatters = (i, tops) => !!i && !!i.big && tops.has(i.id);
+// The front page's fixed order (the owner, 17/10: "hvorfor er citat i bunden på forside, synes godt tingene kunne
+// sorteres bedre"): Dagens historie, the day's quote right under it, the news blocks in the editor's order, Hizb
+// ut-Tahrir's answer, a line, 'Det sker snart', the developments, Live – whatever order the composition gives. A list
+// whose stories are all Danish and none of them very big is left off the front page (it is in Live).
+const FRONT_RANK = { top: 0, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };
+const CAL_RANK = 5;   // 'Det sker snart' sits between the news and the developments
 function frontOrder(blocks) {
-  const tops = dayTops(), quiet = [], rest = [];
+  const tops = dayTops(), out = [];
   for (const b of blocks || []) {
-    const list = b && b.kind === 'liste' ? (b.stories || []).map(x => findStory(String(x || ''))).filter(Boolean) : [];
-    if (list.length && list.every(i => secOf(i) === 'dk') && !list.some(i => dkMatters(i, tops))) quiet.push({ ...b, dkQuiet: true });
-    else rest.push(b);
+    if (!b) continue;
+    const list = b.kind === 'liste' ? (b.stories || []).map(x => findStory(String(x || ''))).filter(Boolean) : [];
+    if (list.length && list.every(i => secOf(i) === 'dk') && !list.some(i => dkMatters(i, tops))) continue;
+    out.push(b);
   }
-  return [...rest, ...quiet];
+  return out.map((b, k) => [b, k]).sort((x, y) => (FRONT_RANK[x[0].kind] ?? 4) - (FRONT_RANK[y[0].kind] ?? 4) || x[1] - y[1]).map(x => x[0]);
 }
 function composedHome(all, opts, f) {
   const used = new Set();
@@ -1298,6 +1305,7 @@ function composedHome(all, opts, f) {
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
   for (const b of frontOrder(f.blocks)) {
+    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }   // before the developments
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
     if (drawn >= FRONT_MAX) break;   // overskuelighed før fuldstændighed: at most six blocks, whatever the composition
     const before = html.length;
@@ -1366,7 +1374,6 @@ function composedHome(all, opts, f) {
       html += `<p class="f-line">${esc(String(b.text))}</p>`;   // the front page's texts without the wiki's underlines
     }
     if (html.length > before) drawn++;
-    if (drawn === 2 && !calPut) { calPut = true; html += calBlock(); }   // 'Det sker snart' after the second block drawn
   }
   if (!calPut && html) html += calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
@@ -1570,18 +1577,18 @@ function fixedHome(all, opts) {
     }
     html += '</section>';
   }
+  if (!pq) html += quoteOfDay(pin);   // the day's quote right under Dagens historie (the owner, 17/10), when it had none
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
-  html += calBlock();   // 'Det sker snart' after the second block
   // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
   // strongest), and then its two strongest such stories not shown above
   const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
   const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
   if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
+  html += calBlock();   // 'Det sker snart' between the news and the developments
   html += followStrip(own);   // not the main story's own development again
-  if (!pq) html += quoteOfDay(pin);   // no statement from the main story (or the owner picked one): the day's quote
   html += nowStrip(3, onPage);
   return ledeHead(notes().lede, html, notes().lede_ids) + html + homeFoot(all);
 }

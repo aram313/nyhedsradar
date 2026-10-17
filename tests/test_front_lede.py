@@ -137,14 +137,16 @@ def test_the_front_page_shows_less():
     assert "esc(String(b.text))" in comp   # a linje without the wiki's underlines
 
 
-def test_denmark_only_when_it_matters():
-    assert "tops.has(i.id) || (!!i.big && i.live === 'dk')" in CODE
+def test_denmark_only_when_it_matters_and_the_page_keeps_its_order():
+    assert "const dkMatters = (i, tops) => !!i && !!i.big && tops.has(i.id);" in CODE   # only very big Danish news
     order = fn('frontOrder')
-    assert "list.every(i => secOf(i) === 'dk')" in order and 'dkQuiet: true' in order and 'return [...rest, ...quiet]' in order
+    assert "list.every(i => secOf(i) === 'dk')" in order and 'continue;' in order        # a quiet Danish list is left off
+    assert "const FRONT_RANK = { top: 0, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };" in CODE
     fixed = fn('fixedHome')
     assert 'dkMatters(i, tops)), 2)' in fixed and "blockHead('Danmark')" in fixed
+    assert fixed.index('quoteOfDay(pin)') < fixed.index("blockHead('Døgnets vigtigste'")   # the quote under the main story
     assert 'two or three Danish ones' not in PROMPT and 'Danish politics never buried' not in PROMPT
-    assert "Denmark's place in a great power's plan" in PROMPT and 'a short block late on the page' in PROMPT
+    assert 'only when it is very big' in PROMPT
 
 
 # ------------------------------------------------------------------ the editor's lede_ids

@@ -289,11 +289,11 @@ def test_the_dock_holds_the_kinds_and_the_window():
     assert "store.set('calWin', calWin)" in fn('calTap')   # the window is remembered, the kind is for the visit
 
 
-def test_the_front_page_shows_what_happens_soon_after_its_second_block():
+def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_developments():
     block = fn('calBlock')
     assert 'calDay(e.date) - today <= 14' in block and '.slice(0, 4)' in block and "if (!list.length) return '';" in block
     assert "moreLink('Alle', 'kalender')" in block and 'data-cal-go' in fn('calRow')
-    assert "if (drawn === 2 && !calPut) { calPut = true; html += calBlock(); }" in fn('composedHome')
+    assert "(FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }" in fn('composedHome')
     fixed = fn('fixedHome')
     assert fixed.index("blockHead('Døgnets vigtigste'") < fixed.index('calBlock()') < fixed.index('followStrip(own)')
 

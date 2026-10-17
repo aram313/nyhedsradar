@@ -9,6 +9,16 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front page in a fixed order, Denmark only when very big, the economy's crises** (2026-10-17, the owner: 'hvorfor
+  er citat i bunden på forside, synes godt tingene kunne sorteres bedre', 'kun kæmpe nyheder skal ramme forsiden for
+  danmark', 'der skal også være økonomi nyheder, primært kriser … er den stor nok må den gerne tages med på
+  forsiden'; `?v=20261018v`): the app draws the editor's blocks in one order – Dagens historie, the day's quote under
+  it, the lists in the editor's order, the answer, a line, 'Det sker snart', the developments, Live – and the fixed
+  page the same; a Danish list reaches the front page only with a big story among the day's five strongest. The
+  economy page has a topic 'Økonomiske kriser' after 'Lige nu' (defaults, debt crises, currencies, bank runs, crashes,
+  IMF rescues, sanctions, tariffs; `energy.CRISIS`, the editor's headlines or Danish outlets' own); the editor gives a
+  big crisis a pick or a block 'Økonomi'.
+
 - **Brændstof: USA in dollars a gallon, no chains' table** (2026-10-17, the owner: 'USA benzin og diesel pris skal stå
   der og det skal angives i dollars pr gallon', 'flere tal med kæderne er ligegyldigt info'): the four tiles are petrol
   and diesel in Denmark (the cheapest chain, kr. per litre) and petrol and diesel in the USA (the weekly average, $ per

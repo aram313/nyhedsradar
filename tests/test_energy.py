@@ -257,11 +257,11 @@ def test_the_page_knows_every_series_the_file_carries():
         assert f'\n  {k}: [' in PAGE, k                     # every debt bar has its Danish name and note
 
 
-TOPIC_ORDER = (('nu', 'Lige nu'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
+TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Kriser'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
                ('raw', 'Råvarer'))
 
 
-def test_the_page_is_one_long_page_of_seven_topics_in_a_fixed_order():
+def test_the_page_is_one_long_page_of_eight_topics_in_a_fixed_order():
     block = PAGE.split('const TOPICS = [')[1].split('\n];')[0]
     assert re.findall(r"\{ id: '(\w+)', tab: '([^']+)'", block) == list(TOPIC_ORDER)
     assert 'role="tabpanel"' not in PAGE and 'data-group' not in PAGE and 'ecSec' not in PAGE   # no tab views or chips
@@ -362,3 +362,10 @@ def test_the_page_keeps_the_embed_contract_and_the_house_style():
     assert 'Claude' not in PAGE
     assert 'setInterval(() => { if (!document.hidden) load(); }, 5 * 60e3);' in PAGE
     assert "document.addEventListener('visibilitychange'" in PAGE
+
+
+def test_economic_crises_are_news_of_their_own():
+    assert energy.CRISIS.search('Egypt seeks IMF bailout as pound plunges') and energy.CRISIS.search('Ny straftold mod Kina')
+    assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
+    assert "'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
+    assert "news(D.crisis || [], 'Ingen nyheder om økonomiske kriser de seneste fire døgn.'" in PAGE

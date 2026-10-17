@@ -515,6 +515,8 @@ const AIX_TXT = {
 // sources, said once in its foot line
 const TOPICS = [
   { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
+  // the economic crises in the news (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser")
+  { id: 'kris', tab: 'Kriser', fly: 'Økonomiske kriser', h: 'kriser', src: 'Khabars nyheder' },
   { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
     more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']]] },
   { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
@@ -543,7 +545,7 @@ const FOLDS = new Set(['fuel', 'oil', 'mkt', 'ai', 'debt']);   // the topics wit
 let D = null, lastUpdated = null;
 const open = new Set(), folds = new Set(), openTile = {};
 const range = store.get('enRange', {});
-let curveOf = 'brent', newsAll = false;
+let curveOf = 'brent', newsAll = false, crisisAll = false;
 
 // ---- numbers and time ----------------------------------------------------------------------------------------------
 const nf = (v, d = 2) => Number(v).toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -982,6 +984,7 @@ function head(id) {
   const s = D.s, low = lowest();
   try {
     if (id === 'nu') { const m = topMoves()[0]; if (m) return phrase(m.k); }
+    if (id === 'kris') { const n = (D.crisis || []).length; return n ? `${n} ${n === 1 ? 'nyhed' : 'nyheder'} om kriser, sanktioner og told` : 'Ingen nye kriser i nyhederne'; }
     if (id === 'fuel' && low.benzin && low.diesel) return `Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`;
     if (id === 'oil' && s.brent) return phrase('brent');
     if (id === 'mkt' && s.spx) return phrase('spx');
@@ -989,7 +992,7 @@ function head(id) {
     if (id === 'debt' && D.debt) return `USA’s gæld: ${nf(D.debt.v / 1e12, 1)} billioner $`;
     if (id === 'raw' && s.gold) return phrase('gold');
   } catch (e) { /* a missing number: the plain head */ }
-  return { nu: 'Tallene lige nu', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
+  return { nu: 'Tallene lige nu', kris: 'Økonomiske kriser', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
 }
 
 // ---- Brændstof -----------------------------------------------------------------------------------------------------
@@ -1138,9 +1141,8 @@ function debtFold() {
 }
 
 // ---- news (Olie og gas, under Flere tal) -----------------------------------------------------------------------------
-function news() {
-  const list = D.news || [];
-  if (!list.length) return '<p class="en-note">Ingen nyheder om olie og brændstof de seneste tre døgn.</p>';
+function news(list = D.news || [], empty = 'Ingen nyheder om olie og brændstof de seneste tre døgn.', all = newsAll, more = 'newsMore') {
+  if (!list.length) return `<p class="en-note">${esc(empty)}</p>`;
   // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
   const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
   // Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
@@ -1155,12 +1157,12 @@ function news() {
     for (const w of k || []) if (w && w.length > 1) out = out.replace(esc(w), `<b>${esc(w)}</b>`);
     return out;
   };
-  const shown = newsAll ? list : list.slice(0, 8);
+  const shown = all ? list : list.slice(0, 8);
   const items = shown.map(n => {
     const [t, k] = pick(n);
     return `<div class="story"><a class="row" href="${esc(n.u)}" target="_blank" rel="noopener"><span class="tx"><span class="h">${words(tidy(t), k)}</span><span class="m"><span class="src">${esc(n.s)}</span><span>${esc(when(n.p))}</span>${n.n > 1 ? `<span>${n.n} medier</span>` : ''}</span></span></a></div>`;
   }).join('');
-  const moreBtn = !newsAll && list.length > 8 ? `<button class="en-showmore" id="newsMore">${list.length - 8} mere${CHEV}</button>` : '';
+  const moreBtn = !all && list.length > 8 ? `<button class="en-showmore" id="${more}">${list.length - 8} mere${CHEV}</button>` : '';
   return `<div class="en-news">${items}${moreBtn}</div>`;
 }
 
@@ -1189,6 +1191,8 @@ function topicHtml(T) {
     const list = topMoves();
     base = baseOf(list.map(moveFig));
     h += nowRows(list, base);
+  } else if (T.id === 'kris') {
+    h += news(D.crisis || [], 'Ingen nyheder om økonomiske kriser de seneste fire døgn.', crisisAll, 'crisisMore');
   } else {
     const tiles = tilesOf(T.id);
     base = baseOf(tiles);
@@ -1325,6 +1329,7 @@ $('#topics').addEventListener('click', e => {
   if (tile) { const k = tile.dataset.tile; openTile[T.id] = openTile[T.id] === k ? null : k; fill(T); return; }
   if (fold) { if (folds.has(T.id)) folds.delete(T.id); else folds.add(T.id); fill(T); return; }
   if (t.closest('#newsMore')) { newsAll = true; fill(T); return; }
+  if (t.closest('#crisisMore')) { crisisAll = true; fill(T); return; }
   const row = t.closest('.en-row');
   if (!row) return;
   const k = row.closest('.en-item').dataset.k;

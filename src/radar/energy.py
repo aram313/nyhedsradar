@@ -125,6 +125,19 @@ NEWS = re.compile(
     r"fuel|fuels|energy prices?|barrels?|olie\w*|råolie\w*|benzin\w*|brændstof\w*|raffinaderi\w*|naturgas\w*|"
     r"gaspris\w*|gasledning\w*|energipris\w*|tankskib\w*|hormuz-strædet|"
     r"نفط|النفط|بنزين|أوبك|الغاز|غاز|برنت|petrol|akaryakıt|doğalgaz|ham petrol)(?![\w-])", re.I)
+# economic crises for the page's own topic (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser"):
+# a state's default or debt crisis, a currency's fall, a bank's collapse or a run on it, a crash, recession, an IMF
+# rescue, sanctions and tariffs between powers, a trade war, inflation out of hand
+CRISIS = re.compile(
+    r"(?<![\w-])(default(?:s|ed)?|debt crisis|sovereign debt|bankrupt\w*|bailout|bail-out|imf|recession|"
+    r"currency (?:crisis|collapse|plunge\w*|crash\w*)|devalu\w*|hyperinflation|inflation (?:soars|surges|hits|record)|"
+    r"bank run|bank (?:collapse\w*|failure\w*)|market (?:crash\w*|rout|turmoil|selloff|sell-off)|stocks? (?:plunge\w*|"
+    r"tumble\w*|crash\w*)|trade war|tariffs?|sanctions?|credit rating|downgrade\w*|financial crisis|"
+    r"economic crisis|statsbankerot|betalingsstandsning|gældskrise\w*|økonomisk(?:e)? krise\w*|finanskrise\w*|"
+    r"valutakrise\w*|devaluering\w*|recession\w*|lavkonjunktur\w*|redningspakke\w*|nødlån\w*|bankkrak\w*|"
+    r"børskrak\w*|børsfald\w*|kursfald\w*|handelskrig\w*|toldmur\w*|toldsats\w*|toldkrig\w*|told på|told mod|"
+    r"straftold\w*|sanktion\w*|nedgradering\w*|"
+    r"inflation\w*|hyperinflation\w*|IMF)(?![\w-])", re.I)
 
 
 def now():
@@ -651,7 +664,7 @@ def editor_titles(summaries):
     return out
 
 
-def energy_news(state, hours=72, limit=16, summaries=None):
+def energy_news(state, hours=72, limit=16, summaries=None, pattern=None):
     """Stories about oil, fuel and gas, newest first: those with the editor's headline and Danish outlets' own."""
     def load(name):
         try:
@@ -664,7 +677,7 @@ def energy_news(state, hours=72, limit=16, summaries=None):
     seen, out = set(), []
     for it in load('data.json').get('items', []):
         text = ' '.join(x for x in (it.get('title'), it.get('title_tr'), it.get('title_da')) if x)
-        if NEWS.search(text) and it.get('id') not in seen:
+        if (pattern or NEWS).search(text) and it.get('id') not in seen:
             seen.add(it.get('id'))
             mine = next((ed[k] for k in [it.get('id'), *(it.get('members') or [])] if k in ed), None)
             if not mine and it.get('lang') != 'da':
@@ -789,6 +802,7 @@ def run(state):
         'debt': debt,
         'imf': imf,
         'news': energy_news(state),
+        'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS),   # the economy page's crises
     }
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     return out
