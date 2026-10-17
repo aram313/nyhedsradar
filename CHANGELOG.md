@@ -17,6 +17,17 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   byline's 'Originalen' is the way there) and a held English text folds behind 'Læs hele svaret'. Every piece of
   information stays; the as-Suwayda page is 15 % shorter (1,872 → 1,597 px at 430 wide), with one panel where there were
   five boxes and three small buttons where there were three full-width ones.
+- **The front page reworked** (2026-10-17, the owner: 'øverste titel skal linke til de forskellige nyheder', 'danmark er
+  ikke så vigtig', 'Kan dagens historie ikke få et billede?'; `?v=20261017y`). Each part of the lede opens the story it
+  is about – in place when the front page shows it, else in Live – under a thin quiet line, without the wiki's dotted
+  underlines; the editor may name the stories itself (`lede_ids` in `editor.py publish`, checked like the picks, kept
+  with a kept lede). Dagens historie shows its story's own picture large above the headline (a failed one leaves the
+  text lead). Less on the page: at most six blocks, three stories a list (the rest behind 'Alle ›', unfolded in place),
+  two updates of the main story's development and 'Hele udviklingen ›', one more story under it, three developments.
+  Denmark only when it matters: a Danish list with no big story, no Danish politics on Islam and Muslims and none of the
+  day's five strongest is cut to two rows and set last; the fixed page shows 'Danmark' (two rows) only then, and the
+  editor's prompt and brain pick Danish stories only when they are important. Live's Danish rules are unchanged. Also
+  fixed: a story opened in Live from elsewhere (a timeline step, the Live strip) now really opens there.
 
 - **The map's events** (2026-10-17, the owner: 'en slags live osint med kort og seneste angreb lidt ligesom LiveUAmap'):
   `src/radar/osint.py` writes `map.json` after every radar pass (a step in radar.yml): the attacks and armed events of

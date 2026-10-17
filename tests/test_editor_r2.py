@@ -259,7 +259,8 @@ def test_the_input_shows_the_composition_and_the_palette(folder):
     assert '1. top · [m1] Angreb i Riyadh · with [s4] Kun på Telegram · timeline: Ukraine' in front
     assert "2. liste · 'Danmark' (kompakt): [d1] Folketinget vedtager lov; [d2] Minister om moskeer" in front
     assert '- linje: one short line of reality' in front and 'never like a day marker' in front
-    assert 'Danish politics never buried' in front
+    assert 'Denmark only when it matters' in front and 'Danish politics never buried' not in front   # the owner, 17/10
+    assert 'the app draws 6 blocks' in front and 'the first three' in front
     assert '"front"' in text.split('## Write /tmp/editor/update.json')[1]
 
 

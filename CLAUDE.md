@@ -116,7 +116,8 @@ da'wah.
   word or a capital for its government). A test fails when the committed wiki is not a fresh build.
 - `src/radar/thumbs.py` gives every card a small picture (feed image → another outlet's → the og:image of the lead's
   article page, then of up to four other outlets' pages; a story without one shows its outlet's initials in the app –
-  the owner likes those tiles and declined pictures found by the editor, 2026-10-11),
+  the owner likes those tiles and declined pictures found by the editor, 2026-10-11; the chosen original stays in `pic`,
+  which app.json carries and Dagens historie shows large since 2026-10-17),
   shrunk with Pillow to a 144 px JPEG in `state/t/` (served from the data branch); unverified Telegram channels
   never lend one. `state/pics.json` remembers page images and failed pictures for 3 days.
 - `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
@@ -144,8 +145,9 @@ da'wah.
   three words with it, `timeline_off`), files
   headlines under the story's id with its members (summaries.json `titles`; one that breaks today's rules covers no
   story and is removed at the next publish), writes `live.json` at every publish (today's and yesterday's Danish days;
-  take/drop add to today's) and `front.json` (the composition: at most 8 blocks of top, liste, udvikling, citat, svar,
-  live, linje; a story once; its stories in Live or taken in; a kept composition is re-dated, minus stories that left
+  take/drop add to today's) and `front.json` (the composition: at most 8 blocks – the app draws six – of top, liste, udvikling, citat, svar,
+  live, linje; the lede's optional `lede_ids`, one story id per part of `lede_parts`, checked like the picks, kept with a
+  kept lede, beside the lede in digest.json's notes and front.json; a story once; its stories in Live or taken in; a kept composition is re-dated, minus stories that left
   and – after midnight – its linje blocks). The check's Live line and two more reasons: 8 stories waiting for a
   headline (once per update) or one waiting over 45 minutes between 06 and 24 (once per story), and today's få/mange
   about to lapse (live.json 5 h 15 min old). It keeps one overview per
@@ -247,16 +249,29 @@ da'wah.
   own outlet, or a news outlet that does not carry the story, loses the name (the meta line says the outlet once), one
   naming another outlet that carries it shows that outlet, and a government, state or person stays as who speaks
   (`outletKey`, `NEWS_GROUPS`). **The front page the editor
-  composed** (front.json, round 2): its blocks in its order with the app's own pieces – top (the Dagens historie card
-  with its timeline, `with` stories and the answer line; no picture: a text lead), liste (`billeder`: the first story
-  with a picture large), udvikling, citat, svar, live (the newest stories no other block shows), linje; a story once; a
-  block whose stories left Live is skipped (the first main block drawn carries 'Dagens historie'; none left: the day's
-  main story leads); the owner's pinned main story and quote win. Missing, unreadable, empty, older than 6 hours between
-  06 and 24 or 12 at night → **the fixed front page**,
+  composed** (front.json, round 2): its blocks in its order with the app's own pieces – top (the Dagens historie card:
+  since 17/10 the story's own full-size picture (`pic`, never the small copy or an initials tile) large above the
+  headline, 16:9 across the panel, `leadPicFailed` remembers a failed one in `badPics` and leaves the text lead; none: a
+  text lead; `picture: false` holds only for a second main story – then its timeline's two newest updates and 'Hele
+  udviklingen ›', one `with` story and the answer line), liste (three stories, a quiet Danish one two, the rest behind
+  'Alle ›', which unfolds them in place; `billeder`: the first story with a picture large), udvikling (three), citat
+  (one), svar, live (the newest stories no other block shows), linje; at most six blocks after the lede (`FRONT_MAX`);
+  a story once; a block whose stories left Live is skipped (the first main block drawn carries 'Dagens historie'; none
+  left: the day's main story leads); the owner's pinned main story and quote win. **Denmark only when it matters** (the
+  owner, 17/10: "danmark er ikke så vigtig … medmindre det er vigtige historier"): a list whose stories are all Danish
+  and none big, held by Live as Danish politics on Islam and Muslims (`live: 'dk'`) or among the day's five strongest
+  (`dkMatters`) is cut to two rows and set after the other blocks (`frontOrder`). Missing, unreadable, empty, older than
+  6 hours between 06 and 24 or 12 at night → **the fixed front page**,
   organised by story and time: date + the editor's lede, 'Dagens historie' (the recap's lead topic matched to a top story
-  by shared words: hero, timeline, a quote from it), 4 more top stories (never the main story again), 'Følg
+  by shared words: its picture, timeline, a quote from it), 3 more top stories (never the main story again), 'Danmark'
+  (two rows) only when a Danish story matters, 'Følg
   udviklingen' (the 3 developments that moved last, not the main story's), 'Dagens citat' if the package had none, 'Live'
-  (the 3 newest Live stories); no section glance, no recap, **no analysis**. One quiet line under Dagens historie – and
+  (the 3 newest Live stories); no section glance, no recap, **no analysis**. **The lede's parts open their stories**
+  (the owner, 17/10): cut at ', ', ' mens ', ' og ', ';' and ' – ' (a part under three words joins its neighbour;
+  `ledeParts` = `editor.lede_parts`), each part a real link (`a.lede-a`, `?item=`, a thin solid underline in `--line`)
+  to the editor's `lede_ids` story or the story sharing its distinctive words (names and wiki pages weigh double, words
+  in more than a quarter of Live's stories count nothing; the front page's stories first, then Live; `ledeLinks`); a
+  tap opens a front-page story in place, in view, else in Live; no match, plain text. One quiet line under Dagens historie – and
   in an opened story – when the amir has answered on its subject ('Hizb ut-Tahrirs svar · d/m/åååå' over the title):
   a headline subject the answer is about (its title, its question's first subject, its main issue; a filed answer's
   readings, never its whole begreber list), a second signal from the headline (another subject the answer is about, or
@@ -265,8 +280,9 @@ da'wah.
   newest first (the editor's answers.json and the radar's `analyses` before the layer's 321 by year), a search field and
   a 'Begreber' row to the wiki's A–Å index; the answer reader (calmed 17/10 after the owner's "uoverskuelig"): the
   byline, the title with the question under it, one ochre panel ('Svaret kort' and what it reads), its concepts, the
-  answers it cites and that cite it, the text when held (folded). **The wiki**: a concept named in plain text – the lede, an
-  opened story's headline and summary, the recap lines, the front page's timeline, an answer's note – links its page
+  answers it cites and that cite it, the text when held (folded). **The wiki**: a concept named in plain text – an opened
+  story's headline and summary, the recap lines and the lede on Udvikling, an answer's note (not the front page's lede,
+  timeline or line since 17/10) – links its page
   (`public/viden/begreber*.json`): the first mention, at most three a block, a dotted underline in the text's colour,
   never Danmark and never inside an outlet's name. **A link is never inside a button**: a row's button or link lies under
   the whole row (`.hit`) and its words on top let the tap through. A wiki page: the lead (the newest answer governs),
@@ -354,7 +370,8 @@ da'wah.
     (else of the cleaned teaser), the outlet's link and 'via khabar.nu/?item=<id>'; teasers lose calls to action, links
     and picture captions (`cleanTeaser` in app.js = `clean_teaser` in src/radar/headlines.py – keep them alike); one
     credit line replaces the two notes; an answer the front page shows is not said again in a story opened there.
-  - **The views:** Forside – the lede whole (the editor keeps it to about 25 words; no paragraph is a button), 'Del
+  - **The views:** Forside – the lede whole (the editor keeps it to about 25 words; no paragraph is a button – its parts
+    are links inside it), 'Del
     overblik' (icon and word) on the date line, 'Mens du var væk' after three hours away (counts only, fades on the first
     scroll; it stores nothing new), the answer line right under the main story, its development named and opened by its
     label – the editor's timeline or the story's own development (`threadFor`) only when the development's name shares a
@@ -398,8 +415,10 @@ da'wah.
     reading text – a summary, the lede, the movement's texts (`READING` in app.js = the rule in style.css) – never a row
     or a button, and the owner's long press skips it. Waiting (the owner's call): following a topic, picture share cards,
     a Live section filter.
-- Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
-  tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
+- Danish politics must never be buried **in Live and the radar**: keep the Danish lift (`rank_core_dk`), `protect_dk`
+  and the dk-section rules when tuning the rank. The front page is another matter since 17/10: Denmark there only when
+  it matters (a big Danish story, Danish policy on Islam and Muslims, Denmark's place in a great power's plan – the
+  editor's prompt and `brain.RULES`; the app's `dkMatters`). Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
   copy of the live state, no fetching or embedding) and compare what Live (one list, with the method's tiers) and each
   section would show.
 - The profile contains no names or message authors. Keep it that way, and keep it encrypted. The repo is public.
