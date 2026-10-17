@@ -48,7 +48,7 @@ GAL_BBL = 42        # gallons in a barrel
 
 # seconds between fetches of each source (the radar runs every ~5 minutes)
 EVERY = {'markets': 4 * 60, 'curve': 30 * 60, 'fred': 3 * 3600, 'pumps': 20 * 60, 'usfuel': 6 * 3600,
-         'eu': 12 * 3600, 'spy': 6 * 3600, 'debt': 3 * 3600, 'imf': 24 * 3600}
+         'eu': 12 * 3600, 'spy': 6 * 3600, 'debt': 3 * 3600, 'imf': 24 * 3600, 'dkh': 24 * 3600}
 RETRY = 30 * 60     # a source that failed is asked again after half an hour, so a dead one never slows every pass
 
 YAHOO = {               # key -> symbol; prices in the exchange's unit
@@ -79,6 +79,10 @@ US_FUEL = {                       # EIA weekly retail prices, US average, $/gall
 }
 # the EU's Weekly Oil Bulletin, 'Prices with taxes – latest prices' (the document id stays; its file name changes)
 EU_URL = 'https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en'
+# the bulletin's whole history with taxes (one sheet, a row a week since 2005, ~4 MB): Denmark's petrol and diesel for
+# the economy page's chart (18/10, the owner: 'grafer på danske benzin og dieselpriser som vi har på amerikanske')
+DKH_URL = 'https://energy.ec.europa.eu/document/download/906e60ca-8b6a-44e7-8589-652854d2fd3f_en'
+DKH_WEEKS = 104
 EU_LAND = {'EU': 'EUR27', 'DE': 'Germany', 'SE': 'Sweden', 'FR': 'France', 'NL': 'Netherlands', 'DK': 'Denmark',
            'IT': 'Italy', 'PL': 'Poland', 'ES': 'Spain'}
 SPY_URL = 'https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx'
@@ -409,6 +413,23 @@ def eu_prices(rows):
 
 def fetch_eu():
     return eu_prices(xlsx_rows(get(EU_URL, timeout=30)))
+
+
+def dk_history(rows, weeks=DKH_WEEKS):
+    """Denmark's weekly pump prices with taxes from the bulletin's history: [[Monday, petrol, diesel]] in kr. per litre,
+    oldest first, the last `weeks`. The sheet gives EUR per 1000 litres and the week's euros per krone (DK_exchange_rate)."""
+    out = {}
+    for r in rows:
+        day, b, d, rate = r.get('A'), r.get('BK'), r.get('BL'), r.get('BJ')
+        if not all(isinstance(x, float) for x in (day, b, d)):
+            continue
+        per = 1 / rate if isinstance(rate, float) and rate > 0 else 7.46
+        out[excel_day(day)] = [round(b / 1000 * per, 2), round(d / 1000 * per, 2)]
+    return [[k, *v] for k, v in sorted(out.items())][-weeks:] or None
+
+
+def fetch_dkh():
+    return dk_history(xlsx_rows(get(DKH_URL, timeout=60)))
 
 
 def eu_merge(prev, got):
@@ -790,7 +811,7 @@ def run(state):
             return None
 
     # the slow, rarely asked sources side by side, so a hanging one never holds up the others
-    slow = {'usfuel': fetch_usfuel, 'eu': fetch_eu, 'spy': fetch_spy, 'debt': fetch_debt, 'imf': fetch_imf}
+    slow = {'usfuel': fetch_usfuel, 'eu': fetch_eu, 'spy': fetch_spy, 'debt': fetch_debt, 'imf': fetch_imf, 'dkh': fetch_dkh}
     slow = {k: fn for k, fn in slow.items() if due(prev, k, t)}
     with ThreadPoolExecutor(max(1, len(slow))) as ex:
         pending = {k: ex.submit(ask, fn) for k, fn in slow.items()}
@@ -812,6 +833,7 @@ def run(state):
     spy = spy_merge(prev.get('spy'), answers.get('spy'))
     debt = answers.get('debt') or prev.get('debt')
     imf = answers.get('imf') or prev.get('imf')
+    dkh = answers.get('dkh') or prev.get('dkh')   # Denmark's weekly pump prices, two years
     if due(prev, 'curve', t):
         fronts = {k: int(datetime.fromisoformat(raw[k]['t']).timestamp()) for k in CURVES if raw.get(k)}
         got = fetch_curves(fronts)
@@ -852,6 +874,7 @@ def run(state):
         'spy': spy,
         'debt': debt,
         'imf': imf,
+        'dkh': dkh,
         'news': energy_news(state),
         # the economy page's 'Uro i økonomien', with its memory of 30 days and the backward fill
         'crisis': crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t),

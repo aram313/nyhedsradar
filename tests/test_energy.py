@@ -106,7 +106,7 @@ def offline(monkeypatch, **fns):
     """Every source answers nothing (or as given): no test reaches the network."""
     base = {'fetch_markets': lambda: {}, 'fetch_curves': lambda fronts: {}, 'fetch_fred': lambda: {},
             'fetch_pumps': lambda: (None, []), 'fetch_usfuel': lambda: {}, 'fetch_eu': lambda: None,
-            'fetch_spy': lambda: None, 'fetch_debt': lambda: None, 'fetch_imf': lambda: None}
+            'fetch_spy': lambda: None, 'fetch_debt': lambda: None, 'fetch_imf': lambda: None, 'fetch_dkh': lambda: None}
     for name, fn in {**base, **fns}.items():
         monkeypatch.setattr(energy, name, fn)
 
@@ -141,7 +141,7 @@ def test_a_run_keeps_the_last_good_numbers_when_every_source_fails(tmp_path, mon
     assert out['s']['us_gas']['v'] == 4.33
     assert all(out[k] == old[k] for k in ('debt', 'imf', 'eu', 'spy'))
     assert out['ok'] == {}                                   # nothing new: every source is tried again after RETRY
-    assert set(out['tried']) == {'markets', 'curve', 'fred', 'pumps', 'usfuel', 'eu', 'spy', 'debt', 'imf'}
+    assert set(out['tried']) == {'markets', 'curve', 'fred', 'pumps', 'usfuel', 'eu', 'spy', 'debt', 'imf', 'dkh'}
 
 
 def test_each_source_keeps_its_own_clock(tmp_path, monkeypatch):
@@ -400,3 +400,14 @@ def test_the_unrest_topic_keeps_a_month_and_its_backward_fill():
     assert [x['i'] for x in got] == ['a', 'c']
     seed = energy.crisis_seed()
     assert len(seed) >= 10 and all(x['ed'] and x['u'] and x['p'] for x in seed)   # each with a Danish headline
+
+
+def test_denmarks_pump_prices_have_two_years_of_weeks():
+    # 18/10, the owner: 'grafer på danske benzin og dieselpriser som vi har på amerikanske' – the Oil Bulletin's history
+    rows = [{'A': 'Date'}, {'A': 46307.0, 'BJ': 0.1338, 'BK': 2658.27, 'BL': 2501.74},   # 12/10/2026, EUR per 1000 l
+            {'A': 46300.0, 'BJ': 0.1338, 'BK': 2604.86, 'BL': 2488.46}, {'A': 46293.0, 'BK': 'x'}]
+    h = energy.dk_history(rows)
+    assert [r[0] for r in h] == sorted(r[0] for r in h) and len(h) == 2           # oldest first, a bad row left out
+    assert h[-1][1] == round(2658.27 / 1000 / 0.1338, 2) and 19 < h[-1][1] < 21     # kr. per litre
+    assert 'dk_history(xlsx_rows(get(DKH_URL' in (Path(energy.__file__).read_text(encoding='utf-8'))
+    assert "dkLine(f)" in PAGE and "data-chart=\"dkh:${f}\"" in PAGE

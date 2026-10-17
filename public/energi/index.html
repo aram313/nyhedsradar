@@ -829,6 +829,10 @@ function drawCharts(root = document) {
       return chart(box, [{ pts: c.map(([m, v]) => [m, v, monthName(m), monthName(m)]) }], { d: 2, dots: true, fmt: v => nf(v, 2) + ' $' });
     }
     if (k.startsWith('pump:')) return pumpChart(box, k.slice(5));
+    if (k.startsWith('dkh:')) {
+      const { pts } = cut('dkh', 'w', dkLine(k.slice(4)));
+      return chart(box, [{ pts: dated(pts) }], { d: 2, dots: pts.length < 8, fmt: v => nf(v, 2) + ' kr.' });
+    }
     if (k === 'eu') {
       const { pts } = cut('eu', 'w', D.eu.h || []);
       return chart(box, [{ pts: dated(pts.map(([t, b]) => [t, euL(b)])) }], { d: 2, dots: pts.length < 8, fmt: v => nf(v, 2) + ' kr.' });
@@ -873,12 +877,16 @@ const pumpLine = f => ((D.pumps && D.pumps.h) || []).map(([day, chains]) => {
   const vals = Object.values(chains).map(c => c[f]).filter(v => v != null);
   return vals.length ? [day, Math.min(...vals)] : null;
 }).filter(Boolean);
+// Denmark's weekly pump prices from the EU's Oil Bulletin, two years (energy.py's dkh): the national average with taxes
+const dkLine = f => (D.dkh || []).map(([t, b, d]) => [t, f === 'benzin' ? b : d]);
 function pumpTile(f) {
   const x = lowest()[f];
   if (!x) return null;
   const h = pumpLine(f), prev = h.length > 1 ? h[h.length - 2][1] : null;
+  // the sparkline: the chains' daily list prices once there are some weeks of them, until then the bulletin's weeks
+  const sp = h.length >= 14 ? h.slice(-31).map(p => p[1]) : dkLine(f).slice(-26).map(p => p[1]);
   return { k: 'dk:' + f, n: f === 'benzin' ? 'Benzin 95 · billigst' : 'Diesel · billigst', v: nf(x.v, 2), u: 'kr./l', mv: step(x.v, prev, 'kr.'),
-    sp: h.slice(-31).map(p => p[1]), tc: 'pumps', ts: 'listepris i dag' };
+    sp, tc: 'pumps', ts: 'listepris i dag' };
 }
 // USA's pump prices as Americans read them: dollars a gallon (the owner, 17/10), the average of the week
 function usTile(k) {
@@ -1056,9 +1064,16 @@ function pumpPanel(f) {
   const h = pumpLine(f), P = D.pumps;
   const each = (P.chains || []).filter(c => c.p[f]).sort((a, b) => a.p[f].v - b.p[f].v).map(c => `${esc(c.c)} ${nf(c.p[f].v, 2)}`).join(' · ');
   let out = '';
-  if (h.length < 2) out += `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((h[0] && h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
-  else { const { rs, r } = cut('pumps', 'c', h); out += rangeRow('pumps', rs, r) + `<div class="en-chart" data-chart="pump:${f}" style="height:150px"></div>`; }
-  return out + `<p class="en-hl">Kædernes listepris i dag: ${each} kr.</p>${explain(PUMP_TXT[f])}<p class="en-src">Circle K (også INGO) og Q8 (også F24), kædernes egne prislister</p>`;
+  // the price over two years, week by week (18/10, the owner: 'grafer på danske benzin og dieselpriser som vi har på
+  // amerikanske'): the bulletin's national average with taxes – a little over the chains' lowest list price
+  const W = dkLine(f);
+  if (W.length >= 2) {
+    const { rs, r } = cut('dkh', 'w', W);
+    out += `<p class="en-note">Landsgennemsnit uge for uge, med afgifter (EU's oliebulletin) – senest ${nf(W[W.length - 1][1], 2)} kr. ${esc(dayLabel(W[W.length - 1][0], { day: 'numeric', month: 'long' }))}</p>`
+      + rangeRow('dkh', rs, r) + `<div class="en-chart" data-chart="dkh:${f}" style="height:150px"></div>`;
+  }
+  if (h.length >= 2) { const { rs, r } = cut('pumps', 'c', h); out += `<p class="en-note">Kædernes laveste listepris dag for dag</p>` + rangeRow('pumps', rs, r) + `<div class="en-chart" data-chart="pump:${f}" style="height:150px"></div>`; }
+  return out + `<p class="en-hl">Kædernes listepris i dag: ${each} kr.</p>${explain(PUMP_TXT[f])}<p class="en-src">Circle K (også INGO) og Q8 (også F24), kædernes egne prislister; EU-Kommissionens Weekly Oil Bulletin (landsgennemsnit)</p>`;
 }
 function pumpChart(box, f) {
   const { pts } = cut('pumps', 'c', pumpLine(f));
@@ -1229,7 +1244,11 @@ function topicHtml(T) {
     const [lead, ...rest] = D.crisis || [];
     if (lead) h += `<p class="ec-lead-m"><a href="${esc(lead.u)}" target="_blank" rel="noopener" data-story="${esc(lead.i)}">${esc(lead.s)} · ${esc(when(lead.p))} ›</a></p>`
       + (openNews.has(lead.i) ? `<div class="en-x lead">${lead.o && lead.o !== newsPick(lead)[0] ? `<p class="en-orig">Original: »${esc(lead.o)}«</p>` : ''}<a class="en-go" href="${esc(lead.u)}" target="_blank" rel="noopener">Læs hos ${esc(lead.s)} ›</a></div>` : '');
-    h += news(rest, lead ? 'Ingen andre nyheder om finans og økonomi den seneste måned.' : 'Ingen nyheder om finans og økonomi den seneste måned.', crisisAll, 'crisisMore');
+    // one week at a time (the owner, 18/10: 'for mange nyheder … vis 1 uge af gangen, og resten kan foldes ud')
+    const since = Date.now() - 7 * 864e5, week = rest.filter(n => new Date(n.p) >= since), older = rest.length - week.length;
+    h += news(crisisAll ? rest : week, older ? 'Ingen andre nyheder den seneste uge.' : lead ? 'Ingen andre nyheder om finans og økonomi den seneste måned.'
+      : 'Ingen nyheder om finans og økonomi den seneste måned.', true, 'crisisMore');
+    if (!crisisAll && older) h += `<button class="en-showmore" id="crisisMore">Ældre nyheder (${older})${CHEV}</button>`;
   } else {
     const tiles = tilesOf(T.id);
     base = baseOf(tiles);
@@ -1435,7 +1454,10 @@ document.addEventListener('click', e => {
   if (!a) return;
   e.preventDefault();
   const id = a.dataset.story;
-  try { if (EMBED && typeof parent.khabarOpenStory === 'function' && parent.khabarOpenStory(id)) return; } catch (err) { /* not the app */ }
+  // what the row shows goes along, so the app can show a story its Live does not hold
+  const n = D && [...(D.crisis || []), ...(D.news || [])].find(x => x.i === id);
+  const item = n && { title: newsTidy(newsPick(n)[0]), source: n.s, link: n.u, published: n.p };
+  try { if (EMBED && typeof parent.khabarOpenStory === 'function' && parent.khabarOpenStory(id, item)) return; } catch (err) { /* not the app */ }
   if (!EMBED && id && !id.startsWith('seed-')) { location.href = '../?item=' + encodeURIComponent(id); return; }
   if (openNews.has(id)) openNews.delete(id); else openNews.add(id);
   const sec = a.closest('.ec-sec');

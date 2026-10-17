@@ -830,7 +830,10 @@ function stories() {
   cache = { src: data, mode, list: items, byId: new Map(items.map(i => [i.id, i])) };
   return items;
 }
-const find = id => (stories(), cache && cache.byId.get(id));
+// a story Økonomi opened that Live does not hold (18/10, the owner: 'den bør sende til nyheden i khabar'): Live shows it
+// first, opened, under 'Fra Økonomi', until it is closed or another takes its place (khabarOpenStory)
+let outside = null;
+const find = id => (stories(), cache && cache.byId.get(id)) || (outside && outside.id === id ? outside : undefined);
 // a story can be found by any of its outlets' articles: its card follows whichever article leads it right now
 const findStory = id => id && (find(id) || stories().find(i => (i.members || []).includes(id) || (i.also || []).some(a => a.id === id)));
 
@@ -1722,7 +1725,8 @@ function latestPage(all, opts) {
   if (liveImp) { const n = (latestAll ? all : all.filter(i => hours(i) < 24)).length; all = all.filter(i => weightOf(i) > 1);
     note = impNote(n - (latestAll ? all : all.filter(i => hours(i) < 24)).length, 'data-live-imp'); }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = gone + note + timeline(recent, { ...opts, tag: !liveSec, tick: true });
+  const out = outside ? `<section class="block x-out"><div class="block-h"><h2>Fra Økonomi</h2><button class="more" data-outside-x>Luk</button></div>${story(outside, 0, { tick: true })}</section>` : '';
+  let html = gone + out + note + timeline(recent, { ...opts, tag: !liveSec, tick: true });
   if (recent.length < all.length) html += `<button class="qbtn" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -3088,6 +3092,7 @@ async function onTap(e) {
     if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
+  if (t.closest('[data-outside-x]')) { outside = null; render(); return; }   // 'Fra Økonomi' closed
   if (t.closest('[data-cal-f], [data-cal-imp], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
   const lsec = t.closest('[data-live-sec]');
   if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
@@ -3147,7 +3152,18 @@ addEventListener('touchmove', e => {
 window.khabarOkReady = on => logo.classList.toggle('ready', !!on);
 // a story tapped on Økonomi opens in Live, opened, where its summary, outlets and share are (18/10, the owner: 'det skal
 // åbne i nyhedsoversigten i khabar'); false when Live does not hold it – the page unfolds it then
-window.khabarOpenStory = id => { const i = findStory(id); if (!i) return false; openInLive(i.id); return true; };
+window.khabarOpenStory = (id, n) => {
+  const i = findStory(id);
+  if (i) { outside = null; openInLive(i.id); return true; }
+  if (!n || !n.title || !n.link) return false;
+  outside = { id: 'x-' + id, title: n.title, source: n.source || '', link: n.link, published: n.published, found: n.published,
+    lang: 'da', sec: 'world', outlets: 1, also: [], summary: '', kw: [], confirmed: 1 };
+  expanded.clear(); expanded.add(outside.id);
+  ver++;
+  if (tab === 'latest') render(); else setTab('latest', { top: true });
+  cur().scrollTop = 0;
+  return true;
+};
 window.khabarOkRefresh = async run => {
   logo.classList.add('blink');
   const t0 = performance.now();

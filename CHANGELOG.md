@@ -9,6 +9,21 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Denmark's fuel prices as a chart; 'Finans og økonomi' a week at a time; every tap there into Khabar; A–Å's
+  letters centred** (2026-10-18, the owner: 'Der er for mange nyheder på økonomi i dag, lav det så den viser 1 uge af
+  gangen … når man trykker på en bør den sende til nyheden i khabar', 'kan vi få grafer på danske benzin og
+  dieselpriser som vi har på amerikanske?' and 'de lodrette bogstaver ikke centreret i deres baggrundsboks';
+  `?v=20261018bc`):
+  - **Denmark's petrol and diesel, two years week by week:** the EU's Weekly Oil Bulletin's whole history (one ~4 MB
+    sheet, read daily: `energy.fetch_dkh`, `dk_history` → `energy.json`'s `dkh`, kr. per litre from EUR per 1000 l and
+    the week's rate). An opened Danish fuel tile shows it with ranges ('Landsgennemsnit uge for uge, med afgifter') above
+    the chains' own daily line as that grows; the tile's sparkline uses it until the daily line has two weeks.
+  - **One week at a time:** 'Finans og økonomi' lists the last seven days under its headline, the rest behind
+    'Ældre nyheder (N)'.
+  - **Into Khabar:** a story Live holds opens there; one it does not (the backward fill) opens in Live too, first and
+    opened under 'Fra Økonomi' with Læs, Del, Kopiér and Gem (`outside`, `khabarOpenStory(id, item)`; 'Luk' takes it
+    away). Only khabar.nu/energi on its own unfolds it in place.
+  - **A–Å's letters** are centred in their track.
 - **Økonomi's stories open in Khabar; 'Vigtige datoer' says the month** (2026-10-18, the owner: 'når man åbner dem
   skal det ikke åbne ekstern link med det samme, det skal åbne i nyhedsoversigten i khabar' and 'forsidens vigtige
   datoer kan være misvisende, fordi der står et tal og en ugedag'; `?v=20261018bb`): a story tapped on the economy

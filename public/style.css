@@ -1071,7 +1071,8 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
   opacity: 0; pointer-events: none; transition: opacity .2s ease-out;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .az-idx.on { opacity: 1; pointer-events: auto; }
-.az-idx button { flex: 0 1 auto; min-height: 0; padding: 1px 0; line-height: 1.1; font-size: var(--fs-cap); font-weight: 650; color: var(--text-2); }
+.az-idx button { flex: 0 1 auto; display: block; width: 100%; min-height: 0; padding: 1px 0; line-height: 1.1; text-align: center;   /* centred in the track (18/10) */
+  font-size: var(--fs-cap); font-weight: 650; color: var(--text-2); }
 .az-at { display: block; height: 0; }
 .page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 40px; }
 /* the letter bands stay under the bar while their letter lasts, in red */
