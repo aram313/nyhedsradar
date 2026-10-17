@@ -302,3 +302,11 @@ def test_an_event_is_shared_as_text_with_the_way_back():
     text = CODE.split('const calText = ')[1].split('\n')[0]
     assert '${calDm(e)} · ${e.title}' in text and "' – ' + e.why" in text and 'via khabar.nu/?kalender=${encodeURIComponent(e.id)}' in text
     assert "if (sh.dataset.calShare) share(calText(e)); else if (await copyText(calText(e))) toast('Kopieret');" in fn('calTap')
+
+
+def test_eu_summits_weigh_in_the_middle_and_climate_summits_low():
+    from radar import calendar as c
+    assert c.weight({'kind': 'topmøde', 'title': 'EU-topmøde', 'place': 'Bruxelles'}) == 2
+    assert c.weight({'kind': 'topmøde', 'title': "FN's klimatopmøde COP31"}) == 1
+    assert c.weight({'kind': 'topmøde', 'title': 'G20-topmøde'}) == 3
+    assert c.weight({'kind': 'topmøde', 'title': 'EU-topmøde', 'w': 3}) == 3   # raised by the editor

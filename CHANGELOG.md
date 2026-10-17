@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **EU summits weigh in the middle** (2026-10-17, the owner agreed): what they decide binds Denmark and settles the
+  sanctions on Russia, the money for Ukraine and the trade with “israel”, so they carry the middle mark; the editor
+  raises one to high weight when its agenda holds such a decision (the routine's prompt says how).
+
 - **The whole answer in English** (2026-10-17, the owner: 'kan vi få hele teksten fra analyser ind på side? … på
   engelsk', the texts published as they are; `?v=20261018t`): every answer the HT archive has in English (272 of 321)
   has its whole text in `public/viden/svar-en/`, fetched when the reader unfolds 'Læs hele svaret (engelsk)'; the

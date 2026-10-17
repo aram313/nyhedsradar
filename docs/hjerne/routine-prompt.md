@@ -108,7 +108,7 @@ plain Danish without "Ifølge …".
      `date` (YYYY-MM-DD, or YYYY-MM with `"approx": true` when only the month is known), `title` (Danish, what happens –
      a statement like a headline), `kind` (valg | topmøde | centralbank | frist | retssag | forhandling | dansk |
      andet), `place`, `why` (one factual line on why it matters – never a forecast: no 'forventes',
-     'sandsynligvis', 'kan føre til'), `link`, `ids` (the stories it comes from) and `weight`: 3 when it can move the balance of the powers or touches Denmark's government (it then stands out in red), 2 when it matters to the Muslim world or the dollar and oil, else leave it out. Only a date the stories state;
+     'sandsynligvis', 'kan føre til'), `link`, `ids` (the stories it comes from) and `weight`: 3 when it can move the balance of the powers or touches Denmark's government (it then stands out in red), 2 when it matters to the Muslim world or the dollar and oil, else leave it out. To raise an event the calendar holds already (an EU summit whose agenda holds the sanctions on Russia, Ukraine, the Middle East, migration or trade with “israel”), write it again with its date, its exact title and `weight` 3. Only a date the stories state;
      change one of yours by its `id`, remove one with `{"id": …, "remove": true}`; leave `calendar` out to keep the
      calendar as it is. Entries stay until two days after their day.
    - `answer`: when the input shows a new answer of Hizb ut-Tahrir – its Danish title and question, a note of 2-4

@@ -358,7 +358,10 @@ HEAVY_STATES = {'USA', 'Kina', 'Rusland', 'Storbritannien', 'Frankrig', 'Tysklan
                 'Tyrkiet', 'Iran', 'Egypten', 'Pakistan', 'Saudi-Arabien', 'Irak', 'Syrien', 'Palæstina', 'Danmark'}
 MUSLIM_STATES = set(list(COUNTRIES.values())[:list(COUNTRIES).index('Austria')])
 HEAVY_SUMMIT = re.compile(r'\b(?:G20|NATO|BRICS|FN|Generalforsamling)', re.I)
-MID_SUMMIT = re.compile(r'\b(?:G7|OPEC|SCO|Shanghai|Arabiske Liga|OIC|Islamisk Samarbejde)', re.I)
+# the EU summits weigh 2 (the owner, 17/10): what they decide binds Denmark – asylum, borders, terror laws – and they
+# settle the sanctions on Russia, the money for Ukraine, the trade agreement with “israel”; the editor raises one to 3
+# when its agenda holds such a decision
+MID_SUMMIT = re.compile(r'\b(?:G7|OPEC|SCO|Shanghai|Arabiske Liga|OIC|Islamisk Samarbejde|EU-topmøde|Det Europæiske Råd)', re.I)
 # a head of state the parliament elects, whose office is ceremonial: not an election that moves a power
 CEREMONIAL = {('Præsidentvalg', 'Indien'), ('Præsidentvalg', 'Tyskland'), ('Præsidentvalg', '“israel”'), ('Præsidentvalg', 'Irak')}
 
