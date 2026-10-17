@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Side pages keep the column on a desktop** (2026-10-18, the owner: A–Å, a wiki page and an answer ran 'fra border til
+  border'; `?v=20261018ah`): a side page is fixed to the window, so it now takes the tabs' 680 px column, centred
+  (A–Å, a wiki page, an answer, Gemt, Udvikling).
 - **A–Å's letters quieter, at the edge, and right going up** (2026-10-18, the owner: 'mere diskret … virker ikke når
   man scroller op … ligger den midt på siden på desktop'; `?v=20261018ag`): the letters are small and grey at the
   window's right edge (not the column's, which sat mid-screen on a desktop); a jump aims at a zero-height mark before

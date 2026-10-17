@@ -426,6 +426,9 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 @media (min-width: 700px) {
   main, .bar > .brand { max-width: 680px; }
   main { margin: 0 auto; }
+  /* a side page (A–Å, a wiki page, an answer, Gemt, Udvikling) is fixed to the window: it keeps the tabs' column too
+     (the owner, 18/10: it ran from border to border on a desktop) */
+  html.aside .page.side.on { max-width: 680px; margin: 0 auto; }
 }
 
 /* ------------------------------------------------------------ Live: everything as it ticks in, compact, no pictures */
