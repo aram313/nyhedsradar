@@ -24,8 +24,10 @@ chooses the arrangement, never colours or fonts. No analysis: every word the edi
  ]}
 ```
 
-- At most about 8 blocks; a story appears in one block only; ids match a story's `id` or `members`.
-- `top` may appear once or twice (a day with two main stories); `picture` false gives a text lead.
+- At most about 8 blocks (the app draws six since 17/10); a story appears in one block only; ids match a story's `id`
+  or `members`. A list shows three stories, the rest behind 'Alle ›'; an all-Danish list of no weight two, last.
+- `top` may appear once or twice (a day with two main stories); Dagens historie shows its picture (17/10), `picture`
+  false gives a second main story a text lead. The lede may carry `lede_ids` (one story id per part).
 - Unknown kinds and missing stories are skipped; if `front.json` is missing, invalid or older than 6 hours between 06
   and 24, the app falls back to today's fixed front page (lede, Dagens historie, Døgnets vigtigste, Følg udviklingen,
   Dagens citat, Live).

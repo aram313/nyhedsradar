@@ -84,10 +84,11 @@ LEVEL_SIZE = {'få': 25, 'normal': 45, 'mange': 80}   # the owner's first guess 
 LIVE_NOTE = 160  # characters of the level's note
 LINE_SHOWN = 6   # candidates shown just above and just below the radar's line
 FRONT_KINDS = ('top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje')   # the front page's palette
-FRONT_BLOCKS = 8     # blocks on the front page
+FRONT_BLOCKS = 8     # blocks in a composition
+FRONT_DRAWN = 6      # of which the app draws the first six (2026-10-17: overskuelighed før fuldstændighed)
 FRONT_TOPS = 2       # 'top' blocks: one, two on a day with two main stories
 FRONT_LIST = 8       # stories in one 'liste'
-FRONT_TOPICS = 4     # developments in one 'udvikling'
+FRONT_TOPICS = 3     # developments in one 'udvikling' (the app shows three)
 BLOCK_TITLE = 40     # characters of a block title
 FRONT_LINE = 120     # characters of a 'linje'
 LIST_STYLES = ('kompakt', 'billeder')
@@ -164,6 +165,27 @@ def clip(s, n):
 def kept(value):
     """A part the update leaves out, or marks "keep", stays as it is on the front page."""
     return value is None or (isinstance(value, str) and value.strip().casefold() == KEEP_WORD)
+
+
+# the lede's parts, each of which opens its story on the front page (the owner, 17/10): cut where the clauses meet, a
+# part of fewer than three words joined to its neighbour – the app's `ledeParts` (public/app.js); keep the two alike
+LEDE_CUT = re.compile(r'(,\s+(?:og|mens)\s+|,\s+|;\s*|\s+–\s+|\s+mens\s+|\s+og\s+)')
+
+
+def lede_parts(text):
+    """The lede's parts in order, as the app cuts them."""
+    def words(s):
+        return sum(1 for w in s.split() if re.search(r'[^\W_]', w))
+    bits, out = LEDE_CUT.split(str(text or '').strip()), []   # out: [text, the separator before it]
+    for k in range(0, len(bits), 2):
+        part, sep = bits[k], bits[k - 1] if k else ''
+        if out and words(part) < 3:
+            out[-1][0] += sep + part
+        else:
+            out.append([part, sep])
+    if len(out) > 1 and words(out[0][0]) < 3:
+        out[:2] = [[out[0][0] + out[1][1] + out[1][0], '']]
+    return [p for p, _ in out if p]
 
 
 # ------------------------------------------------------------------ the day and the archive
@@ -874,6 +896,9 @@ def cmd_gate(args):
 TEMPLATE = {
     'lede': '<one Danish sentence of at most about 25 words: the day so far, its heaviest movements first – reality only; '
             'leave the field out (or "keep") to keep the lede on the front page>',
+    'lede_ids': ['<optional: the story id each part of the lede opens on the front page, one per part in order (the parts '
+                 'are cut at ", ", " mens ", " og ", ";" and " – ", a part of fewer than three words joined to its '
+                 'neighbour); "" for a part that names no story; leave out and the app finds the stories itself>'],
     'topics': [{
         'name': "<a topic of today's or yesterday's recap, written exactly as listed, or a new short concrete Danish heading>",
         'section': 'dk | me | world',
@@ -897,6 +922,7 @@ TEMPLATE = {
     'drop': ['<a story id in Live to take out today>'],
     'note': "<one line of reality: why today's level, e.g. 'Mange angreb og to topmøder'>",
     'front': {'lede': '<optional: the lede for the front page, when the update gives none above>',
+              'lede_ids': ['<optional: as "lede_ids" above, for this lede>'],
               'blocks': [{'kind': 'top', 'story': '<id>', 'title': '<informative headline, optional>', 'with': ['<id>'],
                           'timeline': '<a recap topic name, optional>', 'picture': True},
                          {'kind': 'liste', 'title': "<block title, e.g. 'Danmark' or 'Krigen i Sudan'>",
@@ -953,6 +979,10 @@ def front_lines(notes, digest, by_id):
     out = ['## The front page now – keep what still holds', '']
     lede_at = notes.get('lede_at') or notes.get('created')
     out.append(f"Lede (written {dk(ts(lede_at)):%d.%m %H.%M}): {notes['lede']}" if notes.get('lede') and lede_at else 'Lede: none yet')
+    if notes.get('lede'):   # each part opens a story on the front page ("lede_ids": one id per part)
+        ids = notes.get('lede_ids') or []
+        out.append('Lede parts: ' + ' | '.join(f'{k}. {x}' + (f' = [{ids[k - 1]}]' if k <= len(ids) and ids[k - 1] else '')
+                                              for k, x in enumerate(lede_parts(notes['lede']), 1)))
     tp = main_topic(digest)
     out.append(f"Dagens historie: {tp['name']}" if tp else 'Dagens historie: none yet (the first topic with three lines becomes it)')
     for k, p in enumerate([p for p in notes.get('picks') or [] if p.get('id') in by_id], 1):
@@ -1088,20 +1118,25 @@ def front_section(front, find, notes, now):
     if quotes:
         out.append('Quotes for a "citat" block (the front page\'s now; when this update sends "quotes", q1, q2 … are its own): '
                    + ' | '.join(f"q{k}: {q.get('who')}: {clip(q.get('text'), 60)}" for k, q in enumerate(quotes, 1)))
-    out += ['', 'The palette, in any order you choose (at most 8 blocks; a story in one block only; ids from this input):',
-            '- top: the day\'s main story – its title (your informative headline), up to three related stories in "with", the',
-            '  recap topic whose lines are its timeline, "picture": false for a text lead. Once, or twice on a day with two',
-            '  main stories.',
-            '- liste: a titled group of stories (2-8), "style" kompakt (rows with small pictures) or billeder.',
-            '- udvikling: recap topics (1-4) that moved – the developments to follow.',
+    out += ['', f'The palette, in any order you choose (the app draws {FRONT_DRAWN} blocks – compose at most that many; a',
+            'story in one block only; ids from this input):',
+            '- top: the day\'s main story – its title (your informative headline), one related story in "with" (the app',
+            '  shows one), the recap topic whose lines are its timeline (the app shows its two newest). Dagens historie',
+            '  shows its story\'s own picture above the headline; "picture": false gives a second main story a text lead.',
+            '  Once, or twice on a day with two main stories.',
+            '- liste: a titled group of stories (2-8), "style" kompakt (rows with small pictures) or billeder; the app shows',
+            '  the first three (the rest behind "Alle"), so put the weightiest first.',
+            f'- udvikling: recap topics (1-{FRONT_TOPICS}) that moved – the developments to follow.',
             '- citat: one quote of the front page (q1, q2 …).',
             "- svar: an answer of Hizb ut-Tahrir's (its number) that bears on today – shown as theirs, attributed.",
             '- live: the n newest stories in Live (1-10).',
             "- linje: one short line of reality (at most 120 characters), e.g. '14 nye angreb på Riyadh i dag'.",
             'The owner\'s taste: compact, overskuelighed før fuldstændighed, few kinds of information per row; block titles short',
-            'and concrete, never like a day marker (no "I dag", no dates); Danish politics never buried – a Danish block or',
-            'story high on the page whenever there is Danish news on Islam, Muslims, integration or foreign policy. The rest is',
-            'your own editorial taste and the brain: what leads, how many blocks, what each is called. Every word is reality.',
+            'and concrete, never like a day marker (no "I dag", no dates). Denmark only when it matters: a Danish block or',
+            'story only for a big Danish story, Danish policy on Islam and Muslims, or Denmark\'s place in a great power\'s',
+            'plan – else at most a short block late on the page (the app cuts a Danish list of no such weight to two rows and',
+            'sets it last). The rest is your own editorial taste and the brain: what leads, how many blocks, what each is',
+            'called. Every word is reality.',
             'Send "front" when the day\'s weight or its stories changed; leave it out to keep the composition (re-dated).', '']
     return out
 
@@ -1340,7 +1375,7 @@ def refreshed(blocks, find):
     return out
 
 
-def compose(spec, current, find, pool, topics, quotes, answers, lede, now, problems):
+def compose(spec, current, find, pool, topics, quotes, answers, lede, now, problems, lede_ids=None):
     """The front page as the editor composes it (front.json), or None when there is none to write. spec: the update's
     'front' – left out (or "keep"): the composition now stays, re-dated, its stories as the radar has them (not one of
     an earlier day after 06: the app's fixed page shows until a new one comes). pool: the ids in Live (None before the
@@ -1356,7 +1391,7 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
         blocks = refreshed(cur['blocks'], find)
         if dk(ts(cur['updated'])).date() < dk(now).date():   # a line of yesterday ('… i dag') is not today's
             blocks = [b for b in blocks if b.get('kind') != 'linje']
-        return {'updated': stamp, 'lede': lede, 'blocks': blocks} if blocks else None
+        return {'updated': stamp, 'lede': lede, **({'lede_ids': lede_ids} if lede_ids else {}), 'blocks': blocks} if blocks else None
     if not isinstance(spec, dict) or not isinstance(spec.get('blocks'), list) or not spec['blocks']:
         problems.append('front: an object with "blocks" (a list of at least one block) – or leave "front" out to keep the '
                         'composition')
@@ -1466,7 +1501,44 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
         out.append(row)
     if tops > FRONT_TOPS:
         problems.append(f"front: {tops} 'top' blocks – one, or two on a day with two main stories")
-    return {'updated': stamp, 'lede': lede, 'blocks': out}
+    return {'updated': stamp, 'lede': lede, **({'lede_ids': lede_ids} if lede_ids else {}), 'blocks': out}
+
+
+def lede_links(draft, prev, lede, fresh, by_id, problems):
+    """The story each part of the lede opens (`lede_ids`, one id per part of `lede_parts`, '' for a part that names
+    none), or None: the app then finds them by the parts' words. Given with the lede (or with front.lede); a kept lede
+    keeps its own. Each id is checked as the picks' are – a story of the pool, an old lead article's id resolved to its
+    story's id now."""
+    given = draft.get('lede_ids')
+    if given is None and isinstance(draft.get('front'), dict):
+        given = draft['front'].get('lede_ids')
+    if kept(given):
+        if fresh:
+            return None   # a new lede without ids: the app matches its parts
+        given, old = prev.get('lede_ids'), True
+        if not isinstance(given, list):
+            return None
+    else:
+        old = False
+    if not isinstance(given, list):
+        problems.append('lede_ids: a list of story ids, one per part of the lede in order ("" for none) – or leave it out')
+        return None
+    parts = lede_parts(lede)
+    if not old and len(given) != len(parts):
+        problems.append(f'lede_ids: {len(given)} ids for {len(parts)} parts of the lede – one per part, in order: '
+                        + ' | '.join(f'{k}. {p}' for k, p in enumerate(parts, 1)))
+    out = []
+    for x in given[:len(parts)]:
+        x = '' if x is None else str(x).strip()
+        if not x:
+            out.append('')
+        elif x in by_id:
+            out.append(by_id[x]['id'])
+        elif old:
+            out.append(x)   # its story left the radar: the app finds the part's story itself
+        else:
+            problems.append(f'lede_ids: unknown story id {x!r}')
+    return out if any(out) else None
 
 
 def build(draft, data, lines, moves, now, previous=None, extra=None):
@@ -1663,8 +1735,9 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             voice.check_voice(lede, 'front: lede', problems)
             voice.check_reality(lede, 'front: lede', problems)
             problems[:] = [p for p in problems if not p.startswith('lede: ')]   # the front page's lede is the update's
+    lede_ids = lede_links(draft, prev, lede, lede_at == stamp, by_id, problems)
     front = compose(draft.get('front'), extra.get('front'), find, pool, topics, quotes, extra.get('answers'), lede, now,
-                    problems)
+                    problems, lede_ids)
     if front and lede and lede_at == stamp:   # a new lede is a standfirst: it does not repeat the main story's headline
         top = next((b for b in front['blocks'] if b.get('kind') == 'top'), None)
         if top:
@@ -1686,8 +1759,9 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
     for date in touched | {today.isoformat()}:
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
-    notes = {'created': stamp, 'lede': lede, 'lede_at': lede_at, 'picks': picks, 'moves': list(fixes.values()),
-             'quotes': quotes, 'summaries': sums, 'titles': heads, 'live': live, 'front': front}
+    notes = {'created': stamp, 'lede': lede, 'lede_at': lede_at, **({'lede_ids': lede_ids} if lede_ids else {}),
+             'picks': picks, 'moves': list(fixes.values()), 'quotes': quotes, 'summaries': sums, 'titles': heads,
+             'live': live, 'front': front}
     return days, notes, []
 
 

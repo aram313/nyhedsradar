@@ -825,6 +825,17 @@ function picFailed(img, fallback) {
   badPics.add(img.getAttribute('src'));
   if (fallback && !badPics.has(fallback)) img.setAttribute('src', fallback); else img.remove();
 }
+// Dagens historie's picture (the owner, 17/10: "Kan dagens historie ikke få et billede?"): the story's own full-size
+// picture (`pic`: the feed's or the outlet's og:image, else another outlet's – the radar never takes one from an
+// unverified channel), never the small copy blown up and never an initials tile; none, or one that failed: the text lead
+const leadPic = i => [i.pic].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
+function leadPicFailed(img) {
+  badPics.add(img.getAttribute('src'));   // remembered: a reload draws the text lead
+  const art = img.closest('.story'), box = img.closest('.lead-pic'), sec = img.closest('.block.top');
+  if (box) box.remove();
+  if (art) art.classList.remove('lp');
+  if (sec) sec.classList.add('text');
+}
 function thumb(source, file) {
   const src = file && THUMBS + file, ok = src && !badPics.has(src);
   return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${ok
@@ -863,9 +874,11 @@ function topNow() {
 function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
-  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', i.important && 'imp', open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', i.important && 'imp', open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
+  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</div>
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? '' : thumb(i.source, i.thumb)}</div>
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
 // what a screen reader says for a row: the headline once, then the outlet, the time and its label
@@ -1156,12 +1169,15 @@ function stepsWithDays(lines, sess, cls = l => '') {
   }
   return html;
 }
-// the main story's development: its three newest updates under a label that names the development and opens it
-function storyline(tp, n = 3) {
-  const lines = newestFirst(tp.lines).slice(0, n), sess = linkSession(), key = tp.key || thrKey(tp.name);
+// the main story's development: its two newest updates under a label that names the development and opens it, then
+// 'Hele udviklingen ›' when it has more; on the front page without the wiki's underlines (they are in the opened stories
+// and on the Udvikling page)
+function storyline(tp, n = 2) {
+  const lines = newestFirst(tp.lines).slice(0, n), more = tp.lines.length > n, key = tp.key || thrKey(tp.name);
   // its own section's colour, as on Udvikling and in search – never the story's it sits under
   return { lines, html: `<div class="follow pkg-f" data-sec="${esc(tp.section || '')}"><button class="pkg-h" data-follow="${key}"><span>Udvikling: ${esc(tp.name)}</span>`
-    + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button><ol>${stepsWithDays(lines, sess)}</ol></div>` };
+    + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button><ol>${stepsWithDays(lines, null)}</ol>`
+    + (more ? `<button class="tl-all" data-follow="${key}">Hele udviklingen<svg aria-hidden="true"><use href="#i-chev"/></svg></button>` : '') + '</div>' };
 }
 // today's strongest stories (the editor's picks and the owner's raised ones first)
 function frontCands(all, n = 12) {
@@ -1224,17 +1240,37 @@ function frontNow() {
   return f;
 }
 const threadNamed = name => name && allThreads().find(t => t.key === thrKey(String(name)));
+// Denmark only when it matters (the owner, 17/10: "danmark er ikke så vigtig behøver ikke fylde så meget medmindre det
+// er vigtige historier"): a Danish story matters on the front page when it is big, when Live holds it as Danish politics
+// on Islam, Muslims, integration or foreign policy (`live: 'dk'`), or when it is among the day's five strongest (the
+// editor's picks first, then rank). Live and the radar keep their Danish rules; this is the front page's.
+const FRONT_MAX = 6;   // blocks after the lede, whatever the composition says
+const dayTops = () => new Set(frontCands(stories().filter(i => i.kind !== 'kommentar'), 5).map(i => i.id));
+const dkMatters = (i, tops) => !!i && (!!i.big || i.live === 'dk' || tops.has(i.id));
+// the composition's blocks in the order drawn: a list whose stories are all Danish and none of them matters is cut to
+// two rows (`dkQuiet`) and goes after the other blocks
+function frontOrder(blocks) {
+  const tops = dayTops(), quiet = [], rest = [];
+  for (const b of blocks || []) {
+    const list = b && b.kind === 'liste' ? (b.stories || []).map(x => findStory(String(x || ''))).filter(Boolean) : [];
+    if (list.length && list.every(i => secOf(i) === 'dk') && !list.some(i => dkMatters(i, tops))) quiet.push({ ...b, dkQuiet: true });
+    else rest.push(b);
+  }
+  return [...rest, ...quiet];
+}
 function composedHome(all, opts, f) {
   const used = new Set();
   const take = id => { const i = findStory(String(id || '')); if (!i || used.has(i.id)) return null; used.add(i.id); return i; };
   // the owner's own choice of the main story (held on the front page) leads the first main block
   const pin = owner().lead && findStory(owner().lead);
-  let html = '', n = 0, filled = 0, tops = 0;
+  let html = '', n = 0, filled = 0, tops = 0, drawn = 0;
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
-  for (const b of f.blocks) {
+  for (const b of frontOrder(f.blocks)) {
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
+    if (drawn >= FRONT_MAX) break;   // overskuelighed før fuldstændighed: at most six blocks, whatever the composition
+    const before = html.length;
     if (b.kind === 'top') {
       const first = !tops, i = take(first && pin ? pin.id : b.story);
       if (!i) continue;   // its story left Live: the next main block is the day's story
@@ -1243,9 +1279,11 @@ function composedHome(all, opts, f) {
       const t = first && pin && pin.id !== (findStory(b.story) || {}).id ? '' : String(b.title || '');
       const shown = t ? { ...i, title: t, kw: [...new Set([...(i.kw || []), ...(i.kw_da || [])])] } : i;
       shownAs.set(i.id, shown);   // opened, shared or saved, it is the headline the front page shows
-      const hero = b.picture !== false && !!(i.thumb || i.pic);
-      html += `<section class="block top pkg${hero ? '' : ' text'}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
-        + story(shown, n++, { ...opts, tag: true, top: true, hero, lead: !hero });
+      // its picture large above the headline: Dagens historie always when it has one, a second main story unless the
+      // editor chose a text lead
+      const pic = first || b.picture !== false ? leadPic(i) : '';
+      html += `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
+        + story(shown, n++, { ...opts, tag: true, top: true, lead: true, pic });
       // the development under the story is the story's own: the editor's timeline when its name shares a subject with
       // the story's headline (or the editor filed this very story in it), else the development the story belongs to by
       // the same test – else none: a timeline of another development is worse than none
@@ -1255,22 +1293,25 @@ function composedHome(all, opts, f) {
       // development's name helps find it only when the development is the story's own
       html += mainAnswer(i, tp ? tp.name : '', svarSet);
       if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
-      for (const w of (b.with || []).map(take).filter(Boolean)) html += story(w, n++, { ...opts, tag: true, top: true });
+      for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true }); break; } }   // one more at most
       html += '</section>';
       filled++;
     } else if (b.kind === 'liste') {
-      const list = (b.stories || []).map(take).filter(Boolean);
-      if (!list.length) continue;
+      const all = (b.stories || []).map(take).filter(Boolean);
+      if (!all.length) continue;
+      // three stories (a quiet Danish block two), then 'Alle ›' unfolds the rest in place
+      const key = 'front|' + (b.title || ''), most = b.dkQuiet ? 2 : 3, list = unfolded.has(key) ? all : all.slice(0, most);
+      const more = all.length > most ? `<button class="more" data-unfold="${esc(key)}" aria-expanded="${unfolded.has(key)}">${unfolded.has(key) ? 'Færre' : 'Alle<svg aria-hidden="true"><use href="#i-chev"/></svg>'}</button>` : '';
       // 'billeder': the first story with the outlet's own picture is set large, the rest as rows; a list of one
       // section ('Danmark') does not say the section on every row, and a list of mostly one only on the other ones
       const big = b.style === 'billeder' ? list.find(i => i.pic) : null, tag = new Set(list.map(secOf)).size > 1;
       const msec = tag ? mainSec(list) : '';
-      html += `<section class="block f-list">${blockHead(esc(b.title || ''))}`
+      html += `<section class="block f-list${unfolded.has(key) ? ' unf' : ''}">${blockHead(esc(b.title || ''), more)}`
         + (big ? story(big, n++, { ...opts, tag, msec, top: true, hero: true }) : '')
         + list.filter(i => i !== big).map(i => story(i, n++, { ...opts, tag, msec, top: true })).join('') + '</section>';
       filled++;
     } else if (b.kind === 'udvikling') {
-      const list = (b.topics || []).map(threadNamed).filter(Boolean);
+      const list = (b.topics || []).map(threadNamed).filter(Boolean).slice(0, 3);
       if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
       if (list.length) html += folBlock(list);
     } else if (b.kind === 'citat') {
@@ -1289,15 +1330,16 @@ function composedHome(all, opts, f) {
       for (const id of skip) if (!named.includes(id)) used.add(id);
       html += strip;
     } else if (b.kind === 'linje' && b.text) {
-      html += `<p class="f-line">${rich(String(b.text), linkSession())}</p>`;
+      html += `<p class="f-line">${esc(String(b.text))}</p>`;   // the front page's texts without the wiki's underlines
     }
+    if (html.length > before) drawn++;
   }
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
     if (m) {
-      const hero = !!(m.thumb || m.pic);
-      html = `<section class="block top pkg${hero ? '' : ' text'}" data-sec="${secOf(m)}">${blockHead('Dagens historie')}`
-        + story(m, n++, { ...opts, tag: true, top: true, hero, lead: !hero }) + mainAnswer(m, '', svarSet) + '</section>' + html;
+      const pic = leadPic(m);
+      html = `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(m)}">${blockHead('Dagens historie')}`
+        + story(m, n++, { ...opts, tag: true, top: true, lead: true, pic }) + mainAnswer(m, '', svarSet) + '</section>' + html;
     }
   }
   return filled ? html : null;   // a composition with none of its stories left: the fixed page
@@ -1333,14 +1375,122 @@ function mainAnswer(i, extra, skip) {
   if (a && !String(skip).split(',').includes(a.nr)) { frontAns.add(a.nr); return `<div class="ans-ref">${answerLine(a)}</div>`; }
   return ready ? '' : `<div class="ans-ref" data-ans-for="${esc(i.id)}" data-ans-main="1"${extra ? ` data-ans-x="${esc(extra)}"` : ''}${skip ? ` data-ans-skip="${esc(skip)}"` : ''}></div>`;
 }
+// ---------------------------------------------------------------- the lede's parts open their stories (the owner, 17/10)
+// "øverste titel skal linke til de forskellige nyheder": the lede is cut where its clauses meet (', ', ' mens ', ' og ',
+// ';', ' – '); a part of fewer than three words joins its neighbour. Each part opens the story it names: the editor's
+// `lede_ids` (one story id per part, in order; '' for none) when the update gave them, else the story that shares the
+// part's distinctive words – names and places first, the words most stories share left out –, looked for among the
+// front page's stories first, then in all of Live. Neighbouring parts about one story are one link; a part without a
+// story stays plain text. Keep `lede_parts` in scripts/editor.py alike.
+const LEDE_CUT = /(,\s+(?:og|mens)\s+|,\s+|;\s*|\s+–\s+|\s+mens\s+|\s+og\s+)/u;
+const ledeWords = s => s.split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+function ledeParts(text) {
+  const bits = String(text || '').trim().split(LEDE_CUT), out = [];
+  for (let k = 0; k < bits.length; k += 2) {
+    const p = { t: bits[k], sep: k ? bits[k - 1] : '' };
+    if (out.length && ledeWords(p.t) < 3) out[out.length - 1].t += p.sep + p.t;
+    else out.push(p);
+  }
+  if (out.length > 1 && ledeWords(out[0].t) < 3) { out[1] = { t: out[0].t + out[1].sep + out[1].t, sep: '' }; out.shift(); }
+  return out.filter(p => p.t);
+}
+// the words a part names, each with its weight: a name (a capital, or a wiki page the part names) 2, another word of
+// five letters or more 1; compared by their first six letters, so 'Ruslands' is 'Rusland'
+const LEDE_STOP = new Set(['efter', 'under', 'siger', 'sagde', 'mange', 'flere', 'denne', 'dette', 'disse', 'imod', 'mellem', 'omkring',
+  'blandt', 'igen', 'endnu', 'stadig', 'allerede', 'kalder', 'mens', 'samtidig', 'første', 'andre', 'anden', 'hvor', 'havde', 'bliver',
+  'blevet', 'skulle', 'kunne', 'ville', 'være', 'været', 'over', 'langs', 'store', 'stort', 'større', 'nyt', 'nye', 'dagen', 'døgnet',
+  'efterhånden', 'there', 'their', 'which', 'after', 'while', 'today']);
+const ledeStem = w => w.toLowerCase().slice(0, 6);
+function ledeKeys(text, wiki = []) {
+  const keys = new Map();
+  for (const w of String(text || '').split(/[^\p{L}\p{N}]+/u)) {
+    const lw = w.toLowerCase();
+    if (!w || LEDE_STOP.has(lw)) continue;
+    const name = /^\p{Lu}/u.test(w) && (lw.length >= 3 || w === w.toUpperCase());
+    if (!name && lw.length < 5) continue;
+    const k = ledeStem(w);
+    keys.set(k, Math.max(keys.get(k) || 0, name ? 2 : 1));
+  }
+  for (const id of wiki) keys.set('#' + id, 2);
+  return keys;
+}
+// a story's words: its headlines (the shown one, its lead article's, the Danish one, the other outlets'), its bold words
+// and the wiki's pages it names
+const ledeStoryKeys = (i, wiki) => {
+  const text = [i.title, i.origTitle, i.title_da, ...(i.also || []).map(a => a.title), ...(i.kw || []), ...(i.kw_da || [])].filter(Boolean).join(' · ');
+  return new Set([...text.split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 2).map(ledeStem),
+    ...[...(i.actors || []), ...wiki(text)].map(id => '#' + id)]);
+};
+// parts: ledeParts(text); front: the front page's stories in its order; live: all of Live; ids: the editor's lede_ids;
+// byId: a story by its id (any of its articles); wiki: the wiki page ids a text names
+function ledeLinks(text, front, live, ids = null, byId = () => null, wiki = () => []) {
+  const parts = ledeParts(text), pool = [...new Map([...front, ...live].filter(Boolean).map(i => [i.id, i])).values()];
+  const keysOf = new Map(pool.map(i => [i.id, ledeStoryKeys(i, wiki)]));
+  const df = new Map();
+  for (const ks of keysOf.values()) for (const k of ks) df.set(k, (df.get(k) || 0) + 1);
+  const N = pool.length, common = k => N >= 8 && df.get(k) > N / 4;
+  const best = (keys, list) => {
+    let top = null, score = 0;
+    for (const i of list) {
+      const ks = keysOf.get(i.id);
+      let sc = 0, hits = 0, named = false;
+      for (const [k, w] of keys) {
+        if (!ks.has(k) || common(k)) continue;
+        hits++; named ||= w === 2; sc += w * Math.log(1 + N / df.get(k));
+      }
+      if ((named || hits >= 2) && sc > score + 1e-9) { top = i; score = sc; }
+    }
+    return score >= 2.5 ? top : null;
+  };
+  const frontIds = new Set(front.filter(Boolean).map(i => i.id)), inFront = pool.filter(i => frontIds.has(i.id));
+  const out = [];
+  parts.forEach((p, k) => {
+    let id = null;
+    const given = Array.isArray(ids) ? ids[k] : undefined;
+    if (given === '' || given === null) id = null;   // the editor: this part names no story
+    else {
+      const g = typeof given === 'string' ? byId(given) : null;
+      if (g) id = g.id;
+      else { const keys = ledeKeys(p.t, wiki(p.t)); id = (best(keys, inFront) || best(keys, pool) || {}).id || null; }
+    }
+    const last = out[out.length - 1];
+    if (last && id && last.id === id) last.t += p.sep + p.t;
+    else out.push({ ...p, id });
+  });
+  return out;
+}
+// the lede as one paragraph: each part with a story a real link to it (no paragraph is a button), its closing stop
+// outside the link
+function ledeHtml(lede, front, ids) {
+  const wiki = t => scan(t).map(f => f.id).filter(id => !LINK_SKIP.has(id));
+  return ledeLinks(lede, front, stories(), ids, findStory, wiki).map(p => {
+    if (!p.id) return esc(p.sep + p.t);
+    const [, words, stop] = p.t.match(/^([\s\S]*?)([.!?…]*)$/u);
+    return `${esc(p.sep)}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-lede="${esc(p.id)}">${esc(words)}</a>${esc(stop)}`;
+  }).join('');
+}
+// a part of the lede tapped: its story on the front page opens in place, in view; one the page does not show opens in
+// Live, as a link with ?item= does
+function ledeGo(id) {
+  const i = findStory(id);
+  if (!i) return;
+  const el = tab === 'home' && pg$('s-' + i.id);
+  if (!el) { openInLive(i.id); return; }
+  if (!el.classList.contains('open')) toggle(el);
+  cancelAnimationFrame(moveT);   // no pinning of the row where it was: it comes up under the bar
+  scrollToEl(el, 8);
+  setTimeout(() => { if (!touching && el.isConnected) scrollToEl(el, 8); }, 150);   // rows above it laid out by now
+}
+// the stories a front page shows, in its order: its rows and its Live strip
+const pageStories = html => [...new Set([...html.matchAll(/(?:id="s-|data-live=")([^"]+)"/g)].map(m => m[1]))].map(id => find(id) || findStory(id));
 // the head of the front page: the date with 'Del overblik' (the day's overview as a WhatsApp text), the editor's lede
-// whole – what informs is never cut (the editor keeps it to about 25 words) –, and after a long break one line of what
-// came meanwhile
-function ledeHead(lede) {
+// whole – what informs is never cut (the editor keeps it to about 25 words), its parts the ways to their stories –, and
+// after a long break one line of what came meanwhile
+function ledeHead(lede, body = '', ids = null) {
   const todayStr = FMT.ymd.format(new Date());
   return `<header class="lede"><div class="lede-d"><span>${cap(dateDa(todayStr, true))}</span>`
     + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
-    + (lede ? `<p class="lede-t">${rich(lede, linkSession())}</p>` : '') + catchUpLine() + '</header>' + installCard();
+    + (lede ? `<p class="lede-t">${ledeHtml(lede, pageStories(body), ids)}</p>` : '') + catchUpLine() + '</header>' + installCard();
 }
 // the foot: oil and fuel one quiet row away, and what Khabar read and chose
 function homeFoot(all) {
@@ -1351,15 +1501,16 @@ function home(all, opts) {
   opts = { ...opts, home: true };
   frontAns.clear();
   const f = frontNow(), composed = f && composedHome(all, opts, f);
-  if (composed) return ledeHead(f.lede || notes().lede) + composed + homeFoot(all);
+  // the lede's parts link the stories the page shows: the page is drawn first
+  if (composed) return ledeHead(f.lede || notes().lede, composed, f.lede ? f.lede_ids : notes().lede_ids) + composed + homeFoot(all);
   frontAns.clear();
   return fixedHome(all, opts);
 }
 // the fixed front page, while the editor has composed none today: the day's main story as a package, the rest of the
-// day's top, the strongest Danish stories, the developments, the day's quote, Live
+// day's top, Danish stories only when they matter, the developments, the day's quote, Live
 function fixedHome(all, opts) {
   const news = all.filter(i => i.kind !== 'kommentar'), top = frontCands(news), pkg = mainChoice(top);
-  let html = ledeHead(notes().lede);
+  let html = '';
   const lead = pkg ? pkg.story : top.find(i => i.thumb) || top[0];
   // the package's other stories about the same thing stay out of the lists below
   const same = i => pkg && i !== lead && overlap(stems([i.title, i.origTitle, i.title_da].join(' ')), pkg.ts) >= 3;
@@ -1369,7 +1520,7 @@ function fixedHome(all, opts) {
     // a Danish outlet's headline for the package when the story has one
     const dk = lead.lang !== 'da' && lead.how !== 'ed' && (lead.also || []).find(a => a.group === 'dk' && !curious(a.title));
     const shown = dk ? { ...lead, title: dk.title, origTitle: dk.title, source: dk.source, kw: [] } : lead;
-    html += `<section class="block top pkg" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, hero: !!lead.thumb })}`;
+    html += `<section class="block top pkg${leadPic(lead) ? '' : ' text'}" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, lead: true, pic: leadPic(lead) })}`;
     // one quiet line when the amir has answered on the main story's subject (its own words, and the recap topic's name
     // when that topic is the story's own); the topic's timeline only then too
     own = pkg && pkg.topic && topicOf(lead, pkg.topic) ? pkg.topic : null;
@@ -1381,18 +1532,19 @@ function fixedHome(all, opts) {
     }
     html += '</section>';
   }
-  const rest = top.filter(i => i !== lead && !same(i)).slice(0, 4);
+  const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
-  // the three strongest confirmed Danish stories not shown above (Danish politics is never buried)
-  const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id));
-  const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i)), 3);
+  // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
+  // strongest), and then its two strongest such stories not shown above
+  const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
+  const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
   if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
   html += followStrip(own);   // not the main story's own development again
   if (!pq) html += quoteOfDay(pin);   // no statement from the main story (or the owner picked one): the day's quote
   html += nowStrip(3, onPage);
-  return html + homeFoot(all);
+  return ledeHead(notes().lede, html, notes().lede_ids) + html + homeFoot(all);
 }
 // a statement from the recap, set as a quote (the front page's 'Dagens citat' and the main story's)
 const quoteCard = (l, pick) => `<a class="quote"${pick ? ' data-pick' : ''} href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;
@@ -2548,6 +2700,7 @@ function openInLive(id) {
   if (!latestAll && hours(i) >= 24) latestAll = true;
   liveSort = 'new';   // found by its time; the phone's own choice returns next time
   expanded.clear(); expanded.add(i.id);
+  ver++;   // the story opened is a change: Live drawn ahead of time is drawn again, with it open
   if (tab === 'latest') render(); else setTab('latest', { top: true });
   scrollToEl(pg$('s-' + i.id), storyGap());   // the page is laid out by now: straight there, headline just below the day band
 }
@@ -2608,6 +2761,8 @@ async function share(text, i) {
 
 $('list').addEventListener('click', async e => {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
+  const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
+  if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
   const bg = t.closest('[data-begreb]');
   if (bg) { e.preventDefault(); openSide('begreb', bg.dataset.begreb); return; }

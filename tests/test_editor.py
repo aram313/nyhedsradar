@@ -385,7 +385,7 @@ def test_the_brain_weighs_by_the_books_and_the_newest_answers(viden):
     assert len(text) <= brain.BUDGET and 'The app shows no analysis' in text
     assert "### The books' order of weight (heaviest first) – each story's tier is in the lists below" in text
     assert '1 sign of change in the international situation' in text and '13 weighed down' in text
-    assert "Danish politics is never buried" in text
+    assert "Danmark only when it matters" in text and 'two or three picks' not in text   # the owner, 17/10
     state = text.split('### Den internationale tilstand ifølge Hizb ut-Tahrirs nyeste svar')[1].split('###')[0]
     assert '- USA (nr 28942): Ifølge Hizb ut-Tahrirs svar af 14/1/2026 er USA den førende stat.' in state   # first sentence
     assert 'Svaret siger mere' not in state and state.index('- USA') < state.index('- Rusland')         # the leading state first

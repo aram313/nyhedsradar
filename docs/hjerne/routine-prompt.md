@@ -56,9 +56,11 @@ plain Danish without "Ifølge …".
    - `lede`: one sentence of at most about 25 words, the day's heaviest movements first by the brain; reality only.
      Leave it out to keep the lede on the front page; write a new one when the weight of the day has changed (a story of
      a heavier tier, a development that moved), never only to vary the words. After 06 the day needs its own lede.
-   - `picks`: up to 8, the weightiest first by the brain; two or three Danish ones whenever stories touching Islam and
-     Muslims, integration and immigration, or Denmark's place in a great power's plan exist (Danish politics is never
-     buried); a few plain words of `why` (who acts, the tier). Leave out to keep.
+     Each part of the lede (cut at ", ", " mens ", " og ", ";" and " – ") opens its story on the front page; the app
+     finds it by the part's words, or give `lede_ids`: one story id per part, in order ("" for none).
+   - `picks`: up to 8, the weightiest first by the brain; a few plain words of `why` (who acts, the tier). Danish
+     stories are picked only when they are important: a big Danish story, Danish policy on Islam and Muslims, or
+     Denmark's place in a great power's plan. Leave out to keep.
    - recap lines (`topics`): one to four, at most five – 'who' and one short factual sentence – continuing a topic by
      its exact name; none when nothing new and important happened. `order`: the day's topics, weightiest first – its
      first topic with three lines or more is Dagens historie.
@@ -92,9 +94,11 @@ plain Danish without "Ifølge …".
      Leave them out to keep today's.
    - `front`: the front page, composed by your own editorial taste and the brain – which blocks, in what order, what
      leads, what each block is called – from the palette the input shows (top, liste, udvikling, citat, svar, live,
-     linje; at most 8 blocks; a story in one block only; its stories in Live or taken in). The owner's taste: compact,
-     overskuelighed før fuldstændighed, few kinds of information per row, block titles short and concrete and never
-     like a day marker, Danish politics never buried. Every word on it is reality (a block title names what it holds;
+     linje; at most 6 blocks, the app draws no more; a list shows its first three stories; a story in one block only;
+     its stories in Live or taken in). The owner's taste: compact, overskuelighed før fuldstændighed, few kinds of
+     information per row, block titles short and concrete and never like a day marker. Danish stories get a block only
+     when they are important: a big Danish story, Danish policy on Islam and Muslims, or Denmark's place in a great
+     power's plan; otherwise they at most get a short block late on the page. Every word on it is reality (a block title names what it holds;
      a `linje` states a fact, e.g. a count). Compose one at the day's first update and whenever the day's weight or
      its stories change; leave it out to keep the composition (its stories that left the radar are dropped).
      `front.lede` may carry the lede when the update gives none in `lede`.

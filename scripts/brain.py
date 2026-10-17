@@ -54,8 +54,9 @@ RULES = [
     "Weight is whether a development moves – a plan, a standing, the international situation – never noise or the number "
     "of outlets alone. A great power's political act is never dropped. The campaign against the belief weighs up even "
     "when it looks small.",
-    "Danmark: Danish politics is never buried. Stories on Islam and Muslims, integration and immigration, and Denmark's "
-    "foreign policy and its place in a great power's plan get two or three picks whenever they exist.",
+    "Danmark only when it matters: a big Danish story, Danish policy on Islam and Muslims, or Denmark's place in a great "
+    "power's plan is picked and may get a block; other Danish news at most a short block late on the front page (Live "
+    "keeps Danish politics).",
 ]
 PURPOSE = [
     "Use it only to weigh: the lede, the picks, Dagens historie (the recap's first topic with three lines or more – "
