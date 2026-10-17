@@ -1,0 +1,673 @@
+{
+ "date": "2026-10-17",
+ "title": "Politiske nyheder – 17. oktober 2026",
+ "created": "2026-10-17T21:02:59+00:00",
+ "updates": [
+  "2026-10-16T22:03:59+00:00",
+  "2026-10-17T06:04:01+00:00",
+  "2026-10-17T09:03:28+00:00",
+  "2026-10-17T09:11:53+00:00",
+  "2026-10-17T10:03:55+00:00",
+  "2026-10-17T11:03:28+00:00",
+  "2026-10-17T12:03:57+00:00",
+  "2026-10-17T13:02:58+00:00",
+  "2026-10-17T14:03:12+00:00",
+  "2026-10-17T15:03:15+00:00",
+  "2026-10-17T16:03:21+00:00",
+  "2026-10-17T17:02:59+00:00",
+  "2026-10-17T18:03:26+00:00",
+  "2026-10-17T19:03:06+00:00",
+  "2026-10-17T20:03:18+00:00",
+  "2026-10-17T21:02:59+00:00"
+ ],
+ "topics": [
+  {
+   "name": "Trump og Rusland",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Ruslands udenrigsminister Lavrov",
+     "text": "Er ankommet til Bahrain forud for det niende strategiske møde mellem Rusland og Golfrådet søndag.",
+     "link": "https://www.aa.com.tr/en/eurasia/lavrov-arrives-in-bahrain-ahead-of-russia-gcc-meeting/4092303",
+     "source": "Anadolu",
+     "at": "2026-10-17T20:54:50+00:00",
+     "added": "2026-10-17T21:02:59+00:00",
+     "id": "b668c4bd240b4ee8",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "G20-topmødet kunne danne ramme om et trilateralt møde mellem Ukraine, USA og Rusland.",
+     "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQOUR5Q0s3VEc4U2E4cGR1NU9wUkcyNkZ6OHFHY0Z2a0dPRW1CNmZFUHdNR3VUd1FFdC16UmVVQXpjRUNtRTQ3czZyd05JUzlWNTBqdVZqTlZVbVZhS2JJMnpsbS1tNUI2SzdlUTk5R282QXBIQkRMUkxiRWJZWFpJSkNvUTRpZGNLc0pPYkMzeGVaNER1TWdmRHEwVUJkYm9JbG0zY3U1d2J5OFFpZVlYeTV5UDllR3ZnR1ZtNUg5djZDTHdsbDhWNHlMMA?oc=5",
+     "source": "Business Upturn",
+     "at": "2026-10-17T16:57:56+00:00",
+     "added": "2026-10-17T21:02:59+00:00",
+     "id": "5b36164d01ab1517",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "Han håber på et møde med USA og Rusland under G20-topmødet; hverken USA eller Rusland har bekræftet et muligt møde med Putin i Miami.",
+     "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPdDM2a0NkRFJYMExTcDFiNXZseFl3dXd3MHRMNU1ISjhoZDNieUZ2MTJaY1FvZFlqS190cEhpOTRsR2hqLUF5cFhadjF4MGptZlExUWJORDFHSlR1anN1ZmhBa2NXdXV2c0VDSHFpR0hMa09FS1BNT283X1VHLVJkN05GcHU1VlBYQlNJTVFQUVFCeVBDT09hYm90VWlyRlJaLXlKR2dlZnI?oc=5",
+     "source": "Reuters",
+     "at": "2026-10-17T13:07:09+00:00",
+     "added": "2026-10-17T16:03:21+00:00",
+     "id": "b603859d5ec870ac",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "Han opfordrer til støtte til nye amerikanske sanktioner mod Rusland, efter at Trump har sat dem på pause.",
+     "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOUGNSbDZNbm5wY2VNaTRTRDZiMHFqMW9rbnpvNk1tU0JBdjlTQng0YXhGQTN4bWtRaUNPUUdxY0dHVEhOajRFem5jUFdSVm5QYnkyU1QtcGZuM3BBQnBqTnFYdlBrTHYyampsUEtDMDB5RUdIYVpJZVY5eHBlank0T1BhLW1OSWo5bnNNVUdCR0FJQjRRLVEtNVFqeHlZQjc2Mm1n?oc=5",
+     "source": "AP",
+     "at": "2026-10-17T10:12:00+00:00",
+     "added": "2026-10-17T11:03:28+00:00",
+     "id": "8cae3fca4e6abc37",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "Fritagelsen af Moskva fra amerikanske sanktioner belønner Putin, og Europas og USA's fortsatte støtte er nødvendig.",
+     "link": "https://t.me/AjaNews/517258",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T09:26:24+00:00",
+     "added": "2026-10-17T10:03:55+00:00",
+     "id": "b9a540290b773856",
+     "kind": "w"
+    },
+    {
+     "who": "Putins udsending",
+     "text": "Trumps ophævelse af nye sanktioner mod Rusland er et »historisk øjeblik«.",
+     "link": "https://www.thehindu.com/news/international/trump-blocking-russia-sanctions-a-historic-moment-putins-envoy/article71595853.ece",
+     "source": "The Hindu",
+     "at": "2026-10-17T08:44:24+00:00",
+     "added": "2026-10-17T09:11:53+00:00",
+     "id": "8ada386ca8b0f615",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Riyadh-lufthavnen og Houthierne",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Irans udenrigsminister Araghchi",
+     "text": "Iran er klar til at hjælpe med at stoppe konflikten mellem Saudi-Arabien og Yemen, og 12 års konflikt har vist, at der ikke findes en militær løsning.",
+     "link": "https://t.me/AjaNews/517272",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T11:11:25+00:00",
+     "added": "2026-10-17T12:03:57+00:00",
+     "id": "8b280c6dab143337",
+     "kind": "w"
+    },
+    {
+     "who": "Egyptens præsident al-Sisi",
+     "text": "Egypten er klar til at gennemføre enhver handling, Saudi-Arabien ønsker, og han har bedt parlamentet om hastemøde om bemyndigelse til indgreb efter saudisk anmodning.",
+     "link": "https://t.me/Alarabiya/167639",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T09:08:26+00:00",
+     "added": "2026-10-17T10:03:55+00:00",
+     "id": "2be6284cdeb5606a",
+     "kind": "w"
+    },
+    {
+     "who": "Egyptens præsident",
+     "text": "Egypten accepterer ikke angreb på Saudi-Arabien eller dets sikkerhed og stabilitet.",
+     "link": "https://t.me/AjaNews/517257",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T08:53:57+00:00",
+     "added": "2026-10-17T09:03:28+00:00",
+     "id": "ae482f136cca404b",
+     "kind": "w"
+    },
+    {
+     "who": "Reuters",
+     "text": "Missiler ramte Adens lufthavn, mens koalitionen opsnappede et missil mod Yanbu.",
+     "link": "https://www.jpost.com/middle-east/article-911943",
+     "source": "Jerusalem Post",
+     "at": "2026-10-17T00:55:27.209840+00:00",
+     "added": "2026-10-17T06:04:01+00:00",
+     "id": "27145a3a72a7e76b",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Iran og angrebet",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Hegseth",
+     "text": "USA's forsvarsminister siger, at Iran har valget mellem en aftale og ødelæggelse.",
+     "link": "https://www.middleeastmonitor.com/20261017-hegseth-says-iran-has-choice-between-deal-or-devastation/",
+     "source": "Middle East Monitor",
+     "at": "2026-10-17T17:54:03+00:00",
+     "added": "2026-10-17T18:03:26+00:00",
+     "id": "a3c5d18db4d88c6c",
+     "kind": "s"
+    },
+    {
+     "who": "Fars, TASS",
+     "text": "Eksplosioner er hørt i det sydlige Iran nær Hormuzstrædet, i Kuhestak og flere distrikter i Sirik.",
+     "link": "https://tass.com/world/2203559",
+     "source": "TASS",
+     "at": "2026-10-17T16:02:38+00:00",
+     "added": "2026-10-17T17:02:59+00:00",
+     "id": "19774ecd4ce13f2c",
+     "kind": "s"
+    },
+    {
+     "who": "Iransk lovgiver",
+     "text": "Indirekte samtaler med USA fortsætter gennem Qatar og Oman, ifølge en rapport.",
+     "link": "https://www.middleeastmonitor.com/20261017-iranian-lawmaker-says-indirect-talks-with-us-continuing-through-qatar-oman-report/",
+     "source": "Middle East Monitor",
+     "at": "2026-10-17T13:53:36+00:00",
+     "added": "2026-10-17T14:03:12+00:00",
+     "id": "56e8233f1f21dfbb",
+     "kind": "s"
+    },
+    {
+     "who": "Irans udenrigsminister",
+     "text": "Nye samtaler med USA kræver troværdige garantier mod nye angreb; Teheran afviser forhandlinger under pres.",
+     "link": "https://www.aa.com.tr/en/middle-east/iran-says-renewed-talks-with-us-require-credible-guarantees-against-new-attacks/4092031",
+     "source": "Anadolu",
+     "at": "2026-10-17T13:39:10+00:00",
+     "added": "2026-10-17T14:03:12+00:00",
+     "id": "4df8f1bdd6e7dbf4",
+     "kind": "s"
+    },
+    {
+     "who": "Egypten og Tyrkiet",
+     "text": "De opfordrer USA og Iran til at genoptage dialogen for at stoppe eskaleringen.",
+     "link": "https://t.me/Alarabiya/167647",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T10:54:38+00:00",
+     "added": "2026-10-17T11:03:28+00:00",
+     "id": "db4697b344996817",
+     "kind": "w"
+    },
+    {
+     "who": "Irans udenrigsminister Araghchi",
+     "text": "Usikkerheden i Hormuz skyldes amerikanske og “israelske” aggressive handlinger, og Washington har gentagne gange brudt aftaler, særligt hensigtserklæringen.",
+     "link": "https://t.me/AjaNews/517267",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T10:43:28+00:00",
+     "added": "2026-10-17T11:03:28+00:00",
+     "id": "b6997b9d1602f0b8",
+     "kind": "w"
+    },
+    {
+     "who": "Irans Ekspertråd",
+     "text": "Amerikanske trusler om krig bør tages alvorligt, og landet skal bevare sin beredskab.",
+     "link": "https://t.me/AjaNews/517252",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T08:36:26+00:00",
+     "added": "2026-10-17T09:03:28+00:00",
+     "id": "0affe44f5349ecad",
+     "kind": "w"
+    },
+    {
+     "who": "Irans fungerende forsvarsminister",
+     "text": "Den amerikanske »mor til alle bomber« skræmmer ikke Iran.",
+     "link": "https://t.me/Alarabiya/167630",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T07:32:25+00:00",
+     "added": "2026-10-17T09:11:53+00:00",
+     "id": "ebd24b3dfd409f75",
+     "kind": "w"
+    },
+    {
+     "who": "Revolutionsgardens flåde",
+     "text": "Hormuz-strædet er lukket, og skibe, der overtræder iranske love, vil blive brændt.",
+     "link": "https://t.me/AjaNews/517234",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T02:42:24+00:00",
+     "added": "2026-10-17T06:04:01+00:00",
+     "id": "240020d3e51b8c5f",
+     "kind": "w"
+    },
+    {
+     "who": "Det Hvide Hus",
+     "text": "Trump suspenderer dele af Lindsey Graham-loven, der pålægger sanktioner mod Rusland og Iran.",
+     "link": "https://t.me/AjaNews/517232",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T01:12:23+00:00",
+     "added": "2026-10-17T06:04:01+00:00",
+     "id": "cf27b229b878778c",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Vestbredden",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Qudsnyt",
+     "text": "“israelske” styrker skød og sårede en palæstinenser i Wadi Al-Humus øst for Betlehem.",
+     "link": "https://t.me/QudsNen/242425",
+     "source": "QudsN",
+     "at": "2026-10-17T17:20:49+00:00",
+     "added": "2026-10-17T18:03:26+00:00",
+     "id": "619ae0c1cee897b6",
+     "kind": "s"
+    },
+    {
+     "who": "DR, Reuters og France 24",
+     "text": "Bosættere har lørdag angrebet en delegation af europæiske diplomater i byen Taybeh på Vestbredden; en fransk borgmester blev slået.",
+     "link": "https://www.dr.dk/nyheder/udland/europaeiske-diplomater-angrebet-af-israelske-bosaettere",
+     "source": "DR",
+     "at": "2026-10-17T15:43:35+00:00",
+     "added": "2026-10-17T16:03:21+00:00",
+     "id": "c0f965f658d9dfa6",
+     "kind": "s"
+    },
+    {
+     "who": "Al Jazeera",
+     "text": "Bosættere angriber europæiske diplomater på Vestbredden og overfalder en fransk borgmester.",
+     "link": "https://t.me/Alarabiya/167669",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T15:18:07+00:00",
+     "added": "2026-10-17T16:03:21+00:00",
+     "id": "635e0459859c1323",
+     "kind": "w"
+    },
+    {
+     "who": "Al Jazeeras korrespondent",
+     "text": "Bosættere ødelægger oliventræer på sletten Beit Forek øst for Nablus.",
+     "link": "https://t.me/AjaNews/517245",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T07:04:55+00:00",
+     "added": "2026-10-17T09:03:28+00:00",
+     "id": "0ff62589bbebfe88",
+     "kind": "w"
+    },
+    {
+     "who": "Al Jazeeras korrespondent",
+     "text": "Bosættere angriber landmænd i Deir Jarir ved Ramallah og skyder på dem.",
+     "link": "https://t.me/AjaNews/517237",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T05:13:23+00:00",
+     "added": "2026-10-17T06:04:01+00:00",
+     "id": "aed4583f05a5771f",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Gazastriben",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Hospital i Deir al-Balah og Al Jazeeras korrespondent",
+     "text": "En er dræbt og flere såret i et “israelsk” droneangreb på Deir al-Balah i det centrale Gaza.",
+     "link": "https://t.me/AjaNews/517260",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T09:41:55+00:00",
+     "added": "2026-10-17T10:03:55+00:00",
+     "id": "88d0f3d96ccad467",
+     "kind": "w"
+    },
+    {
+     "who": "Al-Shifa-hospitalets kompleks",
+     "text": "To dræbt og flere såret i “israelsk” droneangreb på Tafah-kvarteret i det nordøstlige Gaza by.",
+     "link": "https://t.me/AjaNews/517256",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T08:49:26+00:00",
+     "added": "2026-10-17T09:03:28+00:00",
+     "id": "0622205845446049",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Ukraine og Trump",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Rusland",
+     "text": "Moskva siger, det har taget kontrol over otte flere ukrainske bebyggelser; Ukraines generalstab afviser, at byen Dobropillia er faldet.",
+     "link": "https://www.jpost.com/international/internationalrussia-ukraine-war/article-911966",
+     "source": "Jerusalem Post",
+     "at": "2026-10-17T11:50:25.197858+00:00",
+     "added": "2026-10-17T12:03:57+00:00",
+     "id": "9450178a80d3b7c2",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "Rusland har angrebet Ukraines energisektor med over 320 droner og missiler i et af de største angreb hidtil.",
+     "link": "https://t.me/AjaNews/517259",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T09:32:24+00:00",
+     "added": "2026-10-17T10:03:55+00:00",
+     "id": "18f8934099672295",
+     "kind": "w"
+    },
+    {
+     "who": "Italiens forsvarsminister Crosetto til BBC",
+     "text": "Trump tager »helt fejl« i at begrænse støtten til Ukraine; USA risikerer at forlænge krigen.",
+     "link": "https://www.bbc.co.uk/news/articles/c64g18ljjd8do?at_medium=RSS&at_campaign=rss",
+     "source": "BBC",
+     "at": "2026-10-16T23:54:35+00:00",
+     "added": "2026-10-17T06:04:01+00:00",
+     "id": "277e5050f30ec92f",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Libanon og Syrien",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Libanon",
+     "text": "En militærdelegation vil presse på for at standse “israelske” angreb under de USA-støttede forhandlinger.",
+     "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQSVBXRnY2dGJybHo5d2JiMTlEbnE2SGNfX3FBbVIyazh3dFFPWjB6eWpQaTZwZGwxT3dKQTRfVHlTQ0hZaGJfWmZtOFZYSERiV1Q1QWNTeWdDcWpSMkdtci0zOHBvelNXYW9XaFB0ZHRadFN5Sy1Vb25PNU8yeXV5Q01IdEZIX1o2TEpXNS15ZDcxX0MxQ1JJeEJZQ3laeGpvZURhYVpkajZrTmcwQzZzLW9EUnhaOUlaRmd5WGxaVEhpdElCQVE?oc=5",
+     "source": "Reuters",
+     "at": "2026-10-17T20:31:43+00:00",
+     "added": "2026-10-17T21:02:59+00:00",
+     "id": "862fc8d4976d370e",
+     "kind": "s"
+    },
+    {
+     "who": "Libanons præsident",
+     "text": "Libanon deltager den 20. oktober i USA-støttede trilaterale samtaler med “israel” i Florida; en militær delegation deltager.",
+     "link": "https://www.aa.com.tr/en/middle-east/lebanon-to-take-part-in-us-backed-trilateral-talks-with-israel-on-oct-20-president-says/4092254",
+     "source": "Anadolu",
+     "at": "2026-10-17T19:13:53+00:00",
+     "added": "2026-10-17T20:03:18+00:00",
+     "id": "f1c07aa3152e39b7",
+     "kind": "s"
+    },
+    {
+     "who": "Libanesiske medier",
+     "text": "Præsident Aoun har bedt om anholdelse af embedsmænd i Hizbollah i sagen om en lastbil med sprængstof.",
+     "link": "https://t.me/Alarabiya/167635",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T08:40:23+00:00",
+     "added": "2026-10-17T09:11:53+00:00",
+     "id": "a0951a458471efb6",
+     "kind": "w"
+    },
+    {
+     "who": "Al Jazeeras korrespondent",
+     "text": "“israelske” styrker rykker ind i landsbyen al-Ajraf i Quneitra i Syrien og opsætter en midlertidig kontrolpost.",
+     "link": "https://t.me/AjaNews/517253",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T08:37:25+00:00",
+     "added": "2026-10-17T09:03:28+00:00",
+     "id": "c906bcadf91e8af6",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Egypten og Saudi-Arabien",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Egyptens parlament",
+     "text": "Drøfter at give tilladelse til at forsvare Saudi-Arabien, hvis Riyadh beder om det, efter præsident Sisis opfordring.",
+     "link": "https://www.aa.com.tr/en/middle-east/egyptian-parliament-to-discuss-authorizing-action-to-defend-saudi-arabia-if-requested/4092025",
+     "source": "Anadolu",
+     "at": "2026-10-17T13:35:07+00:00",
+     "added": "2026-10-17T14:03:12+00:00",
+     "id": "81badba3fdff9f97",
+     "kind": "s"
+    },
+    {
+     "who": "Egyptens præsident",
+     "text": "Egypten vil gennemføre enhver handling, Saudi-Arabien beder om, og han håber, parlamentet samles til hastemøde om at godkende forsvaret af landet.",
+     "link": "https://t.me/AjaNews/517263",
+     "source": "Al Jazeera",
+     "at": "2026-10-17T10:12:01+00:00",
+     "added": "2026-10-17T11:03:28+00:00",
+     "id": "ae3da1f9330b9337",
+     "kind": "w"
+    }
+   ]
+  }
+ ],
+ "ids": [
+  "01ca853d4995e68c",
+  "035a6525f471ace3",
+  "038a5139e239bf6d",
+  "039e9cff0a4db806",
+  "04b4814a6e9046a4",
+  "0622205845446049",
+  "09053a1c13a0c462",
+  "0909da7aa6a3bbb1",
+  "09d38e2c328c7f45",
+  "0affe44f5349ecad",
+  "0b8d13def4aeb149",
+  "0bc950a9e6c8ec67",
+  "0bdb842af5b0814a",
+  "0c4d51cc8ef65e01",
+  "0e65611933557641",
+  "0f9b6b2b9d1d25e9",
+  "0ff62589bbebfe88",
+  "127276fc2925ed54",
+  "138cffd7fa1b1c7b",
+  "160748e67aca0e58",
+  "180d7de0d5485daf",
+  "18f8934099672295",
+  "1dfaca6c449b3f65",
+  "1f4e742be50e7d58",
+  "20134b83cdf17774",
+  "2039a78b5f08a1f6",
+  "221be18ed3810d43",
+  "224b01738611b728",
+  "227e5da371ee96b3",
+  "2322c797fb4183f2",
+  "234ca33baf49ad19",
+  "240020d3e51b8c5f",
+  "246db50f5f885dea",
+  "24f06bad9d2e89e3",
+  "2600a3daa583ee07",
+  "293b8f500ff31e54",
+  "2b9708a8bb9b1ba5",
+  "2be6284cdeb5606a",
+  "2c95fa551b29435d",
+  "2e50e426b12ffb46",
+  "2fed0ead4ac4322d",
+  "3270c4f153df537d",
+  "33f7d6ba2ad92920",
+  "37a6ae9e67c97b86",
+  "38feb321a027d23b",
+  "3a4a5fe4e3c6881a",
+  "3d63ff0f5db53e99",
+  "3ee0919adf374d56",
+  "3fc7eed2fb763c40",
+  "41d90bf53f71c630",
+  "42b284143e2a1a1e",
+  "4345a17109de4e1b",
+  "43800e82876e0f35",
+  "438b8f9aaea9c3bb",
+  "439b1b456b3ade9f",
+  "46812674b0c1b2c7",
+  "497b8692e0b2acd1",
+  "4d9b2558597e6cae",
+  "4e8f43e182cfbf28",
+  "52691eac018d6056",
+  "5484772fa023d13f",
+  "5551cac065a51870",
+  "5c06c79885c8f65b",
+  "5fa8390d593c1985",
+  "635e0459859c1323",
+  "63f62c5c138a37fd",
+  "64510e2d1f81f693",
+  "66fbacbcef2198fc",
+  "67d1bde88ca1fb2a",
+  "69a6255bf36788b9",
+  "6aed864d4abb65a8",
+  "6bc58e4c405fd5f5",
+  "6f56cf337106e9ed",
+  "74f76dae6080b380",
+  "7584a0ff8a8eb824",
+  "75b97a05f5d00da2",
+  "7b3d5ac786bf7219",
+  "7e9440c5cc2237b7",
+  "8268cf9cb75e7955",
+  "82fe64cfaaa17d2a",
+  "831c892bbbc6901d",
+  "8379acb2bade0e7b",
+  "86a1e8bbd9361cf2",
+  "86f409748ba8c963",
+  "88d0f3d96ccad467",
+  "8b280c6dab143337",
+  "8b72ac7590f3c0a2",
+  "8ebceb9d9cb9c842",
+  "8f1debd356919776",
+  "90790a6e019a1c71",
+  "945e55e8392d1e01",
+  "94d03a04ef2e7042",
+  "96a8159b1845472d",
+  "976644045a81b60a",
+  "9a7820bf0cad969b",
+  "9b056dd2d0d2dcab",
+  "9b791c90aee86c59",
+  "9d444f6a352d0338",
+  "9db9d804aa2fa803",
+  "9ffb7dd2a9d04695",
+  "a0951a458471efb6",
+  "a540c9f1479f7eb0",
+  "a5c6a24ce78f79ed",
+  "a5e99ae878bcfdbb",
+  "abfbc57ab588d508",
+  "ac06f730b6ef63d4",
+  "ac163b1ff116980c",
+  "ae0a438ecd0410d0",
+  "ae3da1f9330b9337",
+  "ae482f136cca404b",
+  "aed177234872e3e5",
+  "aed4583f05a5771f",
+  "af1fbd75376c315c",
+  "afc8d2943c4469cc",
+  "b1a796dbf0128d92",
+  "b22a4a9c89315405",
+  "b6997b9d1602f0b8",
+  "b923355f6d5cde2b",
+  "b9a540290b773856",
+  "baf20ba2693d251f",
+  "bb3d0d657b7acd8a",
+  "bcbae809f293f268",
+  "bdb664a433e66d78",
+  "bfc1f112c99decf5",
+  "c08617df3016cf1b",
+  "c203b8bde18895a2",
+  "c3135a14207bfa53",
+  "c4b6b66b31a2d063",
+  "c69c37f8c00b3ad9",
+  "c75ee4eec350cf8c",
+  "c906bcadf91e8af6",
+  "cb730a001c28082a",
+  "ce13948774ca0caf",
+  "cf27b229b878778c",
+  "d03f63ea1158b140",
+  "d1102c001c3f60a0",
+  "d11692c11c2aeb9c",
+  "d35f262abe6afc25",
+  "d42d7dd5df0c3ce1",
+  "d4d0631da11bd798",
+  "d53ba44727123c1d",
+  "d631de9c0207f09d",
+  "d7405128501e90a6",
+  "d79cfe0d1ab8b6e3",
+  "d87fe292aebbbc17",
+  "d887e7f22880b337",
+  "da3296f18a839dbb",
+  "db4697b344996817",
+  "de559eb76c975fce",
+  "dfcea78c15009bf8",
+  "e5e60e5289906dc3",
+  "e610e7a74724a7f9",
+  "e6d4df699f57ecfa",
+  "e76bcf8613b13da6",
+  "e8409cd2bd35ea2f",
+  "eb10da81b547298c",
+  "ebd24b3dfd409f75",
+  "ebeb68fe4384a6bf",
+  "ec5e1629709eb060",
+  "ec68f8003e90cf34",
+  "ee9f691565564ff7",
+  "ef0390526647b4ea",
+  "ef9abcb2b6bd8eda",
+  "efeeebb6be81038b",
+  "f1058b0c7fb207bf",
+  "f1c0b8c0fa0e4b6a",
+  "f59c7b291c930e77",
+  "f6975798c2978d4f",
+  "f9dece89a05c027a",
+  "fce534be2c51611c",
+  "fd50ac7210db49d2",
+  "fd845fd7553d70ec",
+  "fde00d30b2a1fcf3",
+  "ff3063768043c54b"
+ ],
+ "period": "aften",
+ "whatsapp": "Politiske nyheder – 17. oktober 2026\n\nTrump og Rusland\n\n- Ruslands udenrigsminister Lavrov: Er ankommet til Bahrain forud for det niende strategiske møde mellem Rusland og Golfrådet søndag.\n\n- Zelenskyj: G20-topmødet kunne danne ramme om et trilateralt møde mellem Ukraine, USA og Rusland.\n\n- Zelenskyj: Han håber på et møde med USA og Rusland under G20-topmødet; hverken USA eller Rusland har bekræftet et muligt møde med Putin i Miami.\n\n- Zelenskyj: Han opfordrer til støtte til nye amerikanske sanktioner mod Rusland, efter at Trump har sat dem på pause.\n\n- Zelenskyj: Fritagelsen af Moskva fra amerikanske sanktioner belønner Putin, og Europas og USA's fortsatte støtte er nødvendig.\n\n- Putins udsending: Trumps ophævelse af nye sanktioner mod Rusland er et »historisk øjeblik«.\n\nRiyadh-lufthavnen og Houthierne\n\n- Irans udenrigsminister Araghchi: Iran er klar til at hjælpe med at stoppe konflikten mellem Saudi-Arabien og Yemen, og 12 års konflikt har vist, at der ikke findes en militær løsning.\n\n- Egyptens præsident al-Sisi: Egypten er klar til at gennemføre enhver handling, Saudi-Arabien ønsker, og han har bedt parlamentet om hastemøde om bemyndigelse til indgreb efter saudisk anmodning.\n\n- Egyptens præsident: Egypten accepterer ikke angreb på Saudi-Arabien eller dets sikkerhed og stabilitet.\n\n- Reuters: Missiler ramte Adens lufthavn, mens koalitionen opsnappede et missil mod Yanbu.\n\nIran og angrebet\n\n- Hegseth: USA's forsvarsminister siger, at Iran har valget mellem en aftale og ødelæggelse.\n\n- Fars, TASS: Eksplosioner er hørt i det sydlige Iran nær Hormuzstrædet, i Kuhestak og flere distrikter i Sirik.\n\n- Iransk lovgiver: Indirekte samtaler med USA fortsætter gennem Qatar og Oman, ifølge en rapport.\n\n- Irans udenrigsminister: Nye samtaler med USA kræver troværdige garantier mod nye angreb; Teheran afviser forhandlinger under pres.\n\n- Egypten og Tyrkiet: De opfordrer USA og Iran til at genoptage dialogen for at stoppe eskaleringen.\n\n- Irans udenrigsminister Araghchi: Usikkerheden i Hormuz skyldes amerikanske og “israelske” aggressive handlinger, og Washington har gentagne gange brudt aftaler, særligt hensigtserklæringen.\n\n- Irans Ekspertråd: Amerikanske trusler om krig bør tages alvorligt, og landet skal bevare sin beredskab.\n\n- Irans fungerende forsvarsminister: Den amerikanske »mor til alle bomber« skræmmer ikke Iran.\n\n- Revolutionsgardens flåde: Hormuz-strædet er lukket, og skibe, der overtræder iranske love, vil blive brændt.\n\n- Det Hvide Hus: Trump suspenderer dele af Lindsey Graham-loven, der pålægger sanktioner mod Rusland og Iran.\n\nVestbredden\n\n- Qudsnyt: “israelske” styrker skød og sårede en palæstinenser i Wadi Al-Humus øst for Betlehem.\n\n- DR, Reuters og France 24: Bosættere har lørdag angrebet en delegation af europæiske diplomater i byen Taybeh på Vestbredden; en fransk borgmester blev slået.\n\n- Al Jazeera: Bosættere angriber europæiske diplomater på Vestbredden og overfalder en fransk borgmester.\n\n- Al Jazeeras korrespondent: Bosættere ødelægger oliventræer på sletten Beit Forek øst for Nablus.\n\n- Al Jazeeras korrespondent: Bosættere angriber landmænd i Deir Jarir ved Ramallah og skyder på dem.\n\nGazastriben\n\n- Hospital i Deir al-Balah og Al Jazeeras korrespondent: En er dræbt og flere såret i et “israelsk” droneangreb på Deir al-Balah i det centrale Gaza.\n\n- Al-Shifa-hospitalets kompleks: To dræbt og flere såret i “israelsk” droneangreb på Tafah-kvarteret i det nordøstlige Gaza by.\n\nUkraine og Trump\n\n- Rusland: Moskva siger, det har taget kontrol over otte flere ukrainske bebyggelser; Ukraines generalstab afviser, at byen Dobropillia er faldet.\n\n- Zelenskyj: Rusland har angrebet Ukraines energisektor med over 320 droner og missiler i et af de største angreb hidtil.\n\n- Italiens forsvarsminister Crosetto til BBC: Trump tager »helt fejl« i at begrænse støtten til Ukraine; USA risikerer at forlænge krigen.\n\nLibanon og Syrien\n\n- Libanon: En militærdelegation vil presse på for at standse “israelske” angreb under de USA-støttede forhandlinger.\n\n- Libanons præsident: Libanon deltager den 20. oktober i USA-støttede trilaterale samtaler med “israel” i Florida; en militær delegation deltager.\n\n- Libanesiske medier: Præsident Aoun har bedt om anholdelse af embedsmænd i Hizbollah i sagen om en lastbil med sprængstof.\n\n- Al Jazeeras korrespondent: “israelske” styrker rykker ind i landsbyen al-Ajraf i Quneitra i Syrien og opsætter en midlertidig kontrolpost.\n\nEgypten og Saudi-Arabien\n\n- Egyptens parlament: Drøfter at give tilladelse til at forsvare Saudi-Arabien, hvis Riyadh beder om det, efter præsident Sisis opfordring.\n\n- Egyptens præsident: Egypten vil gennemføre enhver handling, Saudi-Arabien beder om, og han håber, parlamentet samles til hastemøde om at godkende forsvaret af landet.",
+ "push": null,
+ "editor": {
+  "created": "2026-10-17T21:02:59+00:00",
+  "lede": "Trump ophæver nye sanktioner og told mod Rusland, som Moskva kalder et historisk øjeblik, mens houthierne rammer Aden og Saudi-Arabien, og bosættere angriber landmænd på Vestbredden.",
+  "lede_at": "2026-10-17T09:11:53+00:00",
+  "picks": [
+   {
+    "id": "5388eecd8d0a8958",
+    "why": "USA og Rusland: sanktioner ophævet, tier 1"
+   },
+   {
+    "id": "6f3b264262188e9e",
+    "why": "Houthierne rammer Aden, tier 5"
+   },
+   {
+    "id": "cd11619998d6aa21",
+    "why": "Bosættere på Vestbredden, tier 5"
+   },
+   {
+    "id": "72963fce7b551107",
+    "why": "Danmark: muslimsk influencer og TV 2, tier 6"
+   },
+   {
+    "id": "a2ed17340fd17bfb",
+    "why": "Danmark: Hamas-hyldest og politiet, tier 5"
+   },
+   {
+    "id": "82cc5de71e522e40",
+    "why": "USA mod ICC, tier 2"
+   },
+   {
+    "id": "7e7a55fd849439a1",
+    "why": "USA og Grønland, tier 2"
+   },
+   {
+    "id": "622af27fb13125aa",
+    "why": "Iran og houthierne, tier 5"
+   }
+  ],
+  "moves": [
+   {
+    "id": "1158d1824db6dd60",
+    "sec": "world"
+   }
+  ],
+  "quotes": [
+   {
+    "who": "Irans Ekspertråd",
+    "text": "Amerikanske trusler om krig skal tages alvorligt, og vi må bevare beredskabet.",
+    "sec": "me",
+    "link": "https://t.me/AjaNews/517252",
+    "id": "q1"
+   },
+   {
+    "who": "Egyptens præsident",
+    "text": "Vi vil ikke acceptere, at der røres ved Saudi-Arabien eller dets sikkerhed og stabilitet.",
+    "sec": "me",
+    "link": "https://t.me/AjaNews/517257",
+    "id": "q2"
+   }
+  ]
+ }
+}

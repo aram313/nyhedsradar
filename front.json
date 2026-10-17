@@ -1,0 +1,66 @@
+{
+ "updated": "2026-10-17T21:02:59+00:00",
+ "lede": "Trump ophæver nye sanktioner og told mod Rusland, som Moskva kalder et historisk øjeblik, mens houthierne rammer Aden og Saudi-Arabien, og bosættere angriber landmænd på Vestbredden.",
+ "blocks": [
+  {
+   "kind": "top",
+   "story": "5388eecd8d0a8958",
+   "with": [
+    "7b9b8baff3e29087",
+    "c647188648867e5e"
+   ],
+   "timeline": "Trump og Rusland",
+   "picture": false
+  },
+  {
+   "kind": "liste",
+   "title": "Danmark",
+   "stories": [
+    "72963fce7b551107",
+    "a2ed17340fd17bfb",
+    "5c69b375156e4d74",
+    "df0544a65aaa7038"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Houthierne og Saudi-Arabien",
+   "stories": [
+    "6f3b264262188e9e",
+    "428dc7ec675e8c05",
+    "2ac957e307aa4023"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Vestbredden og Gaza",
+   "stories": [
+    "cd11619998d6aa21",
+    "9931aad2bc67fd58",
+    "4b5326589f9f3bd7"
+   ],
+   "style": "billeder"
+  },
+  {
+   "kind": "udvikling",
+   "topics": [
+    "Riyadh-lufthavnen og Houthierne",
+    "Iran og angrebet"
+   ]
+  },
+  {
+   "kind": "citat",
+   "quote": "q1",
+   "who": "Irans Ekspertråd",
+   "text": "Amerikanske trusler om krig skal tages alvorligt, og vi må bevare beredskabet.",
+   "link": "https://t.me/AjaNews/517252",
+   "sec": "me"
+  },
+  {
+   "kind": "live",
+   "n": 3
+  }
+ ]
+}
