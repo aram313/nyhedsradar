@@ -32,6 +32,8 @@ jobs:
             digestUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/digest.json",
             searchUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/search.json",
             movesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/moves.json",
+            answersUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/answers.json",
+            analysesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/analyses.json",
             energyUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/energy.json",
             vapidPublicKey: "${{ vars.VAPID_PUBLIC }}",
             feedbackTopic: "${{ vars.FEEDBACK_TOPIC }}"

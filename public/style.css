@@ -131,10 +131,9 @@ main { min-height: 70vh; }
 .m .done { color: var(--text-2); }
 /* a small square picture at the right, black and white (colour once opened); no picture, no box */
 .th { position: relative; flex: none; align-self: center; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; background: var(--fill-2); }
-.th b, .card-pic b { position: absolute; inset: 0; display: grid; place-items: center; font-family: Georgia, 'Times New Roman', serif;
+.th b { position: absolute; inset: 0; display: grid; place-items: center; font-family: Georgia, 'Times New Roman', serif;
   font-weight: 700; letter-spacing: .02em; color: var(--text-3); user-select: none; }   /* seen only where the picture is missing */
 .th b { font-size: calc(17px * var(--ts, 1)); }
-.card-pic b { font-size: calc(30px * var(--ts, 1)); }
 .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.06); transition: filter .4s; }
 .story .th { display: none; }
 .story.pic .th { display: block; }
@@ -205,12 +204,12 @@ main { min-height: 70vh; }
 .dt h3 i { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--sec); }
 .dl { list-style: none; margin: 0; padding: 0; }
 .dl li { position: relative; }
-.dl li > a, .dl li > span { display: flex; gap: 10px; padding: 5px 0; font-size: calc(14.5px * var(--ts, 1)); line-height: 1.42; color: var(--text-2); text-wrap: pretty; }
+.dl li > .ln { display: flex; gap: 10px; padding: 5px 0; font-size: calc(14.5px * var(--ts, 1)); line-height: 1.42; color: var(--text-2); text-wrap: pretty; }
 .dl time { flex: none; width: 38px; padding-top: 1.5px; font-size: calc(12.5px * var(--ts, 1)); line-height: 1.5; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .dl time small { display: block; font-size: calc(11px * var(--ts, 1)); line-height: 1.2; }
 .dl b { color: var(--text); font-weight: 650; }
 .dl i { color: var(--text-3); }
-.dl li > a:active { opacity: .6; }
+.dl li.tap:active { opacity: .6; }
 .dl li.new::before { content: ""; position: absolute; left: -10px; top: 13px; width: 5px; height: 5px; border-radius: 50%; background: var(--pulse); }
 .dt-more { min-height: 36px; margin: -2px 0 4px; padding: 0 0 0 48px; font-size: calc(13.5px * var(--ts, 1)); font-weight: 620; color: var(--text-2); }
 .dt-more:active { opacity: .55; }
@@ -270,7 +269,7 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
   box-shadow: 0 -1px 0 var(--line), 0 -6px 18px rgba(0, 0, 0, .05); }
 .keyboard .dock { padding-bottom: 0; }
 .keyboard .tabs { display: none; }   /* while typing a search only the field sits above the keyboard */
-.tabs { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); max-width: 640px; margin: 0 auto; touch-action: none; }
+.tabs { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; max-width: 640px; margin: 0 auto; touch-action: none; }
 .tab-pill { position: absolute; left: 0; top: 0; z-index: 0; width: 54px; height: 29px; border-radius: 15px; background: var(--fill-2);
   pointer-events: none; opacity: 0; will-change: transform; }
 .tabs button > svg, .tabs button > span { position: relative; z-index: 1; }   /* above the pill; the dots keep their own place */
@@ -384,21 +383,6 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .guides .wide { margin: 0; }
 
 /* ------------------------------------------------------------ section pages: lead, two side by side, quotes, a quiet colour */
-.page[data-sec]:not([data-sec=""]) .block-h .live { background: var(--sec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sec) 18%, transparent); }
-.page[data-sec]:not([data-sec=""]) .block-h { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sec) 55%, transparent); margin: 0 16px 10px; padding-left: 0; }
-.page[data-sec]:not([data-sec=""]) .day span { background: color-mix(in srgb, var(--sec) 16%, var(--bg)); color: color-mix(in srgb, var(--sec) 75%, var(--text)); }
-.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px 6px; }
-.story.card { border-radius: 14px; overflow: hidden; background: var(--fill); }
-.story.card::before { display: none; }
-.duo + .story::before { display: none; }
-.card-row { display: block; width: 100%; padding: 0 0 10px; text-align: left; }
-.card-pic { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--fill-2); }
-.card-pic img { width: 100%; height: 100%; object-fit: cover; filter: var(--press); }
-.story.card.sel .card-pic img { filter: var(--press-open); }
-.card-row .h { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 8px 10px 0;
-  font-size: calc(15px * var(--ts, 1)); line-height: 1.3; font-weight: 520; }
-.card-row .m { margin: 5px 10px 0; white-space: nowrap; overflow: hidden; }
-.story.card .x-in { padding: 0 10px 12px; }
 .quote { display: block; position: relative; margin: 6px 16px 10px; padding: 12px 14px 12px 18px; border-radius: 12px; background: var(--fill);
   color: var(--text); text-decoration: none; }
 .quote::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--sec); }
@@ -406,15 +390,11 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .quote span { display: block; margin-top: 6px; font-size: calc(12.5px * var(--ts, 1)); font-weight: 650; color: var(--text-2); }
 .quote span::before { content: "— "; }
 .quote + .story::before { display: none; }
-.story.card .card-row .h { -webkit-line-clamp: 3; }
-.card-row .m > span:nth-child(n+3) { display: none; }   /* a card's foot: outlet and time only */
 
 /* 'Vigtigst i dag' sits on its own soft panel, so the chosen stories read apart from the running list below */
 .block.top { margin: 14px 8px 18px; padding: 4px 0 6px; border-radius: 20px; background: color-mix(in srgb, var(--fill) 55%, var(--bg)); }
 .block.top .block-h { padding-left: 12px; }
 .block.top .story.hero { margin-left: 6px; margin-right: 6px; }
-.block.top .duo { margin-left: 6px; margin-right: 6px; }
-.page[data-sec]:not([data-sec=""]) .block.top .block-h { margin: 0 12px 10px; }
 
 /* ------------------------------------------------------------ the front page's own voice: the day in a line, a glance per section */
 .lede { padding: 14px 16px 2px; }
@@ -434,7 +414,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* ------------------------------------------------------------ big pictures look like press photos: hard black and white with a fine film grain; opened, they keep both and get a little colour */
 :root { --press: grayscale(.85) contrast(1.45) brightness(1.08); --press-open: grayscale(.7) contrast(1.45) brightness(1.08);
   --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-:is(.card-pic, .hero-row)::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+.hero-row::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: var(--film); mix-blend-mode: multiply; opacity: .5; transition: opacity .4s; }
 
 /* ------------------------------------------------------------ the owner's hand: hold a story down to remove or move it (admin only) */
@@ -457,18 +437,6 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
 
 
 
-/* the pair's shared panel: the tapped card gets a quiet frame, its story opens under both cards */
-.duo-wrap { margin: 0 0 6px; }
-.duo-wrap .duo { margin-bottom: 0; }
-.story.card { outline: 2px solid transparent; outline-offset: 2px; transition: outline-color .2s; }
-.story.card.sel { outline-color: var(--text); }
-.story.panel { margin: 0 12px; border-radius: 14px; transition: margin-top .3s var(--out), background-color .25s; }
-.duo-wrap + .story::before { display: none; }
-.story.panel::before { display: none; }
-.story.panel.open { margin-top: 10px; background: var(--fill); }
-.story.panel .x-in { padding: 14px 14px 12px; }
-.story.panel .ph { margin: 0 0 8px; font-size: calc(17px * var(--ts, 1)); line-height: 1.3; font-weight: 480; }
-.story.panel .ph b { font-weight: 700; }
 
 /* ------------------------------------------------------------ intro: the name writes itself, in the app's own light or dark colours */
 .intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -552,16 +520,6 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .owner .wide, .owner .wide.soft { width: 100%; margin: 0; }
 .owner .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-/* 'N mere fra døgnet' under the pictures of a section page: the hidden stories' pictures as small overlapping circles */
-.mv-b { display: flex; align-items: center; gap: 10px; width: calc(100% - 32px); margin: 6px 16px 6px; padding: 10px 0; border-top: 1px solid var(--line);
-  font-size: calc(14.5px * var(--ts, 1)); font-weight: 650; }
-.mv-b .mv-pics { display: flex; }
-.mv-b .mv-pics img, .mv-b .mv-pics i { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; filter: grayscale(1) contrast(1.06);
-  box-shadow: 0 0 0 2px var(--fill); background: var(--fill-2); }
-.mv-b .mv-pics > * + * { margin-left: -9px; }
-.mv-b svg { width: 16px; height: 16px; margin-left: auto; transform: rotate(90deg); color: var(--text-3); transition: transform .25s; }
-.mv-b.up svg { transform: rotate(-90deg); }
-.mv-b:active { opacity: .6; }
 
 /* ------------------------------------------------------------ Følg udviklingen, search suggestions, the opened story's small buttons */
 .thr-intro { margin: 4px 16px 12px; font-size: calc(14px * var(--ts, 1)); line-height: 1.4; color: var(--text-2); }
@@ -663,12 +621,12 @@ li.go:active, li.src:active { opacity: .6; }
 html.still *, html.still *::before, html.still *::after { transition: none !important; }
 /* while the intro writes, the tabs and the top bar wait under it */
 html.intro-on .dock, html.intro-on .bar { visibility: hidden; }
-/* five tabs; Udvikling is a page of its own over the tabs' pages (reached from the front page and the stories), the
-   logo with a back mark returns to where one came from */
-.page[data-tab="threads"] { display: none; }
+/* three tabs; the side pages – Udvikling, an answer of the amir's, a wiki page and the wiki's index – lie over the tabs'
+   pages (reached from a button or a link), and the logo with a back mark goes back the way one came */
+.page.side { display: none; }
 html.aside #list { overflow: hidden; }
-html.aside .page:not([data-tab="threads"]) { visibility: hidden; }
-html.aside .page[data-tab="threads"] { display: block; position: fixed; inset: 0; z-index: 1; width: auto; height: auto; }
+html.aside .page:not(.side.on) { visibility: hidden; }
+html.aside .page.side.on { display: block; position: fixed; inset: 0; z-index: 1; width: auto; height: auto; }
 html.aside .brand::before { content: ""; width: 9px; height: 9px; margin: 0 -4px 0 2px; border: solid var(--text-2); border-width: 0 0 2px 2px;
   transform: rotate(45deg); flex: none; }
 .thr-h { margin-top: 22px; }
@@ -696,8 +654,6 @@ html.intro-skip .intro { display: none; }
 .fol-row:active { background: var(--fill); }
 .fol .now-more { width: 100%; min-height: 46px; margin: 0; padding: 0 14px; border-top: .5px solid var(--line); }
 .fol .now-more:active { background: var(--fill); }
-/* a card's picture lies over its initials tile (shown only where the picture is missing) */
-.card-pic img { position: relative; }
 .seg.two { grid-template-columns: repeat(2, 1fr); }
 /* the top bar is solid: over the pages (each scrolling on its own) iPhone does not blur what passes under it, and
    headlines showed plainly under the logo */
@@ -705,9 +661,9 @@ html.intro-skip .intro { display: none; }
 /* searching: the results scroll in their own box under the search field, so their group bands stick to its top */
 .page[data-tab="search"] .day { top: 0; }
 .day { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }   /* solid, like the top bar */
-/* a timeline step that opens something is one button or link across the whole row */
-.follow li > .step, .thr-steps li > .step { grid-column: 1 / -1; display: grid; grid-template-columns: 42px 1fr; column-gap: 22px;
-  width: 100%; color: inherit; text-decoration: none; text-align: left; -webkit-tap-highlight-color: transparent; }
+/* a timeline step that opens something: its button or link lies under the whole row, its words on top let a tap through */
+.follow li > .hit, .thr-steps li > .hit { position: absolute; inset: 0; z-index: 0; width: 100%; }
+.follow li > :is(time, p), .thr-steps li > :is(time, p) { position: relative; z-index: 1; pointer-events: none; }
 /* scrolling with the middle mouse button */
 html.autoscroll, html.autoscroll * { cursor: ns-resize !important; }
 /* the Udvikling page: the day (its topics, newest line first), the developments of the last days, the earlier days */
@@ -731,3 +687,122 @@ div.thr-head { padding-right: 14px; }
 .ud-arch { margin-top: 24px; }
 /* Live: Seneste or Vigtigste */
 .live-seg { margin: 12px 16px 6px; }
+
+/* ------------------------------------------------------------ a row's tap lies under its words (2026-10-17)
+   The button that opens a story (or a recap line's link) lies under the whole row; the headline and its line lie on top
+   and let a tap through, but for the names that link the wiki – so a link is never inside a button. */
+.row > .hit, .hero-row > .hit, .dl li > .hit { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; }
+.row > :not(.hit) { position: relative; z-index: 1; pointer-events: none; }
+.hero-row > .hit { z-index: 2; }
+.hero-row .hero-tx { z-index: 3; pointer-events: none; }
+.dl li > .ln { position: relative; z-index: 1; pointer-events: none; }
+.hit:focus-visible { outline-offset: -3px; }
+/* a name that opens its wiki page: a quiet dotted line in the text's own colour */
+a.bg { pointer-events: auto; color: inherit; -webkit-text-decoration-line: underline; text-decoration-line: underline;
+  -webkit-text-decoration-style: dotted; text-decoration-style: dotted; text-decoration-thickness: 1.5px; text-underline-offset: .22em;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.story:not(.open) a.bg { pointer-events: none; text-decoration: none; }
+a.bg:active { opacity: .55; }
+
+/* ------------------------------------------------------------ Hizb ut-Tahrir's own face: everything that is the
+   movement's (a page's lead and readings, an answer's question, note, readings and text) is set in a serif on a soft
+   ochre tint, always with its attribution; everything else keeps the app's face */
+:root { --serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif;
+  --ht-bg: #efe7d6; --ht-line: #ddd1b9; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
+:root[data-tone="papir"] { --ht-bg: #e6d7b7; --ht-line: #d3c29f; --ht-text-3: #655b4b; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ht-bg: #2a251d; --ht-line: #3b3428; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+}
+:root[data-theme="dark"] { --ht-bg: #2a251d; --ht-line: #3b3428; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+.ht { font-family: var(--serif); font-variant-numeric: lining-nums; }
+.ht-box { margin: 10px 12px; padding: 12px 14px 13px; border-radius: 14px; background: var(--ht-bg); color: var(--ht-text); }
+.ht-box p.ht { margin: 0; font-size: calc(16.5px * var(--ts, 1)); line-height: 1.5; text-wrap: pretty; }
+.ht-l { margin: 0 0 5px; font-family: var(--sans); font-size: calc(11.5px * var(--ts, 1)); font-weight: 750; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ht-text-3); }
+.ht-more { display: block; min-height: 40px; margin: 6px 0 -6px; font-size: calc(13.5px * var(--ts, 1)); font-weight: 650; color: var(--ht-text-2); }
+.ht-more:active, .ht-go:active { opacity: .55; }
+.ht-go { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ht-line);
+  text-align: left; font-size: calc(13.5px * var(--ts, 1)); font-weight: 600; line-height: 1.38; color: var(--ht-text-2); }
+.ht-go > span { flex: 1; min-width: 0; }
+.ht-go .ht { font-weight: 500; color: var(--ht-text); }
+.ht-go svg { flex: none; width: 15px; height: 15px; color: var(--ht-text-3); }
+/* 'Hizb ut-Tahrirs svar: <title> · d/m/yyyy' under the day's main story and in an opened story: one quiet line */
+.ans-ref:empty { display: none; }
+.ht-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; margin-top: 10px; padding: 8px 12px 9px; border-radius: 12px;
+  background: var(--ht-bg); color: var(--ht-text-2); text-align: left; }
+.ht-line .ht-tx { flex: 1; min-width: 0; }
+.ht-line .ht-k { display: block; font-size: calc(12.5px * var(--ts, 1)); line-height: 1.35; font-variant-numeric: tabular-nums; }
+.ht-line b { font-weight: 650; color: var(--ht-text); }
+.ht-line .ht-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 1px;
+  font-size: calc(15px * var(--ts, 1)); line-height: 1.32; color: var(--ht-text); }
+.ht-line svg { flex: none; width: 15px; height: 15px; color: var(--ht-text-3); }
+.ht-line:active { opacity: .6; }
+.pkg > .ans-ref { margin: 2px 16px 8px; }
+.pkg > .ans-ref .ht-line { margin-top: 4px; }
+
+/* ------------------------------------------------------------ Analyser: the amir's answers, newest first */
+.an-top { display: block; margin: 16px 16px 10px; }
+.an-top b { display: block; font-family: var(--serif); font-size: calc(21px * var(--ts, 1)); font-weight: 600; line-height: 1.25; }
+.an-top small { display: block; margin-top: 3px; font-size: calc(13px * var(--ts, 1)); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.an-head { margin: 0 16px 6px; }
+.an-qw { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: 12px; background: var(--fill-2); color: var(--text-3); }
+.an-qw svg { width: 19px; height: 19px; }
+.an-qw input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); font-family: var(--sans);
+  font-size: max(16px, calc(17px * var(--ts, 1))); -webkit-appearance: none; appearance: none; }
+.an-qw input::placeholder { color: var(--text-3); }
+.an-beg { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; margin-top: 6px; padding: 6px 2px; text-align: left; }
+.an-beg span { flex: 1; min-width: 0; }
+.an-beg b { display: block; font-size: calc(16px * var(--ts, 1)); font-weight: 650; }
+.an-beg small { display: block; margin-top: 1px; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); }
+.an-beg svg { width: 16px; height: 16px; color: var(--text-3); }
+.an-beg:active { opacity: .6; }
+.an-n { margin: 6px 16px 0; font-size: calc(13px * var(--ts, 1)); color: var(--text-3); }
+.day.an-y, .day.az { margin-top: 10px; }
+.an-row { position: relative; display: block; width: 100%; padding: 10px 16px 11px; text-align: left; }
+.an-row + .an-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.an-row b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: calc(16.5px * var(--ts, 1));
+  line-height: 1.3; font-weight: 500; color: var(--text); text-wrap: pretty; }
+.an-row span { display: block; margin-top: 3px; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.an-row:active { background: var(--fill); }
+
+/* ------------------------------------------------------------ the answer reader and a wiki page */
+.rd-top, .wk-top { margin: 16px 16px 8px; }
+.rd-top h2 { margin: 6px 0 0; font-size: calc(23px * var(--ts, 1)); font-weight: 600; line-height: 1.24; text-wrap: pretty; }
+.rd-orig { margin: 6px 0 0; font-size: calc(13px * var(--ts, 1)); line-height: 1.4; color: var(--text-3); }
+.wk-top h2 { margin: 4px 0 0; font-size: calc(28px * var(--ts, 1)); font-weight: 780; line-height: 1.15; letter-spacing: -.024em; }
+.rd-h { margin-top: 20px; }
+.rd-reads ul, .wk-tl ol { margin: 0; padding: 0; list-style: none; }
+.rd-reads li + li { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ht-line); }
+.rd-s { margin-bottom: 3px; font-size: calc(13px * var(--ts, 1)); font-weight: 700; color: var(--ht-text); }
+.rd-reads p.ht { font-size: calc(15.5px * var(--ts, 1)); line-height: 1.47; }
+.rd-reads p.ht + p.ht { margin-top: 7px; }
+.rd-text .ht p { margin: 0 0 11px; font-size: calc(16px * var(--ts, 1)); line-height: 1.55; }
+.rd-text .ht h4 { margin: 16px 0 5px; font-size: calc(16px * var(--ts, 1)); font-weight: 650; line-height: 1.35; }
+.rd-text .ht > :last-child { margin-bottom: 0; }
+.rd-open { width: calc(100% - 24px); margin: 14px 12px 4px; gap: 7px; }
+.rd-open svg { width: 18px; height: 18px; }
+.wk-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 16px 4px; }
+.wk-chips .chip { display: inline-flex; align-items: center; min-height: 36px; }
+.wk-chips .chip.more { color: var(--text-3); }
+/* search: the wiki's pages its words name, as chips above the news */
+.sug-bg { margin: 2px 0 12px; }
+.sug-bg .sug-h { margin: 4px 16px 0; }
+.sug-bg .chip { background: var(--ht-bg); color: var(--ht-text); }   /* a wiki page, not a word that completes the search */
+.wk-lead p.ht { font-size: calc(17px * var(--ts, 1)); }
+.wk-y { margin: 0 0 2px; font-family: var(--sans); font-size: calc(11.5px * var(--ts, 1)); font-weight: 750; letter-spacing: .08em; color: var(--ht-text-3); }
+.wk-y:not(:first-child) { margin-top: 12px; }
+.wk-r { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 7px 0; text-align: left; color: var(--ht-text); }
+.wk-tl li:not(.wk-y) + li:not(.wk-y) > .wk-r { border-top: 1px solid var(--ht-line); }
+.wk-r .ht { flex: 1; min-width: 0; font-size: calc(15.5px * var(--ts, 1)); line-height: 1.47; }
+.wk-r svg { flex: none; width: 14px; height: 14px; margin-top: 5px; color: var(--ht-text-3); }
+.wk-r:active { opacity: .6; }
+.wk-news { margin-top: 22px; }
+.wk-news .now-h { color: var(--text-3); }   /* a wiki page stays quiet: no red, no signal */
+.wk-news .now-h i { display: none; }
+/* the wiki's index: every page A–Å */
+.az-row { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px;
+  padding: 11px 16px; text-align: left; }
+.az-row + .az-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.az-row b { min-width: 0; font-size: calc(16px * var(--ts, 1)); font-weight: 600; }
+.az-row small { flex: none; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.az-row:active { background: var(--fill); }

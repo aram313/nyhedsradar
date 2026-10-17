@@ -83,3 +83,5 @@ public/intro-frames2.html
 public/summaries.json
 public/energy.json
 public/stats.enc
+# copies of the live data (and test files) for a local preview of the app
+public/dev/

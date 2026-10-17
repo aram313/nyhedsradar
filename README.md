@@ -2,20 +2,29 @@
 
 The app is called **Khabar** (خبر, "news"). The repository and folder keep the working name `nyhedsradar`.
 
-A phone app (a full-screen web page added to the iPhone home screen) that watches about 60
+A phone app (a full-screen web page added to the iPhone home screen) that watches about 120
 news sources around the clock. It picks out the stories that matter to the WhatsApp group
-*Debat/Nyheder Shabab* and sorts them into three sections: **Danmark**, **Mellemøsten** and **Verden**.
-Headlines set the names of people, parties and places in bold, and foreign headlines are shown in Danish (machine
-translated, the strongest gone over by the editor; the original is in the opened story). The front page opens with the
-day in one sentence and **Dagens historie** – the main story as one package (picture, how it developed through the day
-and a statement from it) – then the day's other top stories, **Følg udviklingen** (the developments that moved last),
-the day's quote and **Live** (the newest stories). Five tabs: Forside, Danmark, Mellemøsten, Verden and **Live**, which
-shows everything as it comes in. The **Udvikling** page holds every development step by step, the recap of the day
-('Resumé', updated morning, afternoon and evening: the day's most important movements as short 'Who: what' lines in the style of Al
-Jazeera's breaking wire, grouped by topic) and the earlier days. Every story has a small picture; opening it shows a
-short summary, how Danish, Western,
-Arab/Muslim and Israeli media each tell it, and buttons to read, share (the phone's share sheet, so WhatsApp is
-one tap away) or copy. Top stories and the most relevant news also trigger a notification; a phone signs up with one tap (no code to send).
+*Debat/Nyheder Shabab* – weighed by the order of importance of Hizb ut-Tahrir's political books and the amir's newest
+answers, used only to choose and order the news; the app itself shows no analysis – and marks each with its section
+(**Danmark**, **Mellemøsten**, **Verden**). Headlines set the names of people, parties and places in bold, and foreign
+headlines are shown in Danish (machine translated, the strongest gone over by the editor; the original is in the opened
+story). Three tabs:
+
+- **Forside** – the editor's front page: the day in one sentence, **Dagens historie** (the main story as one package:
+  picture, how it developed through the day, a statement from it, and the amir's answer on its subject when there is
+  one), the day's other top stories, **Følg udviklingen**, the day's quote and the newest Live stories.
+- **Live** – every story of all sections, the newest or the most important first.
+- **Analyser** – Hizb ut-Tahrir's answers to political questions, the newest first (321 from 2004 to 2026 and every new
+  one), with a search field and the reader: the question, the answer in short, what it reads, the original.
+
+Concepts named in the news (states, powers, groups, issues, agreements, places, ideas) open a **wiki page** compiled only
+from those answers – always attributed, the newest answer governing – with its readings through the years and today's
+stories that name it. The **Udvikling** page holds every development step by step, the recap of the day (the day's most
+important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire, grouped by topic, updated
+through the day) and the earlier days. Every story has a small picture; opening it shows a short summary, how Danish,
+Western, Arab/Muslim, Israeli and other media each tell it, and buttons to read, share (the phone's share sheet, so
+WhatsApp is one tap away) or copy. Top stories and the most relevant news also trigger a notification; a phone signs up
+with one tap (no code to send).
 
 ## Status
 
@@ -39,8 +48,13 @@ one tap away) or copy. Top stories and the most relevant news also trigger a not
 5. **Rank** = the group's taste (percentile within the language) + up to 20 for the number of established
    outlets + a lift for core subjects (Danish politics, Islam and Muslims, immigration get the biggest, because
    the group's own links are mostly about other countries) − light news (weather, sport, royals), everyday crime
-   and headlines that name nothing. Each section shows its own top ~15 %; Danish stories must touch politics,
-   Islam/Muslims or immigration. Busy Telegram channels show at most 6 lines a day.
+   and headlines that name nothing – **plus the brain** (`src/radar/method.py`, `config/method.json`): each story's
+   tier in the books' order of importance (the leading state's acts with another power first, then its own acts, a
+   great power's acts, who controls a state, the major issues, the campaign against Islam and its concepts …; the powers
+   as the amir's newest answers read them) lifts or lowers it, and the sharpest tiers reach the editor even below the
+   taste bar. Each section shows its own top ~15 %; Danish stories must touch politics, Islam/Muslims or immigration.
+   Busy Telegram channels show at most 6 lines a day. Sources carry their camp (whose view they give); sources added
+   for their camp never move the established sources' scale.
 6. **Self-learning, with no buttons:** posts from the community's own sources (marked
    `community` in `config/feeds.json`), big stories and what the user shares or opens are added to the
    profile and fade out over 30 days.
@@ -49,15 +63,20 @@ one tap away) or copy. Top stories and the most relevant news also trigger a not
 8. **Pictures:** each card gets a small square picture – its own feed image, another outlet's picture of the
    same story, or the article page's share image – shrunk to a few kilobytes (`src/radar/thumbs.py`, files in
    `t/` on the data branch). Telegram channels never lend a picture.
-9. **The overview of the day:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other
-   one-line statements) in `lines.json`. At 21:00 a Claude routine runs `scripts/editor.py input` (the
-   day so far, plus the stories and wire lines since the last update), writes the most important new movements
-   as short Danish 'Who: what' lines under the day's topics and runs `scripts/editor.py publish`, which checks
-   them, fills in links, sources and times, adds them to the day (a new day after midnight) and writes
-   `digest.json` (the day) and `moves.json` (the last 30 days) to the digest branch.
+9. **The editor:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line statements)
+   in `lines.json`. A Claude routine looks every quarter of an hour (`scripts/editor.py check`: has anything of weight
+   happened since the last update?) and, when something has, runs `scripts/editor.py input` (the brain – the books'
+   order of weight and each power's current reading –, the front page now, the day so far, the stories and wire lines
+   since the last update), writes a small update – the lede, the picks, short summaries, Danish headlines and the most
+   important new movements as 'Who: what' lines under the day's topics, all of it reality only – and runs
+   `scripts/editor.py publish`, which checks it, fills in links, sources and times and writes `digest.json` (the day),
+   `moves.json` (the last 30 days), `summaries.json` and, for a new answer of the amir's, `answers.json` to the digest
+   branch.
 10. The result is written to `data.json` (the stories), `search.json` (everything read in the last two days,
-   for the app's search) and `lines.json` on the `data` branch. The app (`public/`, published to GitHub Pages
-   by `pages.yml`) reads those files and Claude's `digest.json` and `moves.json` from the `digest` branch.
+   for the app's search), `lines.json` and `analyses.json` (the text of the amir's newest answers) on the `data`
+   branch. The app (`public/`, published to GitHub Pages by `pages.yml`) reads those files and the editor's files from
+   the `digest` branch; the movement layer and the wiki (`public/viden/`, built by `scripts/build_movement.py` and
+   `scripts/build_begreber.py`) are published with it.
 11. **Energy prices** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi): after each radar pass
    the job fetches Brent, WTI, RBOB, ULSD, TTF and Henry Hub futures and USD/DKK (Yahoo Finance), the Brent and
    WTI forward curves, EIA's physical spot prices (via FRED), every Circle K/INGO and Q8/F24 station's pump
@@ -82,7 +101,9 @@ Local copies are kept in `.env` and `.secrets/`, both of which are gitignored.
 | Task | Command |
 |---|---|
 | Run the tests | `py -m pytest -q tests` |
-| Preview the app locally | `py -m http.server 8765 --directory public` (needs a local `public/config.js` + `public/data.json`) |
+| Preview the app locally | `py -m http.server 8765 --directory public` (needs a local `public/config.js` pointing at copies in `public/dev/`) |
+| Rebuild the wiki after a change to the concept pages | `py scripts/build_begreber.py` |
+| See what the editor's quarter-hour look sees | `py scripts/editor.py check` |
 | Rebuild the profile from a new chat export | `py scripts/build_profile.py <_chat.txt> .cache/profile.jsonl`, then encrypt (see CLAUDE.md) |
 | Run the radar by hand in the cloud | `gh workflow run radar.yml` |
 | See what each section would show with the current settings | `py scripts/rank_check.py` |

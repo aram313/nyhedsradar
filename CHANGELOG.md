@@ -9,6 +9,45 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The brain weighs the news; the app shows no analysis** (the owner's decision of 2026-10-17, replacing the Khabar 2
+  app): the books' order of importance and Hizb ut-Tahrir's newest answers are used only to select and order the news –
+  by the radar's ranking and the editor's front page. One Live section, a front page the editor makes, an Analyser tab
+  with the amir's answers, and a wiki of the concepts named in the news compiled only from those answers. The look stays.
+  - **Radar** (`src/radar/method.py`, `config/method.json`): every story gets one of the books' 13 tiers, the powers as
+    the newest answers read them (USA leading; Britain and France weakened great powers; Russia a middle power since
+    12/6/2026; China a regional power; Germany and the EU actors). Lifts 1:+10 … 13:−8, positive ones only when an
+    established outlet carries the story; stories of tiers 1–4 and 6 with rank ≥ 45 reach the editor below the taste bar
+    (at most 20 a day, `method: true`). Danish politics keeps its place (9 of the top 40, 7 of the top 20). Every source
+    has its camp; 31 added sources (TASS, Xinhua, IRNA, Asharq Al-Awsat, the White House, UN News, Le Monde …) with
+    `"scale": false` never move the established sources' scale and lead at most `max_added_per_day` = 3 cards a day;
+    the movement's own outlets never count as an outlet or confirmation. New story fields: members, camps, first,
+    actors, tier, tags, powers, method. `src/radar/analyses.py` (on in radar.yml) keeps the text of the amir's answers
+    the static layer does not hold yet. `scripts/rank_check.py` shows Live as one list with tiers (`RANK_CHECK_OUT`,
+    `RANK_CHECK_STATE`). Notes: docs/hjerne/notes-radar.md.
+  - **Editor** (`scripts/editor.py`): looks every quarter of an hour – four routines at minutes 0, 15, 30, 45 – and
+    `check` (at most ~40 lines) says INTET NYT AF VÆGT or OPDATÉR: why (a big story, a tier 1–3 story with two outlets, a
+    new answer, two hours without an update, the first run after 06 and after 21). Small updates keep the lede, picks
+    and quotes; `input` carries the brain (`scripts/brain.py`, ≤ 6,000 characters: the order of weight and each power's
+    current reading, dated and attributed) and the front page now; the editor's text is checked by `scripts/voice.py`
+    (reality only, the content rules); a new answer is filed in `answers.json` on the digest branch; `--push` refuses
+    when another update landed meanwhile. About three to six times today's tokens (docs/hjerne/cadence.md). Notes:
+    docs/hjerne/notes-editor.md.
+  - **Wiki** (`public/viden/begreber.json`, `begreber-index.json`; `scripts/build_begreber.py` over the movement layer
+    `scripts/build_movement.py` and the concept pages `docs/hjerne/begreber-ideer.json`): 203 pages – 67 states, 7
+    powers, 4 groups, 34 issues, 90 concepts, agreements, places, organisations and processes – with 526 Danish news
+    aliases; every lead, timeline row and relation attributed and dated, the newest answer governing. Notes:
+    docs/hjerne/notes-begreber.md, notes-begreber-ideer.md.
+  - **App**: three tabs, **Forside · Live · Analyser** (Danmark, Mellemøsten and Verden are gone; Live holds every story
+    with its section dot; old `?tab=dk|me|world` links and notifications open Live). The front page is as before, plus
+    one quiet line under Dagens historie – and in an opened story – when the amir has answered on its subject
+    ('Hizb ut-Tahrirs svar · d/m/åååå' over the title, to the answer reader). Concepts named in the lede, an opened
+    story, the recap lines and the timeline link their wiki page (the first mention, at most three a block, a dotted
+    underline; never inside a button – a row's tap now lies under its words). A wiki page: the lead, 'Gennem årene',
+    relations, the answers, related pages and today's stories that name it. Analyser: the newest answers first, the 321
+    by year, a search field and the wiki's A–Å index; the answer reader shows the question, 'Svaret kort', what it reads,
+    its concepts, the answers it cites, the text when held and the original. Everything that is the movement's is set
+    in a serif on a soft ochre tint with its attribution. The logo goes back the way one came. The sources list and
+    coverage name the new groups. Notes: docs/hjerne/notes-app.md.
 - New page khabar.nu/energi (link in Indstillinger): 'Lige nu' in wire style (Brent, physical oil against paper, the forward curve, the diesel margin, the cheapest pump price), then Råolie (Brent and WTI futures and physical spot), Det fysiske marked (physical minus paper Brent, the forward curve with backwardation/contango, Brent−WTI), Raffinørmargin (3-2-1, diesel and gasoline cracks), Benzin, diesel og jet (futures and New York/Gulf spot), Danmark (every chain's list price at Circle K, INGO, Q8 and F24 with premium and HVO, the cheaper single stations, the raw product's share of a litre, prices in kroner and the dollar), Gas (TTF, Henry Hub) and the energy stories of the last three days. Every price opens in place into a chart you can touch (1, 3 or 6 months) with what it is and where it comes from. The radar job fetches the numbers after each pass (`src/radar/energy.py` → `energy.json` on the data branch); pump prices are kept one point a day from 17 October 2026.
 - More core words for the great-power contest, from the owner's reading of geopolitics: NATO, the Security Council and veto, the straits (Hormuz, Bab el-Mandeb, Suez, Bosporus), military bases, coups, nuclear weapons, blockades, peace plans and normalisation, great powers, the Pentagon, the Kremlin, the White House, BRICS and the IMF (also in Arabic). On today's data a few such stories rose into the top 40 of Mellemøsten and Verden.
 - Light news (weather, royals, sport, celebrities) loses 30 rank points instead of 20, as the owner asked (`rank_trivia` in config/settings.json). On today's data the top of every section is unchanged; one light Danish story fell below the list. `scripts/rank_check.py` works again (its stand-in for notifications took too few arguments).
