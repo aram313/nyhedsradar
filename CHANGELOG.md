@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The map's events** (2026-10-17, the owner: 'en slags live osint med kort og seneste angreb lidt ligesom LiveUAmap'):
+  `src/radar/osint.py` writes `map.json` after every radar pass (a step in radar.yml): the attacks and armed events of
+  the last 72 hours in the stories Live shows, confirmed or big, with the editor's headline, placed by
+  `config/map-places.json` (about 300 cities, camps, seas and countries; the most specific place wins, a country alone
+  is marked approximate), each with its kind (luftangreb, drone, missil, artilleri, eksplosion, til søs, kampe,
+  angreb). Threats, plans, metaphors, strikes by workers, disasters and reactions to an attack are not events.
+  `pages.yml` gives the app `mapUrl`.
+
 - **Energy page: the physical prices, honest times and readable news** (2026-10-17, the owner: 'bliver ikke opdateret
   ofte … priserne passer ikke'). The physical prices come from EIA's own pages (FRED never answered GitHub, so 'Det
   fysiske marked' had no physical row and every pass waited 30 s); a failed source rests 30 minutes; a chain's change

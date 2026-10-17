@@ -106,6 +106,15 @@ jobs:
           RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the energy news
         run: python -m radar.energy
 
+      - name: Map
+        continue-on-error: true
+        timeout-minutes: 2
+        env:
+          PYTHONPATH: src
+          RADAR_STATE: state
+          RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the map's events
+        run: python -m radar.osint
+
       # the editor's quarter-hour look (scripts/editor.py gate, plain Python, no tokens): when something of weight has
       # happened since the last update, it fires the editor's Claude routine through its API trigger – at most
       # editor_fires_per_day (config/settings.json) a Danish day, spread over the day; the fires are kept in
