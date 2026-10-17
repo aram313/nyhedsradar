@@ -317,5 +317,5 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
                 '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
         assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):   # the readable red only on the front page
-        if 'var(--red)' in m.group(2):
-            assert '.page[data-tab="home"]' in m.group(1), m.group(1)
+        if 'var(--red)' in m.group(2):   # the front page's accents, and the chosen tab's icon (17/10)
+            assert '.page[data-tab="home"]' in m.group(1) or '.tabs button[aria-selected="true"] > svg' in m.group(1), m.group(1)

@@ -1479,11 +1479,14 @@ function ledeLinks(text, front, live, ids = null, byId = () => null, wiki = () =
 // outside the link
 function ledeHtml(lede, front, ids) {
   const wiki = t => scan(t).map(f => f.id).filter(id => !LINK_SKIP.has(id));
-  return ledeLinks(lede, front, stories(), ids, findStory, wiki).map(p => {
+  // the first part – the day's heaviest news – is the headline of the page; the rest runs on after it, a step quieter
+  // (the rest begins on its own line: without the word that joined it – ', ', ' mens ', ' og ' – and with a capital)
+  const parts = ledeLinks(lede, front, stories(), ids, findStory, wiki).map((p, n) => n === 1 ? { ...p, sep: '', t: cap(p.t.replace(/^[\s,;–-]+/u, '')) } : p).map(p => {
     if (!p.id) return esc(p.sep + p.t);
     const [, words, stop] = p.t.match(/^([\s\S]*?)([.!?…]*)$/u);
     return `${esc(p.sep)}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-lede="${esc(p.id)}">${esc(words)}</a>${esc(stop)}`;
-  }).join('');
+  });
+  return parts.length ? `<span class="lede-h">${parts[0]}</span>${parts.length > 1 ? `<span class="lede-r">${parts.slice(1).join('')}</span>` : ''}` : '';
 }
 // a part of the lede tapped: its story on the front page opens in place, in view; one the page does not show opens in
 // Live, as a link with ?item= does
@@ -3183,7 +3186,7 @@ function kortLook() {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', kortLook);
 // a marker and a row's glyph: the kind in a small circle; an approximate place a dashed ring, the last hour a red one
-const kBadge = (e, live) => `<span class="km${e.ca ? ' ca' : ''}"><svg aria-hidden="true"><use href="#${kGlyph(e.k)}"/></svg>${live ? '<i class="live-dot"></i>' : ''}</span>`;
+const kBadge = (e, live) => `<span class="km${e.ca ? ' ca' : ''}" data-k="${kGlyph(e.k).slice(2)}"><svg aria-hidden="true"><use href="#${kGlyph(e.k)}"/></svg>${live ? '<i class="live-dot"></i>' : ''}</span>`;
 function kRow(e) {
   const live = kLive(e), n = e.n || 1;
   const meta = `<span class="src">${esc(e.s)}</span><span>${live ? '<i class="nd"></i>' : ''}${stamp(e.p)}</span>${n >= 3 ? `<span>${n} medier</span>` : ''}`

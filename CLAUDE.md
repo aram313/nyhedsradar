@@ -368,6 +368,9 @@ da'wah.
   the settings choose Automatisk · Lys · Mørk.
 - **Khabar made professional (2026-10-17, docs/hjerne/pro-plan.md, built in full; tests/test_app_pro.py,
   test_app_contrast.py, test_pro.py):**
+  - **The front page's headline (17/10, the owner: 'Se til the Economist'):** the lede's first part in Source Serif 4
+    (`--display`, Google Fonts), its rest as the rubric in the same face, the date a red fly title, a red rule over block
+    titles – Khabar's headline voice; Hizb ut-Tahrir's serif stays the phone's own on the ochre tint.
   - **Two voices:** the app's sans is Khabar's and the outlets' voice (the lede, block titles, development names, an
     outlet's quote in italic sans, the intro); the serif only Hizb ut-Tahrir's (`.ht*`, `.an-*`, `.rd-*`, `.wk-*`).
   - **Red** only for live and big: one red dot on the front page (its Live block, `blockHead(title, more, live)`), the

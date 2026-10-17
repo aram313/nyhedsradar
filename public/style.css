@@ -1067,3 +1067,42 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="home"] .qday .quote::before { background: var(--red); }
 .page[data-tab="home"] .qday .quote q::before { content: "»"; display: block; height: .6em; margin: -4px 0 6px; font-size: var(--fs-title); font-style: normal;
   font-weight: 800; line-height: 1; color: var(--red); }
+
+/* ------------------------------------------------------------ colour on the icons (the owner, 17/10: "Tror også der skal
+   lidt farve på ikonerne"): the chosen tab's icon in the readable red, and on the map each kind of event its own quiet
+   colour – the same on its marker, its row and its filter chip – so an air strike, a drone and a fight at sea tell apart
+   at a glance. A general attack keeps the text colour */
+.tabs button[aria-selected="true"] > svg { color: var(--red); }
+:root { --k-luft: #c0392b; --k-drone: #c2410c; --k-missil: #be185d; --k-artilleri: #8a5a12; --k-eksplosion: #b7791f; --k-so: #1d5fd1; --k-kamp: #7044c9; }
+:root[data-theme="dark"] { --k-luft: #ff6b5e; --k-drone: #fb923c; --k-missil: #f472b6; --k-artilleri: #d6a36a; --k-eksplosion: #fbbf24; --k-so: #60a5fa; --k-kamp: #a78bfa; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --k-luft: #ff6b5e; --k-drone: #fb923c; --k-missil: #f472b6; --k-artilleri: #d6a36a; --k-eksplosion: #fbbf24; --k-so: #60a5fa; --k-kamp: #a78bfa; }
+}
+.km[data-k="luft"], [data-kkind="luft"] svg { color: var(--k-luft); }
+.km[data-k="drone"], [data-kkind="drone"] svg { color: var(--k-drone); }
+.km[data-k="missil"], [data-kkind="missil"] svg { color: var(--k-missil); }
+.km[data-k="artilleri"], [data-kkind="artilleri"] svg { color: var(--k-artilleri); }
+.km[data-k="eksplosion"], [data-kkind="eksplosion"] svg { color: var(--k-eksplosion); }
+.km[data-k="so"], [data-kkind="sø"] svg { color: var(--k-so); }
+.km[data-k="kamp"], [data-kkind="kamp"] svg { color: var(--k-kamp); }
+.km.on { color: var(--bg); }   /* the marker chosen: its glyph on the text colour, as before */
+.km.ca[data-k] { border-color: currentColor; }
+
+/* ------------------------------------------------------------ the front page's headline (the owner, 17/10: "Overskriften
+   må gerne være mere fangende, pænere skrift", "Det skal være mere elegant", "Se til the Economist for inspiration"):
+   in the manner of The Economist – the day's date as a small red fly title, the lede's first part (the day's heaviest
+   news) as a bold newspaper serif headline, the rest beneath as its rubric in the same face, and a short red rule over
+   each block's title. The face is Source Serif 4 (Hizb ut-Tahrir's texts keep the phone's own serif on their ochre tint) */
+:root { --display: "Source Serif 4", "Source Serif Pro", Georgia, serif; }
+.page[data-tab="home"] .lede-d > span { letter-spacing: .04em; }
+.page[data-tab="home"] .lede-t { margin-top: 4px; font-family: var(--display); font-size: var(--fs-lead); font-weight: 400; line-height: 1.38;
+  letter-spacing: 0; color: var(--text-2); font-variation-settings: "opsz" 20; }
+.page[data-tab="home"] .lede-t .lede-h { display: block; margin-bottom: 8px; font-size: var(--fs-title); font-weight: 700; line-height: 1.14;
+  letter-spacing: -.012em; color: var(--text); font-variation-settings: "opsz" 60; }
+.page[data-tab="home"] .lede-t a.lede-a { text-decoration-thickness: 1px; text-underline-offset: .18em; }
+/* the block titles: a short red rule above, not a bar beside */
+.page[data-tab="home"] .block-h h2 { position: relative; padding-top: 9px; }
+.page[data-tab="home"] .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }
+/* Dagens historie's headline on its picture in the same serif */
+.page[data-tab="home"] .story.lp .tx .h { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; font-variation-settings: "opsz" 48; }
+.page[data-tab="home"] .story.lp .tx .h b { font-weight: 700; }

@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front page's headline in the manner of The Economist, colour on the icons** (2026-10-17, the owner: 'Overskriften
+  må gerne være mere fangende, pænere skrift', 'Det skal være mere elegant', 'Se til the Economist for inspiration',
+  'lidt farve på ikonerne'; `?v=20261018o`): the date a small red fly title, the lede's first part a bold newspaper serif
+  headline (Source Serif 4), the rest its rubric beneath in the same face, a short red rule over each block title,
+  Dagens historie's headline in the same serif; the chosen tab's icon red; on the map every kind of event its own quiet
+  colour on marker, row and chip.
+
 - **A livelier front page and two looks** (2026-10-17, the owner: 'Forsiden bliver for monoton, brug gerne lidt rød og
   flere nuancer' and 'Skær farvetemaet med til to, de primære mørk og lys'; `?v=20261018j`). On the front page red shows
   where to look: the day's date, a small bar before every block's title, the newest step of a development and its time,
