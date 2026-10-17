@@ -398,7 +398,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .seg button { min-height: 44px; padding: 0 4px; text-align: center; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); border-radius: var(--r-btn); }
 .seg button[aria-checked="true"] { color: var(--text); font-weight: 700; background: var(--seg-on); box-shadow: inset 0 0 0 3px var(--fill); }
 .seg.two { grid-template-columns: repeat(2, 1fr); }
-.cal-tog { justify-content: center; }   /* the Kalender's two chips, Vigtige · Alle (18/10), in the middle of the dock */
+.cal-tog, .an-chips { justify-content: center; }   /* the Kalender's two chips, Vigtige · Alle (18/10), in the middle of the dock */
 .seg.four { grid-template-columns: repeat(4, 1fr); }
 .seg.four button { font-size: var(--fs-meta); }
   font-size: var(--fs-cap); font-weight: 600; color: var(--text-2); }

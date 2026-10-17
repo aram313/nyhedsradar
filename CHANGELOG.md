@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Analyser's dock: only 'Begreber A–Å'** (2026-10-18, the owner: 'Under analyser, skal der ikke være filter i bunden.
+  Kun en Begreber knap'; `?v=20261018at`): the areas and the years are gone from the dock; the one chip sits in its
+  middle and opens the A–Å index. The search field under the bar still finds an answer; the list keeps its year bands.
 - **The Kalender's toggle as Live's chips; Økonomi's topic lights up** (2026-10-18, the owner: 'Vigtige / Alle er nu en
   grå boks der ikke er centreret … vigtige knappen stadig kan have en rød accent … følge stilen som resten af siderne,
   f.eks på live' and 'når man trykker på en kategori i økonomi, skal baggrunden på kategorien lige lyse lidt op';

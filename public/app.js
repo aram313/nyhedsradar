@@ -2059,16 +2059,11 @@ function analysesPage() {
 }
 // the dock's row for Analyser: the wiki, the areas (a filter) and the years (a jump); what is saved is one tap away in
 // the bar. The search field stays under the bar: the dock goes while the keyboard is up, and the field must not go with it
-const anOpts = () => `<nav class="o-row an-chips" id="o-an" aria-label="Filtrér og gå til">${anChips()}</nav>`;
+const anOpts = () => `<nav class="o-row an-chips" id="o-an" aria-label="Gå til">${anChips()}</nav>`;
+// the dock holds one way on, to the concepts' A–Å (the owner, 18/10: 'Under analyser, skal der ikke være filter i
+// bunden. Kun en Begreber knap'): no areas, no years – the search field above finds an answer
 function anChips() {
-  const areas = anAreas(), ak = 'an|areas', all = unfolded.has(ak), shown = all ? areas : areas.slice(0, 10);
-  const years = [...new Set(answers().list.filter(a => !a.fresh && (!anArea || areaIdOf(a) === anArea)).map(a => a.date.slice(0, 4)))];
-  return '<button class="chip ht-chip" data-begreber>Begreber A–Å</button>'
-    + '<i class="sep" aria-hidden="true"></i>'
-    + `<button class="chip${anArea ? '' : ' on'}" data-area="" aria-pressed="${!anArea}">Alle</button>`
-    + shown.map(([id, n]) => `<button class="chip${anArea === id ? ' on' : ''}" data-area="${esc(id)}" aria-pressed="${anArea === id}">${esc(areaName(id))}<small>${n}</small></button>`).join('')
-    + (areas.length > shown.length ? `<button class="chip more" data-unfold="${ak}">+ ${areas.length - shown.length}</button>` : '')
-    + (years.length > 3 && !anQuery.trim() ? '<i class="sep" aria-hidden="true"></i>' + years.map(yr => `<button class="chip yr" data-year="${esc(yr)}">${esc(yr)}</button>`).join('') : '');
+  return '<button class="chip ht-chip" data-begreber>Begreber A–Å</button>';
 }
 function analysesList() {
   need('mix'); need('ans');
