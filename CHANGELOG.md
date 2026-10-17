@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The English texts matched by address** (2026-10-17): an answer is matched to its texts by its source page's url (as
+  `build_movement.py` numbers the answers), no longer by its number alone – the Arabic and the English sites number
+  their pages each in their own way, so eight answers had another answer's text. 318 of 321 now have their own English
+  text: 274 from the English editions, 44 translated from their Arabic (each translation names the Arabic file it came
+  from, `src`, and is kept only while that is the answer's own); the last three are being translated.
+
 - **Vigtigste runs as time runs** (2026-10-17, the owner: 'det er forvirrende at "vigtigste" nyheder ikke er
   kronologiske'; `?v=20261018u`): the day's 30 most important stories (the editor's picks, then the radar's strongest;
   'Vis flere vigtige' takes 60) are shown newest first with Seneste's time column and day rows – the two views differ
