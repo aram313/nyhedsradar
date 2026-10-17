@@ -679,7 +679,12 @@ def look(args, now):
     lede_at = notes.get('lede_at') or notes.get('created')
     out.append('Front page now:')
     out.append(f"  Lede ({dk(ts(lede_at)):%d.%m %H.%M}): {notes['lede']}" if notes.get('lede') and lede_at else '  Lede: none')
-    out.append('  ' + composition_line(read(args, 'origin/digest', 'front.json', {}), now))
+    front_now = read(args, 'origin/digest', 'front.json', {})
+    out.append('  ' + composition_line(front_now, now))
+    off = timeline_off(front_now, resolver(items), moves, digest)
+    if off:
+        out.append(f"  NOTE: Dagens historie's timeline '{off}' shares few words with its story – the app shows the story's "
+                   'own development instead; name the topic the story belongs to')
     tp = main_topic(digest)
     out.append(f"  Dagens historie: {tp['name']} ({len(tp['lines'])} lines)" if tp else '  Dagens historie: none yet')
     picks = notes.get('picks') or []
@@ -733,6 +738,22 @@ def composition_line(front, now):
                       for b in blocks)
     old = ' – OLDER THAN 6 HOURS: the app shows its fixed page' if now - ts(front['updated']) > FRONT_STALE else ''
     return f"Composition ({dk(ts(front['updated'])):%d.%m %H.%M}): {kinds}{old}"
+
+
+def timeline_off(front, find, moves, digest):
+    """The first main block's timeline when it shares fewer than three words with its story (the app then shows the
+    story's own development, pro-plan 3.2), else ''."""
+    top = next((b for b in (front or {}).get('blocks') or [] if b.get('kind') == 'top' and b.get('timeline')), None)
+    it = top and find.get(str(top.get('story') or ''))
+    if not it:
+        return ''
+    days = [dayof for dayof in [digest] + list((moves or {}).get('days') or []) if isinstance(dayof, dict)]
+    lines = [f"{l.get('who', '')} {l.get('text', '')}" for d in days for tp in d.get('topics') or []
+             if key(tp.get('name', '')) == key(top['timeline']) for l in tp.get('lines') or []]
+    words = voice.stems(' '.join([top['timeline'], *lines]))
+    own = voice.stems(' '.join([top.get('title') or '', headline(it), it.get('title') or '',
+                                *(a.get('title') or '' for a in it.get('also') or [])]))
+    return top['timeline'] if len(words & own) < 3 else ''
 
 
 def wiki_built():
@@ -909,7 +930,7 @@ SMALL = [
 
 def story_lines(i, joined=0):
     cover = ', '.join(f'{n} {k}' for k, n in (i.get('cover') or {}).items())
-    flags = ' · big' if i.get('big') else ''
+    flags = (' · big' if i.get('big') else '') + (' · kommentar' if i.get('kind') == 'kommentar' else '')
     t = brain.tier_of(i)
     tier = f' · tier {t}' if t is not None else ''
     grew = f' (+{joined} since the last update)' if joined else ''
@@ -986,7 +1007,7 @@ def head_lines(heads, known, listed=()):
 def story_row(i):
     t = brain.tier_of(i)
     return (f"[{i['id']}] {i.get('sec')}{f' · tier {t}' if t is not None else ''} · rank {i.get('rank')} · "
-            f"{i.get('outlets') or 1} outlets · {clip(headline(i), 110)}")
+            f"{i.get('outlets') or 1} outlets{' · kommentar' if i.get('kind') == 'kommentar' else ''} · {clip(headline(i), 110)}")
 
 
 def live_lines(level, line, above, below, pool, known, now, the_plan=None):
@@ -1393,6 +1414,9 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
         if kind == 'top':
             tops += 1
             row['story'] = story(b.get('story'), 'story')
+            if row['story'] and (find.get(row['story']) or {}).get('kind') == 'kommentar':
+                problems.append(f"{where}: story {b.get('story')} is commentary (an opinion or analysis piece) – a main "
+                                'story is news: put it in a list, or choose another')
             row['with'] = ids(b.get('with') or [], 'with', 3)
             if b.get('timeline'):
                 row['timeline'] = topic(b['timeline'])
@@ -1582,6 +1606,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
                     voice.check_movement(text, f"quotes: '{who}: {text[:40]}'", problems)
                 quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
     find = resolver(data.get('items', []))
+    outlet_labels = {str(v.get('label') or k).casefold() for k, v in (data.get('sources') or {}).items()}
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
         x = x if isinstance(x, dict) else {'id': x}
@@ -1593,6 +1618,8 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             problems.append(f"titles: {x['id']} needs one Danish headline (at most {TITLE_LEN} characters, not {len(title)})")
         else:
             voice.check_headline(title, f"titles: {x['id']}", problems)
+            voice.check_prefix(title, [it.get('source'), *(a.get('source') for a in it.get('also') or [])], outlet_labels,
+                               f"titles: {x['id']}", problems)
             if it.get('group') in MOVEMENT_GROUPS:
                 voice.check_movement(title, f"titles: {x['id']}", problems)
             heads.append({'id': it['id'], 'title': title, 'members': sorted(set(it.get('members') or []) - {it['id']})})
@@ -1634,6 +1661,10 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             problems[:] = [p for p in problems if not p.startswith('lede: ')]   # the front page's lede is the update's
     front = compose(draft.get('front'), extra.get('front'), find, pool, topics, quotes, extra.get('answers'), lede, now,
                     problems)
+    if front and lede and lede_at == stamp:   # a new lede is a standfirst: it does not repeat the main story's headline
+        top = next((b for b in front['blocks'] if b.get('kind') == 'top'), None)
+        if top:
+            voice.check_lede(lede, top.get('title') or headline(find.get(top.get('story')) or {}), 'lede', problems)
     if problems:
         return None, None, problems
     touched = set()

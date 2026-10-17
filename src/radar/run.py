@@ -13,7 +13,7 @@ import numpy as np
 from radar import admin, analyses, feedback, level, push, stats
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all, tidy as tidy_headline
-from radar.headlines import curious
+from radar.headlines import clean_teaser, commentary, curious
 from radar.method import Method
 from radar.sections import Sections
 
@@ -236,6 +236,36 @@ def in_quiet_hours(settings):
     return h >= start or h < end if start > end else start <= h < end
 
 
+def editor_titles(summaries):
+    """The editor's checked headlines (summaries.json 'titles' on the digest branch): article id -> headline, filed
+    under the story's id and its members, the newest winning – as the app reads them (readSummaries in app.js)."""
+    out, at = {}, {}
+    for k, v in ((summaries or {}).get('titles') or {}).items():
+        if not isinstance(v, dict) or not v.get('title'):
+            continue
+        for i in [k, *(v.get('members') or [])]:
+            if i not in out or str(v.get('at') or '') > at[i]:
+                out[i], at[i] = v['title'], str(v.get('at') or '')
+    return out
+
+
+def push_headline(it, titles):
+    """A notification says the news as the app shows it (the owner's headline rule of 2026-10-17): the editor's
+    headline for the story or one of its articles, else the Danish, the English translation, the outlet's own; a
+    curiosity headline gives way to its teaser's first sentence."""
+    ids = [it['id'], *(it.get('members') or []), *(a.get('id') for a in it.get('also') or [])]
+    ed = next((titles[i] for i in ids if titles.get(i) and not curious(titles[i])), '')
+    if ed:
+        return ed
+    head = it.get('title_da') or it.get('title_tr') or it['title']
+    if curious(head):
+        teaser = clean_teaser(it.get('summary_da') or it.get('summary_tr') or it.get('summary') or '', head)
+        first = re.split(r'(?<=[.!?])\s+', teaser, maxsplit=1)[0].rstrip('.') if teaser else ''
+        if len(first) >= 25 and not curious(first):
+            return first if len(first) <= 140 else first[:138].rsplit(' ', 1)[0] + ' …'
+    return head
+
+
 # ------------------------------------------------------------------ main
 
 def main():
@@ -281,6 +311,8 @@ def main():
     health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
     live_plan = load(os.environ.get('RADAR_LIVE', CACHE / 'live.json'), {})    # the editor's level for Live (level.py)
+    # the editor's headlines (summaries.json on the digest branch): a notification says what the app shows
+    ed_titles = editor_titles(load(os.environ.get('RADAR_SUMMARIES', CACHE / 'summaries.json'), {}))
     admitted = load(STATE / 'admitted.json', {})    # member id -> when its story was first admitted to Live
     phones = push.load_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''))   # signed up in the app
     owner = admin.load(STATE / 'removed.json')      # what the owner removed or moved with a long press in the app
@@ -299,6 +331,8 @@ def main():
         if f and (f.get('drop') or f.get('cut') or f.get('type') in ('gnews', 'telegram')):
             if not tidy_headline(items[k], f) or len(norm_title(items[k]['title']).split()) < 4:
                 del items[k]
+        elif f and items[k].get('summary'):   # the teaser's call to action, link or picture caption (2026-10-17)
+            tidy_headline(items[k], f)
 
     # 1. keep fresh, unseen, de-duplicated items (same link, or same headline from two feeds)
     known_titles = {norm_title(i['title']) for i in items.values()}
@@ -793,7 +827,7 @@ def main():
     if pending and gap_ok and not in_quiet_hours(s) and len(sent_today) < s['notify_max_per_day']:
         batch = sorted(pending, key=lambda p: (p['why'] != 'big', -items[p['id']]['pct']))
         lead = items[batch[0]['id']]
-        headline = lead.get('title_tr') or lead['title']
+        headline = push_headline(lead, ed_titles)
         if len(batch) == 1:
             where = ' i Danmark' if lead.get('sec') == 'dk' else ''
             title = (f"Topnyhed{where} · {lead['outlets']} medier" if lead['big']
@@ -842,10 +876,10 @@ def main():
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
                      'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da',
-                     'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live')
+                     'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live', 'kind')
     app_fields = ('id', 'title', 'summary', 'link', 'lang', 'published', 'found', 'rank', 'sec', 'secs', 'big', 'important',
                   'outlets', 'confirmed', 'cover', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb',
-                  'pic', 'kw', 'kw_tr', 'kw_da', 'actors', 'members', 'live')
+                  'pic', 'kw', 'kw_tr', 'kw_da', 'actors', 'members', 'live', 'kind')
     also_fields = ('id', 'source', 'title', 'link', 'lang', 'group', 'title_tr')
 
     def slim(d, keys):   # empty values left out (the app reads a missing field as empty); 0 stays (confirmed: 0)
@@ -862,6 +896,8 @@ def main():
         return out
 
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
+    for it in shown:   # commentary is labelled in the app and never leads the editor's front page (pro-plan 3.3)
+        it['kind'] = 'kommentar' if commentary(it.get('link'), it.get('title')) else None
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     common = {
         'updated': NOW.isoformat(),
@@ -905,7 +941,7 @@ def main():
     # everything the radar saw in the last days, for the app's search (loaded only when someone searches)
     on_card = {it['id'] for it in shown}
     save(STATE / 'search.json', {'updated': NOW.isoformat(), 'items': [
-        {'i': v['id'], 't': v.get('title_tr') or v['title'], 's': label_of.get(v['source'], v['source']),
+        {'i': v['id'], 't': v.get('title_tr') or v['title'], 'da': v.get('title_da'), 's': label_of.get(v['source'], v['source']),
          'l': v.get('lang'), 'u': v['link'],
          'p': v['published'], 'x': v.get('sec'), 'c': int(v['id'] in on_card)}
         for v in sorted(items.values(), key=lambda v: v['published'], reverse=True)

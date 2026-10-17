@@ -149,3 +149,13 @@ def test_the_build_reads_this_branchs_files():
 def test_a_rebuild_from_the_extracts_gives_the_committed_layer():
     layer, _, _ = build_movement.build(datetime.fromisoformat(LAYER['built']))
     assert json.loads(json.dumps(layer, ensure_ascii=False)) == LAYER
+
+
+def test_no_working_label_reaches_a_reading():
+    # 'ÆNDRING: redskabet skifter …' was a label of the syntheses, not the movement's words (pro-plan 3.8): every Danish
+    # text of the layer and the wiki is free of an all-caps label before a colon, the known acronyms excepted
+    label = re.compile(r'(?<![\w])(?!(?:' + '|'.join(build_movement.ACRONYMS) + r')\b)[A-ZÆØÅ]{4,}:')
+    for name in ('movement.json', 'begreber.json'):
+        text = (VIDEN / name).read_text(encoding='utf-8')
+        assert not label.findall(text), (name, label.findall(text)[:5])
+    assert build_movement.unlabel('afskåret. ÆNDRING: redskabet skifter. NATO: nej.') == 'afskåret. Redskabet skifter. NATO: nej.'

@@ -216,3 +216,40 @@ def check_movement(text, where, problems):
                 problems.append(f"{where}: a serving claim near '{who}' – never about a mosque, a scholar, a media outlet, a "
                                 f'Danish person or organisation or a non-ruling person (H3): {near}')
                 break
+
+
+# ------------------------------------------------------------------ the front page as a professional page (2026-10-17)
+STEM_STOP = {'efter', 'under', 'siger', 'mange', 'flere', 'denne', 'dette', 'imod', 'mellem', 'omkring', 'over', 'ikke',
+             'også', 'være', 'blev', 'eller', 'deres', 'sine', 'sin', 'sit', 'hvor', 'mens'}
+
+
+def stems(text):
+    """The words of a text that carry it (four letters and more, their first five), for comparing two texts."""
+    return {w[:5] for w in re.findall(r'[^\W\d_]{4,}', (text or '').lower()) if w not in STEM_STOP}
+
+
+def restates(lede, title, share=0.6):
+    """Does the lede's first clause say what the main story's headline says? A standfirst names the day's other
+    stories; the main story's headline is right under it (pro-plan 3.2)."""
+    first = re.split(r'[,;:–]|\sog\s', lede or '', maxsplit=1)[0]
+    a, b = stems(first), stems(title)
+    return len(a) >= 3 and len(a & b) / len(a) >= share
+
+
+def check_lede(lede, top_title, where, problems):
+    if lede and top_title and restates(lede, top_title):
+        problems.append(f"{where}: its first clause says what Dagens historie's headline says ('{top_title[:70]}') – the "
+                        "headline stands right under it: open with the day's other stories, as a standfirst does")
+
+
+def check_prefix(title, outlets, labels, where, problems):
+    """'X: …' where X is an outlet: only one of the story's own outlets (whose report the claim is). An outlet that
+    does not carry the story is no speaker of it (pro-plan 3.4); 'Who: what' with a person or a state stays."""
+    m = re.match(r'^([^:»«"]{2,40}):\s', title or '')
+    if not m:
+        return
+    x = m.group(1).strip().casefold()
+    own = {str(o or '').casefold() for o in outlets}
+    if x in labels and x not in own:
+        problems.append(f"{where}: '{m.group(1)}:' names an outlet that does not carry this story – write who said or did "
+                        'it, or leave the outlet out (the app names the outlet under the headline)')

@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
+from radar.headlines import clean_teaser
+
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
 TAG = re.compile(r'<[^>]+>')
 SPACE = re.compile(r'\s+')
@@ -242,7 +244,10 @@ def tidy(item, feed):
         for k in ('title_tr', 'summary_tr', 'title_da', 'summary_da', 'kw', 'kw_tr', 'kw_da', 'tr_v'):
             item.pop(k, None)   # made again from the Turkish
         item['lang'] = 'tr'
-    if title != item['title']:
+    # the teaser without a call to action, a link or a picture's caption (a Telegram post's rest is its text: kept)
+    if kind != 'telegram' and summary:
+        summary = clean_teaser(summary, title)
+    if title != item['title'] or summary != (item.get('summary') or ''):
         for k in ('title_tr', 'summary_tr', 'title_da', 'summary_da', 'tr_v'):
             item.pop(k, None)
     item['title'], item['summary'] = title, summary

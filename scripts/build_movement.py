@@ -203,9 +203,22 @@ def attributed(s, when=None):
     return s
 
 
+# a working label of the syntheses ('ÆNDRING: redskabet skifter …') is no part of the reading the app shows; the known
+# acronyms stay ('NATO: …' as a speaker)
+ACRONYMS = ('NATO', 'OPEC', 'ISIS', 'UNRWA', 'BRICS', 'IAEA', 'CENTCOM', 'AFRICOM', 'ECOWAS', 'ASEAN', 'UNHCR', 'UNICEF',
+            'USAID', 'SWIFT', 'AUKUS', 'QUAD', 'SDF', 'PKK', 'IMF')
+LABEL = re.compile(r'(?<![\w])(?!(?:' + '|'.join(ACRONYMS) + r')\b)[A-ZÆØÅ]{4,}:\s*([a-zæøå]?)')
+
+
+def unlabel(s):
+    """The text without its working labels; the sentence a label opened starts with a capital."""
+    return LABEL.sub(lambda m: m.group(1).upper(), s) if s else s
+
+
 def owned(s, when, lead='af'):
     """Every text of the layer names the movement (card M1), also where the app shows it outside its answer: a text that
     does not start with an attribution gets 'Ifølge Hizb ut-Tahrirs svar af d/m/åååå: '."""
+    s = unlabel(s)
     s = attributed(s, when)
     for rx, to in OPENINGS:
         if rx.match(s):
