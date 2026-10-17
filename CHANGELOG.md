@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Middle weight: the red edge without the ground** (2026-10-18, the owner: 'en rød streg på samme måde som stor
+  betydning men bare uden den røde baggrund'; `?v=20261018al`): in Live and in the Kalender a story or event of middle
+  weight has the high one's 3 px red edge at its left, without the soft red ground; the short mark under the time (the
+  day, in Kalender) is gone.
 - **No more ochre ground: the movement's text is marked by a thin warm rule** (2026-10-18, the owner: 'den gule
   baggrund skal genovervejes, det gør det svært at læse'; `?v=20261018ak`): Hizb ut-Tahrir's blocks (an answer's panel
   and text, a wiki page's lead, readings and timeline, the answer line under a story) stand on the page's own ground in

@@ -450,12 +450,13 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .story .row > .st-save:active { background: var(--fill); }
 .story.tick + .story.tick::before { left: calc(16px + 44px * var(--ts, 1) + 12px); }
 /* Live's weights (18/10, the owner: 'som vi har gjort på kalenderen'): high on a soft red ground with a red edge and
-   'Høj betydning' in its line, middle a short red mark under its time, low quiet */
+   'Høj betydning' in its line, middle the red edge without the ground (18/10), low quiet */
 .page[data-tab="latest"] .story.tick.w3 > .row { background-color: var(--pulse-soft); }
 .page[data-tab="latest"] .story.tick.w3 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
 .page[data-tab="latest"] .story.tick.w3 .h { font-weight: 700; }
 .page[data-tab="latest"] .story.tick.w3 + .story.tick::before, .page[data-tab="latest"] .story.tick + .story.tick.w3::before { opacity: 0; }
-.page[data-tab="latest"] .story.tick.w2 .tt::after { content: ""; display: block; width: 16px; height: 2px; margin-top: 6px; background: var(--red); }
+/* middle (18/10, the owner: 'en rød streg på samme måde som stor betydning men bare uden den røde baggrund') */
+.page[data-tab="latest"] .story.tick.w2 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
 .page[data-tab="latest"] .story.tick.w2 .h { font-weight: 620; }
 /* Live's three filters (17/10): Danmark · Mellemøsten · Verden, each with its section's small dot */
 .live-secs { display: flex; gap: var(--s2); }
@@ -1221,13 +1222,13 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cd small { margin-top: 2px; font-size: var(--fs-cap); font-weight: 650; letter-spacing: .03em; color: var(--text-3); }
 .ce .h { font-weight: 600; }
 /* the weight (the owner, 17/10: "vægte de begivenheder … med en indikator eller en baggrundsfarve"): an event of high
-   weight on a soft red ground with a red edge and 'Høj betydning', one of middle weight a short red mark by its day */
+   weight on a soft red ground with a red edge and 'Høj betydning', one of middle weight the red edge without the ground (18/10) */
 .page[data-tab="kalender"] .ce.w3 { background-color: var(--pulse-soft); }
 .page[data-tab="kalender"] .ce.w3::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
 .page[data-tab="kalender"] .ce.w3 .h { font-weight: 750; }
 .page[data-tab="kalender"] .ce.w3 + .ce::before, .page[data-tab="kalender"] .ce + .ce.w3::before { opacity: 0; }
 .page[data-tab="kalender"] .ce .cw { color: var(--red); font-weight: 750; }
-.page[data-tab="kalender"] .ce.w2 .cd::after { content: ""; display: block; width: 16px; height: 2px; margin: 4px auto 0; background: var(--red); }
+.page[data-tab="kalender"] .ce.w2::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }   /* as high, without the ground (18/10) */
 .page[data-tab="kalender"] .ce.w2 .h { font-weight: 680; }
 .ce .m .cn { color: var(--text); font-weight: 650; }
 .ce-x { padding: 0 var(--s4) var(--s3) 72px; }

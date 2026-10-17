@@ -912,8 +912,8 @@ function topScore(i) {
   return (p < 3 ? 4 : ed ? 3 : 0) + (heavy(i) ? 2 : 0) + (i.big ? 1 : 0);
 }
 // a story's weight in Live, shown as the calendar shows its events' (the owner, 18/10: 'fremhæve dem med høj betydning
-// medium og lav som vi har gjort på kalenderen'): 3 – 'Høj betydning' (topNow), a soft red ground and a red edge; 2 – a
-// short red mark under its time: an editor's pick, a story of the books' heaviest tiers, or a big story; 1 – the rest,
+// medium og lav som vi har gjort på kalenderen'): 3 – 'Høj betydning' (topNow), a soft red ground and a red edge; 2 – the
+// red edge without the ground: an editor's pick, a story of the books' heaviest tiers, or a big story; 1 – the rest,
 // quiet. A commentary is never weighted.
 const weightOf = i => i.kind === 'kommentar' ? 1 : topNow().has(i.id) ? 3
   : pickRank(i) < 99 || heavy(i) || i.big ? 2 : 1;
@@ -3273,7 +3273,7 @@ function calRow(e, today, o = {}) {
   const label = `${calExact(e) ? FMT.full.format(d) : FMT.my.format(d)}: ${e.title}${e.place ? ', ' + e.place : ''}${e.approx ? ', forventet' : ''}${e.w === 3 ? ', høj betydning' : ''}${o.count ? ', ' + calCount(e, today) : ''}`;
   const hit = o.front ? `<button class="hit" data-cal-go="${esc(e.id)}" aria-label="${esc(label)}"></button>`
     : `<button class="hit" data-cal="${esc(e.id)}" aria-expanded="${open}" aria-label="${esc(label)}"></button>`;
-  // the weight (17/10): 3 a soft red ground, a red edge and 'Høj betydning'; 2 a short red mark by the day
+  // the weight (17/10): 3 a soft red ground, a red edge and 'Høj betydning'; 2 the red edge without the ground (18/10)
   const w = e.w === 3 || e.w === 2 ? e.w : 1;
   if (w === 3) parts.unshift('<span class="cw">Høj betydning</span>');
   return `<div class="ce${open ? ' open' : ''}${w > 1 ? ' w' + w : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
