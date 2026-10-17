@@ -3145,6 +3145,9 @@ addEventListener('touchmove', e => {
 // Økonomi's page scrolls inside its frame, so it has its own pull (18/10, the owner: 'man kan ikke hive ned for at
 // opdatere økonomi siden'); the logo answers it as it answers the app's own
 window.khabarOkReady = on => logo.classList.toggle('ready', !!on);
+// a story tapped on Økonomi opens in Live, opened, where its summary, outlets and share are (18/10, the owner: 'det skal
+// åbne i nyhedsoversigten i khabar'); false when Live does not hold it – the page unfolds it then
+window.khabarOpenStory = id => { const i = findStory(id); if (!i) return false; openInLive(i.id); return true; };
 window.khabarOkRefresh = async run => {
   logo.classList.add('blink');
   const t0 = performance.now();
@@ -3300,7 +3303,9 @@ const calNear = (e, today) => calExact(e) && calEnd(e) >= today && calDay(e.date
 // its calm dot, the place, 'til …', 'forventet' – and, opened, the why, the source and the stories
 function calRow(e, today, o = {}) {
   const d = calDate(e.date), open = !o.front && calOpen.has(e.id), near = calNear(e, today);
-  const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>`
+  // on the front page the month under the day, not the weekday: it has no month bands, and '14 man.' read as this
+  // month when it is two months on (the owner, 18/10)
+  const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(o.front ? FMT.mon.format(d) : FMT.wd.format(d))}</small>`
     : calYear(e) ? `<b class="mo">${esc(e.date)}</b><small>år</small>` : `<b class="mo">${esc(FMT.mon.format(d))}</b><small>måned</small>`;
   const parts = [...(o.count && calExact(e) ? [`<span class="cn">${calCount(e, today)}</span>`] : []),   // a month alone has no countdown
     `<span class="ck${near ? ' near' : ''}" data-k="${esc(e.kind)}"><i></i>${esc(CAL_KINDS[e.kind])}</span>`,

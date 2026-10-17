@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi's stories open in Khabar; 'Vigtige datoer' says the month** (2026-10-18, the owner: 'når man åbner dem
+  skal det ikke åbne ekstern link med det samme, det skal åbne i nyhedsoversigten i khabar' and 'forsidens vigtige
+  datoer kan være misvisende, fordi der står et tal og en ugedag'; `?v=20261018bb`): a story tapped on the economy
+  page (its news lists and the headline's line) opens in Live, opened, when Live holds it (`khabarOpenStory`); on
+  khabar.nu/energi it opens the app at the story; one Live does not hold (the backward fill, one that left Live)
+  unfolds in place with its original headline and 'Læs hos <outlet> ›' – the outlet only when one asks. The front
+  page's 'Vigtige datoer' shows the month under the day ('14 dec.') instead of the weekday: it has no month bands
+  (the Kalender keeps the weekday). (The 14 stories of 'Finans og økonomi' reached the live page with the radar's
+  pass of 22.21; a copy fetched before showed none.)
 - **'Finans og økonomi' with a month's memory, a backward fill, its newest story as its headline; pull to refresh on
   Økonomi; no 'Høj betydning' on 'Vigtige datoer'** (2026-10-18, the owner: 'kan vi fylde uro i økonomien i
   retrospekt', 'synes ikke uro i økonomien lyder godt … overskriften … skal være lidt mere professionelt', 'man kan ikke

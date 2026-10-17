@@ -263,7 +263,7 @@ def test_the_page_names_what_comes_next_then_the_week_then_the_months():
     count = CODE.split('const calCount = ')[1].split('\n')[0]
     assert "'i dag'" in count and "'i morgen'" in count and '`om ${n} dage`' in count
     row = fn('calRow')
-    assert '<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>' in row   # the day large, its weekday small
+    assert '<b>${d.getDate()}</b><small>${esc(o.front ? FMT.mon.format(d) : FMT.wd.format(d))}</small>' in row   # the day large, its weekday small (the front page: its month)
     assert "'<span>forventet</span>'" in row and 'hijri' not in row and 'class="hit"' in row and '<a ' not in row
     detail = fn('calDetail')
     assert 'e.why' in detail and 'Kilde<svg' in detail and 'data-live=' in detail and 'data-cal-share' in detail
@@ -299,6 +299,7 @@ def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_develop
     assert 'calDay(e.date) - today <= 92' in block and '.slice(0, 4)' in block and "if (!list.length) return '';" in block
     assert 'calWOf(e) === 3' in block and "blockHead('Vigtige datoer'" in block and '!calYear(e)' in block
     assert "if (w === 3 && !o.front) parts.unshift" in CODE   # no 'Høj betydning' on its rows: the title says it
+    assert 'o.front ? FMT.mon.format(d) : FMT.wd.format(d)' in CODE   # its day says its month (it has no month bands)
     assert "moreLink('Alle', 'kalender')" in block and 'data-cal-go' in fn('calRow')
     assert "(FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }" in fn('composedHome')
     fixed = fn('fixedHome')
