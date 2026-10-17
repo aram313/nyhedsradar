@@ -367,7 +367,7 @@ def test_the_page_keeps_the_embed_contract_and_the_house_style():
 def test_economic_crises_are_news_of_their_own():
     assert energy.CRISIS.search('Egypt seeks IMF bailout as pound plunges') and energy.CRISIS.search('Ny straftold mod Kina')
     assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
-    assert "'crisis': crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
+    assert "'crisis': (crisis := crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
     assert "const [lead, ...rest] = D.crisis || [];" in PAGE and 'newsTidy(newsPick(n)[0])' in PAGE   # its headline: the newest story
 
 
@@ -411,3 +411,21 @@ def test_denmarks_pump_prices_have_two_years_of_weeks():
     assert h[-1][1] == round(2658.27 / 1000 / 0.1338, 2) and 19 < h[-1][1] < 21     # kr. per litre
     assert 'dk_history(xlsx_rows(get(DKH_URL' in (Path(energy.__file__).read_text(encoding='utf-8'))
     assert "dkLine(f)" in PAGE and "data-chart=\"dkh:${f}\"" in PAGE
+
+
+def test_the_economy_page_has_a_quote_of_the_day(tmp_path):
+    # 18/10, the owner: 'Lad os tilføje en dagens citat under økonomi også'
+    from datetime import datetime, timezone
+    t = datetime(2026, 10, 17, 20, tzinfo=timezone.utc)
+    crisis = [{'i': 'a', 'p': '2026-10-17T10:00:00+00:00', 'ed': 'Moody’s: opgraderer Egypten', 'u': 'x'},            # the headline: not again
+              {'i': 'b', 'p': '2026-10-16T10:00:00+00:00', 'ed': 'Pakistan når aftale med IMF om nye lån', 'u': 'y'},   # no speaker
+              {'i': 'c', 'p': '2026-10-15T10:00:00+00:00', 'ed': 'Lagarde: Løsningen skal findes i Frankrig', 'u': 'z', 's': 'Reuters'}]
+    q = energy.econ_quote(crisis, digest=str(tmp_path / 'none.json'), t=t)
+    assert q['who'] == 'Lagarde' and q['text'] == 'Løsningen skal findes i Frankrig' and q['i'] == 'c'
+    dg = tmp_path / 'digest.json'
+    dg.write_text(json.dumps({'editor': {'quotes': [{'who': 'Erdoğan', 'text': 'Krig', 'sec': 'me'},
+                                                     {'who': 'IMF-chefen', 'text': 'Frankrig må få styr på økonomien.', 'okonomi': True, 'link': 'l'}]}}), encoding='utf-8')
+    q = energy.econ_quote(crisis, digest=str(dg), t=t)
+    assert q == {'who': 'IMF-chefen', 'text': 'Frankrig må få styr på økonomien.', 'u': 'l', 'ed': True}   # the editor's first
+    assert energy.econ_quote([], digest=str(tmp_path / 'none.json'), t=t) is None
+    assert "'Dagens citat' : 'Seneste citat'" in PAGE

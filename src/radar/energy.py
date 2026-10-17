@@ -789,6 +789,33 @@ def crisis_archive(fresh, kept, seed, t=None, days=CRISIS_DAYS, limit=CRISIS_MAX
     return out[:limit]
 
 
+# 'Dagens citat' on the economy page (the owner, 18/10: 'Lad os tilføje en dagens citat under økonomi også'): the
+# editor's newest quote marked "okonomi" (a central banker, a finance minister, the IMF …), else the newest story of
+# 'Finans og økonomi' of the last week whose headline says who said what ('Lagarde: Løsningen på …')
+WHO_SAYS = re.compile(r'^([^:–]{2,48}):\s+(.{12,240})$')
+
+
+def econ_quote(crisis, digest=None, t=None):
+    try:
+        d = json.loads(Path(digest or os.environ.get('RADAR_DIGEST') or Path(__file__).resolve().parents[2] / '.cache' / 'digest.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        d = {}
+    for q in ((d.get('editor') or {}).get('quotes') or []):
+        if isinstance(q, dict) and q.get('okonomi') and q.get('who') and q.get('text'):
+            return {'who': q['who'], 'text': q['text'], 'u': q.get('link') or '', 'ed': True}
+    cut = (t or now()) - timedelta(days=7)   # the topic's week; the page says the day
+    for x in (crisis or [])[1:]:   # not the newest: it is the topic's headline already
+        try:
+            if datetime.fromisoformat(x['p']) < cut:
+                continue
+        except (KeyError, ValueError, TypeError):
+            continue
+        m = WHO_SAYS.match((x.get('ed') or (x.get('o') if x.get('l') == 'da' else '') or '').strip())
+        if m:
+            return {'who': m.group(1).strip(), 'text': m.group(2).strip(), 'u': x.get('u') or '', 's': x.get('s'), 'p': x['p'], 'i': x.get('i')}
+    return None
+
+
 def run(state):
     path = state / 'energy.json'
     try:
@@ -877,7 +904,8 @@ def run(state):
         'dkh': dkh,
         'news': energy_news(state),
         # the economy page's 'Uro i økonomien', with its memory of 30 days and the backward fill
-        'crisis': crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t),
+        'crisis': (crisis := crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t)),
+        'quote': econ_quote(crisis, t=t),
     }
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     return out

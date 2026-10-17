@@ -104,6 +104,7 @@ jobs:
           PYTHONPATH: src
           RADAR_STATE: state
           RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the energy news
+          RADAR_DIGEST: .cache/digest.json          # the editor's quotes: the economy page's 'Dagens citat'
         run: python -m radar.energy
 
       # the Kalender tab's planned events (src/radar/calendar.py, stdlib only): Wikipedia's electoral calendars, the Fed's

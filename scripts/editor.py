@@ -923,7 +923,8 @@ TEMPLATE = {
     'picks': [{'id': '<story id from the top stories, the weightiest first>', 'why': '<a few plain words: who acts, the tier>'}],
     'moves': [{'id': '<only a story in a clearly wrong section – rare; usually leave "moves" out>', 'sec': 'dk | me | world'}],
     'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish, one or two sentences>', 'sec': 'dk | me | world',
-                'ids': ['<wire line id>'], 'story': '<or a story id>'}],
+                'ids': ['<wire line id>'], 'story': '<or a story id>',
+                'okonomi': '<true for one statement on the economy – a central banker, a finance minister, the IMF: Økonomi shows it as its Dagens citat; else leave it out>'}],
     'titles': [{'id': '<story id from "Headlines to write">',
                 'title': '<an informative Danish headline: who did or said what, where – a statement, never a teaser>'}],
     'summaries': [{'id': '<story id from "Stories to summarise">',
@@ -1699,7 +1700,9 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
                 voice.check_voice(f'{who}: {text}', f"quotes: '{who}: {text[:40]}'", problems)
                 if src.get('group') in MOVEMENT_GROUPS:
                     voice.check_movement(text, f"quotes: '{who}: {text[:40]}'", problems)
-                quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
+                # "okonomi": a statement on the economy – the economy page's 'Dagens citat' (the owner, 18/10)
+                quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', ''),
+                               **({'okonomi': True} if q.get('okonomi') is True else {})})
     find = resolver(data.get('items', []))
     # the news outlets only: a government's own channel ('Kreml', 'Det Hvide Hus') or the movement's is who speaks, and
     # 'Kreml: …' stays the attributed claim it is

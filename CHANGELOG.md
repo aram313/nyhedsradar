@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Dagens citat' on Økonomi** (2026-10-18, the owner: 'Lad os tilføje en dagens citat under økonomi også'): under
+  'Finans og økonomi''s headline a quote card – the statement large in the serif, who said it (and the outlet) under
+  it; a tap opens the story in Khabar. It is the editor's newest quote marked `"okonomi": true` (a central banker, a
+  finance minister, the IMF, a rating agency – `editor.py publish` keeps the flag; the routine prompt and
+  docs/hjerne/routine-prompt.md say so), else the newest story of the topic's week – not its headline story – whose
+  headline says who said what ('Lagarde: …'; `energy.econ_quote`, `energy.json`'s `quote`; the energy step now reads
+  the digest, `RADAR_DIGEST`). Titled 'Dagens citat' when it is from the last day, else 'Seneste citat' with its day.
 - **An open story held past its edge no longer jitters** (2026-10-18, the owner: 'if you have a open story and you drag
   it past its scroll point and hold it, it starts to glitch to get back in position'; `?v=20261018bn`): the page no
   longer pulls against the finger; it follows it, and once the finger is off and the page stands still (140 ms after

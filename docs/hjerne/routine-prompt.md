@@ -66,7 +66,7 @@ plain Danish without "Ifølge …".
      its exact name; none when nothing new and important happened. `order`: the day's topics, weightiest first – its
      first topic with three lines or more is Dagens historie.
    - `quotes`: two to five telling statements of the last hours, in natural Danish, with section and ids; leave out to
-     keep.
+     keep. When one is a statement on the economy (a central banker, a finance minister, the IMF, a rating agency), give it `"okonomi": true`: the economy page shows it as its Dagens citat.
    - `summaries`: every story under 'Stories to summarise', 2-3 plain factual sentences, `paywall: true`.
    - `titles`: a headline for every story under 'Headlines to write' – Danish outlets as well as foreign ones; the app
      shows yours instead of the outlet's (the owner: the outlets' headlines make readers curious instead of informing
