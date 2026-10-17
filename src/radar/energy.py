@@ -7,11 +7,13 @@ numbers, so one source being down never blanks the page.
 Sources (all free and open):
 - futures, gas and USD/DKK: Yahoo Finance chart API (NYMEX/ICE prices, ~10 min delayed), daily closes for 6 months;
   the Brent and WTI curves from the individual contract months
-- physical spot prices: EIA's daily series via FRED (Brent FOB, WTI Cushing, New York Harbor gasoline and diesel,
-  Gulf Coast jet fuel, Henry Hub), a few days behind
+- physical spot prices: EIA's daily series (Brent FOB, WTI Cushing, New York Harbor gasoline and diesel, Gulf Coast
+  jet fuel, Henry Hub), a few days behind – from EIA's own history pages, else from FRED (FRED does not answer
+  GitHub's runners); a source that fails is tried again after RETRY, not on every pass
 - Danish pump prices: Circle K's public price API (Circle K and INGO stations) and Q8's station price list (Q8 and
   F24), every station; the page shows each chain's list price and its cheapest station
-- news: stories and wire lines about oil, fuel and gas from this radar run (data.json and lines.json)
+- news: stories about oil, fuel and gas from this radar run (data.json), with the editor's headline where he
+  wrote one (summaries.json, RADAR_SUMMARIES); the wire's one-liners are left out (machine-translated Arabic)
 
 The page holds the names, units and explanations; this file only holds numbers, so wording can change without a run.
 """
@@ -38,6 +40,7 @@ GAL_BBL = 42        # gallons in a barrel
 
 # seconds between fetches of each source (the radar runs every ~5 minutes)
 EVERY = {'markets': 4 * 60, 'curve': 30 * 60, 'fred': 3 * 3600, 'pumps': 20 * 60}
+RETRY = 30 * 60     # a source that failed is asked again after half an hour, so a dead one never slows every pass
 
 YAHOO = {               # key -> symbol; prices in the exchange's unit
     'brent': 'BZ=F',    # Brent, front month, $/bbl
@@ -59,6 +62,15 @@ FRED = {                         # key -> FRED series id (EIA spot prices)
     'jet_gulf': 'DJFUELUSGULF',       # US Gulf Coast jet fuel, $/gal
     'hh_spot': 'DHHNGSP',             # Henry Hub spot, $/MMBtu
 }
+EIA = {                          # the same series on EIA's own history pages (n, s)
+    'brent_spot': ('PET', 'RBRTE'),
+    'wti_spot': ('PET', 'RWTC'),
+    'gas_nyh': ('PET', 'EER_EPMRU_PF4_Y35NY_DPG'),
+    'ulsd_nyh': ('PET', 'EER_EPD2DXL0_PF4_Y35NY_DPG'),
+    'jet_gulf': ('PET', 'EER_EPJK_PF4_RGC_DPG'),
+    'hh_spot': ('NG', 'RNGWHHD'),
+}
+EIA_MON = {m: i + 1 for i, m in enumerate(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])}
 
 # pump products, matched on the chains' own product names (lower case)
 PRODUCTS = {
@@ -180,12 +192,42 @@ def fetch_curves(front_times):
 
 # ---- physical spot prices (EIA via FRED) ---------------------------------------------------------------------------
 
+def eia_rows(html, days=200):
+    """EIA's daily history page: one row a week ('2026 Oct-12 to Oct-16', then Monday … Friday) -> [[date, v], ...]."""
+    cut = (now().date() - timedelta(days=days)).isoformat()
+    hist = []
+    for row in re.findall(r"<tr>\s*<td class='B6'>(.*?)</tr>", html, re.S):
+        m = re.search(r'(\d{4})\s+([A-Z][a-z]{2})-\s*(\d{1,2})\s+to', row)
+        if not m or m.group(2) not in EIA_MON:
+            continue
+        monday = date(int(m.group(1)), EIA_MON[m.group(2)], int(m.group(3)))
+        for i, cell in enumerate(re.findall(r"<td class='B3'>\s*([^<]*?)\s*</td>", row)[:5]):
+            try:
+                v = float(cell)
+            except ValueError:
+                continue      # an empty cell: a holiday, or a day not yet reported
+            d = (monday + timedelta(days=i)).isoformat()
+            if d >= cut:
+                hist.append([d, r4(v)])
+    return sorted(hist)
+
+
+def eia(key, days=200):
+    n, sid = EIA[key]
+    try:
+        html = get(f'https://www.eia.gov/dnav/{n.lower()}/hist/LeafHandler.ashx?n={n}&s={sid}&f=D', timeout=15).decode('utf-8', 'replace')
+    except Exception:
+        return None
+    hist = eia_rows(html, days)
+    return {'v': hist[-1][1], 't': hist[-1][0], 'h': hist} if hist else None
+
+
 def fred(series, days=200):
     start = (now().date() - timedelta(days=days)).isoformat()
     try:
         # FRED's bot shield drops a browser-like agent that lacks a browser's other headers; a plain one is let in
         text = get(f'https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={start}',
-                   {'User-Agent': 'khabar.nu energy prices'}, timeout=30).decode()
+                   {'User-Agent': 'khabar.nu energy prices'}, timeout=12).decode()
     except Exception:
         return None
     hist = []
@@ -200,9 +242,13 @@ def fred(series, days=200):
     return {'v': hist[-1][1], 't': hist[-1][0], 'h': hist}
 
 
+def spot(key):
+    return eia(key) or fred(FRED[key])
+
+
 def fetch_fred():
     with ThreadPoolExecutor(6) as ex:
-        got = dict(zip(FRED, ex.map(fred, FRED.values())))
+        got = dict(zip(FRED, ex.map(spot, FRED)))
     return {k: v for k, v in got.items() if v}
 
 
@@ -288,8 +334,12 @@ def summarize_pumps(stations):
             where = sorted({c for v, c in vals if v == low and c})
             prods[key] = {'v': mode, 'min': low, 'max': max(prices), 'n': len(prices), 'at': where[:3],
                           'nmin': sum(1 for v in prices if v == low), 'med': r4(statistics.median(prices))}
-        changes = [s['chg'] for s in mine if s.get('chg')]
-        chains.append({'c': chain, 'n': len(mine), 'chg': max(changes) if changes else None, 'p': prods})
+        # when the list price changed: the middle change time of the stations at the list price (one station's own
+        # change is not the chain's)
+        lead = 'benzin' if 'benzin' in prods else next(iter(prods), None)
+        at_list = [s['chg'] for s in mine if s.get('chg') and lead and s['p'].get(lead) == prods[lead]['v']]
+        changes = sorted(at_list or [s['chg'] for s in mine if s.get('chg')])
+        chains.append({'c': chain, 'n': len(mine), 'chg': changes[len(changes) // 2] if changes else None, 'p': prods})
     return chains
 
 
@@ -345,30 +395,40 @@ def with_prev(x):
 
 # ---- news ----------------------------------------------------------------------------------------------------------
 
-def energy_news(state, hours=72, limit=16):
+def editor_titles(summaries):
+    """The editor's checked headlines: article id -> headline, under the story's id and its members, the newest winning
+    (a copy of run.editor_titles, which this stdlib-only step cannot import)."""
+    out, at = {}, {}
+    for k, v in ((summaries or {}).get('titles') or {}).items():
+        if not isinstance(v, dict) or not v.get('title'):
+            continue
+        for i in [k, *(v.get('members') or [])]:
+            if i not in out or str(v.get('at') or '') > at[i]:
+                out[i], at[i] = v['title'], str(v.get('at') or '')
+    return out
+
+
+def energy_news(state, hours=72, limit=16, summaries=None):
+    """Stories about oil, fuel and gas, newest first, with the editor's headline where he wrote one."""
     def load(name):
         try:
-            return json.loads((state / name).read_text(encoding='utf-8'))
+            return json.loads(Path(name if os.path.isabs(str(name)) else state / name).read_text(encoding='utf-8'))
         except Exception:
             return {}
 
+    ed = editor_titles(load(summaries or os.environ.get('RADAR_SUMMARIES') or '__none__'))
     cut = now() - timedelta(hours=hours)
     seen, out = set(), []
     for it in load('data.json').get('items', []):
         text = ' '.join(x for x in (it.get('title'), it.get('title_tr'), it.get('title_da')) if x)
         if NEWS.search(text) and it.get('id') not in seen:
             seen.add(it.get('id'))
+            mine = next((ed[k] for k in [it.get('id'), *(it.get('members') or [])] if k in ed), None)
             # every version the app knows; the page picks by the reader's language setting, as the app does
             out.append({'i': it.get('id'), 'o': it.get('title'), 'en': it.get('title_tr'), 'da': it.get('title_da'),
-                        'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [], 'kd': it.get('kw_da') or [],
-                        's': it.get('source'), 'p': it.get('published') or it.get('found'), 'u': it.get('link'),
-                        'n': it.get('outlets') or 1, 'big': bool(it.get('big'))})
-    for it in load('lines.json').get('items', []):
-        text = ' '.join(x for x in (it.get('t'), it.get('tr'), it.get('da')) if x)
-        if NEWS.search(text) and it.get('i') not in seen:
-            seen.add(it.get('i'))
-            out.append({'i': it.get('i'), 'o': it.get('t'), 'en': it.get('tr'), 'da': it.get('da'), 'k': [], 'kd': [],
-                        's': it.get('s'), 'p': it.get('p'), 'u': it.get('u'), 'n': 1, 'big': False})
+                        'ed': mine, 'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [],
+                        'kd': it.get('kw_da') or [], 's': it.get('source'), 'p': it.get('published') or it.get('found'),
+                        'u': it.get('link'), 'n': it.get('outlets') or 1, 'big': bool(it.get('big'))})
     fresh = []
     for x in out:
         try:
@@ -383,6 +443,9 @@ def energy_news(state, hours=72, limit=16):
 # ---- one run -------------------------------------------------------------------------------------------------------
 
 def due(prev, source, t):
+    tried = (prev.get('tried') or {}).get(source)
+    if tried and (t - datetime.fromisoformat(tried)).total_seconds() < RETRY - 30:
+        return False      # it failed a moment ago: give it a rest
     last = (prev.get('ok') or {}).get(source)
     if not last:
         return True
@@ -399,6 +462,8 @@ def run(state):
     # the fetched series are the memory for the next run; derived ones are rebuilt from them every time
     raw = {k: v for k, v in (prev.get('s') or {}).items() if k in YAHOO or k in FRED}
     ok = dict(prev.get('ok') or {})
+    # a source that failed less than RETRY ago stays marked (due() skips it); one asked again now is marked anew below
+    tried = {k: v for k, v in (prev.get('tried') or {}).items() if (t - datetime.fromisoformat(v)).total_seconds() < RETRY - 30}
     curve = prev.get('curve') or {}
     pumps = prev.get('pumps') or {}
 
@@ -407,17 +472,23 @@ def run(state):
         raw.update(got)
         if got:
             ok['markets'] = t.isoformat()
+        else:
+            tried['markets'] = t.isoformat()
     if due(prev, 'curve', t):
         fronts = {k: int(datetime.fromisoformat(raw[k]['t']).timestamp()) for k in CURVES if raw.get(k)}
         got = fetch_curves(fronts)
         if got:
             curve = {**curve, **got}
             ok['curve'] = t.isoformat()
+        else:
+            tried['curve'] = t.isoformat()
     if due(prev, 'fred', t):
         got = fetch_fred()
         raw.update(got)
         if got:
             ok['fred'] = t.isoformat()
+        else:
+            tried['fred'] = t.isoformat()
     if due(prev, 'pumps', t):
         chains, sources = fetch_pumps()
         if chains:
@@ -428,11 +499,14 @@ def run(state):
             cut = (t.date() - timedelta(days=400)).isoformat()
             pumps = {'t': t.isoformat(), 'chains': chains, 'src': sources, 'h': [h for h in hist if h[0] >= cut]}
             ok['pumps'] = t.isoformat()
+        else:
+            tried['pumps'] = t.isoformat()
 
     series = {k: with_prev(v) for k, v in {**raw, **derive(raw)}.items()}
     out = {
         'updated': t.isoformat(),
         'ok': ok,
+        'tried': tried,
         's': series,
         'curve': curve,
         'pumps': pumps,

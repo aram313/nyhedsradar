@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Energy page: the physical prices, honest times and readable news** (2026-10-17, the owner: 'bliver ikke opdateret
+  ofte … priserne passer ikke'). The physical prices come from EIA's own pages (FRED never answered GitHub, so 'Det
+  fysiske marked' had no physical row and every pass waited 30 s); a failed source rests 30 minutes; a chain's change
+  time is its list price's, not one station's; on a weekend the page says the exchanges are closed; a futures price a
+  trading day behind the others is shown with its time; the news use the editor's headlines and leave out the wire's
+  machine-translated one-liners. The pump list prices were checked against OK's own (17,69 / 18,89 on 17/10): right.
+
 - **Text selection in reading text** (2026-10-17, the owner's yes; `?v=20261017w`): a summary, the lede and the
   movement's texts can be selected and copied; rows, buttons and bars stay unselectable, and the owner's long press
   skips reading text. The owner also said yes to the energy link at the front page's foot and in oil stories, and to

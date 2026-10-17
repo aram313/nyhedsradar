@@ -152,12 +152,16 @@ da'wah.
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
-- `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market) writes
+- `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day) writes
   `energy.json` for `public/energi/` (khabar.nu/energi) after every radar pass, stdlib only, a step in radar.yml that
   may fail without stopping the save. Sources: Yahoo Finance chart API (futures, contract months for the curves,
-  USD/DKK), FRED CSV (EIA spot; FRED drops a browser-like User-Agent, so it gets a plain one), Circle K's public
+  USD/DKK), EIA's own daily history pages for the physical prices (FRED's CSV as the fallback – it does not answer
+  GitHub's runners), Circle K's public
   price API (header X-App-Name: PRICES; Circle K + INGO) and q8.dk/Station/GetStationPrices (Q8 + F24). Each source
-  has its own clock (EVERY) and keeps its last good numbers; pump prices keep one point a day for 400 days. The
+  has its own clock (EVERY) and keeps its last good numbers, and one that failed rests RETRY (30 min) before it is
+  asked again; pump prices keep one point a day for 400 days; a chain's 'ændret' is the change time of its stations at
+  the list price; the news are data.json's oil and fuel stories with the editor's headline (RADAR_SUMMARIES), no wire
+  lines; on a weekend the page says the exchanges are closed and shows Friday's closes as such. The
   page holds all names, units and explanations; the file only numbers.
 - `public/` is the PWA. `config.js`, `data.json` and `dev/` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses and energy

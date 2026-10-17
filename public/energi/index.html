@@ -148,7 +148,7 @@ const CFG = window.RADAR_CONFIG || {};
 const SRC = CFG.energyUrl || new URL((CFG.dataUrl || 'data.json').replace(/data\.json(\?.*)?$/, 'energy.json'), new URL('../', location.href)).href;
 
 const FUT = 'ICE/NYMEX-future via Yahoo Finance, ca. 10 min. forsinket';
-const EIA = 'Det amerikanske energiministerium (EIA) via FRED – 1–3 dage bagud';
+const EIA = 'Det amerikanske energiministerium (EIA) – et par dage bagud';
 const CALC = 'Beregnet ud fra futures';
 // every price the page knows: name, kind and unit, decimals, 'spread' (moves in $, not %), what it is, source
 const C = {
@@ -323,7 +323,7 @@ function rowFor(k) {
   if (!x || x.v == null) return '';
   const h = (x.h || []).slice(-66).map(p => p[1]);
   const mv = move(k, x);
-  const old = x.t && (Date.now() - asDate(x.t)) > 4 * 864e5;
+  const old = x.t && ((Date.now() - asDate(x.t)) > 4 * 864e5 || (!isDay(x.t) && newest() - asDate(x.t) > 30 * 36e5));
   return item(k, c.s, spark(h), c.spread ? signed(x.v, c.d) : nf(x.v, c.d), old ? { cls: 'old', text: when(x.t) } : mv);
 }
 function item(k, sub, sp, val, mv) {
@@ -366,15 +366,23 @@ function drawCharts(root = document) {
   });
 }
 
+// the newest price time among the futures: what 'now' is for the markets (a price a trading day older is shown as old)
+const newest = () => Math.max(0, ...['brent', 'wti', 'rbob', 'ulsd'].map(k => D.s[k] && D.s[k].t ? +asDate(D.s[k].t) : 0));
+// the exchanges close from Friday night to Sunday night (ICE and NYMEX: Saturday 00 to Monday 00 Danish time)
+function closedNow() {
+  const n = new Date(), wd = n.getDay(), last = newest();
+  return (wd === 6 || wd === 0) && last && Date.now() - last > 2 * 36e5;
+}
 // Lige nu: the few lines that say where the market stands
 function signals() {
   const s = D.s, out = [];
+  if (closedNow()) out.push(`<b>Børserne holder weekend:</b> olie og gas står med fredagens lukkekurser <span class="q">åbner igen natten til mandag</span>`);
   const pct = x => x && x.p ? (x.v - x.p) / x.p * 100 : null;
   const b = s.brent;
   if (b) {
     const p = pct(b);
     const mv = p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), 1)} %`;
-    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv : ''} <span class="q">${esc(when(b.t))}</span>`);
+    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv + (closedNow() ? ' fredag' : '') : ''} <span class="q">${esc(closedNow() ? 'lukkekurs' : when(b.t))}</span>`);
   }
   const pp = s.phys_prem;
   if (pp && Math.abs(pp.v) >= .5) {
@@ -456,7 +464,7 @@ function news() {
   if (!list.length) return '';
   // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
   const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
-  const pick = n => danish && n.da ? [n.da, n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
+  const pick = n => n.ed ? [n.ed, n.kd] : danish && n.da ? [n.da, n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
   const tidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
     .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
   const words = (t, k) => {   // the app's bold: who and where
@@ -485,7 +493,7 @@ function render() {
     html += `<div class="en-rows">${rows}</div></section>`;
     if (b.h === 'Danmark') html += news();
   }
-  html += `<p class="foot">Futures fra ICE og NYMEX (ca. 10 min. forsinket) · fysiske priser fra EIA · pumpepriser fra Circle K og Q8's egne prislister · nyheder fra Khabar.<br>Opdateres hvert 5. minut.</p>`;
+  html += `<p class="foot">Futures fra ICE og NYMEX (ca. 10 min. forsinket) · fysiske priser fra det amerikanske energiministerium (EIA), et par dage bagud · pumpepriser fra Circle K og Q8's egne prislister · nyheder fra Khabar.<br>Opdateres hvert 5. minut.</p>`;
   $("#en").innerHTML = html;
   drawCharts();
   scrollTo(0, y);

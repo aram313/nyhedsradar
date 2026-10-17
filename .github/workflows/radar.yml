@@ -103,6 +103,7 @@ jobs:
         env:
           PYTHONPATH: src
           RADAR_STATE: state
+          RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the energy news
         run: python -m radar.energy
 
       # the editor's quarter-hour look (scripts/editor.py gate, plain Python, no tokens): when something of weight has
