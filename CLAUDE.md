@@ -350,7 +350,9 @@ da'wah.
   its row grows (no fixed row height); `contain-intrinsic-size: auto` remembers a row's real height after its first
   layout, so rows out of sight keep their place.
 - **Content rules for every Danish text Khabar writes** (the editor's lede, lines, summaries, titles; the app's words;
-  the wiki's pages): 'Israel' in our own voice (the movement's term only inside a quotation); no praise of or call to
+  the wiki's pages): Israel in our own voice (the movement's term only inside a quotation) – in the editor's text in the
+  owner's house style (2026-10-17): lower case inside curly quotes, every form (“israel”, “israels”, “israelske”),
+  written so by `voice.quote_israel`, which `editor.py publish` applies to every file it writes (`quoted`); no praise of or call to
   violence; judge states, rulers, policies and ideas – never peoples or religions; no claim that a non-ruling person, a
   Danish person or organisation, a mosque, a scholar or a media outlet serves a power; no conspiracy myths; the
   answers' claims that deadly attacks were staged are not repeated as such. `scripts/voice.py` checks the editor's:

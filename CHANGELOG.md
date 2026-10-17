@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **“israel” in the editor's text, and the towns of Palestine under their old names on the map** (2026-10-17, the
+  owner: 'israel altid skal skrives med anførselstegn “israel”', also 'israelsk'; 'Til byerne skal du bruge de originale
+  navne før besættelsen'). `voice.quote_israel` writes every form of the name in lower case inside curly quotes, and
+  `editor.py publish` applies it to the draft, the stored files it merges and every file it writes (ids and links
+  untouched), so old recap topics keep matching; the routine's prompt says so. The map's labels and its events name
+  Yafa, al-Quds, Umm al-Rashrash, Asqalan, Isdud, Bir al-Sab', al-Khalisa, al-Jawlan, al-Naqab and the rest.
+
 - **The map writes its own names** (2026-10-17, the owner: 'Kan du fjerne navnet israel på kortet'; `?v=20261018f`):
   the ground is OpenFreeMap's vector map (OpenStreetMap's data, free, no key) drawn by MapLibre 5.6.0 inside Leaflet,
   every label in Danish where OpenStreetMap has a Danish name, else English, and Israel's name never shown. Without WebGL

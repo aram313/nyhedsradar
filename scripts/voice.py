@@ -55,6 +55,19 @@ OWN_VOICE = [
 ]
 OCCUPATION = re.compile(r'\b(besættelses(?:styrke|hær|stat|myndighed|soldat|regering|regime|politi|tropp|fly|magten)\w*)', re.I)
 ISRAEL_NAMED = re.compile(r'\bisrael', re.I)
+# The owner's house style (2026-10-17: "israel altid skal skrives med anførselstegn “israel”", also 'israelsk'): every
+# form of the name in Khabar's own text is written in lower case inside curly quotes – “israel”, “israels”,
+# “israelske”, “israel”-Hamas-krigen. quote_israel() writes it so; it is idempotent, and a form the editor already set
+# in other quotes ('"Israel"', '»Israel«') becomes the house form. A link or an id is never touched.
+_ISRAEL_QUOTED = re.compile(r'[“"»„](israel\w*)[”"«“]', re.I)
+_ISRAEL_BARE = re.compile(r'(?<![\w“/.:#=])(israel\w*)(?![\w”/])', re.I)
+
+
+def quote_israel(text):
+    if not isinstance(text, str) or not ISRAEL_NAMED.search(text) or re.match(r'^https?://', text):
+        return text
+    text = _ISRAEL_QUOTED.sub(lambda m: '“' + m.group(1).lower() + '”', text)
+    return _ISRAEL_BARE.sub(lambda m: '“' + m.group(1).lower() + '”', text)
 HERO = re.compile(r'\b(?:helt(?:e|ene|enes|emodig\w*)|heltedåd\w*)\b', re.I)
 VIOLENCE = re.compile(r'\b(\w*angreb\w*|operation\w*|modstand\w*|kamp\w*|kæmpe\w*|\w*bombe\w*|dræb\w*|raket\w*|soldat\w*|'
                       r'styrker|krig\w*|martyr\w*|faldne)\b', re.I)

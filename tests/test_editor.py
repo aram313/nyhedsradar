@@ -257,7 +257,7 @@ def test_a_headline_is_filed_under_the_card_with_its_members_and_matches_after_t
     add_items(folder, story('c1', 'Kort med mange', '2026-10-10T19:00:00+00:00', members=['c0', 'c1', 'c2']))
     publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 'c2', 'title': 'Hamas og Israel mødes i Kairo'}]})
     titles = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['titles']
-    assert titles['c1']['title'] == 'Hamas og Israel mødes i Kairo' and titles['c1']['members'] == ['c0', 'c2']
+    assert titles['c1']['title'] == 'Hamas og “israel” mødes i Kairo' and titles['c1']['members'] == ['c0', 'c2']
     later = story('c0', 'Ny lead', '2026-10-10T19:00:00+00:00', members=['c0', 'c1', 'c2'])   # the card's lead changed
     assert editor.to_head([later], titles, editor.ts(NOW)) == []
     (folder / 'summaries.json').write_text(json.dumps({'items': {}, 'titles': titles}), encoding='utf-8')
@@ -266,7 +266,7 @@ def test_a_headline_is_filed_under_the_card_with_its_members_and_matches_after_t
     (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
     publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 'c0', 'title': 'Hamas og Israel mødes igen i Kairo'}]})
     titles = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['titles']
-    assert 'c1' not in titles and titles['c0']['title'] == 'Hamas og Israel mødes igen i Kairo'   # one headline a story
+    assert 'c1' not in titles and titles['c0']['title'] == 'Hamas og “israel” mødes igen i Kairo'   # one headline a story
 
 
 @pytest.mark.parametrize('title', [

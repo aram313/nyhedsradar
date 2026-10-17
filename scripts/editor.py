@@ -1875,9 +1875,29 @@ def digest_head():
         return ''
 
 
+# fields that hold ids, links, times or codes – never Danish text – are left as they are by quoted()
+NOT_TEXT = {'id', 'ids', 'story', 'stories', 'nr', 'with', 'quote', 'members', 'take', 'drop', 'lede_ids', 'link', 'url',
+            'u', 'source', 'sec', 'section', 'date', 'at', 'added', 'created', 'updated', 'lede_at', 'kind', 'style',
+            'level', 'picture', 'period', 'subjects', 'begreber', 'cites', 'n'}
+
+
+def quoted(x, key=None):
+    """Every Danish text in a file the editor writes, with the name Israel in the owner's house style (voice.quote_israel):
+    the draft before it is checked, the stored files before they are merged, so a topic named before keeps its name."""
+    if key in NOT_TEXT:
+        return x
+    if isinstance(x, str):
+        return voice.quote_israel(x)
+    if isinstance(x, list):
+        return [quoted(v, key) for v in x]
+    if isinstance(x, dict):
+        return {k: quoted(v, k) for k, v in x.items()}
+    return x
+
+
 def cmd_publish(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
-    draft = json.loads(Path(args.file).read_text(encoding='utf-8'))
+    draft = quoted(json.loads(Path(args.file).read_text(encoding='utf-8')))
     if args.push and not args.dir:   # four routines an hour: another update may have landed since this input
         subprocess.run(['git', 'fetch', '-q', 'origin', '+refs/heads/digest:refs/remotes/origin/digest'], capture_output=True)
         try:
@@ -1889,13 +1909,14 @@ def cmd_publish(args):
                   'run `python3 scripts/editor.py input` again and write the update on top of the new front page.')
             sys.exit(1)
     data, lines, moves = material(args)
-    current = read(args, 'origin/digest', 'digest.json', {})
+    moves = quoted(moves)
+    current = quoted(read(args, 'origin/digest', 'digest.json', {}))
     noted = answers_of(args)
     live_now = read(args, 'origin/digest', 'live.json', {})
     pool, known = admitted(data, app_of(args), now, live_now)
     fetched = read(args, 'origin/data', 'analyses.json', {'items': []})
     fetched = fetched.get('items') if isinstance(fetched, dict) else fetched
-    extra = {'live': live_now, 'front': read(args, 'origin/digest', 'front.json', {}),
+    extra = {'live': live_now, 'front': quoted(read(args, 'origin/digest', 'front.json', {})),
              'pool': pool if known else None,
              'answers': {str(k) for k in brain.static_answers()} | {str(k) for k in noted.get('items') or {}}
              | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
@@ -1944,7 +1965,7 @@ def cmd_publish(args):
         if name not in files and (out / name).exists():
             (out / name).unlink()
     for name, obj in files.items():
-        (out / name).write_text(json.dumps(obj, ensure_ascii=False, indent=1), encoding='utf-8')
+        (out / name).write_text(json.dumps(quoted(obj), ensure_ascii=False, indent=1), encoding='utf-8')
     new = sum(x['added'] == notes['created'] for d in days.values() for tp in d['topics'] for x in tp['lines'])
     if args.push:
         push(out, f"Opdatering {dk(now):%d.%m %H.%M}")

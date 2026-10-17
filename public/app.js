@@ -3117,8 +3117,21 @@ function kInit(Lf, pg) {
 const MAPLIBRE = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/';
 const OFM = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · ' + OSM;
 const NO_NAME = ['Israel', 'ישראל', 'إسرائيل', 'State of Israel'];
+// the towns of Palestine under their names from before the occupation (the owner, 17/10: "Til byerne skal du bruge de
+// originale navne før besættelsen"), matched on OpenStreetMap's English name; config/map-places.json names the map's
+// events the same way
+const ORIGINAL = {
+  'Tel Aviv-Yafo': 'Yafa', 'Tel Aviv': 'Yafa', 'Jaffa': 'Yafa', 'Jerusalem': 'al-Quds', 'Eilat': 'Umm al-Rashrash',
+  'Ashkelon': 'Asqalan', 'Ashdod': 'Isdud', 'Beersheba': "Bir al-Sab'", "Be'er Sheva": "Bir al-Sab'", 'Sderot': 'Najd',
+  'Kiryat Shmona': 'al-Khalisa', 'Netanya': 'Umm Khalid', 'Lod': 'al-Lydd', 'Ramla': 'al-Ramla', 'Acre': 'Akka',
+  'Akko': 'Akka', 'Safed': 'Safad', 'Tiberias': 'Tabariyya', 'Nazareth': 'al-Nasira', "Beit She'an": 'Baysan',
+  'Afula': 'al-Fula', 'Rishon LeZion': 'Uyun Qara', 'Petah Tikva': 'Mulabbis', 'Rehovot': 'Duran', 'Herzliya': 'Jalil',
+  'Kfar Saba': 'Kafr Saba', 'Yavne': 'Yibna', 'Bat Yam': 'Tall al-Rish', 'Holon': 'Tall al-Rish', 'Hadera': 'al-Khudayra',
+  'Golan Heights': 'al-Jawlan', 'Negev': 'al-Naqab', 'Dead Sea': 'Det Døde Hav',
+};
 const kName = ['case', ['any', ...['name', 'name:en', 'name:da', 'name:latin'].map(k => ['in', ['coalesce', ['get', k], ''], ['literal', NO_NAME]])], '',
-  ['coalesce', ['get', 'name:da'], ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']]];
+  ['match', ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ''], ...Object.entries(ORIGINAL).flat(),
+    ['coalesce', ['get', 'name:da'], ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']]]];
 let kVector = null;   // null: not tried; a promise while loading; false: not possible here
 function loadVector() {
   if (kVector !== null) return kVector || Promise.reject(new Error('no vector'));
