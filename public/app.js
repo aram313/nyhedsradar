@@ -1704,16 +1704,25 @@ function briefText() {
 // three filters (the owner, 17/10: "3 nemme filtre … verden mellemøsten og danmark"): one tap shows one section, a tap on
 // it again all of Live; for the visit only, so Live never opens filtered
 let liveSec = '';
-// the dock's row for Live (the options within the thumb's reach): the three filters
+// 'Kun vigtige' (the owner, 18/10: 'en knap der frasorterer alt med lav betydning på kalender og nyheder'): Live and the
+// Kalender without what is of low weight; remembered on the phone, and the page says so at its top with a way back
+let liveImp = !!store.get('liveImp', false);
+const impChip = (on, attr) => `<button class="chip imp-chip${on ? ' on' : ''}" ${attr} aria-pressed="${on}"><i class="imp-i" aria-hidden="true"></i>Kun vigtige</button>`;
+const impNote = (n, attr) => `<p class="imp-note">Kun høj og middel betydning${n ? ` · ${n} skjult` : ''}<button class="qbtn" ${attr}>Vis alt</button></p>`;
+// the dock's row for Live (the options within the thumb's reach): 'Kun vigtige', then the three sections
 function liveOpts() {
-  return `<div class="o-row live-secs" id="o-live-f" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
+  return `<div class="o-row live-secs" id="o-live-f" role="group" aria-label="Vis kun">${impChip(liveImp, 'data-live-imp')}${['dk', 'me', 'world'].map(k =>
     `<button class="chip${liveSec === k ? ' on' : ''}" data-live-sec="${k}" aria-pressed="${liveSec === k}"><i class="sd" data-sec="${k}"></i>${SECTIONS[k]}</button>`).join('')}</div>`;
 }
 function latestPage(all, opts) {
   const gone = focusMissing ? stateBlock('gone', 'Historien er ikke længere i Live.', [['Søg efter den', `data-find-item="${esc(focusMissing)}"`], ['Luk', 'data-gone-x']]) : '';
   if (liveSec) all = all.filter(i => secOf(i) === liveSec);
+  // the count says what the list in view hides (the last 24 hours, or all once 'Vis ældre' was tapped)
+  let note = '';
+  if (liveImp) { const n = (latestAll ? all : all.filter(i => hours(i) < 24)).length; all = all.filter(i => weightOf(i) > 1);
+    note = impNote(n - (latestAll ? all : all.filter(i => hours(i) < 24)).length, 'data-live-imp'); }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = gone + timeline(recent, { ...opts, tag: !liveSec, tick: true });
+  let html = gone + note + timeline(recent, { ...opts, tag: !liveSec, tick: true });
   if (recent.length < all.length) html += `<button class="qbtn" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -2596,7 +2605,7 @@ const vstate = k => (vd[k] || {}).state || '';
 const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, anArea, saved.length, unfolded.has('an|areas'), ansRead.size, vstate('bfull'), vstate('mix'), vstate('ans')].join('|'),
   begreber: () => [!!V('bix'), vstate('bix'), azKind].join('|'),
   // the calendar: its files, the reader's choices, the day – and, with an event open, the news that name it
-  kalender: () => [calGen, vstate('cal'), vstate('kal'), calF, calWin, calPast, [...calOpen].join(','), calFocus, calGone, dkYmd(new Date()),
+  kalender: () => [calGen, vstate('cal'), vstate('kal'), calF, calImp, calPast, [...calOpen].join(','), calFocus, calGone, dkYmd(new Date()),
     calOpen.size ? `${titlesVer}|${data && data.updated}` : ''].join('|') };
 // The pages are patched, not rebuilt: the new page is laid out as a fragment and set against what stands. A row that
 // has not changed keeps its very elements – its picture, its place, nothing to lay out again –, a changed one gets only
@@ -2879,6 +2888,7 @@ function openInLive(id) {
   const i = findStory(id);
   if (!i) return;
   if (!latestAll && hours(i) >= 24) latestAll = true;
+  if (liveImp && weightOf(i) < 2) liveImp = false;   // a story of low weight opened from elsewhere: Live shows all again
   expanded.clear(); expanded.add(i.id);
   ver++;   // the story opened is a change: Live drawn ahead of time is drawn again, with it open
   if (tab === 'latest') render(); else setTab('latest', { top: true });
@@ -3072,9 +3082,10 @@ async function onTap(e) {
     if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
-  if (t.closest('[data-cal-f], [data-cal-win], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
+  if (t.closest('[data-cal-f], [data-cal-imp], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
   const lsec = t.closest('[data-live-sec]');
   if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
+  if (t.closest('[data-live-imp]')) { liveImp = !liveImp; store.set('liveImp', liveImp); expanded.clear(); render(); cur().scrollTop = 0; return; }
   if (!el) return;
   const sb = t.closest('[data-save]');
   if (sb && i) {   // the bookmark: the story kept on the phone with what it shows
@@ -3225,9 +3236,11 @@ const CAL_DOT = { valg: 'valg', top: 'topmøde', bank: 'centralbank', frist: 'fr
 const calIn = (f, e) => !f || (f === 'valg' ? e.kind === 'valg' : f === 'top' ? e.kind === 'topmøde' : f === 'bank' ? e.kind === 'centralbank'
   : f === 'frist' ? ['frist', 'retssag', 'forhandling', 'andet'].includes(e.kind)
     : f === 'dk' ? e.kind === 'dansk' || fold(e.place) === 'danmark' : true);
-const CAL_WINS = [[3, '3 mdr'], [12, '12 mdr'], [0, 'Alt']];
 let calF = '', calPast = false, calGen = 0, calMemo = null, calPend = '', calGone = '';
-let calWin = (v => (CAL_WINS.some(w => w[0] === v) ? v : 12))(store.get('calWin', 12));   // the window, remembered
+// everything ahead is shown (the owner, 18/10: 'kalender skal ikke have en sortering med måneder, men skal som standard
+// vise "alt"'); 'Kun vigtige' hides the events of low weight – remembered on the phone, like Live's
+const calWOf = e => (e.w === 3 || e.w === 2 ? e.w : 1);
+let calImp = !!store.get('calImp', false);
 const calOpen = new Set();                         // events opened (their why, source and stories)
 let calFocus = params.get('kalender') || '';       // ?kalender=<id>: the tab opens at that event
 // a day as a number (days since 1970), from 'YYYY-MM-DD' or 'YYYY-MM' (its first day); the Danish today
@@ -3274,7 +3287,7 @@ function calRow(e, today, o = {}) {
   const hit = o.front ? `<button class="hit" data-cal-go="${esc(e.id)}" aria-label="${esc(label)}"></button>`
     : `<button class="hit" data-cal="${esc(e.id)}" aria-expanded="${open}" aria-label="${esc(label)}"></button>`;
   // the weight (17/10): 3 a soft red ground, a red edge and 'Høj betydning'; 2 the red edge without the ground (18/10)
-  const w = e.w === 3 || e.w === 2 ? e.w : 1;
+  const w = calWOf(e);
   if (w === 3) parts.unshift('<span class="cw">Høj betydning</span>');
   return `<div class="ce${open ? ' open' : ''}${w > 1 ? ' w' + w : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
     + `<span class="tx" aria-hidden="true"><span class="h">${esc(e.title)}</span><span class="m">${parts.join('')}</span></span></div>`
@@ -3307,12 +3320,6 @@ function calStories(e) {
 }
 // the share: '17/10 · Midtvejsvalg i USA – <why> – via khabar.nu/?kalender=<id>'
 const calText = e => `${calDm(e)} · ${e.title}${e.place && !e.title.includes(e.place) ? ` (${e.place})` : ''}${e.why ? ' – ' + e.why : ''} – via khabar.nu/?kalender=${encodeURIComponent(e.id)}`;
-// the window's last day: three or twelve months ahead, or everything
-function calLimit(today) {
-  if (!calWin) return Infinity;
-  const d = new Date(today * 864e5);
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + calWin, d.getUTCDate()) / 864e5;
-}
 function kalenderPage() {
   need('cal'); need('kal');
   const today = calToday(), all = calItems();
@@ -3323,18 +3330,19 @@ function kalenderPage() {
   // ?kalender=<id>: that event opened, in the list whatever the filter and window, and brought into view once drawn
   if (calFocus && (V('cal') || failed('cal')) && !waiting('kal')) {
     const e = calFind(calFocus);
-    if (e) { calOpen.add(e.id); calF = calIn(calF, e) ? calF : ''; if (calEnd(e) < today) calPast = true; else if (calDay(e.date) > calLimit(today)) calWin = 0; calPend = e.id; }
+    if (e) { calOpen.add(e.id); calF = calIn(calF, e) ? calF : ''; if (calImp && calWOf(e) < 2) calImp = false; if (calEnd(e) < today) calPast = true; calPend = e.id; }
     else calGone = calFocus;
     calFocus = '';
   }
-  const shown = all.filter(e => calIn(calF, e)), up = shown.filter(e => calEnd(e) >= today);
+  const shown = all.filter(e => calIn(calF, e) && (!calImp || calWOf(e) > 1)), up = shown.filter(e => calEnd(e) >= today);
   const soon = up.filter(e => calExact(e) && calDay(e.date) - today <= 7), soonIds = new Set(soon.map(e => e.id));
-  const limit = calLimit(today), later = up.filter(e => !soonIds.has(e.id) && calDay(e.date) <= limit);
+  const later = up.filter(e => !soonIds.has(e.id));
   const past = shown.filter(e => calEnd(e) < today && calEnd(e) >= today - 30).reverse();
   const next = up.find(e => calExact(e) && calDay(e.date) >= today) || up.find(e => calExact(e));   // not one under way
   const name = (CAL_FILTERS.find(f => f[0] === calF) || CAL_FILTERS[0])[1];
   let h = `<header class="cal-top" id="cal-top"><p class="cal-fly">Kalender${calF ? ' · ' + esc(name) : ''}</p>`
     + `<h2 class="cal-next">${next ? `Næste: ${esc(next.title)} ${calCount(next, today)}` : 'Intet planlagt foreløbig'}</h2></header>`;
+  if (calImp) h += impNote(all.filter(e => calIn(calF, e) && calWOf(e) < 2 && calEnd(e) >= today).length, 'data-cal-imp');
   if (calGone) h += `<p class="notice" id="cal-gone"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Begivenheden er ikke længere i kalenderen.</span></p>`;
   h += `<section class="block cal-soon" id="cal-soon">${blockHead('Det sker snart')}`
     + (soon.length ? soon.map(e => calRow(e, today, { count: true })).join('') : '<p class="cal-none">Intet planlagt de næste syv dage.</p>') + '</section>';
@@ -3345,7 +3353,7 @@ function kalenderPage() {
     h += calRow(e, today);
   }
   if (month) h += '</section>';
-  else if (!soon.length) h += stateBlock('empty', `Intet planlagt${calF ? ' af den slags' : ''} i den valgte periode.`, calWin && calWin < 12 ? [['Se 12 mdr', 'data-cal-win="12"']] : []);
+  else if (!soon.length) h += stateBlock('empty', `Intet planlagt${calF ? ' af den slags' : ''}${calImp ? ' af høj eller middel betydning' : ''}.`, calImp ? [['Vis alle', 'data-cal-imp']] : []);
   if (past.length) {
     h += `<section class="cal-past" id="cal-past"><button class="qbtn cal-pb" data-cal-past aria-expanded="${calPast}">Tidligere<small> · de seneste 30 dage</small></button>`
       + (calPast ? past.map(e => calRow(e, today)).join('') : '') + '</section>';
@@ -3381,19 +3389,17 @@ function calBlock() {
   return `<section class="block cal-b" id="cal-front">${blockHead('Det sker snart', moreLink('Alle', 'kalender'))}`
     + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
 }
-// the dock: the kinds (Alle, then each with its calm dot), then the window
+// the dock: 'Kun vigtige', then the kinds (Alle, then each with its calm dot)
 function calOpts() {
-  return `<div class="o-row" id="o-cal-k" role="radiogroup" aria-label="Vis">${CAL_FILTERS.map(([f, l]) =>
-    `<button class="chip${f === calF ? ' on' : ''}" role="radio" aria-checked="${f === calF}" data-cal-f="${f}">${f ? `<i class="ck-d" data-k="${CAL_DOT[f]}" aria-hidden="true"></i>` : ''}${l}</button>`).join('')}</div>`
-    + `<div class="o-row" id="o-cal-w"><div class="seg" role="radiogroup" aria-label="Tidsrum">${CAL_WINS.map(([m, l]) =>
-      `<button role="radio" data-cal-win="${m}" aria-checked="${m === calWin}">${l}</button>`).join('')}</div></div>`;
+  return `<div class="o-row" id="o-cal-k">${impChip(calImp, 'data-cal-imp')}<span role="radiogroup" aria-label="Vis" class="o-grp">${CAL_FILTERS.map(([f, l]) =>
+    `<button class="chip${f === calF ? ' on' : ''}" role="radio" aria-checked="${f === calF}" data-cal-f="${f}">${f ? `<i class="ck-d" data-k="${CAL_DOT[f]}" aria-hidden="true"></i>` : ''}${l}</button>`).join('')}</span></div>`;
 }
 // the calendar's own taps, in the page, on the front page and in the dock (onTap sends them here)
 async function calTap(t) {
-  const f = t.closest('[data-cal-f]'), w = t.closest('[data-cal-win]'), r = t.closest('[data-cal]'), go = t.closest('[data-cal-go]');
+  const f = t.closest('[data-cal-f]'), w = t.closest('[data-cal-imp]'), r = t.closest('[data-cal]'), go = t.closest('[data-cal-go]');
   const sh = t.closest('[data-cal-share]') || t.closest('[data-cal-copy]');
   if (f) { calF = f.dataset.calF; calGone = ''; render(); cur().scrollTop = 0; return true; }
-  if (w) { calWin = +w.dataset.calWin; store.set('calWin', calWin); calGone = ''; render(); return true; }
+  if (w) { calImp = !calImp; store.set('calImp', calImp); calGone = ''; render(); cur().scrollTop = 0; return true; }
   if (t.closest('[data-cal-past]')) { calPast = !calPast; render(); return true; }
   if (go) { calOpen.add(go.dataset.calGo); calPend = go.dataset.calGo; calF = ''; ver++; if (tab === 'kalender') render(); else setTab('kalender', { top: true }); return true; }
   if (r) {   // an event opens in place, one at a time; the row stays under the finger

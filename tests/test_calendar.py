@@ -279,14 +279,15 @@ def test_red_only_for_the_next_48_hours_and_calm_kind_colours():
     assert re.search(r'\.ce:not\(\.open\) \{ content-visibility: auto;', RULES)
 
 
-def test_the_dock_holds_the_kinds_and_the_window():
+def test_the_dock_holds_the_kinds_and_only_important():
     opts = fn('calOpts')
     filters = CODE.split('const CAL_FILTERS = ')[1].split(';')[0]
     assert re.findall(r"'([^']+)'\]", filters) == ['Alle', 'Valg', 'Topmøder', 'Centralbanker', 'Frister', 'Danmark']
     assert 'islamisk' not in CODE.split('const CAL_KINDS = ')[1].split('};')[0] and 'islamisk' not in editor.CAL_KINDS
-    assert re.findall(r"'(\d+ mdr|Alt)'", CODE.split('const CAL_WINS = ')[1].split(';')[0]) == ['3 mdr', '12 mdr', 'Alt']
-    assert 'data-cal-f=' in opts and 'data-cal-win=' in opts and 'class="o-row"' in opts
-    assert "store.set('calWin', calWin)" in fn('calTap')   # the window is remembered, the kind is for the visit
+    # 18/10, the owner: no window of months – everything ahead – and 'Kun vigtige' hides the events of low weight
+    assert 'CAL_WINS' not in CODE and 'calWin' not in CODE and 'data-cal-win' not in CODE
+    assert 'data-cal-f=' in opts and "impChip(calImp, 'data-cal-imp')" in opts and 'class="o-row"' in opts
+    assert "store.set('calImp', calImp)" in fn('calTap') and '(!calImp || calWOf(e) > 1)' in fn('kalenderPage')
 
 
 def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_developments():

@@ -119,7 +119,8 @@ def test_the_dock_holds_the_pages_options_above_the_tabs():
     # Live, Kalender and Analyser: their options are the dock's, not a strip under the bar
     # Live is one list since 18/10 (the owner: 'ingen "seneste" og "vigtigste"'): only the three filters
     assert 'data-live-sec' in fn('liveOpts') and 'data-live-sort' not in CODE and 'liveSort' not in CODE
-    assert 'data-cal-f' in fn('calOpts') and 'data-cal-win' in fn('calOpts') and 'data-cal-f' not in fn('kalenderPage')
+    assert 'data-cal-f' in fn('calOpts') and 'data-cal-imp' in fn('calOpts') and 'data-cal-f' not in fn('kalenderPage')
+    assert "impChip(liveImp, 'data-live-imp')" in fn('liveOpts') and 'weightOf(i) > 1' in fn('latestPage')   # 'Kun vigtige'
     assert 'class="o-row an-chips"' in CODE and 'an-chips' not in fn('analysesPage')
     # Økonomi (18/10): its topics are the app's dock; the frame has no fixed dock of its own when embedded
     assert 'data-ok-sec' in CODE and 'window.khabarOk' in CODE and 'contentWindow.okJump' in CODE

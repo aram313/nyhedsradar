@@ -324,7 +324,7 @@ da'wah.
   kind with its calm dot (`--c-valg` … each light and dark; red only for an event today or tomorrow, `.ck.near`), the
   place, 'til …', 'forventet' –; a tap opens it in place (one at a time): the why, 'Kilde ›', Del · Kopiér and up to three
   stories in Live that name it (the editor's ids, else the place and a title word, or two title words). The dock: Alle ·
-  Valg · Topmøder · Centralbanker · Frister · Danmark (for the visit) and 3 mdr · 12 mdr · Alt (remembered, `calWin`).
+  Valg · Topmøder · Centralbanker · Frister · Danmark (for the visit) and, first, 'Kun vigtige' (remembered, `calImp`; the same chip in Live, `liveImp` – it hides what is of low weight, and the page says what it hides with 'Vis alt'); no window of months since 18/10: everything ahead is shown.
   The front page: 'Det sker snart' – the next three or four events of the coming 14 days – after the second block drawn
   (`calBlock`; composed and fixed page alike; none in the fortnight: no block), 'Alle ›' to the tab, a row opening the tab
   at its event. A share: '17/10 · Midtvejsvalg i USA – <why> – via khabar.nu/?kalender=<id>'; `?kalender=<id>` opens the

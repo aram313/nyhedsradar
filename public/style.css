@@ -458,6 +458,12 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* middle (18/10, the owner: 'en rød streg på samme måde som stor betydning men bare uden den røde baggrund') */
 .page[data-tab="latest"] .story.tick.w2 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
 .page[data-tab="latest"] .story.tick.w2 .h { font-weight: 620; }
+/* 'Kun vigtige' (18/10) in Live's and the Kalender's dock: a chip with a short red edge, the weights' own sign; on the
+   page, one quiet line says what is hidden, with the way back */
+.imp-i { flex: none; width: 3px; height: 14px; margin-right: 6px; border-radius: 2px; background: var(--red); }
+.o-grp { display: contents; }
+.imp-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 16px 0; font-size: var(--fs-meta); color: var(--text-3); }
+.imp-note .qbtn { flex: none; width: auto; margin: 0; min-height: 44px; font-weight: 650; color: var(--text); }
 /* Live's three filters (17/10): Danmark · Mellemøsten · Verden, each with its section's small dot */
 .live-secs { display: flex; gap: var(--s2); }
 .live-secs .chip { flex: 1; justify-content: center; }

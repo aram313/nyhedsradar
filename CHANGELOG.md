@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Kun vigtige' in Live and the Kalender; the Kalender shows everything** (2026-10-18, the owner: 'en knap der
+  frasorterer alt med lav betydning på kalender og nyheder. kalender skal ikke have en sortering med måneder, men skal
+  som standard vise "alt"'; `?v=20261018an`): a chip 'Kun vigtige' (with a short red edge, the weights' sign) first in
+  each dock hides what is of low weight; it is remembered on the phone (`liveImp`, `calImp`), and the page says at its
+  top what it hides ('Kun høj og middel betydning · 18 skjult') with 'Vis alt'. A story or event of low weight opened
+  from elsewhere shows the whole list again. The Kalender's 3 mdr · 12 mdr · Alt is gone: everything ahead is shown,
+  still under its month headers.
 - **Middle weight: the red edge without the ground** (2026-10-18, the owner: 'en rød streg på samme måde som stor
   betydning men bare uden den røde baggrund'; `?v=20261018al`): in Live and in the Kalender a story or event of middle
   weight has the high one's 3 px red edge at its left, without the soft red ground; the short mark under the time (the
