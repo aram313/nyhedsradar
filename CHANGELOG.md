@@ -9,6 +9,17 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A story reached from another page opens on a page of its own, with the way back; an edge drag goes back**
+  (2026-10-18, the owner: 'any time you get directed to news … it has to have the temporary page with the back sign
+  on top … so i can get right back to where i was redirected from' and 'a drag from screen border from left to right
+  should also send you back'; `?v=20261018bm`): a new side page 'Nyhed' (`nyhedPage`, `openStory`; `?item=` in the
+  address) shows the one story opened, with Læs, Del, Kopiér and Gem and 'Alle nyheder i Live ›' under it; the bar's
+  back mark – and the phone's own back – returns to the page and the place one came from. Every redirect to a story
+  goes there when it starts outside Live (`openInLive` from another tab: the front page's Live strip and developments,
+  the Kalender's stories, Leksikon, Gemt; Økonomi's stories, also those Live does not hold – the 'Fra Økonomi' block
+  in Live is gone); in Live itself a story still opens in place. On a side page, a drag from the screen's left edge
+  goes back in the app on an iPhone's home screen (the page follows the finger and slides away; Safari and Android do
+  it themselves through the history). No dimming on the Nyhed page: its story is the page.
 - **An open story: the page scrolls a little, never away from it** (2026-10-18, the owner: 'now im not even able to
   scroll i should at least be able to scroll a bit to center the story on the screen'; `?v=20261018bl`): the page is
   no longer frozen while a story or an event is open; it scrolls as far as keeps the whole story between the bar and

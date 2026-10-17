@@ -1282,3 +1282,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page.locked .lift { max-height: calc(var(--vvh, 100dvh) - var(--barh) - var(--dock) - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .page.locked .lift::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) { .page.fading .dimmed { transition: none; } }
+
+/* 'Nyhed' (18/10): one story on a page of its own, reached from another page, with the bar's way back */
+.nyhed-one { margin-top: 8px; }
+.nyhed-live { margin-top: 12px; }

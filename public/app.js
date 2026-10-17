@@ -37,7 +37,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
 const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
-  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt' };
+  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt', nyhed: 'Nyhed' };
 // the tab whose options the dock above the tabs shows (paintOpts)
 let dockTab = '';
 // the small pictures live next to data.json on the data branch
@@ -1725,8 +1725,7 @@ function latestPage(all, opts) {
   if (liveImp) { const n = (latestAll ? all : all.filter(i => hours(i) < 24)).length; all = all.filter(i => weightOf(i) > 1);
     note = impNote(n - (latestAll ? all : all.filter(i => hours(i) < 24)).length, 'data-live-imp'); }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  const out = outside ? `<section class="block x-out"><div class="block-h"><h2>Fra Økonomi</h2><button class="more" data-outside-x>Luk</button></div>${story(outside, 0, { tick: true })}</section>` : '';
-  let html = gone + out + note + timeline(recent, { ...opts, tag: !liveSec, tick: true });
+  let html = gone + note + timeline(recent, { ...opts, tag: !liveSec, tick: true });
   if (recent.length < all.length) html += `<button class="qbtn" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -2131,6 +2130,7 @@ function prefetchLibrary() {
 // earlier answers it cites and the later ones that cite it, today's stories on its subject, its text when the app holds
 // it (folded behind 'Læs hele svaret'). Everything that is the movement's is set in its face (17/10: "uoverskuelig").
 let svarNr = params.get('svar') || '';
+let nyhedId = '';   // the story the 'Nyhed' side page shows
 const SHOW_READS = 6;
 // each paragraph finds its own direction (an English answer opens with the Arabic basmala)
 const paras = text => String(text || '').trim().split(/\n\s*\n+/).map(b => {
@@ -2598,7 +2598,7 @@ function pageHtml(t, all, opts = {}) {
   // the same words as everywhere else for the same cause, with the day when the copy is from another day
   const note = offline ? `<p class="notice off"><svg aria-hidden="true"><use href="#i-offline"/></svg><span>Ingen forbindelse – viser nyhederne fra ${fromWhen(data.updated)}.</span></p>`
     : isStale() ? `<p class="notice"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Khabar har ikke hentet nyt siden ${fromWhen(data.updated)}. Listen kan være forældet.</span></p>` : '';
-  return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts) : threadsPage());
+  return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts) : t === 'nyhed' ? nyhedPage() : threadsPage());
 }
 // what the pages show changes with the data and the user's choices; each page notes the state it was drawn from
 let ver = 0;
@@ -2892,6 +2892,10 @@ function foldOthers(keep) {
 function openInLive(id) {
   const i = findStory(id);
   if (!i) return;
+  // from another page: the story on a page of its own over it, with the bar's way back to where one came from (the
+  // owner, 18/10: 'any time you get directed to news … it has to have the temporary page with the back sign on top …
+  // so i can get right back to where i was redirected from'); in Live itself it opens in place
+  if (tab !== 'latest') { openStory(i.id); return; }
   if (!latestAll && hours(i) >= 24) latestAll = true;
   if (liveImp && weightOf(i) < 2) liveImp = false;   // a story of low weight opened from elsewhere: Live shows all again
   expanded.clear(); expanded.add(i.id);
@@ -2902,6 +2906,7 @@ function openInLive(id) {
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = asShown(el);
   const pg = cur();
+  if (!open && pg && pg.dataset.tab === 'nyhed') return;   // the 'Nyhed' page's story stays open: the bar's back closes it
   if (open && pg && !pg.classList.contains('focus')) pg.focusY = pg.scrollTop;   // where one was, for when it closes
   if (open) foldOthers(el);
   if (open && i) {
@@ -2927,6 +2932,7 @@ function toggle(el) {
 const OPENED = 'article.story.open, .ce.open';
 function focusSync(pg = cur()) {
   if (!pg) return;
+  if (pg.dataset.tab === 'nyhed') { pg.classList.remove('focus', 'locked'); return; }   // one story on its own page
   for (const el of pg.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
   const open = pg.querySelector(OPENED), was = pg.classList.contains('focus');
   pg.classList.toggle('focus', !!open);
@@ -3135,7 +3141,6 @@ async function onTap(e) {
     if (!was) scrollToEl(cur().querySelector(`[data-arch="${CSS.escape(c)}"]`), 8);   // the opened day starts at the top
     return; }
   if (t.closest('[data-latest-all]')) { latestAll = true; render(); return; }
-  if (t.closest('[data-outside-x]')) { outside = null; render(); return; }   // 'Fra Økonomi' closed
   if (t.closest('[data-cal-f], [data-cal-imp], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
   const lsec = t.closest('[data-live-sec]');
   if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
@@ -3216,16 +3221,27 @@ window.khabarOkReady = on => logo.classList.toggle('ready', !!on);
 // åbne i nyhedsoversigten i khabar'); false when Live does not hold it – the page unfolds it then
 window.khabarOpenStory = (id, n) => {
   const i = findStory(id);
-  if (i) { outside = null; openInLive(i.id); return true; }
+  if (i) { openStory(i.id); return true; }
   if (!n || !n.title || !n.link) return false;
   outside = { id: 'x-' + id, title: n.title, source: n.source || '', link: n.link, published: n.published, found: n.published,
     lang: 'da', sec: 'world', outlets: 1, also: [], summary: '', kw: [], confirmed: 1 };
-  expanded.clear(); expanded.add(outside.id);
-  ver++;
-  if (tab === 'latest') render(); else setTab('latest', { top: true });
-  cur().scrollTop = 0;
+  openStory(outside.id);
   return true;
 };
+// the 'Nyhed' side page: one story, opened, with Læs, Del, Kopiér and Gem, and the way to all of Live under it
+function openStory(id) {
+  expanded.clear(); expanded.add(id);
+  if (calOpen.size) calOpen.clear();
+  ver++;
+  openSide('nyhed', id);
+}
+function nyhedPage() {
+  const i = find(nyhedId) || findStory(nyhedId);
+  if (!i) return stateBlock('gone', 'Historien er ikke længere i Live.', [['Til Live', 'data-go="latest"']]);
+  expanded.add(i.id);
+  return `<div class="nyhed-one">${story(i, 0, { tick: true })}</div>`
+    + `<button class="qrow nyhed-live" data-go="latest"><span>Alle nyheder i Live</span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+}
 window.khabarOkRefresh = async run => {
   logo.classList.add('blink');
   const t0 = performance.now();
@@ -3924,14 +3940,14 @@ addEventListener('online', () => {
 const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
-const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt']);
+const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed']);
 // the tab a side page belongs to: it stays selected while the side page is in view (an answer, a page, A–Å: Analyser)
-const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '' };
+const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '' };
 const ASIDE = new Set(['search', ...SIDE]);
 let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
 // the side pages one came through (a story's concept, its answer, an earlier answer …): the logo goes back through them
 const backStack = [];
-const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : '';
+const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : '';
 // The phone's own back (Android's button and gesture, a browser's swipe) goes the app's way back: every side page
 // opened is a step in the browser's history, and stepping back there is stepping back here. A tab chosen from a side
 // page takes those steps away again; the address names the page in view and nothing older.
@@ -3940,7 +3956,7 @@ let sideDepth = 0, unwinding = false;
 // the address names the page in view: ?svar=, ?begreb=, ?forlob= (a development), ?digest=1 (Udvikling), ?gemt=1
 const sideUrl = (t, arg) => {
   const q = t === 'svar' ? `svar=${encodeURIComponent(arg)}` : t === 'begreb' ? `begreb=${encodeURIComponent(arg)}`
-    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1' : '';
+    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1' : t === 'nyhed' ? `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}` : '';
   return q ? BASE + (BASE.includes('?') ? '&' : '?') + q : BASE;
 };
 try { history.replaceState({ khabar: 'base' }, '', BASE); } catch {}
@@ -3951,6 +3967,7 @@ function openSide(t, arg = '') {
     backStack.push({ t: tab, arg: sideArg(tab), y: cur().scrollTop });
     if (backStack.length > 40) backStack.shift();
   }
+  if (t === 'nyhed') nyhedId = arg;
   if (t === 'svar') svarNr = arg; else if (t === 'begreb') begrebId = arg; else if (t === 'threads') { udFocus = arg; if (arg) { udOpen.add(arg); pendingThr = arg; } }
   try { history.pushState({ khabar: 'side', t, arg }, '', sideUrl(t, arg)); sideDepth++; } catch {}
   if (t === tab) { render({ view: true }); if (!pendingThr) cur().scrollTop = 0; } else setTab(t, { top: true });
@@ -3959,6 +3976,39 @@ function openSide(t, arg = '') {
 function goBack() {
   if (sideDepth > 0) { history.back(); return; }
   stepBack();
+}
+// A drag from the screen's left edge goes back from a side page (18/10, the owner: 'a drag from screen border from
+// left to right should also send you back'). Safari and Android do it themselves through the history each side page
+// is a step of; the app on an iPhone's home screen has no such gesture, so there – and only there – the page follows
+// the finger and, let go far or fast enough, slides away and goes back.
+if (navigator.standalone === true) {
+  let edge = null;
+  addEventListener('touchstart', e => {
+    const x = e.touches[0].clientX;
+    if (SIDE.has(tab) && x <= 24) edge = { x, y: e.touches[0].clientY, t: performance.now(), pg: cur(), d: 0 };
+  }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (!edge) return;
+    const dx = e.touches[0].clientX - edge.x, dy = e.touches[0].clientY - edge.y;
+    if (!edge.lock && Math.hypot(dx, dy) > 10) edge.lock = dx > Math.abs(dy) ? 'x' : 'y';
+    if (edge.lock === 'y') { edge.pg.style.transform = ''; edge = null; return; }
+    if (edge.lock === 'x') { edge.d = Math.max(0, dx); edge.pg.style.transform = `translateX(${edge.d}px)`; }
+  }, { passive: true });
+  const end = () => {
+    if (!edge) return;
+    const { pg, d, t } = edge, fast = d > 40 && d / (performance.now() - t) > 0.5;
+    edge = null;
+    pg.style.transition = reduceMotion ? '' : 'transform .22s cubic-bezier(.2, .8, .2, 1)';
+    if (d > innerWidth * 0.3 || fast) {
+      pg.style.transform = `translateX(${innerWidth}px)`;
+      setTimeout(() => { pg.style.transition = ''; pg.style.transform = ''; goBack(); }, reduceMotion ? 0 : 220);
+    } else {
+      pg.style.transform = '';
+      setTimeout(() => { pg.style.transition = ''; }, 240);
+    }
+  };
+  addEventListener('touchend', end);
+  addEventListener('touchcancel', end);
 }
 addEventListener('popstate', () => {
   if (unwinding) { unwinding = false; return; }
@@ -3971,7 +4021,7 @@ function leaveSides() {
 function stepBack() {
   const b = backStack.pop();
   if (!b) { setTab(backTo || 'home'); return; }
-  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg;
+  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg; else if (b.t === 'nyhed') { nyhedId = b.arg; expanded.clear(); expanded.add(b.arg); }
   pendingThr = '';
   if (b.t === tab) render({ view: true }); else setTab(b.t);
   cur().scrollTop = b.y;
@@ -4340,7 +4390,7 @@ const LANGS = { da: 'Dansk', ar: 'Arabisk', en: 'Engelsk', tr: 'Tyrkisk', ur: 'U
 const VIA_NAMES = { push: 'En notifikation', whatsapp: 'WhatsApp', facebook: 'Facebook / Messenger', google: 'Google', sms: 'En sms',
   web: 'Andre sider', direct: 'Direkte (ikon eller bogmærke)' };
 const TAB_NAMES = { home: 'Forside', dk: 'Danmark', me: 'Mellemøsten', world: 'Verden', threads: 'Udvikling', latest: 'Live', search: 'Søg',
-  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å' };
+  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å', nyhed: 'En nyhed' };
 async function loadStats() {
   const url = CFG.statsUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 'stats.enc');
   const r = await fetch(url, { cache: 'no-cache' });
