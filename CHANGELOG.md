@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A calmer answer reader** (2026-10-17, the owner on the as-Suwayda answer: 'uoverskuelig'; `?v=20261017z`): one
+  ochre panel instead of five boxes. The question sits under the title as plain serif text; Del · Kopiér · Gem are one
+  row of small quiet buttons (the wiki page's too); 'Svaret kort' and the answer's readings share the panel, each
+  reading under a hairline with its subject in bold, no 'Hvad svaret læser' heading; the newest answer on the subject is
+  one quiet row under it; 'Begreber' shows four chips before '+ N'; the big 'Åbn originalen' button is gone (the
+  byline's 'Originalen' is the way there) and a held English text folds behind 'Læs hele svaret'. Every piece of
+  information stays; the as-Suwayda page is 15 % shorter (1,872 → 1,597 px at 430 wide), with one panel where there were
+  five boxes and three small buttons where there were three full-width ones.
+
 - **The map's events** (2026-10-17, the owner: 'en slags live osint med kort og seneste angreb lidt ligesom LiveUAmap'):
   `src/radar/osint.py` writes `map.json` after every radar pass (a step in radar.yml): the attacks and armed events of
   the last 72 hours in the stories Live shows, confirmed or big, with the editor's headline, placed by

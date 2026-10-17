@@ -263,15 +263,17 @@ da'wah.
   two shared words; a report of the dead or one state's domestic story needs a specific subject), at most three years
   old – else no line (`answerFor`, docs/hjerne/notes-app.md; 14 of the top 90 on 16/10 after the review). **Analyser**: the amir's answers, the
   newest first (the editor's answers.json and the radar's `analyses` before the layer's 321 by year), a search field and
-  a 'Begreber' row to the wiki's A–Å index; the answer reader: the question, 'Svaret kort', what it reads, its concepts,
-  the answers it cites, the text when held, 'Åbn originalen'. **The wiki**: a concept named in plain text – the lede, an
+  a 'Begreber' row to the wiki's A–Å index; the answer reader (calmed 17/10 after the owner's "uoverskuelig"): the
+  byline, the title with the question under it, one ochre panel ('Svaret kort' and what it reads), its concepts, the
+  answers it cites and that cite it, the text when held (folded). **The wiki**: a concept named in plain text – the lede, an
   opened story's headline and summary, the recap lines, the front page's timeline, an answer's note – links its page
   (`public/viden/begreber*.json`): the first mention, at most three a block, a dotted underline in the text's colour,
   never Danmark and never inside an outlet's name. **A link is never inside a button**: a row's button or link lies under
   the whole row (`.hit`) and its words on top let the tap through. A wiki page: the lead (the newest answer governs),
   'Gennem årene', relations, the answers, related pages, today's stories that name it. **Everything that is Hizb
   ut-Tahrir's** (leads, timelines, notes, readings, answer texts, the answer lines) is set in the serif (`--serif`) on the
-  soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark); every such block carries ONE label with the name and
+  soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark; the one exception is the answer reader's question,
+  serif in `--text-2` on the page inside the header its byline labels); every such block carries ONE label with the name and
   date ('Hizb ut-Tahrirs svar · d/m/åååå': the answer line, the reader's header, a wiki lead's `htLabel`), a block of
   several answers' texts (the wiki's timeline and relations) a small date on each row (`htDate`), and the texts
   themselves never say 'Ifølge …'; everything else keeps the app's face.
@@ -363,9 +365,17 @@ da'wah.
     Udvikling: its own address (`?forlob=<key>`), Del/Kopiér per card, a long course three days at a time, its name
     sticky inside it. Analyser: one title line, a strip under the bar with the field and one chip row (A–Å, the areas as
     a filter for the visit, the years), the page a query names first, 'via <page>', the question's phrase,
-    rows as links, an opened answer drawn quieter (`ansRead`, ≤ 400). The answer reader: byline ('Hizb ut-Tahrirs svar ·
-    d/m/åååå', the area, 'Originalen'), Del · Kopiér · Gem, 'Nyeste svar om …', 'Senere svar, der henviser hertil', 'I
-    nyhederne nu'. A wiki page: a contents row, the paired page (a state and its issue), Del · Kopiér · Gem, today's news
+    rows as links, an opened answer drawn quieter (`ansRead`, ≤ 400). The answer reader (17/10, the owner found it
+    "uoverskuelig": too many boxes, labels and heavy buttons at one weight): the byline ('Hizb ut-Tahrirs svar ·
+    d/m/åååå', the area, 'Originalen ›' – the page's ONE label, so nothing under it carries another), the title, the
+    question right under it as plain serif text in `--text-2` (`.rd-q`: no box, no label, no tint), Del · Kopiér · Gem as
+    one quiet row of small buttons (`.know-acts`: icon and word, 40 px seen and 44 to the finger, left, not stretched –
+    the wiki page shares it; a story's own row is unchanged), then ONE ochre panel (`.rd-ans`): 'Svaret kort' with its
+    paragraph, then each reading under a `--ht-line` hairline, its subject a small bold line linking its page (no
+    'Hvad svaret læser' heading, no box per reading); under it one quiet row 'Nyeste svar om <område>: <titel> · d/m/åååå
+    ›' (`.qrow`); 'Begreber' (four chips, then '+ N'); 'Svaret henviser til'; 'Senere svar, der henviser hertil'; 'I
+    nyhederne nu'; a held text ('Svaret på engelsk') folded behind 'Læs hele svaret ›'. No 'Åbn originalen' button: the
+    byline's 'Originalen' is the way to the source (tests/test_app_pro.py). A wiki page: a contents row, the paired page (a state and its issue), Del · Kopiér · Gem, today's news
     under the lead, 'Gennem årene' under its one label as rows under their years, each row's small date the way to its
     answer, without the lead's own; a shared answer or page carries the label too. A–Å:
     six groups as one chip row (Stater · Aktører – magt, gruppe, organisation – · Steder · Sager – sag, proces – ·
@@ -416,7 +426,7 @@ da'wah.
 - **The full English text of a new answer** sits in `state/analyses.json` on the public data branch (the editor
   routine has no internet) and the answer reader shows it ('Svaret på engelsk') until the next build of `public/viden`.
   Whether that is within 'no full texts of the movement's answers in committed files' is the owner's call (open since
-  2026-10-17): the alternative is to encrypt the text with a key the routine holds and show only 'Åbn originalen'.
+  2026-10-17): the alternative is to encrypt the text with a key the routine holds and show only the byline's 'Originalen'.
 - **Heredocs through the agent's Bash tool lose backslashes** (a doubled backslash arrives single, so a regex's back-reference
   becomes a control character and a word boundary a backspace): write files with regular expressions through the Write
   or Edit tool, not cat or py heredocs, and scan for control characters after an edit.

@@ -532,8 +532,8 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 html, body, body *:not(input):not(textarea) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iPhone wants it on every element */
 input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 /* reading text may be selected and copied (the owner, 17/10): a summary, the lede, the movement's texts – never a row or a button */
-:is(.sum, .lede-t, .ht-box p.ht, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht),
-:is(.sum, .lede-t, .ht-box p.ht, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht) * { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+:is(.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht),
+:is(.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht) * { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 
 /* ------------------------------------------------------------ intro: the name writes itself, in the app's own light or dark colours */
 .intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -871,9 +871,23 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .rd-src { position: relative; display: inline-flex; align-items: center; gap: 3px; color: var(--text-2); }
 .rd-src::after { content: ""; position: absolute; inset: -12px -4px; }   /* 44 high */
 .rd-src svg { width: 13px; height: 13px; }
-.know-acts { margin: 6px 16px 10px; }
-.rd-newer { margin: 0 12px 4px; }
-.rd-newer .ht-line { margin-top: 0; }
+/* the question under the title: the movement's words in its face, plain on the page – the byline is its label */
+.rd-q { margin: 10px 0 0; font-size: var(--fs-lead); font-weight: 400; line-height: 1.4; color: var(--text-2); text-wrap: pretty; }
+/* Del · Kopiér · Gem on an answer and a wiki page: one quiet row of small buttons, left, never stretched (40 seen, 44 to
+   the finger) – a story's own row stays as it is */
+.know-acts { flex-wrap: wrap; margin: 2px 16px 6px; }
+.know-acts .act { position: relative; flex: none; min-height: 40px; padding: 0 14px 0 12px; gap: 6px; border-radius: 999px; background: var(--fill);
+  font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
+.know-acts .act::after { content: ""; position: absolute; inset: -2px 0; }
+.know-acts .act svg { width: 16px; height: 16px; }
+.know-acts .act.on { color: var(--text); }
+/* the answer in one panel: 'Svaret kort', then each reading under a hairline, its subject a small bold line */
+.rd-ans .rd-r { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ht-line); }
+.rd-ans .rd-r p.ht + p.ht { margin-top: 7px; }
+/* the quiet rows under it: a newer answer on the subject, 'Læs hele svaret' */
+.rd-newer b { font-weight: 600; }
+.rd-more { margin-top: var(--s2); }
+.rd-more[aria-expanded="true"] svg { transform: rotate(-90deg); }
 .wk-top h1 { margin: 4px 0 0; font-size: var(--fs-title); font-weight: 780; line-height: 1.16; letter-spacing: -.024em; }
 /* a wiki page's contents row: what it holds, each a jump to its part */
 .wk-toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }   /* the page's contents: chips, each a jump to its part */
@@ -888,8 +902,6 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .rd-text .ht p { margin: 0 0 11px; font-size: var(--fs-read); line-height: 1.55; }
 .rd-text .ht h4 { margin: 16px 0 5px; font-size: var(--fs-read); font-weight: 650; line-height: 1.35; }
 .rd-text .ht > :last-child { margin-bottom: 0; }
-.rd-open { width: calc(100% - 24px); margin: 14px 12px 4px; gap: 7px; }
-.rd-open svg { width: 18px; height: 18px; }
 .wk-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 16px 4px; }
 .wk-chips .chip.more { color: var(--text-3); }
 .x-in .wk-chips { margin: 12px 0 0; }

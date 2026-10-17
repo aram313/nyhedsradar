@@ -1880,10 +1880,11 @@ function prefetchLibrary() {
 }
 
 // ---------------------------------------------------------------- the answer reader
-// The byline with its date, area and the original; the Danish title; Del · Kopiér · Gem; a pointer to a newer answer on
-// the same subject; the question, 'Svaret kort', what the answer reads (its subjects open their wiki pages), the pages
-// it uses, the earlier answers it cites and the later ones that cite it, today's stories on its subject, its text when
-// the app holds it. Everything that is the movement's is set in its face on its tint, always with its attribution.
+// The byline with its date, area and the original (the page's one label); the Danish title and the question under it;
+// Del · Kopiér · Gem as one quiet row; one ochre panel with 'Svaret kort' and what the answer reads (its subjects open
+// their wiki pages, a hairline between them); a quiet row to a newer answer on the same subject; its concepts, the
+// earlier answers it cites and the later ones that cite it, today's stories on its subject, its text when the app holds
+// it (folded behind 'Læs hele svaret'). Everything that is the movement's is set in its face (17/10: "uoverskuelig").
 let svarNr = params.get('svar') || '';
 const SHOW_READS = 6;
 // each paragraph finds its own direction (an English answer opens with the Arabic basmala)
@@ -1912,12 +1913,13 @@ function readingsOf(a, full, note = '') {
   return out;
 }
 const KIND_ORDER = ['begreb', 'aftale', 'proces', 'sted', 'organisation', 'gruppe', 'sag', 'magt', 'stat'];
-// the pages as quiet chips, the first ten and the rest behind one more
-const SHOW_CHIPS = 10, SHOW_SVAR_CHIPS = 6;
+// the pages as quiet chips, the first ten and the rest behind one more ('slack': how many over the first are shown
+// rather than folded; the answer reader shows four at most)
+const SHOW_CHIPS = 10, SHOW_SVAR_CHIPS = 4;
 // a chip names its page; an issue page also says it is the issue ('Iran · sag'), so it is never taken for the state's
 const chipName = id => { const e = ((V('bix') || {}).items || {})[id]; return e && e.kind === 'sag' && /-sagen$/.test(e.name || '')
   ? `${esc(e.name.replace(/-sagen$/, ''))}<small> · sag</small>` : esc(nameOf(id)); };
-const chips = (ids, key, max = SHOW_CHIPS) => { const all = unfolded.has(key), shown = all || ids.length <= max + 2 ? ids : ids.slice(0, max);
+const chips = (ids, key, max = SHOW_CHIPS, slack = 2) => { const all = unfolded.has(key), shown = all || ids.length <= max + slack ? ids : ids.slice(0, max);
   return `<div class="wk-chips">${shown.map(id => `<a class="chip" href="?begreb=${encodeURIComponent(id)}" data-begreb="${esc(id)}">${chipName(id)}</a>`).join('')}`
     + (shown.length < ids.length ? `<button class="chip more" data-unfold="${esc(key)}">+ ${ids.length - shown.length}</button>` : '') + '</div>'; };
 // a file that could not be fetched (offline, a hiccup) is said as such, with another try – never 'findes ikke'
@@ -1994,30 +1996,29 @@ function svarPage() {
   // page's one label, whose and when ('Hizb ut-Tahrirs svar · d/m/åååå', kept on one line)
   let h = `<header class="rd-top"><span class="m rd-by"><span>Hizb ut-Tahrirs svar · ${esc(dSlash(a.date))}</span>${area ? `<span>${esc(area)}</span>` : ''}`
     + `${url ? `<span><a class="rd-src" href="${esc(url)}" target="_blank" rel="noopener">Originalen<svg aria-hidden="true"><use href="#i-open"/></svg></a></span>` : ''}</span>`
-    + `<h1 class="ht">${esc(a.title)}</h1>${orig && a.da ? `<p class="rd-orig" dir="auto" lang="en">${esc(orig)}</p>` : ''}</header>${knowActs('a', a.nr)}`;
-  // a newer answer on the same subject governs: one ochre line to it
-  const areaId = areaIdOf(a), newer = areaId && A.list.find(x => x.date > a.date && areaIdOf(x) === areaId);
-  if (newer) h += `<div class="ans-ref rd-newer"><button class="ht-line" data-svar="${esc(newer.nr)}"><span class="ht-tx"><span class="ht-k"><b>Nyeste svar om ${esc(area)}</b> · ${esc(dSlash(newer.date))}</span>`
-    + `<span class="ht ht-t">${esc(newer.title)}</span></span><svg aria-hidden="true"><use href="#i-chev"/></svg></button></div>`;
-  if (a.q) h += `<section class="ht-box"><h2 class="ht-l">Spørgsmålet</h2><p class="ht">${esc(a.q)}</p></section>`;
+    + `<h1 class="ht">${esc(a.title)}</h1>${orig && a.da ? `<p class="rd-orig" dir="auto" lang="en">${esc(orig)}</p>` : ''}`
+    // the question right under the title: the movement's words in its face, plain on the page (the byline is its label)
+    + `${a.q ? `<p class="ht rd-q">${esc(a.q)}</p>` : ''}</header>${knowActs('a', a.nr)}`;
+  // the answer itself in ONE ochre panel: 'Svaret kort', then what it reads, subject by subject, each under a hairline
+  // (the byline above is the page's one label, so the panel carries none of its own)
   const note = a.note || (mv && mv.note_da) || '';
-  if (note) h += `<section class="ht-box"><h2 class="ht-l">Svaret kort</h2><p class="ht">${rich(note, linkSession())}</p></section>`;
-  else if (a.layer && waiting('mfull')) h += loadingBlock('Henter svaret …');
-  else if (a.layer && failed('mfull')) h += retry('svarets tekst', 'mfull');
   const reads = readingsOf(a, full, note), rk = `svar|${a.nr}|reads`, allReads = unfolded.has(rk);
-  if (reads.length) {
-    // grouped by subject; the answer's own page says whose and when in its byline
-    const groups = new Map();
-    for (const r of allReads ? reads : reads.slice(0, SHOW_READS)) { if (!groups.has(r.s)) groups.set(r.s, []); groups.get(r.s).push(r.text); }
-    h += `<h2 class="grp rd-h">Hvad svaret læser</h2><section class="ht-box rd-reads"><ul>${[...groups].map(([sj, texts]) =>
-      `<li><div class="rd-s">${subjLinks(sj)}</div>${texts.map(t => `<p class="ht">${esc(t)}</p>`).join('')}</li>`).join('')}</ul>`
-      + (reads.length > SHOW_READS ? `<button class="ht-more" data-unfold="${esc(rk)}">${allReads ? 'Vis færre' : `Alle ${reads.length} læsninger`}</button>` : '') + '</section>';
-  }
+  const groups = new Map();
+  for (const r of allReads ? reads : reads.slice(0, SHOW_READS)) { if (!groups.has(r.s)) groups.set(r.s, []); groups.get(r.s).push(r.text); }
+  if (note || reads.length) h += `<section class="ht-box rd-ans">${note ? `<h2 class="ht-l">Svaret kort</h2><p class="ht">${rich(note, linkSession())}</p>` : ''}`
+    + [...groups].map(([sj, texts]) => `<div class="rd-r"><div class="rd-s">${subjLinks(sj)}</div>${texts.map(t => `<p class="ht">${esc(t)}</p>`).join('')}</div>`).join('')
+    + (reads.length > SHOW_READS ? `<button class="ht-more" data-unfold="${esc(rk)}">${allReads ? 'Vis færre' : `Alle ${reads.length} læsninger`}</button>` : '') + '</section>';
+  if (!note && a.layer && waiting('mfull')) h += loadingBlock('Henter svaret …');
+  else if (!note && a.layer && failed('mfull')) h += retry('svarets tekst', 'mfull');
+  // a newer answer on the same subject governs: one quiet row to it under the panel
+  const areaId = areaIdOf(a), newer = areaId && A.list.find(x => x.date > a.date && areaIdOf(x) === areaId);
+  if (newer) h += `<button class="qrow rd-newer" data-svar="${esc(newer.nr)}"><span>Nyeste svar om ${esc(area)}: <b>${esc(newer.title)}</b> · ${esc(dSlash(newer.date))}</span>`
+    + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
   // the pages it uses, the central first (the subjects of its readings, its area), at most SHOW_SVAR_CHIPS before '+ n'
   const central = new Set([...reads.flatMap(r => String(r.s || '').split('--')), ...(a.issues || []).slice(0, 1), ...(a.states || []).slice(0, 1)].map(x => pageOf(x) || x));
   const pages = [...new Set([...(answerPages().get(a.nr) || []), ...(a.begreber || []).filter(id => ((V('bix') || {}).items || {})[id])])]
     .sort((x, y) => central.has(y) - central.has(x) || KIND_ORDER.indexOf(((V('bix') || {}).items[x] || {}).kind) - KIND_ORDER.indexOf(((V('bix') || {}).items[y] || {}).kind) || nameOf(x).localeCompare(nameOf(y), 'da'));
-  if (pages.length) h += `<h2 class="grp rd-h">Begreber i svaret</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS)}`;
+  if (pages.length) h += `<h2 class="grp rd-h">Begreber</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}`;
   const cites = ((mv && mv.cites_nrs) || []).map(nr => A.by.get(String(nr))).filter(Boolean);
   if (cites.length) h += `<h2 class="grp rd-h">Svaret henviser til</h2><div class="rd-list">${cites.map(c => anRow(c)).join('')}</div>`;
   const later = citedBy(a.nr);
@@ -2035,9 +2036,12 @@ function svarPage() {
         || /^(?:updated )?(?:ameer s )?(?:answer to (?:a )?questions?|questions? and answers?|q a)$/.test(same(l)))) break;
       text = text.slice(text.indexOf(first) + first.length).trim();
     }
-    h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk</h2><div class="ht" lang="en">${paras(text)}</div></section>`;
+    // folded behind one quiet row (the byline's 'Originalen' is the way to the source)
+    const tk = `svar|${a.nr}|text`, open = unfolded.has(tk);
+    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret'}</span>`
+      + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+    if (open) h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk</h2><div class="ht" lang="en">${paras(text)}</div></section>`;
   } else if (a.fresh && waiting('txt')) h += loadingBlock('Henter svarets tekst …');
-  if (url) h += `<a class="wide soft rd-open" href="${esc(url)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-open"/></svg>Åbn originalen</a>`;
   return h;
 }
 
@@ -3364,7 +3368,7 @@ function openCode() {
 
 let press = null, pressed = false, actItem = null;
 const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
-const READING = '.sum, .lede-t, .ht-box p.ht, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht';   // text one may select (style.css)
+const READING = '.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht';   // text one may select (style.css)
 $('list').addEventListener('pointerdown', e => {
   const el = adminKey && !e.target.closest(READING) && (e.target.closest('[data-pick]') || e.target.closest('.story[data-id]'));
   if (!el) return;

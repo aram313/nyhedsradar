@@ -217,6 +217,30 @@ def test_a_notification_choice_that_was_not_sent_is_sent_later():
     assert "document.addEventListener('visibilitychange', () => { if (!document.hidden) resendWant(); })" in CODE
 
 
+def test_the_answer_reader_is_one_panel_under_a_quiet_header():
+    # 17/10, the owner on the as-Suwayda answer: "uoverskuelig" – too many boxes, labels and heavy buttons
+    page = fn('svarPage')
+    # the question under the title, the movement's face without a box or a label of its own
+    assert '<p class="ht rd-q">${esc(a.q)}</p>' in page and 'Spørgsmålet' not in page
+    assert page.index('<h1 class="ht">') < page.index('rd-q') < page.index("knowActs('a', a.nr)")
+    # one ochre panel: 'Svaret kort', then the readings under hairlines – no heading of their own, no box per reading
+    assert page.count('class="ht-box') == 2   # the panel, and the full text when unfolded
+    assert 'Hvad svaret læser' not in page and 'class="rd-r"' in page and 'htLabel(' not in page
+    assert re.search(r'\.rd-ans \.rd-r \{[^}]*border-top: 1px solid var\(--ht-line\)', RULES)
+    # the newer answer is a quiet row under the panel, not a box
+    assert page.index('rd-ans') < page.index('class="qrow rd-newer"') and 'ht-line' not in page
+    # four concepts at most before '+ n', under 'Begreber'
+    assert 'SHOW_SVAR_CHIPS = 4' in CODE and "h2 class=\"grp rd-h\">Begreber</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}" in page
+    # no big 'Åbn originalen' (the byline's 'Originalen' is it); a held text folded behind one quiet row
+    assert 'Åbn originalen' not in page and 'class="wide' not in page and 'Originalen<svg' in page
+    assert 'Læs hele svaret' in page and 'if (open) h +=' in page
+    # Del · Kopiér · Gem: one quiet row, left, not stretched (the wiki page's too), with Gem's state
+    assert re.search(r'\.know-acts \.act \{[^}]*flex: none;[^}]*min-height: 40px', RULES)
+    assert re.search(r'\.know-acts \.act::after \{[^}]*inset: -2px 0', RULES)
+    acts = CODE.split('const knowActs = ')[1].split('};')[0]
+    assert 'aria-pressed="${on}"' in acts and "on ? 'Gemt' : 'Gem'" in acts
+
+
 def test_the_library_is_fetched_once_per_build_and_read_only_when_needed():
     pre = fn('prefetchLibrary')
     assert "store.get('libFor', '') === built" in pre and 'arrayBuffer()' in pre and "need('mfull')" not in pre
