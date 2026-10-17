@@ -1299,12 +1299,22 @@ function fill(T) {
   if (T.id === 'debt') tick();
 }
 // all topics (new numbers): the topic in view keeps its place on the screen
+// each topic on its own: numbers one topic cannot draw leave a quiet line there, never a blank page (the owner, 17/10:
+// 'Økonomi siden viser rn blank side??' – one error used to stop every topic after it); false asks load() to draw again
 function renderAll() {
-  if (!D) return;
+  if (!D) return true;
   const anchor = secEl(current), y0 = anchor.getBoundingClientRect().top;
-  for (const T of TOPICS) fill(T);
+  let ok = true;
+  for (const T of TOPICS) {
+    try { fill(T); } catch (e) {
+      ok = false;
+      console.error('Økonomi:', T.id, e);
+      secEl(T.id).innerHTML = `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p></header><p class="empty">Kunne ikke vises lige nu. Prøv igen om lidt.</p>`;
+    }
+  }
   if (scrollY > 0) scrollBy(0, anchor.getBoundingClientRect().top - y0);
   focusSync();
+  return ok;
 }
 function foot() {
   $('#foot').innerHTML = 'Opdateres hvert 5. minut. Tryk på et tal for dets graf, og hvad det betyder.'
@@ -1476,22 +1486,30 @@ addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout((
 addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== current) jump(id); });
 
 // ---- data ------------------------------------------------------------------------------------------------------------
-let first = true;
+let first = true, retryT = null;
+// a failed fetch or drawing tries again in half a minute; a fetch that hangs (a weak line) is given up after 15 seconds
+const retry = () => { clearTimeout(retryT); retryT = setTimeout(() => { if (!document.hidden) load(); }, 30e3); };
 async function load() {
   const st = $('#status');
+  const ctl = new AbortController(), cut = setTimeout(() => ctl.abort(), 15e3);
   try {
-    const r = await fetch(SRC, { cache: 'no-cache' });
+    const r = await fetch(SRC, { cache: 'no-cache', signal: ctl.signal });
     if (!r.ok) throw new Error(r.status);
     const next = await r.json();
-    if (!D || next.updated !== lastUpdated) { D = next; lastUpdated = next.updated; renderAll(); }
+    if (!D || next.updated !== lastUpdated) {
+      D = next;
+      lastUpdated = renderAll() ? next.updated : null;   // a topic that could not be drawn is drawn again next time
+      if (lastUpdated === null) retry();
+    }
     if (first) {   // a link to a topic (khabar.nu/energi#olie): there, once the numbers are drawn
       first = false;
       const id = HASH[location.hash.slice(1)];
       if (id && id !== 'nu') jump(id, null, { instant: true });
     }
   } catch (e) {
-    if (!D) secEl('nu').insertAdjacentHTML('beforeend', '<p class="empty">Tallene kunne ikke hentes lige nu. Prøv igen om lidt.</p>');
-  }
+    if (!D && !secEl('nu').querySelector('.empty')) secEl('nu').insertAdjacentHTML('beforeend', '<p class="empty">Tallene kunne ikke hentes lige nu. Prøv igen om lidt.</p>');
+    retry();
+  } finally { clearTimeout(cut); }
   if (D && D.updated) {
     const age = Date.now() - new Date(D.updated);
     st.textContent = age < 6e4 ? 'opdateret nu' : 'opdateret ' + clock(D.updated);

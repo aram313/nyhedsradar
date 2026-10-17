@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi can no longer stay blank** (2026-10-18, the owner: 'Økonomi siden viser rn blank side?? Vi er live!!'):
+  the page drew its topics in one go, so one topic the numbers could not draw stopped every topic after it and left a
+  blank page until the next new numbers. Each topic is now drawn on its own (a quiet 'Kunne ikke vises lige nu' where
+  one fails) and drawn again half a minute later; a fetch that hangs is given up after 15 seconds and tried again; and
+  the app builds the Økonomi frame again (at most three times) when its page never answers within 12 seconds.
 - **Kalender: Alberta's referendum 19/10** (2026-10-18, the owner: 'Du mangler Alberta election kanada 19 oktober'):
   a curated event of middle weight – the vote on staying in Canada or starting the constitutional process towards a
   binding referendum on separation (non-binding, one of several questions). Wikipedia's national calendar leaves

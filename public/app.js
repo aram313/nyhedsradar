@@ -3313,17 +3313,29 @@ function paintOpts(t = tab) {
 // "Kan du gøre kort separat fra priser, lav det til en femte fane"). energi/?embed=1 in a same-origin frame that fills
 // the page, made the first time the tab is shown (or a swipe heads for it): the page hides its own bar and back link and
 // follows the app's look and text size live (it watches the app's <html>). khabar.nu/energi stays a page of its own.
+// a frame that never says hello (its page did not load – a weak line, an update going out) is built again, at most
+// three times, so Økonomi is never left a blank page (the owner, 17/10: 'Økonomi siden viser rn blank side??')
+let okHello = false, okTries = 0, okWait = null;
 function okPage(pg) {
   if (!pg) return;
   if (pg.querySelector('iframe')) return;
   pg.innerHTML = netDown() ? `<div>${stateBlock('offline', 'Ingen forbindelse. Priserne kommer, så snart telefonen er på nettet.', [['Prøv igen', 'data-okframe']])}</div>`
     : '<div class="ok-pr"><iframe src="energi/?embed=1" title="Økonomi – olie, brændstof og markeder"></iframe></div>';
+  okHello = false;
+  clearTimeout(okWait);
+  if (pg.querySelector('iframe')) okWait = setTimeout(() => {
+    if (okHello || !pg.querySelector('iframe') || okTries >= 3) return;
+    okTries++;
+    pg.innerHTML = '';
+    okPage(pg);
+  }, 12e3);
 }
 // its topics in the app's dock (18/10, the owner: after 'Råvarer' on a phone the frame's own dock could not be tapped
 // until one scrolled up – a fixed element inside a frame): the frame tells the topics and the one in view, a chip asks
 // the frame to jump; the chosen chip is kept in view inside its row
 let okTopics = [], okCur = '';
 window.khabarOk = (topics, current) => {
+  okHello = true; okTries = 0;
   if (topics) okTopics = topics;
   if (current) okCur = current;
   if (dockTab !== 'okonomi' && tab !== 'okonomi') return;
