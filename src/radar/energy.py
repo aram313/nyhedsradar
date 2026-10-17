@@ -1,15 +1,22 @@
-"""Energy prices for khabar.nu/energi: crude, products, crack spreads, gas, Danish pump prices and energy news.
+"""The economy page's numbers (khabar.nu/energi, the app's Økonomi tab): fuel, oil and gas, markets, the AI giants,
+debt and commodities, Danish pump prices and energy news.
 
 Runs after every radar pass (radar.yml) and writes `energy.json` into the state folder, which is saved on the data
 branch the page reads. Stdlib only. Every source has its own clock (EVERY) and a failed fetch keeps the last good
 numbers, so one source being down never blanks the page.
 
-Sources (all free and open):
-- futures, gas and USD/DKK: Yahoo Finance chart API (NYMEX/ICE prices, ~10 min delayed), daily closes for 6 months;
+Sources (all free, open and keyless):
+- futures, indices, risk gauges, commodities, the AI companies, USD/DKK and EUR/DKK: Yahoo Finance chart API
+  (~10–15 min delayed), daily closes for 6 months and each market's session (to tell an open market from a close);
   the Brent and WTI curves from the individual contract months
 - physical spot prices: EIA's daily series (Brent FOB, WTI Cushing, New York Harbor gasoline and diesel, Gulf Coast
   jet fuel, Henry Hub), a few days behind – from EIA's own history pages, else from FRED (FRED does not answer
   GitHub's runners); a source that fails is tried again after RETRY, not on every pass
+- US pump prices: EIA's weekly retail regular gasoline and diesel, US average ($/gallon), two years of Mondays
+- European pump prices: the EU's Weekly Oil Bulletin, latest prices with taxes (EUR per 1000 litres, every Monday)
+- the AI giants' weight in the S&P 500: State Street's daily holdings of SPY, the fund that tracks the index
+- US federal debt: the Treasury's Debt to the Penny (api.fiscaldata.treasury.gov), daily, with its average growth
+- government debt in % of GDP: the IMF's DataMapper (GGXWDG_NGDP), annual
 - Danish pump prices: Circle K's public price API (Circle K and INGO stations) and Q8's station price list (Q8 and
   F24), every station; the page shows each chain's list price and its cheapest station
 - news: stories about oil, fuel and gas from this radar run (data.json), with the editor's headline where he
@@ -26,6 +33,7 @@ import re
 import statistics
 import urllib.parse
 import urllib.request
+import zipfile
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
@@ -39,7 +47,8 @@ GAL_L = 3.78541     # litres in a US gallon
 GAL_BBL = 42        # gallons in a barrel
 
 # seconds between fetches of each source (the radar runs every ~5 minutes)
-EVERY = {'markets': 4 * 60, 'curve': 30 * 60, 'fred': 3 * 3600, 'pumps': 20 * 60}
+EVERY = {'markets': 4 * 60, 'curve': 30 * 60, 'fred': 3 * 3600, 'pumps': 20 * 60, 'usfuel': 6 * 3600,
+         'eu': 12 * 3600, 'spy': 6 * 3600, 'debt': 3 * 3600, 'imf': 24 * 3600}
 RETRY = 30 * 60     # a source that failed is asked again after half an hour, so a dead one never slows every pass
 
 YAHOO = {               # key -> symbol; prices in the exchange's unit
@@ -50,7 +59,34 @@ YAHOO = {               # key -> symbol; prices in the exchange's unit
     'hh': 'NG=F',       # Henry Hub natural gas, $/MMBtu
     'ttf': 'TTF=F',     # Dutch TTF gas, EUR/MWh
     'usddkk': 'DKK=X',  # kroner per dollar
+    'eurdkk': 'EURDKK=X',   # kroner per euro (the EU's pump prices)
+    # indices
+    'spx': '^GSPC', 'ndx': '^NDX', 'sx5e': '^STOXX50E', 'c25': '^OMXC25', 'n225': '^N225', 'sse': '000001.SS',
+    # risk gauges: the VIX, the US 10-year yield (in %), the dollar index
+    'vix': '^VIX', 'tnx': '^TNX', 'dxy': 'DX-Y.NYB',
+    # commodities: gold $/oz, copper $/lb, wheat US cents/bushel, Bitcoin $
+    'gold': 'GC=F', 'copper': 'HG=F', 'wheat': 'ZW=F', 'btc': 'BTC-USD',
+    # the AI giants
+    'nvda': 'NVDA', 'msft': 'MSFT', 'googl': 'GOOGL', 'meta': 'META', 'amzn': 'AMZN', 'aapl': 'AAPL', 'tsm': 'TSM',
+    'avgo': 'AVGO',
 }
+# the AI basket's tickers as SPY's holdings list them (Alphabet has two share classes; TSMC is not in the S&P 500)
+AI = {'nvda': ['NVDA'], 'msft': ['MSFT'], 'googl': ['GOOGL', 'GOOG'], 'meta': ['META'], 'amzn': ['AMZN'],
+      'aapl': ['AAPL'], 'tsm': [], 'avgo': ['AVGO']}
+US_FUEL = {                       # EIA weekly retail prices, US average, $/gallon (all formulations, regular / No. 2 diesel)
+    'us_gas': 'EMM_EPMR_PTE_NUS_DPG',
+    'us_diesel': 'EMD_EPD2D_PTE_NUS_DPG',
+}
+# the EU's Weekly Oil Bulletin, 'Prices with taxes – latest prices' (the document id stays; its file name changes)
+EU_URL = 'https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en'
+EU_LAND = {'EU': 'EUR27', 'DE': 'Germany', 'SE': 'Sweden', 'FR': 'France', 'NL': 'Netherlands', 'DK': 'Denmark',
+           'IT': 'Italy', 'PL': 'Poland', 'ES': 'Spain'}
+SPY_URL = 'https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx'
+DEBT_URL = ('https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny'
+            '?sort=-record_date&page%5Bsize%5D=600&fields=record_date,tot_pub_debt_out_amt')
+IMF_URL = 'https://www.imf.org/external/datamapper/api/v1/GGXWDG_NGDP'
+# the countries of the debt bars (IMF codes); the page names them
+IMF_LAND = ['USA', 'JPN', 'GBR', 'FRA', 'ITA', 'DEU', 'CHN', 'DNK', 'TUR', 'EGY', 'SAU', 'ISR', 'PAK', 'RUS', 'IRN', 'GRC']
 CURVES = {'brent': 'BZ', 'wti': 'CL'}
 MONTHS = 'FGHJKMNQUVXZ'
 
@@ -132,15 +168,20 @@ def yahoo(symbol, rng='6mo'):
             if price is None or not at:
                 continue
             hist[datetime.fromtimestamp(at + off, timezone.utc).date().isoformat()] = r4(price)
-            return {'v': r4(price), 't': datetime.fromtimestamp(at, timezone.utc).isoformat(),
-                    'h': sorted(hist.items())}
+            out = {'v': r4(price), 't': datetime.fromtimestamp(at, timezone.utc).isoformat(),
+                   'h': [list(p) for p in sorted(hist.items())]}
+            # the session the price belongs to (epoch seconds): the page tells an open market from a closing price
+            reg = (meta.get('currentTradingPeriod') or {}).get('regular') or {}
+            if reg.get('start') and reg.get('end'):
+                out['o'] = [reg['start'], reg['end']]
+            return out
         except Exception:
             continue
     return None
 
 
 def fetch_markets():
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(10) as ex:
         got = dict(zip(YAHOO, ex.map(yahoo, YAHOO.values())))
     return {k: v for k, v in got.items() if v}
 
@@ -214,8 +255,11 @@ def eia_rows(html, days=200):
 
 def eia(key, days=200):
     n, sid = EIA[key]
+    # the gas pages have no LeafHandler (404): their static history page holds the same rows
+    url = (f'https://www.eia.gov/dnav/ng/hist/{sid.lower()}D.htm' if n == 'NG'
+           else f'https://www.eia.gov/dnav/{n.lower()}/hist/LeafHandler.ashx?n={n}&s={sid}&f=D')
     try:
-        html = get(f'https://www.eia.gov/dnav/{n.lower()}/hist/LeafHandler.ashx?n={n}&s={sid}&f=D', timeout=15).decode('utf-8', 'replace')
+        html = get(url, timeout=20).decode('utf-8', 'replace')
     except Exception:
         return None
     hist = eia_rows(html, days)
@@ -250,6 +294,205 @@ def fetch_fred():
     with ThreadPoolExecutor(6) as ex:
         got = dict(zip(FRED, ex.map(spot, FRED)))
     return {k: v for k, v in got.items() if v}
+
+
+# ---- US pump prices (EIA, weekly) ------------------------------------------------------------------------------------
+
+def eia_weeks(html, days=731):
+    """EIA's weekly history page: one row a month ('2026-Oct', then up to five 'MM/DD' and price pairs) ->
+    [[date, v], ...] for the last `days` days."""
+    cut = (now().date() - timedelta(days=days)).isoformat()
+    hist = []
+    for row in re.findall(r"<tr>\s*<td class='B6'>(.*?)</tr>", html, re.S):
+        m = re.search(r'(\d{4})-([A-Z][a-z]{2})', row)
+        if not m or m.group(2) not in EIA_MON:
+            continue
+        year, mon = int(m.group(1)), EIA_MON[m.group(2)]
+        for mm, dd, v in re.findall(r"<td class='B5'>\s*(\d{2})/(\d{2})[^<]*</td>\s*<td class='B3'>\s*([\d.]+)", row):
+            y = year - 1 if int(mm) == 12 and mon == 1 else year + 1 if int(mm) == 1 and mon == 12 else year
+            try:
+                d = date(y, int(mm), int(dd)).isoformat()
+                hist.append([d, r4(float(v))])
+            except ValueError:
+                continue
+    return sorted(x for x in hist if x[0] >= cut)
+
+
+def fetch_usfuel():
+    def one(sid):
+        try:
+            html = get(f'https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s={sid}&f=W', timeout=15).decode('utf-8', 'replace')
+        except Exception:
+            return None
+        hist = eia_weeks(html)
+        return {'v': hist[-1][1], 't': hist[-1][0], 'h': hist} if hist else None
+
+    with ThreadPoolExecutor(2) as ex:
+        got = dict(zip(US_FUEL, ex.map(one, US_FUEL.values())))
+    return {k: v for k, v in got.items() if v}
+
+
+# ---- spreadsheets (stdlib: an .xlsx is a zip of XML) -----------------------------------------------------------------
+
+def xlsx_rows(blob):
+    """The first sheet of an .xlsx as rows of {column letter: text or number}."""
+    z = zipfile.ZipFile(io.BytesIO(blob))
+    strings = []
+    if 'xl/sharedStrings.xml' in z.namelist():
+        for si in re.findall(r'<si>(.*?)</si>', z.read('xl/sharedStrings.xml').decode('utf-8', 'replace'), re.S):
+            strings.append(re.sub(r'<[^>]+>', '', si).replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<').strip())
+    sheet = z.read('xl/worksheets/sheet1.xml').decode('utf-8', 'replace')
+    rows = []
+    for row in re.findall(r'<row\b[^>]*>(.*?)</row>', sheet, re.S):
+        cells = {}
+        for col, attrs, inner in re.findall(r'<c r="([A-Z]+)\d+"([^>]*?)(?:/>|>(.*?)</c>)', row, re.S):
+            v = re.search(r'<v>(.*?)</v>', inner or '', re.S)
+            if not v:
+                t = re.search(r'<t[^>]*>(.*?)</t>', inner or '', re.S)     # an inline string
+                if t:
+                    cells[col] = t.group(1).strip()
+                continue
+            v = v.group(1)
+            if 't="s"' in attrs:
+                cells[col] = strings[int(v)] if int(v) < len(strings) else ''
+            elif 't="str"' in attrs:
+                cells[col] = v
+            else:
+                try:
+                    cells[col] = float(v)
+                except ValueError:
+                    cells[col] = v
+        rows.append(cells)
+    return rows
+
+
+def excel_day(n):
+    return (date(1899, 12, 30) + timedelta(days=int(n))).isoformat()
+
+
+# ---- European pump prices (the EU's Weekly Oil Bulletin) -------------------------------------------------------------
+
+def eu_prices(rows):
+    """The bulletin's latest prices with taxes: {'t': Monday, 'c': {code: [petrol, diesel]}} in EUR per 1000 litres."""
+    day = next((r['A'] for r in rows[:4] if isinstance(r.get('A'), float)), None)
+    out = {}
+    for r in rows:
+        name = str(r.get('A') or '')
+        for code, land in EU_LAND.items():
+            if code not in out and (name == land or (land == 'EUR27' and 'EUR27' in name)):
+                b, d = r.get('B'), r.get('C')
+                if isinstance(b, float) and isinstance(d, float):
+                    out[code] = [r4(b), r4(d)]
+    if not day or 'EU' not in out:
+        return None
+    return {'t': excel_day(day), 'c': out}
+
+
+def fetch_eu():
+    return eu_prices(xlsx_rows(get(EU_URL, timeout=30)))
+
+
+def eu_merge(prev, got):
+    """The new week, with the EU average's own history (one point a Monday, two years) kept from the earlier weeks."""
+    if not got:
+        return prev
+    hist = [h for h in (prev or {}).get('h') or [] if h[0] != got['t']] + [[got['t'], *got['c']['EU']]]
+    cut = (now().date() - timedelta(days=731)).isoformat()
+    return {**got, 'h': sorted(h for h in hist if h[0] >= cut)}
+
+
+# ---- the AI giants' weight in the S&P 500 (SPY's holdings) -----------------------------------------------------------
+
+def spy_weights(rows):
+    """SPY's holdings -> {'t': as-of date, 'w': {key: % of the fund}, 'ai': the basket's %, 'top10': the ten largest
+    holdings' %, 'n': holdings}. SPY holds the S&P 500 at the index's own weights."""
+    t = None
+    for r in rows[:6]:
+        m = re.search(r'(\d{1,2})-([A-Z][a-z]{2})-(\d{4})', ' '.join(str(v) for v in r.values()))
+        if m and m.group(2) in EIA_MON:
+            t = date(int(m.group(3)), EIA_MON[m.group(2)], int(m.group(1))).isoformat()
+            break
+    head = next((i for i, r in enumerate(rows) if str(r.get('B', '')).strip().lower() == 'ticker'), None)
+    if head is None:
+        return None
+    cols = {str(v).strip().lower(): k for k, v in rows[head].items()}
+    wcol = cols.get('weight')
+    if not wcol:
+        return None
+    by = {}
+    for r in rows[head + 1:]:
+        tick, w = str(r.get('B') or '').strip().upper(), r.get(wcol)
+        if tick and isinstance(w, float) and tick != '-':
+            by[tick] = by.get(tick, 0) + w
+    if len(by) < 400:
+        return None      # not the whole index: a cut file or another fund
+    w = {k: r4(sum(by.get(x, 0) for x in ticks)) if ticks else None for k, ticks in AI.items()}
+    top = sorted(by.values(), reverse=True)
+    return {'t': t, 'w': w, 'ai': r4(sum(v for v in w.values() if v)), 'top10': r4(sum(top[:10])), 'n': len(by)}
+
+
+def fetch_spy():
+    return spy_weights(xlsx_rows(get(SPY_URL, timeout=30)))
+
+
+def spy_merge(prev, got):
+    """The new day's weights and the basket's share by day (400 days) kept from the earlier days."""
+    if not got:
+        return prev
+    day = got['t'] or now().date().isoformat()
+    hist = [h for h in (prev or {}).get('h') or [] if h[0] != day] + [[day, got['ai']]]
+    cut = (now().date() - timedelta(days=400)).isoformat()
+    return {**got, 'h': sorted(h for h in hist if h[0] >= cut)}
+
+
+# ---- US federal debt (the Treasury's Debt to the Penny) --------------------------------------------------------------
+
+def debt_series(rows, days=400):
+    """The Treasury's rows (newest first) -> {'v': dollars, 't': record date, 'g': average growth a day over the last
+    year (dollars), 'h': [[date, billions], ...]}."""
+    pts = []
+    for r in rows:
+        try:
+            pts.append((r['record_date'], float(r['tot_pub_debt_out_amt'])))
+        except (KeyError, TypeError, ValueError):
+            continue
+    pts.sort()
+    if len(pts) < 2:
+        return None
+    last_d, last_v = pts[-1]
+    end = date.fromisoformat(last_d)
+    # the growth a day: the last figure against the one nearest a year earlier, so one big auction day weighs little
+    base = min(pts, key=lambda p: abs((end - date.fromisoformat(p[0])).days - 365))
+    span = (end - date.fromisoformat(base[0])).days
+    g = (last_v - base[1]) / span if span > 0 else None
+    cut = (end - timedelta(days=days)).isoformat()
+    return {'v': round(last_v), 't': last_d, 'g': round(g) if g is not None else None, 'gd': span,
+            'h': [[d, round(v / 1e9, 1)] for d, v in pts if d >= cut]}
+
+
+def fetch_debt():
+    return debt_series(json.loads(get(DEBT_URL, timeout=20)).get('data') or [])
+
+
+# ---- government debt in % of GDP (IMF) -----------------------------------------------------------------------------
+
+def imf_debt(d, year=None):
+    """The IMF's DataMapper answer -> {'y': the last year shown, 'c': {code: [[year, %], ...]}} from 2000 to that year
+    (the current year's figure is a projection, so the last full year is the newest shown)."""
+    year = year or now().year - 1
+    vals = ((d or {}).get('values') or {}).get('GGXWDG_NGDP') or {}
+    out = {}
+    for code in IMF_LAND:
+        rows = sorted((int(y), v) for y, v in (vals.get(code) or {}).items()
+                      if str(y).isdigit() and 2000 <= int(y) <= year and isinstance(v, (int, float)))
+        if rows:
+            out[code] = [[y, r4(v)] for y, v in rows]
+    return {'y': year, 'c': out} if len(out) >= 5 else None
+
+
+def fetch_imf():
+    # the IMF's bot shield turns a browser-like agent away and lets Python's own in
+    return imf_debt(json.loads(get(IMF_URL, {'User-Agent': 'Python-urllib/3'}, timeout=30)))
 
 
 # ---- Danish pump prices --------------------------------------------------------------------------------------------
@@ -469,20 +712,42 @@ def run(state):
         prev = {}
     t = now()
     # the fetched series are the memory for the next run; derived ones are rebuilt from them every time
-    raw = {k: v for k, v in (prev.get('s') or {}).items() if k in YAHOO or k in FRED}
+    raw = {k: v for k, v in (prev.get('s') or {}).items() if k in YAHOO or k in FRED or k in US_FUEL}
     ok = dict(prev.get('ok') or {})
     # a source that failed less than RETRY ago stays marked (due() skips it); one asked again now is marked anew below
     tried = {k: v for k, v in (prev.get('tried') or {}).items() if (t - datetime.fromisoformat(v)).total_seconds() < RETRY - 30}
     curve = prev.get('curve') or {}
     pumps = prev.get('pumps') or {}
 
-    if due(prev, 'markets', t):
-        got = fetch_markets()
-        raw.update(got)
-        if got:
-            ok['markets'] = t.isoformat()
+    def ask(fetch):
+        try:
+            return fetch() or None
+        except Exception:
+            return None
+
+    # the slow, rarely asked sources side by side, so a hanging one never holds up the others
+    slow = {'usfuel': fetch_usfuel, 'eu': fetch_eu, 'spy': fetch_spy, 'debt': fetch_debt, 'imf': fetch_imf}
+    slow = {k: fn for k, fn in slow.items() if due(prev, k, t)}
+    with ThreadPoolExecutor(max(1, len(slow))) as ex:
+        pending = {k: ex.submit(ask, fn) for k, fn in slow.items()}
+        if due(prev, 'markets', t):
+            got = fetch_markets()
+            raw.update(got)
+            if got:
+                ok['markets'] = t.isoformat()
+            else:
+                tried['markets'] = t.isoformat()
+        answers = {k: f.result() for k, f in pending.items()}
+    for k in slow:
+        if answers[k]:
+            ok[k] = t.isoformat()
         else:
-            tried['markets'] = t.isoformat()
+            tried[k] = t.isoformat()
+    raw.update(answers.get('usfuel') or {})
+    eu = eu_merge(prev.get('eu'), answers.get('eu'))
+    spy = spy_merge(prev.get('spy'), answers.get('spy'))
+    debt = answers.get('debt') or prev.get('debt')
+    imf = answers.get('imf') or prev.get('imf')
     if due(prev, 'curve', t):
         fronts = {k: int(datetime.fromisoformat(raw[k]['t']).timestamp()) for k in CURVES if raw.get(k)}
         got = fetch_curves(fronts)
@@ -519,6 +784,10 @@ def run(state):
         's': series,
         'curve': curve,
         'pumps': pumps,
+        'eu': eu,
+        'spy': spy,
+        'debt': debt,
+        'imf': imf,
         'news': energy_news(state),
     }
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
@@ -529,8 +798,19 @@ def main():
     state = Path(os.environ.get('RADAR_STATE', Path(__file__).resolve().parents[2] / 'state'))
     state.mkdir(parents=True, exist_ok=True)
     out = run(state)
-    print(f"energy: {len(out['s'])} series, curves {sorted(out['curve'])}, "
-          f"pumps {len((out['pumps'] or {}).get('chains') or [])} chains, {len(out['news'])} news, ok {out['ok']}")
+    missing = sorted(k for k in [*YAHOO, *FRED, *US_FUEL] if k not in out['s'])
+    print(f"energy: {len(out['s'])} series{' (missing ' + ', '.join(missing) + ')' if missing else ''}, "
+          f"curves {sorted(out['curve'])}, pumps {len((out['pumps'] or {}).get('chains') or [])} chains, "
+          f"eu {bool(out['eu'])}, spy {bool(out['spy'])}, debt {bool(out['debt'])}, "
+          f"imf {len(((out['imf'] or {}).get('c')) or {})} lands, {len(out['news'])} news, ok {sorted(out['ok'])}, "
+          f"failed {sorted(out['tried'])}, {path_size(state)} bytes")
+
+
+def path_size(state):
+    try:
+        return (state / 'energy.json').stat().st_size
+    except OSError:
+        return 0
 
 
 if __name__ == '__main__':
