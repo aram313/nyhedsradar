@@ -64,8 +64,10 @@ with one tap (no code to send).
    same story, or the article page's share image – shrunk to a few kilobytes (`src/radar/thumbs.py`, files in
    `t/` on the data branch). Telegram channels never lend a picture.
 9. **The editor:** the radar collects every line of Al Jazeera's Arabic urgent wire (and other one-line statements)
-   in `lines.json`. A Claude routine looks every quarter of an hour (`scripts/editor.py check`: has anything of weight
-   happened since the last update?) and, when something has, runs `scripts/editor.py input` (the brain – the books'
+   in `lines.json`. After every radar pass the quarter-hour look (`scripts/editor.py gate`, plain Python: has anything
+   of weight happened since the last update?) fires the editor's Claude routine when something has – once per reason,
+   at most `editor_fires_per_day` a day within the subscription's run cap (docs/hjerne/cadence.md). The routine runs
+   `scripts/editor.py check` and, when the reason holds, `scripts/editor.py input` (the brain – the books'
    order of weight and each power's current reading –, the front page now, the day so far, the stories and wire lines
    since the last update), writes a small update – the lede, the picks, short summaries, Danish headlines and the most
    important new movements as 'Who: what' lines under the day's topics, all of it reality only – and runs

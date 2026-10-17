@@ -438,7 +438,7 @@ def test_the_editors_own_text_stays_reality_and_keeps_the_rules(folder, tmp_path
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, bad)
     out = capsys.readouterr().out
-    assert "lede: 'satellit' is a reading or judgement word" in out
+    assert "satellit' is a reading or judgement word" in out.split('lede: ')[1]
     assert "summaries: s1: 'Ifølge Hizb ut-Tahrirs' is a reading or judgement word" in out
     assert "Khabar says 'Israel'" in out and 'no praise of violence' in out
     digest, _ = publish(folder, tmp_path, {'lede': 'Satellitbilleder viser nye baser; Hamas kalder «den jødiske entitet» ansvarlig.'})
@@ -452,16 +452,19 @@ def test_the_rules_tell_news_from_readings():
             check(text, 'x', out)
         return out
     news = ['Regeringen står bag en lov om en ny medieombudsmand.', 'To mænd er dømt for spionage på vegne af Iran.',
-            'Satellitbilleder viser nye baser.', 'Iran gjorde droner til våben mod skibsfarten.', 'Demonstranter greb til våben.']
+            'Satellitbilleder viser nye baser.', 'Iran gjorde droner til våben mod skibsfarten.', 'Demonstranter greb til våben.',
+            'SpaceX sender flere Starlink-satellitter op.', 'Satellitten blev opsendt fra Baikonur.']
     for t in news:   # everyday news in Khabar's own text: allowed
         assert problems(t, voice.check_voice, voice.check_reality) == [], t
     for t in ["Iran, nu USA's satellit, forhandler.", 'Rusland, faldet fra stormagt, bejler til USA.', 'Til våben!',
+              'Iran vender tilbage som satellit.',
               'Ifølge Hizb ut-Tahrirs svar af 2/5/2026 vil USA give Israel en ledende rolle.']:
         assert problems(t, voice.check_voice, voice.check_reality), t
     said = 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 '
     for t in ['er styret under Sisi loyalt over for USA.', 'er BJP-regeringens linje knyttet til USA.']:   # a government
         assert problems(said + t, voice.check_movement) == [], t
-    for t in ['tjener BJP USA.', 'tjener avisen USA.', 'er imamen loyal over for Qatar.', 'er Japan en vasal af USA.']:
+    for t in ['tjener BJP USA.', 'tjener avisen USA.', 'er imamen loyal over for Qatar.', 'er Japan en vasal af USA.',
+              'fjerner USA Storbritanniens folk i syd.']:
         assert problems(said + t, voice.check_movement), t
 
 
@@ -590,3 +593,128 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
                                                                               'moves.json', 'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:live.json') == '{"days": {}}'
+
+
+# ------------------------------------------------------------------ the review of 2026-10-17: the look and the gate
+
+def test_a_story_whose_card_changed_its_lead_is_not_new(folder, capsys):
+    """A card's 'found' is its current lead's: a story found at 20.35 whose lead changed at 23.55 is no new story at
+    02.20 – only its first article counts (the Houthi story of 16 October)."""
+    add_items(folder, story('h2', 'Houthi-missiler lander nær Aden lufthavn', '2026-10-10T19:55:00+00:00', big=True, outlets=5,
+                            tier=5, sec='me', members=['h2', 'h0'], also=[{'id': 'h0', 'source': 'AP', 'title': 'x'}]))
+    (folder / 'items.json').write_text(json.dumps({'h0': {'found': '2026-10-10T10:00:00+00:00', 'source': 'AP'},
+                                                   'h2': {'found': '2026-10-10T19:55:00+00:00', 'source': 'Reuters'}}),
+                                       encoding='utf-8')
+    out = check(folder, capsys)
+    assert not any('Houthi' in x for x in out[3:-1]) and 'stor historie' not in out[-1]      # older than the update of 13.35
+
+
+def test_a_pick_or_a_recap_story_calls_for_no_update_of_its_own(folder, capsys):
+    add_items(folder, story('b1', 'Big story', '2026-10-10T12:10:00+00:00', big=True, outlets=6, tier=2, sec='me'))
+    (folder / 'digest.json').write_text(json.dumps({**TODAY, 'editor': {
+        'created': '2026-10-10T11:35:00+00:00', 'lede': 'Formiddagens lede.', 'picks': [{'id': 'b1', 'why': 'x'}]}}),
+        encoding='utf-8')
+    out = check(folder, capsys, now='2026-10-10T12:30:00+00:00')
+    assert any(x.endswith('Big story = pick 1') for x in out) and out[-1] == 'INTET NYT AF VÆGT'
+
+
+def test_a_big_story_of_no_weight_waits_but_a_danish_one_does_not(folder, capsys):
+    add_items(folder, story('b9', 'Demonstration i Albanien', '2026-10-10T12:10:00+00:00', big=True, outlets=6, tier=11))
+    assert check(folder, capsys, now='2026-10-10T12:30:00+00:00')[-1] == 'INTET NYT AF VÆGT'
+    add_items(folder, story('d1', 'Folketinget vedtager ny lov', '2026-10-10T12:20:00+00:00', big=True, outlets=6, tier=12, sec='dk'))
+    assert check(folder, capsys, now='2026-10-10T12:30:00+00:00')[-1].startswith('OPDATÉR: stor historie siden sidst: Folketinget')
+
+
+def test_the_look_says_when_the_radar_stands_still(folder, capsys):
+    data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
+    data['updated'] = '2026-10-10T19:20:00+00:00'
+    (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
+    out = check(folder, capsys)
+    assert 'radar last ran 41 min ago – STOPPED' in out[0]
+    assert out[-1].startswith('OPDATÉR: radaren står stille (sidst kørt for 41 min siden)')
+
+
+def test_two_hours_alone_call_for_no_update(folder, capsys):
+    (folder / 'lines.json').write_text(json.dumps({'items': []}), encoding='utf-8')
+    out = check(folder, capsys, now='2026-10-10T14:00:00+00:00')     # 16.00, 2 t 25 min since: nothing came
+    assert out[-1] == 'INTET NYT AF VÆGT'
+
+
+def gate_facts(**kw):
+    return {'last': editor.ts('2026-10-10T11:35:00+00:00'), 'radar': None, 'keys': [], 'reasons': [], **kw}
+
+
+def test_the_gate_fires_once_for_a_reason_never_while_an_update_is_under_way_and_keeps_the_ceiling():
+    now = editor.ts('2026-10-10T16:00:00+00:00')                  # 18.00 Danish time
+    big = ['stor historie siden sidst: x']
+    ok, _ = editor.gate_decision(now, big, gate_facts(keys=['big:a1']), {'fires': []}, 12)
+    assert ok
+    state = {'fires': [{'at': '2026-10-10T15:50:00+00:00', 'day': '2026-10-10', 'ok': True, 'keys': ['big:a1']}]}
+    assert editor.gate_decision(now, big, gate_facts(keys=['big:a1']), state, 12)[1].startswith('opdatering i gang siden 17.50')
+    later = editor.ts('2026-10-10T16:40:00+00:00')
+    facts = gate_facts(last=editor.ts('2026-10-10T16:05:00+00:00'), keys=['big:a1'])
+    assert editor.gate_decision(later, big, facts, state, 12) == (False, 'grunden er set før – rutinen har vurderet den')
+    assert editor.gate_decision(later, big, {**facts, 'keys': ['big:a1', 'big:a2']}, state, 12)[0]
+    full = {'fires': [{'at': f'2026-10-10T{h:02d}:00:00+00:00', 'day': '2026-10-10', 'ok': True, 'keys': [f'big:{h}']}
+                      for h in range(4, 14)]}                      # ten fires: two are kept for the morning and the evening
+    assert 'dagens loft er nået (10 af 12)' in editor.gate_decision(later, big, {**facts, 'keys': ['big:new']}, full, 12)[1]
+    assert editor.gate_decision(later, ['dagens resumé til telefonerne (første opdatering efter kl. 21)'], facts, full, 12)[0]
+
+
+def test_the_gate_wakes_the_editor_at_night_only_for_a_big_story_and_once():
+    night = editor.ts('2026-10-10T23:00:00+00:00')                # 01.00 Danish time
+    facts = gate_facts(last=editor.ts('2026-10-10T20:01:00+00:00'))
+    assert editor.gate_decision(night, ['tier 2 med 2 medier: x'], {**facts, 'keys': ['tier:t1']}, {'fires': []}, 12)[1] \
+        == 'nat: kun en stor historie vækker redaktøren'
+    assert editor.gate_decision(night, ['stor historie siden sidst: x'], {**facts, 'keys': ['big:n1']}, {'fires': []}, 12)[0]
+    once = {'fires': [{'at': '2026-10-10T22:30:00+00:00', 'day': '2026-10-11', 'ok': True, 'keys': ['big:n0']}]}
+    assert 'én opdatering om natten' in editor.gate_decision(night, ['stor historie siden sidst: x'],
+                                                             {**facts, 'keys': ['big:n1']}, once, 12)[1]
+
+
+def test_the_gate_spreads_the_days_fires():
+    morning = editor.ts('2026-10-10T07:00:00+00:00')              # 09.00: three hours of eighteen
+    fired = {'fires': [{'at': f'2026-10-10T0{h}:00:00+00:00', 'day': '2026-10-10', 'ok': True, 'keys': [f'big:{h}']}
+                       for h in (4, 5, 6)]}
+    why = editor.gate_decision(morning, ['stor historie siden sidst: x'],
+                               gate_facts(last=editor.ts('2026-10-10T06:00:00+00:00'), keys=['big:new']), fired, 12)[1]
+    assert why.startswith('dagens fyringer fordeles over dagen')
+
+
+def test_the_gate_looks_and_records_its_fires_in_the_data_branch(folder, capsys):
+    add_items(folder, story('b1', 'Big story', '2026-10-10T19:50:00+00:00', big=True, outlets=6, tier=2, sec='me'))
+    editor.main(['gate', '--dir', str(folder), '--data-dir', str(folder), '--now', NOW])
+    out = capsys.readouterr().out
+    assert 'OPDATÉR: stor historie' in out and 'Gate: not fired' in out and 'dry run' in out
+    rec = json.loads((folder / 'editor-gate.json').read_text(encoding='utf-8'))['fires'][-1]
+    assert rec['ok'] is False and 'big:b1' in rec['keys'] and rec['day'] == '2026-10-10'
+    assert editor.fire('x') == (False, 'ROUTINE_FIRE_URL or ROUTINE_FIRE_TOKEN is not set')
+
+
+def test_the_brain_takes_a_newer_filed_reading_over_the_built_one(viden):
+    filed = {'30600': {'nr': '30600', 'date': '2026-10-12', 'title_da': 'Svar på spørgsmål: Iran',
+                       'readings': [{'subject': 'iran', 'kind': 'stilling', 'value': 'underordnet',
+                                     'text_da': 'Ifølge Hizb ut-Tahrirs svar af 12/10/2026 er Iran nu underordnet USA.'},
+                                    {'subject': 'iran--usa', 'kind': 'forhold',
+                                     'text_da': 'Ifølge Hizb ut-Tahrirs svar af 12/10/2026 forhandler Iran og USA igen.'}]}}
+    top = [story('x1', 'Iran og USA forhandler i Oman', '2026-10-10T18:00:00+00:00', tier=1),
+           story('x2', 'Iran og USA mødes igen', '2026-10-10T17:00:00+00:00', tier=1)]
+    text = '\n'.join(brain.section(top, filed))
+    assert '- Iran · 2 stories (nr 30600): Ifølge Hizb ut-Tahrirs svar af 12/10/2026 er Iran nu underordnet USA.' in text
+    assert '- Iran – USA · 2 stories (nr 30600): Ifølge Hizb ut-Tahrirs svar af 12/10/2026 forhandler' in text
+    assert '28/6/2026' not in text.split("### Named in today's top stories")[1].split('###')[0]
+    assert brain.reading_of('iran', brain.layer(), {}, {})[0] == '2026-06-28'      # without it, the built reading
+
+
+def test_the_editors_lines_topic_names_and_picks_are_reality_and_a_movement_line_gets_its_checks(folder, tmp_path, capsys):
+    add_items(folder, {**story('m1', 'Hizb ut-Tahrir: erklæring', '2026-10-10T19:40:00+00:00'), 'group': 'bevægelsen'})
+    bad = {'lede': 'En lede.', 'picks': [{'id': 's1', 'why': "Saudi-Arabien, USA's satellit"}],
+           'topics': [{'name': 'Den førende stat', 'section': 'world', 'lines': [
+               {'who': 'Kreml', 'text': 'Rusland er nu en mellemmagt.', 'ids': ['w3']},
+               {'who': 'Bevægelsen', 'text': 'Angrebet var iscenesat af USA.', 'story': 'm1'}]}]}
+    with pytest.raises(SystemExit):
+        publish(folder, tmp_path, bad)
+    out = capsys.readouterr().out
+    assert 'topic 1 (den førende stat) name' in out.lower()
+    assert "'mellemmagt' is a reading or judgement word" in out and 'picks: s1 why' in out
+    assert 'an attack said to be staged or sponsored' in out

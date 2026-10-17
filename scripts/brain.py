@@ -227,28 +227,60 @@ def subjects(lay, index):
     return out
 
 
-def reading_of(sid, lay, pages):
-    """(date, nr, text): the subject's current reading – the concept page's lead, else the layer's current reading."""
+FILED_KINDS = {'stilling': 0, 'tilstand': 1, 'forhold': 2, 'rolle': 3, 'plan': 4, 'fremgangsmåde': 5, 'motiv': 6}
+
+
+def filed_reading(sid, filed):
+    """(date, nr, text): the newest reading of a subject in the answers the editor filed after the static layer
+    (answers.json on the digest branch) – a standing before the other kinds of one answer – else None."""
+    rows = [(str(a.get('date') or ''), str(a.get('nr') or nr), r) for nr, a in (filed or {}).items() if isinstance(a, dict)
+            for r in a.get('readings') or [] if isinstance(r, dict) and r.get('subject') == sid and r.get('text_da')]
+    if not rows:
+        return None
+    date, nr, r = max(rows, key=lambda x: (x[0], -FILED_KINDS.get(x[2].get('kind'), 9)))
+    return (date, nr, r['text_da']) if date else None
+
+
+def newer(*readings):
+    """The newest of some (date, nr, text) readings (None when there is none): the newest answer governs."""
+    got = [r for r in readings if r]
+    return max(got, key=lambda r: r[0]) if got else None
+
+
+def reading_of(sid, lay, pages, filed=None):
+    """(date, nr, text): the subject's current reading – the newest of an answer the editor filed since the static build
+    and the concept page's lead (its first sentence carries its day; where it does not, the page's own row of that
+    answer), else the layer's current reading."""
     p = pages.get(sid) or {}
+    static = None
     if p.get('lead_da') and p.get('lead_date'):
-        return p['lead_date'], str(p.get('lead_nr') or ''), p['lead_da']
-    c = lay['current'].get(p.get('subject') or sid) or lay['current'].get(sid)
-    if c and c.get('text_da') and c.get('date'):
-        return c['date'], str(c.get('nr') or ''), c['text_da']
-    return None
+        text = p['lead_da']
+        first = (SENTENCE_END.split(clean(text)) or [''])[0]
+        if d_slash(p['lead_date']) not in first:
+            row = next((r for r in p.get('timeline') or [] if str(r.get('nr')) == str(p.get('lead_nr'))), None)
+            text = row['text_da'] if row and row.get('text_da') else text
+        static = (p['lead_date'], str(p.get('lead_nr') or ''), text)
+    else:
+        c = lay['current'].get(p.get('subject') or sid) or lay['current'].get(sid)
+        if c and c.get('text_da') and c.get('date'):
+            static = (c['date'], str(c.get('nr') or ''), c['text_da'])
+    return newer(filed_reading(sid, filed), static)
 
 
-def pair_reading(a, b, lay, pages):
-    """The relation between two subjects: the concept pages' newest, else the layer's current reading of the pair."""
+def pair_reading(a, b, lay, pages, filed=None):
+    """The relation between two subjects: the newest of a filed answer's reading of the pair, the concept pages' newest
+    and the layer's current reading of the pair."""
     rows = [r for x, y in ((a, b), (b, a)) for r in (pages.get(x) or {}).get('relations') or []
             if r.get('with') == y and r.get('text_da') and r.get('date')]
+    static = None
     if rows:
         r = max(rows, key=lambda r: r['date'])
-        return r['date'], str(r.get('nr') or ''), r['text_da']
-    c = lay['current'].get('--'.join(sorted((a, b))))
-    if c and c.get('text_da') and c.get('date'):
-        return c['date'], str(c.get('nr') or ''), c['text_da']
-    return None
+        static = (r['date'], str(r.get('nr') or ''), r['text_da'])
+    else:
+        c = lay['current'].get('--'.join(sorted((a, b))))
+        if c and c.get('text_da') and c.get('date'):
+            static = (c['date'], str(c.get('nr') or ''), c['text_da'])
+    return newer(filed_reading('--'.join(sorted((a, b))), filed), static)
 
 
 def one_line(date, nr, text, limit=LINE):
@@ -307,8 +339,9 @@ def section(top, extra_answers=None, budget=BUDGET):
     head += [f'{t} {tiers[t]}' for t in sorted(tiers)] + [''] + RULES + ['']
     # b. the powers, by the movement's newest answers
     state = ['### Den internationale tilstand ifølge Hizb ut-Tahrirs nyeste svar', '']
+    filed = extra_answers or {}
     for p in powers:
-        r = reading_of(p, lay, pages)
+        r = reading_of(p, lay, pages, filed)
         if r:
             state.append(f'- {name_of(p, index, pages)} {one_line(*r)}')
     state.append('')
@@ -317,7 +350,7 @@ def section(top, extra_answers=None, budget=BUDGET):
     hits = named(top, subs)
     rank = lambda sid: (-len(hits[sid]), min((tier_of(i) or 99) for i in hits[sid]),   # noqa: E731
                         -max((i.get('rank') or 0) for i in hits[sid]))
-    singles = [s for s in sorted(hits, key=rank) if s not in powers and reading_of(s, lay, pages)
+    singles = [s for s in sorted(hits, key=rank) if s not in powers and reading_of(s, lay, pages, filed)
                and (index.get(s) or {}).get('n_answers', 2) >= 2]   # a page of one answer says too little to weigh by
     together = {}
     for i in top:
@@ -326,12 +359,12 @@ def section(top, extra_answers=None, budget=BUDGET):
             for y in range(x + 1, len(ids)):
                 together[(ids[x], ids[y])] = together.get((ids[x], ids[y]), 0) + 1
     pairs = [(a, b, n) for (a, b), n in sorted(together.items(), key=lambda kv: -kv[1]) if n >= 2
-             and pair_reading(a, b, lay, pages)][:MAX_PAIRS]
+             and pair_reading(a, b, lay, pages, filed)][:MAX_PAIRS]
     singles = singles[:MAX_NAMED - len(pairs)]
     named_lines = [f'- {name_of(s, index, pages)} · {len(hits[s])} {"story" if len(hits[s]) == 1 else "stories"} '
-                   f'{one_line(*reading_of(s, lay, pages))}' for s in singles]
-    named_lines += [f'- {name_of(a, index, pages)} – {name_of(b, index, pages)} · {n} stories {one_line(*pair_reading(a, b, lay, pages))}'
-                    for a, b, n in pairs]
+                   f'{one_line(*reading_of(s, lay, pages, filed))}' for s in singles]
+    named_lines += [f'- {name_of(a, index, pages)} – {name_of(b, index, pages)} · {n} stories '
+                    f'{one_line(*pair_reading(a, b, lay, pages, filed))}' for a, b, n in pairs]
     # d. the newest answers
     answers = {k: {'date': v.get('date'), 'title_da': v.get('title_da')} for k, v in lay['answers'].items()}
     answers.update({k: {'date': v.get('date'), 'title_da': v.get('title_da')} for k, v in (extra_answers or {}).items()})

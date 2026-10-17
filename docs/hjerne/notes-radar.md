@@ -194,3 +194,22 @@ off and its code was taken out (no dead option). The editor's front page can sti
 - The tiers read headlines only; a story's first pass sees only its original language (English and Danish versions come
   with the next pass). Arabic word lists are short.
 - Pre-existing, not changed: "Ny demonstration i Albanien" sits in Mellemøsten (the sections' placement).
+
+## Review fix (2026-10-17): no tier 2 for a bare war or sanctions, no tier 1 for the past
+
+The review found false heavy tiers: a US court on sanctions against US NGOs and 'MAGA-profil vender sig mod Trump: Så
+gik vi i krig' got tier 2, 'Zelensky: Selv da Bill Clinton … førte Putin allerede krig' tier 1. Two changes:
+
+- `config/method.json` `outward` lost the bare 'krig=', 'krigen', 'war=', 'wars=', '*sanktion', 'sanction' and their
+  Arabic forms: a lone power's act counts only with a foreign party named or a word aimed outward by its nature
+  (troops, tariffs, invasion, embargo, bases, a security strategy). 'USA indfører sanktioner mod Iran' and 'Trump truer
+  Venezuela med krig' stay tier 2 (another state is named).
+- `history` (new): 'allerede', 'dengang', 'selv da', 'tilbage i', 'i sin tid', 'already', 'back then', 'even when',
+  'at the time' – a headline with one of them is no sign of change in the international situation (no tier 1).
+
+`py scripts/rank_check.py 40` on the same snapshot (16/10 22:50 UTC, `RANK_CHECK_STATE`), before → after:
+
+- tiers of all shown stories: 1: 26 → 25, 2: 72 → 65, 3: 6 → 3, 5: 393 → 396, 7: 1 → 4, 10: 9 → 12, 11: 65 → 71;
+  through the method only 51 → 48; shown 667 → 671, Live's last 24 hours 197 → 199;
+- Live's top 40 ('Vigtigste') is unchanged, story for story and tier for tier; Danish stories 7 of the top 20 and
+  10 of the top 40 before and after. The MAGA story is tier 11 now; the Clinton story tier 2.

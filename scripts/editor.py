@@ -1,11 +1,18 @@
-"""Tools for the Claude editor, who looks at Khabar every quarter of an hour – four routines, at minutes 0, 15, 30 and
-45 of every hour (docs/hjerne/cadence.md) – and updates it when something of weight has happened since the last
-update. An update is small: only what is new since the last one.
+"""Tools for the Claude editor. Khabar is looked at every quarter of an hour: `gate` – plain Python, no tokens – runs
+after every radar pass in GitHub Actions, and when something of weight has happened since the last update it fires the
+editor's Claude routine through its API trigger, at most EDITOR_FIRES (config/settings.json) times a Danish day
+(docs/hjerne/cadence.md). An update is small: only what is new since the last one.
 
-    python3 scripts/editor.py check              -> at most about 40 lines: the last full update, what is new since (the
-                                                    stories of weight with their tier and outlets, the wire lines, a new
-                                                    answer of Hizb ut-Tahrir), the front page now and a verdict, INTET
-                                                    NYT AF VÆGT or OPDATÉR: why. The routine stops there or updates.
+    python3 scripts/editor.py gate [--fire]      -> the look of `check` and, when its verdict holds and no update is
+                                                    under way, one fire of the routine (with --fire and the
+                                                    ROUTINE_FIRE_URL / ROUTINE_FIRE_TOKEN secrets); the fires of the day
+                                                    are kept in the data branch's editor-gate.json
+    python3 scripts/editor.py check              -> at most about 40 lines: the radar's health, the last full update,
+                                                    what is new since (the stories of weight with their tier and
+                                                    outlets, marked when already a pick or in the recap, the wire lines,
+                                                    a new answer of Hizb ut-Tahrir), the front page now and a verdict,
+                                                    INTET NYT AF VÆGT or OPDATÉR: why. The routine stops there or
+                                                    updates.
     python3 scripts/editor.py input              -> /tmp/editor/input.md: the brain (scripts/brain.py), the front page
                                                     now, the recap so far, the top stories, the new stories and wire
                                                     lines since the last update, a new answer to note, and the format
@@ -26,8 +33,9 @@ recap. It may keep the lede, the picks and the quotes (leave them out, or write 
 only a new lede. Moves (a story in a clearly wrong section) are rare and stay until undone. Only the first update at
 or after 21 Danish time notifies the phones.
 
-Reads data.json, lines.json, items.json and analyses.json from origin/data and digest.json, moves.json,
-summaries.json and answers.json from origin/digest, or all of them from --dir. Options for test runs: --now ISO."""
+Reads data.json, lines.json, items.json and analyses.json from origin/data (or --data-dir, the radar's state folder
+in Actions) and digest.json, moves.json, summaries.json and answers.json from origin/digest, or all of them from --dir.
+Options for test runs: --now ISO."""
 import argparse
 import json
 import os
@@ -61,6 +69,11 @@ OWNER_SHOWN = 15  # the owner's newest removals in the input
 QUIET_UNTIL = 6  # Danish hour from which the day's updates run; before it only news of weight brings one
 EVENING = 21     # Danish hour of the day's one notification: the first update at or after it
 STALE = timedelta(hours=2)   # between 06 and 24 the front page is updated at least this often
+RADAR_STILL = timedelta(minutes=30)   # the radar runs every 5 minutes: half an hour without a pass is a stop
+FIRE_GAP = timedelta(minutes=15)      # the look is every quarter of an hour: one fire at most in each
+UNDER_WAY = timedelta(minutes=30)     # a fire with no update since is an update under way for this long
+EDITOR_FIRES = 12                     # fires of the routine a Danish day (config/settings.json editor_fires_per_day)
+STALE_WIRE = 3                        # wire lines that make the two-hour reason hold without a story of weight
 CHECK_STORIES = 12   # stories of weight the check lists
 CHECK_WIRE = 4       # newest wire lines the check shows
 ANSWER_TEXT = 32000  # characters of a new answer's text in the input (the answers run to about 28,000)
@@ -71,6 +84,7 @@ NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json')
+MOVEMENT_GROUPS = ('bevægelsen', 'official')   # a line or quote from these sources gets the movement's checks too
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
 
@@ -190,8 +204,9 @@ def migrate(moves, data, lines):
 # ------------------------------------------------------------------ reading the material
 
 def read(args, ref, name, default):
-    if args.dir:
-        path = Path(args.dir) / name
+    folder = args.dir or (getattr(args, 'data_dir', None) if ref == 'origin/data' else None)
+    if folder:
+        path = Path(folder) / name
         return json.loads(path.read_text(encoding='utf-8')) if path.exists() else default
     try:
         out = subprocess.run(['git', 'show', f'{ref}:{name}'], capture_output=True, check=True)
@@ -252,15 +267,40 @@ def joined_since(i, seen, start):
     return len({src for found, src in known if ts(found) >= start} - before)
 
 
+def articles(i, seen):
+    """(found, id) of each of a story's articles the radar knows, the card's own lead included."""
+    ids = set(i.get('members') or []) | {a['id'] for a in i.get('also') or [] if a.get('id')} | {i['id']}
+    return [(ts(seen[x][0]), x) for x in ids if x in seen] + [(ts(i.get('found') or i['published']), i['id'])]
+
+
+def story_key(i, seen):
+    """A story's own id across passes: its first article's (a card's id is its lead's, which changes as outlets join)."""
+    return min(articles(i, seen))[1]
+
+
+def first_found(i, seen):
+    """When the radar first found any of a story's articles: its card's lead changes when a bigger outlet joins, and the
+    card's own 'found' is then the new lead's – the story itself is older (the review of 2026-10-17: a Houthi story found
+    at 20.35 counted as new at 02.20 and again at 09.10)."""
+    times = [t for t, _ in articles(i, seen)]
+    first = (i.get('first') or {}).get('published')
+    if first:
+        try:
+            times.append(ts(first))
+        except ValueError:
+            pass
+    return min(times)
+
+
 def fresh(items, since, seen, until=None):
-    """The stories new since `since` (found after it, and by `until`), and those that grew across a line since: big now
-    with fewer outlets than a big story needs then, three outlets now with fewer then, or of tiers 1-3 with two outlets
-    now and one then. Each as (story, tier, outlets joined since, new)."""
+    """The stories new since `since` (their first article found after it, and by `until`), and those that grew across a
+    line since: big now with fewer outlets than a big story needs then, three outlets now with fewer then, or of tiers
+    1-3 with two outlets now and one then. Each as (story, tier, outlets joined since, new)."""
     big = big_outlets()
     out = []
     for i in items:
         t = brain.tier_of(i)
-        found = ts(i.get('found') or i['published'])
+        found = first_found(i, seen)
         if until and found > until:
             continue
         if found >= since:
@@ -349,10 +389,22 @@ def ago(delta):
     return f'{m} min' if m < 60 else f'{m // 60} t {m % 60:02d} min'
 
 
-def verdict(now, last, times, rows, answer):
-    """The reasons for a full update now, the most pressing first (empty: nothing of weight since the last)."""
+def weighty_big(r):
+    """A big story calls for an update when it weighs: of tiers 1-10 by the books' order, or Danish (Danish politics is
+    never buried) – a big story of the rest (tier 11) or weighed down (13) waits for the next update."""
+    i, t = r[0], r[1]
+    return bool(i.get('big')) and (t is None or t <= 10 or i.get('sec') == 'dk')
+
+
+def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None):
+    """The reasons for a full update now, the most pressing first (empty: nothing of weight since the last). covered: the
+    stories already a pick or in the recap – they call for no update of their own. still: how long the radar has not
+    run, when that is longer than RADAR_STILL."""
     reasons = []
-    bigs = [r for r in rows if r[0].get('big')]
+    if still is not None:
+        reasons.append(f'radaren står stille (sidst kørt for {ago(still)} siden)')
+    rows = [r for r in rows if r[0]['id'] not in set(covered)]
+    bigs = [r for r in rows if weighty_big(r)]
     if bigs:
         reasons.append(f'stor historie siden sidst: {clip(headline(bigs[0][0]), 80)}'
                        + (f' (+{len(bigs) - 1} mere)' if len(bigs) > 1 else ''))
@@ -368,15 +420,15 @@ def verdict(now, last, times, rows, answer):
         morning = d.replace(hour=QUIET_UNTIL, minute=0, second=0, microsecond=0)
         if last is None or dk(last) < morning:
             reasons.append(f'første kørsel efter kl. {QUIET_UNTIL}: dagens forside')
-        elif now - last >= STALE:
+        elif now - last >= STALE and (rows or len(wire) >= STALE_WIRE):   # only when something changed
             reasons.append(f'{ago(now - last)} siden sidste opdatering')
         if d.hour >= EVENING and not any(dk(t).date() == d.date() and dk(t).hour >= EVENING for t in times):
             reasons.append(f'dagens resumé til telefonerne (første opdatering efter kl. {EVENING})')
     return reasons
 
 
-def cmd_check(args):
-    now = ts(args.now) if args.now else datetime.now(timezone.utc)
+def look(args, now):
+    """What the quarter-hour look sees: (lines to print, reasons, facts for the gate)."""
     data, lines, moves = material(args)
     digest = read(args, 'origin/digest', 'digest.json', {})
     notes = digest.get('editor') or {}
@@ -391,15 +443,22 @@ def cmd_check(args):
     noted = answers_of(args)
     queue = waiting(args, noted)
     answer = next((a for a in queue if not last or not a.get('fetched') or ts(a['fetched']) > last), None)
-    out = [f'Khabar check · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)',
+    radar_at = ts(data['updated']) if data.get('updated') else None
+    still = now - radar_at if radar_at and now - radar_at > RADAR_STILL else None
+    notes_ = digest.get('editor') or {}
+    picked = {p.get('id'): k for k, p in enumerate(notes_.get('picks') or [], 1)}
+    recapped = {x['id'] for d in recent_days(moves, now) for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
+    out = [f'Khabar check · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time) · '
+           + ((f'radar last ran {ago(now - radar_at)} ago' + (' – STOPPED' if still else '')) if radar_at else 'radar: no time'),
            f'Last full update: {dk(last):%d.%m %H.%M} ({ago(now - last)} ago)' if last else 'Last full update: none in the archive',
            f"New since {dk(since):%H.%M}: {sum(1 for r in news if r[3])} stories, {sum(1 for r in news if not r[3])} grew · "
            f"{len(rows)} of weight (tier 1-5, big or 3+ outlets) · {len(wire)} wire lines · "
            f"{'a new answer of Hizb ut-Tahrir' if queue else 'no new answer'}"]
     for i, t, joined, new in rows[:CHECK_STORIES]:
         grew = '' if new else f' (+{joined} since)'
+        mark = f' = pick {picked[i["id"]]}' if i['id'] in picked else ' = in the recap' if i['id'] in recapped else ''
         out.append(f"  tier {t if t is not None else '?'} · {i.get('outlets') or 1} outlets{grew}{' · big' if i.get('big') else ''} · "
-                   f"{i.get('sec')} · {dk(ts(i.get('published') or i['found'])):%H.%M} · {clip(headline(i), 110)}")
+                   f"{i.get('sec')} · {dk(ts(i.get('published') or i['found'])):%H.%M} · {clip(headline(i), 110)}{mark}")
     if len(rows) > CHECK_STORIES:
         out.append(f'  (+{len(rows) - CHECK_STORIES} more of weight)')
     if wire:
@@ -420,9 +479,133 @@ def cmd_check(args):
         out.append(f"  Pick {k}: {clip(headline(i), 100) if i else '(no longer in the radar)'}")
     if not picks:
         out.append('  Picks: none')
-    reasons = verdict(now, last, times, rows, answer)
+    filed = [a for a in (noted.get('items') or {}).values() if str(a.get('date') or '') > wiki_built()[:10]]
+    if filed:
+        out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
+                   'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
+    reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still)
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
+    seen = first_seen(args)
+    keys = [f"big:{story_key(r[0], seen)}" for r in rows if weighty_big(r) and r[0]['id'] not in picked and r[0]['id'] not in recapped]
+    keys += [f"tier:{story_key(r[0], seen)}" for r in rows if r[1] is not None and r[1] <= 3 and (r[0].get('outlets') or 1) >= 2
+             and not r[0].get('big') and r[0]['id'] not in picked and r[0]['id'] not in recapped]
+    if answer:
+        keys.append(f"answer:{answer['id']}")
+    facts = {'last': last, 'radar': radar_at, 'keys': keys, 'reasons': reasons}
+    return out, reasons, facts
+
+
+def wiki_built():
+    """When public/viden/begreber.json was built ('' when it is not there)."""
+    return str(brain.load(brain.VIDEN / 'begreber.json', {}).get('built') or '')
+
+
+def cmd_check(args):
+    now = ts(args.now) if args.now else datetime.now(timezone.utc)
+    out, _, _ = look(args, now)
     print('\n'.join(out))
+
+
+# ------------------------------------------------------------------ the gate: fire the routine only when it is needed
+
+def fires_per_day():
+    try:
+        return int(json.loads((ROOT / 'config' / 'settings.json').read_text(encoding='utf-8')).get('editor_fires_per_day',
+                                                                                                   EDITOR_FIRES))
+    except (OSError, ValueError):
+        return EDITOR_FIRES
+
+
+def reason_keys(now, reasons, facts):
+    """Each reason's key: a reason fires the routine once."""
+    today = dk(now).date().isoformat()
+    keys = list(facts.get('keys') or [])
+    for r in reasons:
+        if r.startswith('første kørsel efter'):
+            keys.append(f'morning:{today}')
+        elif r.startswith('dagens resumé'):
+            keys.append(f'evening:{today}')
+        elif r.endswith('siden sidste opdatering'):
+            keys.append(f"stale:{facts['last'].isoformat() if facts.get('last') else ''}")
+        elif r.startswith('radaren står stille'):
+            keys.append(f"still:{facts['radar'].isoformat() if facts.get('radar') else ''}")
+    return list(dict.fromkeys(keys))
+
+
+def gate_decision(now, reasons, facts, state, ceiling):
+    """(fire?, why) for one look. A reason fires once: a big or tier story, an answer, the morning and the evening each
+    by its key; the two-hour reason by the update it is about. No fire while one is under way (fired less than
+    UNDER_WAY ago with no update since), none within FIRE_GAP of the last, none past the day's ceiling – two kept for
+    the morning's and the evening's – and between 00 and 06 only for a big story or a stopped radar."""
+    if not reasons:
+        return False, 'intet nyt af vægt'
+    today = dk(now).date().isoformat()
+    fired = [f for f in state.get('fires') or [] if f.get('day') == today and f.get('ok')]
+    last_fire = max((ts(f['at']) for f in state.get('fires') or [] if f.get('ok')), default=None)
+    last = facts.get('last')
+    if last_fire and now - last_fire < UNDER_WAY and (last is None or last < last_fire):
+        return False, f'opdatering i gang siden {dk(last_fire):%H.%M}'
+    if last_fire and now - last_fire < FIRE_GAP:
+        return False, f'affyret kl. {dk(last_fire):%H.%M} – næste kig om et kvarter'
+    done = {k for f in state.get('fires') or [] if f.get('ok') for k in f.get('keys') or []}
+    new = [k for k in reason_keys(now, reasons, facts) if k not in done]
+    if not new:
+        return False, 'grunden er set før – rutinen har vurderet den'
+    if dk(now).hour < QUIET_UNTIL and not any(k.startswith(('big:', 'still:')) for k in new):
+        return False, 'nat: kun en stor historie vækker redaktøren'
+    if dk(now).hour < QUIET_UNTIL and any(dk(ts(f['at'])).hour < QUIET_UNTIL for f in fired):
+        return False, 'nat: én opdatering om natten – resten venter til morgenen'
+    reserved = (0 if any(k.startswith('morning:') for f in fired for k in f.get('keys') or []) else 1) + \
+               (0 if any(k.startswith('evening:') for f in fired for k in f.get('keys') or []) else 1)
+    special = any(k.startswith(('morning:', 'evening:', 'still:')) for k in new)
+    if len(fired) >= ceiling or (not special and len(fired) >= ceiling - reserved):
+        return False, f'dagens loft er nået ({len(fired)} af {ceiling})'
+    # the day's fires spread over the day (06-24): by each hour at most its share of the ceiling, and one more
+    d = dk(now)
+    share = (ceiling - 2) * max(0.0, min(1.0, (d.hour + d.minute / 60 - QUIET_UNTIL) / (24 - QUIET_UNTIL)))
+    plain = [f for f in fired if not any(k.startswith(('morning:', 'evening:', 'still:')) for k in f.get('keys') or [])]
+    if not special and d.hour >= QUIET_UNTIL and len(plain) >= int(share) + 2:
+        return False, f'dagens fyringer fordeles over dagen ({len(plain)} brugt kl. {d:%H.%M})'
+    return True, '; '.join(reasons)
+
+
+def fire(why):
+    """One fire of the editor's routine through its API trigger (the routine's URL and token, GitHub secrets)."""
+    import urllib.request
+    url, token = os.environ.get('ROUTINE_FIRE_URL'), os.environ.get('ROUTINE_FIRE_TOKEN')
+    if not url or not token:
+        return False, 'ROUTINE_FIRE_URL or ROUTINE_FIRE_TOKEN is not set'
+    body = json.dumps({'text': f'Kvarterets kig siger OPDATÉR: {why}'}).encode('utf-8')
+    req = urllib.request.Request(url, data=body, method='POST', headers={
+        'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01',
+        'anthropic-beta': os.environ.get('ROUTINE_FIRE_BETA') or 'experimental-cc-routine-2026-04-01'})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return 200 <= r.status < 300, f'HTTP {r.status}'
+    except Exception as e:  # noqa: BLE001 – a refused fire (the cap, a 429) is recorded, never fatal
+        return False, f'{type(e).__name__}: {str(e)[:120]}'
+
+
+def cmd_gate(args):
+    now = ts(args.now) if args.now else datetime.now(timezone.utc)
+    out, reasons, facts = look(args, now)
+    folder = Path(args.data_dir or args.dir or '.')
+    path = folder / 'editor-gate.json'
+    try:
+        state = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        state = {'fires': []}
+    ok, why = gate_decision(now, reasons, facts, state, fires_per_day())
+    print('\n'.join(out))
+    if not ok:
+        print(f'Gate: no fire – {why}')
+        return
+    keys, today = reason_keys(now, reasons, facts), dk(now).date().isoformat()
+    sent, result = fire(why) if args.fire else (False, 'dry run (no --fire)')
+    state['fires'] = [f for f in state.get('fires') or [] if now - ts(f['at']) < timedelta(days=3)] + [
+        {'at': now.isoformat(timespec='seconds'), 'day': today, 'keys': keys, 'why': why, 'ok': sent, 'result': result}]
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding='utf-8')
+    print(f"Gate: {'fired' if sent else 'not fired'} – {why} ({result})")
 
 
 # ------------------------------------------------------------------ the input of a full update
@@ -679,6 +862,8 @@ def build(draft, data, lines, moves, now, previous=None):
         section = sections.get(key(name)) or tp.get('section')
         if section not in SECTIONS:
             problems.append(f"{where}: section must be dk, me or world, not {tp.get('section')!r}")
+        voice.check_voice(name, f'{where} name', problems)
+        voice.check_reality(name, f'{where} name', problems)
         if not tp.get('lines'):
             problems.append(f'{where}: no lines')
         for line in tp.get('lines') or []:
@@ -690,6 +875,7 @@ def build(draft, data, lines, moves, now, previous=None):
             elif len(text) > MAX_TEXT or len(who) > 80:
                 problems.append(f'{label} is too long ({len(text)} characters) – one short sentence')
             voice.check_voice(f'{who}: {text}', label, problems)
+            voice.check_reality(text, label, problems)
             if not story and not ids:
                 problems.append(f'{label} has neither a story id nor wire ids')
             it = None
@@ -709,6 +895,8 @@ def build(draft, data, lines, moves, now, previous=None):
                     problems.append(f'{label}: wire line {i} is used twice (also in {used[i]})')
                 used[i] = where
             first = wire.get(ids[0]) if ids else None
+            if it and it.get('group') in MOVEMENT_GROUPS:   # the movement's or a government's own channel
+                voice.check_movement(text, label, problems)
             if it:
                 adds.append((name, section, {
                     'who': who, 'text': text, 'link': it['link'], 'source': it['source'],
@@ -745,7 +933,10 @@ def build(draft, data, lines, moves, now, previous=None):
             if not isinstance(p, dict) or p.get('id') not in by_id:
                 problems.append(f"picks: unknown story id {(p or {}).get('id') if isinstance(p, dict) else p!r}")
             else:
-                picks.append({'id': p['id'], 'why': ' '.join(str(p.get('why', '')).split())[:120]})
+                why = ' '.join(str(p.get('why', '')).split())[:120]
+                voice.check_voice(why, f"picks: {p['id']} why", problems)   # public in digest.json
+                voice.check_reality(why, f"picks: {p['id']} why", problems)
+                picks.append({'id': p['id'], 'why': why})
     fixes = {m['id']: m for m in prev.get('moves') or [] if isinstance(m, dict) and m.get('id') in by_id}
     for m in draft.get('moves') if isinstance(draft.get('moves'), list) else []:
         if not isinstance(m, dict) or m.get('id') not in by_id or m.get('sec') not in SECTIONS:
@@ -769,6 +960,8 @@ def build(draft, data, lines, moves, now, previous=None):
                 problems.append(f"quotes: '{who}: {text[:40]}' needs who, a short text, a section and a known story or wire id")
             else:
                 voice.check_voice(f'{who}: {text}', f"quotes: '{who}: {text[:40]}'", problems)
+                if src.get('group') in MOVEMENT_GROUPS:
+                    voice.check_movement(text, f"quotes: '{who}: {text[:40]}'", problems)
                 quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
@@ -1009,15 +1202,17 @@ def push(folder, message):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('command', choices=['check', 'input', 'publish'])
+    p.add_argument('command', choices=['check', 'gate', 'input', 'publish'])
     p.add_argument('file', nargs='?', default=str(WORK / 'update.json'))
     p.add_argument('--dir', help='read the data and digest files from this folder instead of git')
+    p.add_argument('--data-dir', help="read the data branch's files from this folder (the radar's state in Actions)")
+    p.add_argument('--fire', action='store_true', help='gate: fire the routine when the look calls for an update')
     p.add_argument('--out', help='write the files here (default /tmp/editor/out)')
     p.add_argument('--push', action='store_true', help='commit the files to the digest branch')
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')
     p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'], help=argparse.SUPPRESS)
     args = p.parse_args(argv)
-    {'check': cmd_check, 'input': cmd_input, 'publish': cmd_publish}[args.command](args)
+    {'check': cmd_check, 'gate': cmd_gate, 'input': cmd_input, 'publish': cmd_publish}[args.command](args)
 
 
 if __name__ == '__main__':

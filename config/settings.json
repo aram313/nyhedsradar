@@ -39,5 +39,6 @@
   "same_story_merge": 0.76,
   "same_story_other_city": 0.88,
   "lines_hours": 36,
-  "max_added_per_day": 3
+  "max_added_per_day": 3,
+  "editor_fires_per_day": 12
 }

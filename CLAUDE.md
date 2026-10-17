@@ -14,9 +14,11 @@ answers, the newest answer governing older material – is used **only to select
 (`src/radar/method.py`) and the editor's front page (`scripts/brain.py`). The app shows **no analysis, judgement or
 hypothesis by Claude or Khabar**; the editor's own text stays reality (lede, recap lines, summaries, titles). The amir's
 answers appear only as his, attributed ('Ifølge Hizb ut-Tahrirs svar af d/m/åååå …') and in their own face. Concepts
-named in the news open a wiki page compiled only from those answers. Claude looks at the site every quarter of an hour
-(`editor.py check`) and updates what needs it ("der er tokens nok"). The users are young Danish Muslims who use the news
-in their da'wah.
+named in the news open a wiki page compiled only from those answers. The site is looked at every quarter of an hour
+("Claude skal køre hvert 15. minut … der er tokens nok"): the look is plain Python after every radar pass
+(`editor.py gate`), and it fires Claude – the editor's routine – when something needs adjusting, within the
+subscription's daily run cap (docs/hjerne/cadence.md). The users are young Danish Muslims who use the news in their
+da'wah.
 
 ## Stack
 
@@ -80,12 +82,17 @@ in their da'wah.
   never lend one. `state/pics.json` remembers page images and failed pictures for 3 days.
 - `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
 - `src/radar/stats.py` keeps the owner's statistics (2026-10-11): the app posts `visit` (home screen or browser, iPhone/Android/other, time zone, language, how it came; `first` on 'Kom i gang') and `leave` (seconds, tabs, stories opened) to the relay; read/share signals give the most read stories (the owner's own carry `me` and are not counted). Counts per Danish day in `state/stats.enc`, AES-GCM with a key from ADMIN_KEY (sha256('khabar-stats|' + code)); the app decrypts it in the admin-only block at the top of Indstillinger. Nothing is stored on phones and no id follows a person – the owner declined anonymous ids for unique visitors (2026-10-11: consent rules) and wants no consent prompt or button, so place in Denmark is not collected (it would need a permission prompt or an IP lookup); country comes from the time zone.
-- `scripts/editor.py` is the Claude editor's tool (check / input / publish, see its docstring). `check` is the
-  quarter-hour look (≤ ~40 lines, verdict INTET NYT AF VÆGT or OPDATÉR: why); `input` carries the brain
+- `scripts/editor.py` is the Claude editor's tool (gate / check / input / publish, see its docstring). `check` is the
+  quarter-hour look (≤ ~40 lines: the radar's last pass, the stories of weight – a story is new only when its first
+  article is, a pick or recap story is marked and calls for nothing –, verdict INTET NYT AF VÆGT or OPDATÉR: why);
+  `gate` is the same look in Actions that fires the routine (one fire per reason, none while an update is under way,
+  `editor_fires_per_day` a day spread over the day, at night only for a big story); `input` carries the brain
   (`scripts/brain.py`: the order of weight and each power's current reading, ≤ 6,000 characters) and the front page
-  now; `publish` keeps what a small update leaves out (lede, picks, quotes), checks the editor's text with
-  `scripts/voice.py` (the content rules; reality only, never the movement's reading as fact) and files a new answer in
-  `answers.json`. It keeps one overview per
+  now (a reading the editor filed in `answers.json` governs the brain's line for its subject when it is newer than the
+  wiki's); `publish` keeps what a small update leaves out (lede, picks, quotes), checks all of the editor's own text –
+  lede, summaries, recap lines, topic names, picks' why – with `scripts/voice.py` (the content rules; reality only,
+  never the movement's reading as fact; a line or quote from the movement's or a government's channel gets the
+  movement's checks too) and files a new answer in `answers.json`. It keeps one overview per
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
@@ -116,12 +123,16 @@ in their da'wah.
   by the owner; it expires – renew it and rerun `scripts/setup-clock.ps1`). The PC task 'Nabd vaekkeur' is removed.
 - Claude Code cloud routines on the owner's subscription (claude.ai/code/routines):
   - **The quarter-hour look (hjerne branch, the owner 2026-10-17: "Claude skal køre hvert 15. minut på siden og vurdere,
-    om der er noget, der skal tilrettes. Der er tokens nok"):** four routines with the same prompt
-    (`docs/hjerne/routine-prompt.md`, the private weighing guide inserted at `[WEIGHING-GUIDE]`) on cron `0 * * * *`,
-    `15 * * * *`, `30 * * * *` and `45 * * * *` (a routine fires at most hourly). Each starts with `editor.py check` and
-    stops with one line unless something of weight happened; then `input`, a small update and `publish --push` (which
-    refuses when another update landed meanwhile). About three to six times the tokens of twelve updates a day
-    (docs/hjerne/cadence.md). The owner creates them at launch and retires the twelve-a-day routine below.
+    om der er noget, der skal tilrettes. Der er tokens nok"):** routines have a daily run cap per account (about 15 on
+    Max by third-party reports; read the real one at claude.ai/code/routines), so 96 runs a day cannot work. The look is
+    `editor.py gate` in radar.yml after every radar pass (no tokens); when its verdict holds it fires the editor's
+    routine through its **API trigger** (GitHub secrets `ROUTINE_FIRE_URL`, `ROUTINE_FIRE_TOKEN`; without them a dry
+    run), at most `editor_fires_per_day` (config/settings.json, 12) a Danish day, two kept for the morning and the
+    evening; every fire is kept in `state/editor-gate.json`. The routine has the prompt `docs/hjerne/routine-prompt.md`
+    (the private weighing guide inserted at `[WEIGHING-GUIDE]`) and no schedule; it starts with `editor.py check`, may
+    stop with one line, else `input`, a small update and `publish --push` (which refuses when another update landed
+    meanwhile). About the tokens of today's twelve updates (docs/hjerne/cadence.md). At launch the owner adds the API
+    trigger to the editor routine below, removes its schedule and gives it the new prompt.
   - `trig_01B5p6DmEx8pz9cDLZzwxbHj` editor (until the launch): fires twelve times a day (since 2026-10-11, the owner's choice, ~1/10 of his plan):
     06, 09, 12 and 14-22 UTC = 07, 10, 13 and every hour 15-23 Danish winter time (an hour later in summer); each update
     is small – only what is new since the last; the app says the recap is 'opdateret løbende fra morgen til aften'. It has NO internet (the cloud sandbox blocks it; the owner
@@ -165,8 +176,10 @@ in their da'wah.
   udviklingen' (the 3 developments that moved last, not the main story's), 'Dagens citat' if the package had none, 'Live'
   (the 3 newest Live stories); no section glance, no recap, **no analysis**. One quiet line under Dagens historie – and
   in an opened story – when the amir has answered on its subject ('Hizb ut-Tahrirs svar · d/m/åååå' over the title):
-  a headline subject the answer is about (its title, its question's first subject, its main issue), a second signal,
-  at most three years old – else no line (`answerFor`, docs/hjerne/notes-app.md). **Analyser**: the amir's answers, the
+  a headline subject the answer is about (its title, its question's first subject, its main issue; a filed answer's
+  readings, never its whole begreber list), a second signal from the headline (another subject the answer is about, or
+  two shared words; a report of the dead or one state's domestic story needs a specific subject), at most three years
+  old – else no line (`answerFor`, docs/hjerne/notes-app.md; 14 of the top 90 on 16/10 after the review). **Analyser**: the amir's answers, the
   newest first (the editor's answers.json and the radar's `analyses` before the layer's 321 by year), a search field and
   a 'Begreber' row to the wiki's A–Å index; the answer reader: the question, 'Svaret kort', what it reads, its concepts,
   the answers it cites, the text when held, 'Åbn originalen'. **The wiki**: a concept named in plain text – the lede, an
@@ -178,7 +191,8 @@ in their da'wah.
   ut-Tahrir's** (leads, timelines, notes, readings, answer texts, the answer lines) is set in the serif (`--serif`) on the
   soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark) with its attribution; everything else keeps the app's face.
   **Side pages** over the tabs, reached from a button or link and left by a tab or the logo with its back mark (which goes
-  back the way one came, scroll kept): Udvikling, an answer, a wiki page, the A–Å index. The **Udvikling** page holds
+  back the way one came, scroll kept; the phone's own back gesture does the same – each side page is a step in the
+  browser's history, and the address names the page in view): Udvikling, an answer, a wiki page, the A–Å index. The **Udvikling** page holds
   the editor's lines once (2026-10-11 the owner had the recap and the developments merged – as two views they clashed):
   'I dag' with the day's line count, update time and 'Del resumé' (the WhatsApp text); the day's topics in the editor's
   order, each a card with its lines of the day, newest first, that unfolds into the whole development across the days
@@ -224,6 +238,16 @@ in their da'wah.
   (`Emulation.setDeviceMetricsOverride` 430 × 932 at 2x, `--remote-debugging-port`, Node's own WebSocket).
 - `answers.json` does not exist on the digest branch until the editor files the first new answer: the app's request for
   it gets a 404 (taken quietly, asked again after ten minutes).
+- **The full English text of a new answer** sits in `state/analyses.json` on the public data branch (the editor
+  routine has no internet) and the answer reader shows it ('Svaret på engelsk') until the next build of `public/viden`.
+  Whether that is within 'no full texts of the movement's answers in committed files' is the owner's call (open since
+  2026-10-17): the alternative is to encrypt the text with a key the routine holds and show only 'Åbn originalen'.
+- **Heredocs through the agent's Bash tool lose backslashes** (a doubled backslash arrives single, so a regex's back-reference
+  becomes a control character and a word boundary a backspace): write files with regular expressions through the Write
+  or Edit tool, not cat or py heredocs, and scan for control characters after an edit.
+- The wiki's issue leads are written by hand, newest first, in `scripts/begreber_leads.py` (from the issue's own
+  history); `build_begreber.py`'s check fails when an issue's newest main answer, or any page's newest reading, is
+  newer than its lead, or when a lead's first sentence does not carry its answer's day.
 - The wiki is a build: edit `docs/hjerne/begreber-ideer.json` (concepts) or the movement layer's inputs, never
   `public/viden/*.json` by hand, then `py scripts/build_begreber.py` and commit both wiki files.
 

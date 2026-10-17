@@ -36,14 +36,19 @@ AGENT_WORDS = re.compile(r'\b(agent\w*|marionet\w*|lakaj\w*|bagmand\w*|står bag
 # serving words and its name as a source. Only words that are readings, not news: 'står bag', 'på vegne af', 'styret
 # af', 'agent' and 'forræderi' are everyday news (who claimed an attack, a court's verdict, a charge) and stay allowed
 # – the editor's summaries of a month held them four times, every time as plain fact.
-REALITY_BANNED = re.compile(r"\b(satellit(?:stat\w*|ten|terne|ter)?(?!\w)|underordne(?:t|de) (?:stat\w*|under\b)|"
+REALITY_BANNED = re.compile(r"\b(satellitstat\w*|(?:som|blev|er|var|nu|igen) (?:en |USA's |Ruslands |Kinas )?satellit\b|"
+                            r"(?:USA's|Ruslands|Kinas|Storbritanniens|amerikansk|russisk|kinesisk|britisk) satellit\b|"
+                            r"satellit(?:ten)? (?:for|i|under) (?:USA|Rusland|Kina|Storbritannien)|underordne(?:t|de) (?:stat\w*|under\b)|"
                             r"i (?:USA's|amerikansk) bane|kredser om USA|marionet\w*|lakaj\w*|vasal\w*|hoflærd\w*|"
                             r'aftalt spil|falsk flag|tjener \w+ interesser|går \w+ ærinde|del af kampagnen|den førende stat|'
                             r'faldet fra stormagt|svækket stormagt|mellemmagt\w*|'
                             r'ifølge Hizb ut-Tahrir\w*|Hizb ut-Tahrirs (?:svar|læsning)\w*)', re.I)
 # the movement layer's own vocabulary for 'serves' (card H1): the agent words and the softer ones the answers use
 SERVE = re.compile(AGENT_WORDS.pattern[:-1] + r'|redskab\w*|[\w-]*loyal\w*|knyttet til|tjener|i hånden|underlagt|'
-                   r'søjle for|støttes af|støttet af|hører til|\w+s (?:mand|mænd|folk)\b|planlagt af|planlagde|handler for)', re.I)
+                   r'søjle for|støttes af|støttet af|hører til|\w+s (?:mand|mænd|folk|tilhængere)\b|planlagt af|planlagde|handler for)', re.I)
+# the people loyal to a power are its 'tilhængere', never 'Storbritanniens folk' – that first reads as the British people
+# (Khabar judges states, never peoples; review 2026-10-17)
+POWER_FOLK = re.compile(r"\b(?:USA's|USA’s|Storbritanniens|Frankrigs|Europas|Ruslands|Kinas|Amerikas|Englands) folk\b")
 # an attack with dead or a bombing is never said to be staged or sponsored (card G13), whoever the subject
 STAGED = re.compile(r'\b(iscenesat\w*|iscenesæt\w*|står bag|stod bag|falsk flag|planlagt af|planlagde|på ordre fra|skuespil\w*)\b',
                     re.I)
@@ -89,6 +94,9 @@ def check_movement(text, where, problems):
         problems.append(f"{where}: '{hit.group(0)}' – the movement's readings say 'underordnet' or 'satellit' (H1)")
     if LOCAL.search(t):
         problems.append(f'{where}: a local path or private name')
+    hit = POWER_FOLK.search(t)
+    if hit:
+        problems.append(f"{where}: '{hit.group(0)}' reads as a people – write '{hit.group(0)[:-5]} tilhængere'")
     for q in (next(x for x in groups if x) for groups in QUOTE.findall(t) if any(groups)):
         if len(q) > QUOTE_MAX:
             problems.append(f'{where}: a quotation over {QUOTE_MAX} characters – the repo is public: say it in your own words')

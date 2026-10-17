@@ -55,7 +55,8 @@ def test_the_shared_schema_exactly():
     assert DOC['version'] == 1 and datetime.fromisoformat(DOC['built']).tzinfo is not None
     assert set(DOC) == {'version', 'built', 'items'}
     for k, e in ITEMS.items():
-        assert FIELDS <= set(e) <= FIELDS | {'subject'}, k
+        assert FIELDS <= set(e) <= FIELDS | {'subject', 'history_da'}, k
+        assert ('history_da' in e) == (e['kind'] == 'sag' and k not in bb.load(bb.IDEAS, {}).get('items', {})), k
         assert e['id'] == k and bb.ID.match(k) and e['kind'] in bb.KINDS, k
         assert isinstance(e['case_sensitive'], bool) and all(isinstance(a, str) and a for a in e['aliases']), k
         assert all(set(r) == {'date', 'nr', 'text_da'} for r in e['timeline']), k
@@ -165,11 +166,26 @@ def test_the_newest_answer_governs_the_lead():
     assert ir['lead_date'] == '2026-06-28' and 'satellitstat' in ir['lead_da']
     assert 'underordnet stat under USA' in sa['lead_da'] and '2015' in sa['lead_da'] and sa['lead_date'] >= '2026-01-01'
     for k, c in LAYER['current'].items():
-        if '--' not in k:
-            assert (ITEMS[k]['lead_da'], ITEMS[k]['lead_nr'], ITEMS[k]['lead_date']) == (c['text_da'], c['nr'], c['date']), k
-    # an issue's lead keeps its opening and its newest answers; Iran-sagen ends on the answers of 18/8 and 27/9/2026
+        if '--' in k or k in bb.load(bb.IDEAS, {}).get('items', {}):
+            continue
+        e = ITEMS[k]
+        if e['lead_da'] == c['text_da']:     # the current reading leads (a lead without a day rests on the answer it cites)
+            assert e['lead_date'] >= c['date'] and bb.cited(e['lead_da'], e['lead_date']), k
+        else:                                # a newer reading leads, the current one after it (never a power's)
+            assert e['kind'] != 'magt' and e['lead_date'] > c['date'] and e['lead_da'].startswith(e['timeline'][0]['text_da']), k
+    # the review of 2026-10-17: the newest reading leads, also where the layer's current reading is older
+    assert ITEMS['bahrain']['lead_date'] == ITEMS['qatar']['lead_date'] == ITEMS['oman']['lead_date'] == '2026-08-05'
+    assert ITEMS['yemen']['lead_date'] == '2026-09-27' and ITEMS['frankrig']['lead_nr'] == '28073'
+    assert ITEMS['usa']['lead_nr'] == '28942'        # the power's standing leads, its newer acts in one arena follow
+    for k, e in ITEMS.items():
+        assert bb.cited(bb.sentences(e['lead_da'])[0], e['lead_date']), k
+        assert not any(w in e['lead_da'] for w in ('Ingen nyere', 'intet nyere', 'ikke gengivet', 'nævnes ikke')), k
+    # an issue's lead opens on its newest answers (Iran-sagen: 18/8 and 27/9/2026, then the revision of 28/6/2026); the
+    # history behind it stays whole on the page
     sag = ITEMS['iran-sagen']
     assert sag['kind'] == 'sag' and sag['subject'] == 'iran' and sag['lead_date'] == '2026-09-27' and '28/6/2026' in sag['lead_da']
+    assert sag['lead_da'].startswith('Ifølge Hizb ut-Tahrirs svar af 18/8/2026 og 27/9/2026') and sag['history_da'].startswith('Fra 2009 til 2025 læser Hizb ut-Tahrirs svar Iran')
+    assert '28942' not in {r['nr'] for r in ITEMS['palaestina']['timeline']}
     assert 'Kina' in ITEMS['den-internationale-tilstand']['lead_da'] and 'mellemmagt' in ITEMS['den-internationale-tilstand']['lead_da']
 
 

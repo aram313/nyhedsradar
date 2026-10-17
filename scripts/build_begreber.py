@@ -53,6 +53,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 import build_movement as bm  # noqa: E402
+from begreber_leads import SAG_LEAD  # noqa: E402 – the issues' leads, newest first
 
 VIDEN = ROOT / 'public' / 'viden'
 LAYER = VIDEN / 'movement.json'
@@ -64,7 +65,7 @@ OUT_INDEX = VIDEN / 'begreber-index.json'
 
 KINDS = ('stat', 'magt', 'gruppe', 'sag', 'begreb', 'aftale', 'sted', 'organisation', 'proces')
 FIELDS = ('id', 'name', 'kind', 'aliases', 'case_sensitive', 'lead_da', 'lead_nr', 'lead_date', 'timeline', 'relations',
-          'answers', 'related', 'subject')
+          'answers', 'related', 'subject', 'history_da')
 ID = re.compile(r'^[a-z0-9][a-z0-9-]{1,60}$')
 LEAD_SENTENCES = 4
 
@@ -213,6 +214,13 @@ ISSUE_CASE_INSENSITIVE = {'det-amerikanske-kontinent', 'det-indiske-subkontinent
 # the sentences of a history that make its lead, where the opening and the newest three would leave out a power's
 # newest reading: the international situation keeps USA, China, Russia and Europe (its last sentence has no date)
 LEAD_PICK = {'den-internationale-tilstand': (0, 1, 2, 3)}
+# one answer's reading that holds for several pages the layer did not tag (review 2026-10-17): the answer of 5/8/2026
+# reads the Gulf states together as Britain's last remnant – every Gulf state's page carries it
+SHARED_READINGS = [('storbritannien', '30093', 'Golfstaterne', ('bahrain', 'emiraterne', 'kuwait', 'oman', 'qatar'))]
+# a timeline row on the wrong page: the answer of 14/1/2026 (the USA's security strategies) on the Palestine issue
+ROW_EXCLUDE = {'palaestina': {'28942'}}
+# a power's lead is its standing as a power (the answer that reads it as one); its newer rows are its acts in one arena
+LEAD_IS_STANDING = {'magt'}
 
 # -------------------------------------------------------------------------------------------------- alias rules
 
@@ -489,6 +497,17 @@ def build(now=None, ideas=None):
             tagged.setdefault(('i', s), []).append(nr)
     for sid, e in items.items():
         e['answers'] = newest_first(tagged.get(('s', sid), []) + e.pop('_nrs'), answers)
+    for src, nr, word, pages in SHARED_READINGS:
+        row = max((r for r in readings.get(src) or [] if r['nr'] == nr and word in r['text_da']),
+                  key=lambda r: len(r['text_da']), default=None)
+        for k in pages if row else ():
+            e = items.get(k)
+            if e and nr not in {r['nr'] for r in e['timeline']}:
+                e['timeline'] = sorted(e['timeline'] + [{'date': row['date'], 'nr': nr, 'text_da': row['text_da']}],
+                                       key=lambda r: r['date'], reverse=True)
+                e['answers'] = newest_first(e['answers'] + [nr], answers)
+    for e in items.values():
+        newest_lead(e, answers)
 
     # ---- the issues
     sag_id = {iid: (f'{iid}-sagen' if iid in items else iid) for iid in issues}
@@ -505,22 +524,28 @@ def build(now=None, ideas=None):
         if unknown:
             report.append(f'issue {iid}: answers not in movement-index.json left out: {unknown}')
         parts = sentences(v['history_da'])
-        if iid in LEAD_PICK:
+        if iid in SAG_LEAD:
+            lead = SAG_LEAD[iid]
+        elif iid in LEAD_PICK:
             lead = ' '.join(parts[i] for i in LEAD_PICK[iid])
         else:
             lead = ' '.join(parts if len(parts) <= LEAD_SENTENCES else [parts[0]] + parts[-(LEAD_SENTENCES - 1):])
         everything = newest_first(own + tagged.get(('i', iid), []), answers)
         if not everything:
             raise SystemExit(f'issue {iid}: no answer in movement-index.json')
-        # the lead's governing answer: the newest the lead cites by its day (its own answers first), else its newest
-        lead_nr = next((n for n in newest_first(own, answers) + everything if cited(lead, answers[n]['date'])),
-                       (newest_first(own, answers) or everything)[0])
+        # the lead's governing answer: the newest its first sentence cites by its day (its own answers first), else
+        # the newest the lead cites, else its newest
+        first = (sentences(lead) or [lead])[0]
+        lead_nr = next((n for n in newest_first(own, answers) + everything if cited(first, answers[n]['date'])),
+                       next((n for n in newest_first(own, answers) + everything if cited(lead, answers[n]['date'])),
+                            (newest_first(own, answers) or everything)[0]))
         items[pid] = {'id': pid, 'name': name, 'kind': 'sag', 'aliases': list(ISSUE_ALIASES.get(iid) or []),
                       'case_sensitive': iid not in ISSUE_CASE_INSENSITIVE, 'lead_da': lead, 'lead_nr': lead_nr,
                       'lead_date': answers[lead_nr]['date'],
                       'timeline': [{'date': answers[n]['date'], 'nr': n, 'text_da': layer['answers'][n]['note_da']}
-                                   for n in newest_first(own, answers)],
-                      'relations': [], 'answers': everything, 'related': [], 'subject': iid, '_own': own}
+                                   for n in newest_first(own, answers) if n not in ROW_EXCLUDE.get(iid, ())],
+                      'relations': [], 'answers': everything, 'related': [], 'subject': iid, '_own': own,
+                      'history_da': v['history_da']}
 
     # ---- related. An issue links the pages it is named after ('afghanistan-pakistan': Afghanistan, Pakistan; 'iran':
     # Iran), the states, powers, groups and issues its history names, and the groups and organisations whose readings
@@ -591,6 +616,40 @@ def build(now=None, ideas=None):
     doc = {'version': 1, 'built': (now or datetime.now(timezone.utc)).isoformat(timespec='seconds'),
            'items': {k: ordered(items[k]) for k in sorted(items)}}
     return doc, report
+
+
+def drop_cited(text, iso):
+    """The lead without what it says of one answer's day (that answer now leads): a clause ('…; svaret af 27/9/2026
+    ser …', '…, og svaret af 1/5/2026 nævner …') or a sentence that opens on it."""
+    y, m, d = iso.split('-')
+    day = rf'{int(d)}/{int(m)}(?:/{y})?(?![\d/])'
+    out = []
+    for sent in sentences(text):
+        if re.match(rf'^(?:Ifølge )?(?:Hizb ut-Tahrirs )?[Ss]vare[tn] (?:af )?{day}', sent):
+            continue
+        sent = re.sub(rf'(?:,? og|;) (?:ifølge )?svaret (?:af )?{day}[^.;]*', '', sent)
+        out.append(sent if sent.endswith(('.', '!', '?')) else sent + '.')
+    return ' '.join(out)
+
+
+def newest_lead(e, answers):
+    """The newest answer governs the first sentence. A state's, group's or organisation's newer reading than its current
+    one leads, the current reading after it (without what it said of that answer); a lead whose attribution names no
+    day ('Ifølge Hizb ut-Tahrirs svar 2023-2025 …') rests on the newest answer its first sentence cites."""
+    if not e.get('lead_da'):
+        return
+    row = e['timeline'][0] if e['timeline'] else None
+    if row and row['date'] > e['lead_date'] and e['kind'] not in LEAD_IS_STANDING:
+        rest = sentences(drop_cited(e['lead_da'], row['date']))
+        lead = [row['text_da']] + rest
+        while len(lead) > LEAD_SENTENCES:
+            lead.pop()
+        e.update(lead_da=' '.join(lead), lead_nr=row['nr'], lead_date=row['date'])
+    if not re.match(r'^Ifølge Hizb ut-Tahrirs svar af \d', e['lead_da']):
+        first = (sentences(e['lead_da']) or [''])[0]
+        hit = next((n for n in e['answers'] if n in answers and cited(first, answers[n]['date'])), None)
+        if hit and answers[hit]['date'] > e['lead_date']:
+            e.update(lead_nr=hit, lead_date=answers[hit]['date'])
 
 
 def cited(text, iso):
@@ -734,6 +793,19 @@ def entry_problems(e, answers, where):
     n = len(sentences(e['lead_da']))
     if n > LEAD_SENTENCES:
         problems.append(f'{where} lead: {n} sentences – at most {LEAD_SENTENCES}')
+    first = (sentences(e['lead_da']) or [''])[0]
+    if not cited(first, e['lead_date']):
+        problems.append(f"{where} lead: the first sentence must name its answer's day ({bm.d_slash(e['lead_date'])}) – "
+                        'the newest answer leads')
+    newer = [r for r in e['timeline'] if isinstance(r, dict) and str(r.get('date')) > e['lead_date']]
+    if newer and e['kind'] not in LEAD_IS_STANDING | {'sag'}:
+        problems.append(f"{where} lead: the timeline has a newer reading ({newer[0]['date']}, nr {newer[0]['nr']}) than "
+                        f"the lead ({e['lead_date']}) – the newest answer leads")
+    if e['kind'] == 'sag':
+        main = [r for r in newer if (answers.get(r['nr']) or {}).get('issues', [None])[:1] == [e.get('subject')]]
+        if main:
+            problems.append(f"{where} lead: the issue's newest main answer ({main[0]['date']}, nr {main[0]['nr']}) is "
+                            f"newer than the lead ({e['lead_date']}) – write a new lead in scripts/begreber_leads.py")
     last = None
     for i, r in enumerate(e['timeline']):
         w = f'{where} timeline[{i}]'

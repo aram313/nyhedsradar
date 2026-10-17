@@ -51,7 +51,11 @@ class Method:
         self.powers = set(cfg['powers'])
         self.ignore = re.compile('|'.join(re.escape(p) for p in cfg['ignore']), re.I) if cfg.get('ignore') else None
         self.act = Lexicon(cfg['act'])
-        self.outward = Lexicon(cfg.get('outward') or [])   # acts aimed at other states by their nature (war, sanctions)
+        # acts aimed at other states by their nature (troops, tariffs, a security strategy); a bare 'war' or 'sanctions'
+        # needs a foreign party named (review 2026-10-17: a US court on sanctions against US NGOs is no act of the USA's)
+        self.outward = Lexicon(cfg.get('outward') or [])
+        # a headline about the past ('Putin førte allerede krig') is no sign of change in the international situation
+        self.history = Lexicon(cfg.get('history') or [])
         self.tiers = {}
         for t, spec in cfg['tiers'].items():
             lex = self.act if spec.get('words') == 'act' else Lexicon(spec.get('words') or [])
@@ -107,7 +111,7 @@ class Method:
                 hit = bool(lex.hits(text)) or (dk and bool(dk_lex.hits(text)))
             if not hit:
                 continue
-            if needs == 'leading_and_power' and not (self.leading in powers and len(powers) >= 2):
+            if needs == 'leading_and_power' and (not (self.leading in powers and len(powers) >= 2) or self.history.hits(text)):
                 continue
             if needs == 'abroad' and dk and not set(actors) - {self.home}:
                 continue

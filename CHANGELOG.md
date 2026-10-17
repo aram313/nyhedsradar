@@ -55,6 +55,41 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
     its concepts, the answers it cites, the text when held and the original. Everything that is the movement's is set
     in a serif on a soft ochre tint with its attribution. The logo goes back the way one came. The sources list and
     coverage name the new groups. Notes: docs/hjerne/notes-app.md.
+- **Review fixes for the brain** (2026-10-17, the reviewers' findings on the hjerne branch):
+  - **The quarter-hour look no longer needs 96 Claude runs a day** (routines have a daily run cap): `editor.py gate`
+    runs after every radar pass in Actions (no tokens) and fires the editor's routine through its API trigger when the
+    look's verdict holds – once per reason (a story by its first article), never while an update is under way, at most
+    `editor_fires_per_day` = 12 a day spread over the day with the morning's and the evening's kept, at night only for a
+    big story. Replayed on 16 October: 12 updates when the news called for them, about the tokens of today's twelve
+    (docs/hjerne/cadence.md). Without the secrets `ROUTINE_FIRE_URL`/`ROUTINE_FIRE_TOKEN` it is a dry run.
+  - **The look sees better:** a story is new only when its first article is (a card that changed its lead counted
+    again and again); picks and recap stories are marked and call for nothing; a big story of no weight (tier 11, 13)
+    waits, a Danish one does not; two hours alone are no reason; the radar's last pass is on the first line and a
+    stopped radar is a reason of its own.
+  - **The newest answer governs, also after launch:** a reading the editor files in answers.json leads the brain's line
+    for its subject and the wiki page's lead in the app; `check` says when filed answers wait for a wiki build. The
+    wiki's leads are newest first (27 issue leads rewritten from their own histories, the concept leads reordered,
+    a state's newer reading before its older standing, the Gulf states' pages carrying the answer of 5/8/2026); the
+    build fails when a lead's first sentence lacks its day or a newer reading exists; the whole history of an issue
+    stays on its page as 'Forløbet'.
+  - **The wiki's own words are gone:** 'Ingen nyere svar', 'Kuwait nævnes ikke særskilt', '(svarets påstand … er ikke
+    gengivet)' and the like are left out; 'Storbritanniens folk' reads 'Storbritanniens tilhængere' (a people is never
+    judged); 'vasaller' reads 'underordnede stater'; off-topic rows moved off three pages.
+  - **The editor's own text is all checked:** recap lines, topic names and picks' why are reality only; a line or quote
+    from the movement's or a government's channel gets the movement's checks; 'Starlink-satellitter' is no reading
+    word any more; the prompt names 'martyr' as the one source word written 'dræbt'.
+  - **The radar** no longer gives a lone US act tier 2 for a bare 'war' or 'sanctions' (a foreign party must be named),
+    nor tier 1 to a headline about the past ('allerede', 'dengang'); Live's top 40 is unchanged, Danish stories 7 of
+    the top 20 and 10 of the top 40 as before.
+  - **App:** the amir's answer line only where the answer is about the story (a filed answer by its readings, not its
+    twenty concepts; a second subject from the headline; reports of the dead and domestic stories need a specific one)
+    – 14 of the top 90 stories today, none loose; a new answer's area from its own subjects ('27/9/2026 · Yemen');
+    a name's touch area about 44 px high; failed loads say so with 'Prøv igen' instead of 'findes ikke'; the phone's
+    back gesture steps back through the side pages and the address follows the page; the answer reader shows only the
+    answer's own readings, once, and six central concepts first; issue pages read 'Iran – sagen' and their chips
+    '· sag'; Analyser's years and the index's letters as a sliding row of chips; long lists unfold twenty at a time;
+    the broadest pages (USA, Storbritannien) link after the specific names; nothing moves under the reader when the
+    answer line or the links arrive; 'Vis færre' works again (its helper was missing); moves.json is fetched once.
 - New page khabar.nu/energi (link in Indstillinger): 'Lige nu' in wire style (Brent, physical oil against paper, the forward curve, the diesel margin, the cheapest pump price), then Råolie (Brent and WTI futures and physical spot), Det fysiske marked (physical minus paper Brent, the forward curve with backwardation/contango, Brent−WTI), Raffinørmargin (3-2-1, diesel and gasoline cracks), Benzin, diesel og jet (futures and New York/Gulf spot), Danmark (every chain's list price at Circle K, INGO, Q8 and F24 with premium and HVO, the cheaper single stations, the raw product's share of a litre, prices in kroner and the dollar), Gas (TTF, Henry Hub) and the energy stories of the last three days. Every price opens in place into a chart you can touch (1, 3 or 6 months) with what it is and where it comes from. The radar job fetches the numbers after each pass (`src/radar/energy.py` → `energy.json` on the data branch); pump prices are kept one point a day from 17 October 2026.
 - More core words for the great-power contest, from the owner's reading of geopolitics: NATO, the Security Council and veto, the straits (Hormuz, Bab el-Mandeb, Suez, Bosporus), military bases, coups, nuclear weapons, blockades, peace plans and normalisation, great powers, the Pentagon, the Kremlin, the White House, BRICS and the IMF (also in Arabic). On today's data a few such stories rose into the top 40 of Mellemøsten and Verden.
 - Light news (weather, royals, sport, celebrities) loses 30 rank points instead of 20, as the owner asked (`rank_trivia` in config/settings.json). On today's data the top of every section is unchanged; one light Danish story fell below the list. `scripts/rank_check.py` works again (its stand-in for notifications took too few arguments).

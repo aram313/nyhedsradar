@@ -51,7 +51,7 @@ const cur = () => pageEl(tab);
 const pg$ = id => { const p = cur(); return p && p.querySelector('#' + CSS.escape(id)); };   // on the page one sees
 let touching = false, paging = false, scrubbing = false;                 // a finger on the pages; the pager moving; on the tab bar
 let searchIndex = null, searchState = 'idle';
-let moves = null, archiveState = 'idle';                                 // earlier days, fetched on request
+let moves = null, archiveState = 'idle', movesAt = 0;                                 // earlier days, fetched on request
 let goOverview = params.has('digest');                                   // a notification about the overview opens on it
 let latestAll = false;
 const udOpen = new Set(params.get('forlob') ? [params.get('forlob')] : []);   // developments unfolded on the Udvikling page
@@ -152,7 +152,11 @@ async function load(manual) {
       if (r.ok) {
         const d = await r.json();
         const stamp = x => x && `${x.created}|${(x.topics || []).map(tp => (tp.lines || []).length + (tp.stories || []).length).join(',')}|${JSON.stringify(x.editor || '').length}`;
-        if (stamp(d) !== stamp(digest)) { changed = true; moves = null; archiveState = 'idle'; digest = d; store.set('lastDigest', digest); }
+        if (stamp(d) !== stamp(digest)) {   // the earlier days again only when they were fetched before this edition
+          changed = true;
+          if (archiveState !== 'loading' && Date.now() - movesAt > 60e3) { moves = null; archiveState = 'idle'; }
+          digest = d; store.set('lastDigest', digest);
+        }
       }
     } catch { /* keep the last overview */ }
     try {   // the editor's summaries of the stories readers open most (summaries.json next to digest.json)
@@ -329,15 +333,20 @@ function scan(text) {
 }
 // a block of text (one story, one topic, one note): each page linked once, at most three
 const linkSession = (max = 3) => ({ used: new Set(), n: 0, max });
+// the broadest pages (in more than BROAD answers: USA, Storbritannien) take a slot only after the specific names of the
+// block – in a lede 'USA' should not take the first of three links ahead of Houthierne or Hormuz
+const BROAD = 150;
 function pickLinks(text, sess) {
   const out = [];
   if (!sess) return out;
-  for (const f of scan(text)) {
+  const ix = (V('bix') || {}).items || {}, found = scan(text);
+  const broad = f => (ix[f.id] || {}).n_answers > BROAD;
+  for (const f of [...found.filter(f => !broad(f)), ...found.filter(broad)]) {
     if (sess.n >= sess.max) break;
     if (sess.used.has(f.id)) continue;
     sess.used.add(f.id); sess.n++; out.push(f);
   }
-  return out;
+  return out.sort((x, y) => x.a - y.a);
 }
 const rich = (text, sess, kw) => markup(text, pickLinks(String(text ?? ''), sess), kw ? boldRanges(String(text ?? ''), kw) : []);
 const nameOf = id => { const e = ((V('bix') || {}).items || {})[id]; return e ? e.name : cap(String(id || '').replace(/-/g, ' ')); };
@@ -387,7 +396,10 @@ function aboutOf(a) {
 // the area an answer belongs to, for its row: its first issue's name (the issue of a state is the state's name)
 const areaOf = a => {
   const kind = id => (((V('bix') || {}).items || {})[id] || {}).kind;
-  const s = (a.issues || [])[0] || (a.states || [])[0] || (a.begreber || []).find(id => kind(id) === 'sag')
+  // an answer the editor filed has no issues or states: the page its title names, else its first reading's subject
+  // (its begreber run A–Å, so their first 'sag' is no area – the Yemen answer is no 'Afghanistan og Pakistan')
+  const own = a.filed && !(a.issues || []).length ? (scan(a.title)[0] || {}).id || subj(String(((a.readings || [])[0] || {}).subject || '').split('--')[0]) : '';
+  const s = (a.issues || [])[0] || (a.states || [])[0] || own || (a.begreber || []).find(id => kind(id) === 'sag')
     || (a.begreber || []).find(id => kind(id) === 'stat') || subj(((a.readings || [])[0] || {}).subject || '').split('--')[0] || (a.begreber || [])[0];
   return s ? nameOf(pageOf(s) || s).replace(/-sagen$/, '').replace(/\s*\(.*\)$/, '') : '';
 };
@@ -402,9 +414,12 @@ const GEN = new Set(['hvord', 'hvorfo', 'hvilke', 'ifølge', 'blive', 'bliver', 
   'siden', 'første', 'større', 'største', 'stadig', 'måske', 'derfor', 'fordi', 'selvom', 'gennem', 'landet', 'lande', 'staten', 'stater',
   'regeri', 'præsid', 'minist', 'politi', 'situat', 'udvikl', 'spørgs', 'betyde', 'mulige', 'nuvære', 'senest', 'bagved', 'virkel', 'realit',
   'trump', 'trumps', 'putin', 'putins']);
+// a filed answer is about the subjects its readings read and its title names – its begreber (twenty for the Yemen answer
+// of 27/9/2026: Iran, Pakistan, Tyrkiet …) only touch, else it would take the line from stories it is not about
 const answerCore = a => a.core ||= new Set([...scan(a.title).map(f => subj(f.id)), ...scan(a.q || '').slice(0, 1).map(f => subj(f.id)),
-  ...(a.issues || []).slice(0, 1), ...((a.states || [])[0] && a.states[0] === (a.issues || [])[0] ? [a.states[0]] : []), ...(a.begreber || []).map(subj)]);
-const answerTouches = a => a.touches ||= new Set(scan(a.q || '').map(f => subj(f.id)));
+  ...(a.issues || []).slice(0, 1), ...((a.states || [])[0] && a.states[0] === (a.issues || [])[0] ? [a.states[0]] : []),
+  ...(a.readings || []).flatMap(r => String(r.subject || '').split('--')).filter(Boolean).map(subj)]);
+const answerTouches = a => a.touches ||= new Set([...scan(a.q || '').map(f => subj(f.id)), ...(a.begreber || []).map(subj)]);
 const answerWords = a => a.words ||= new Set([...stems(a.title + ' ' + (a.q || ''))].filter(w => !GEN.has(w)));
 function storySubjects(i, extra = '') {
   const m = new Map();
@@ -413,6 +428,12 @@ function storySubjects(i, extra = '') {
   for (const t of [i.summary_da, (sumOf(i) || {}).text]) for (const f of scan(t || '')) if (!m.has(subj(f.id))) m.set(subj(f.id), 0.5);
   return m;
 }
+// a story about one state's own affairs (an election, a court, its parliament) gets a line only when a second, specific
+// subject of its headline agrees
+const DOMESTIC = /\b(?:valg(?:et|kamp\w*|ene)?|genvalg|skæbnevalg|meningsmåling\w*|domstol\w*|retten|retssag\w*|dom(?:men)?|højesteret|parlament\w*|knesset|koalition\w*|regeringsdannels\w*|partiet|partier|election|court|poll)\b/i;
+// a report of the dead and wounded names the place and the side every day: its line needs a specific second subject
+const REPORT = /\b(?:dræb\w*|såre[dt]\w*|omkom\w*|døde|dødstal\w*|killed|wounded|injured|kills)\b/i;
+const SPECIFIC = 1.8;   // a subject in fewer answers than this (idf) is specific: Israel, Iran, Rusland, Kina are in many
 function answerFor(i, extra = '') {
   const A = answers(), ix = V('bix');
   if (!A.list.length || !ix) return null;
@@ -422,15 +443,21 @@ function answerFor(i, extra = '') {
   const idf = s => { const p = pageOf(s), n = p ? ix.items[p].n_answers || 0 : 0; return Math.log((N + 1) / (n + 1)); };
   const own = new Set(S.flatMap(([s]) => { const p = pageOf(s), e = p && ix.items[p]; return e ? [...stems([e.name, ...(e.aliases || [])].join(' '))] : []; }));
   const sw = new Set([...stems([i.title, i.title_da, i.summary_da, (sumOf(i) || {}).text, extra].join(' '))].filter(w => !own.has(w) && !GEN.has(w)));
+  const head = [i.title, i.title_da].join(' '), strict = DOMESTIC.test(head) || REPORT.test(head);
   let best = null, bestV = 0;
   for (const a of A.list) {
     const age = Math.max(0, now - Date.parse(a.date + 'T12:00:00Z')) / 864e5;
     if (age > 3 * 365) break;   // the list runs newest first
     const core = answerCore(a), touches = answerTouches(a);
-    if (!S.some(([s, w]) => w === 1 && idf(s) > 0.5 && core.has(s))) continue;
+    const anchor = S.filter(([s, w]) => w === 1 && idf(s) > 0.5 && core.has(s)).sort((x, y) => idf(y[0]) - idf(x[0]))[0];
+    if (!anchor) continue;
     const inCore = S.filter(([s]) => core.has(s)), inQ = S.filter(([s]) => !core.has(s) && touches.has(s) && idf(s) > 0.5);
     const words = [...answerWords(a)].filter(w => sw.has(w));
-    if (inCore.length + inQ.length < 2 && words.length < 2) continue;
+    // the second signal: another subject of the headline (never only the summary's) that the answer is about, or that
+    // it touches and few answers name – or two words the story and the answer share. A story of one state's own affairs
+    // or a report of the dead needs a specific second subject.
+    const second = S.filter(([s, w]) => s !== anchor[0] && w === 1 && (core.has(s) || (touches.has(s) && idf(s) > SPECIFIC)));
+    if (strict ? !second.some(([s]) => idf(s) > SPECIFIC) : !second.length && words.length < 2) continue;
     const sc = inCore.reduce((x, [s, w]) => x + w * Math.max(0.3, idf(s)), 0) + 0.5 * inQ.reduce((x, [s, w]) => x + w * idf(s), 0) + 0.6 * words.length;
     const v = sc * Math.exp(-age / 365);
     if (v > bestV) { bestV = v; best = a; }
@@ -449,10 +476,13 @@ function answerRef(i, extra = '') {
 }
 function fillAnswerRefs() {
   if (!V('bix') || !V('mix')) return;
+  const edge = $('bar').getBoundingClientRect().bottom;
   for (const el of list.querySelectorAll('[data-ans-for]')) {
     const i = findStory(el.dataset.ansFor), a = i && answerFor(i, el.dataset.ansX || '');
+    const above = el.getBoundingClientRect().top < edge, h0 = el.offsetHeight, pg = el.closest('.page');
     el.removeAttribute('data-ans-for');
     el.innerHTML = a ? answerLine(a) : '';
+    if (above && pg && el.offsetHeight !== h0) pg.scrollTop += el.offsetHeight - h0;   // above the reader: nothing moves
   }
 }
 // the owner's hand (admin): stories removed or moved from this phone, at once, before the radar has caught up
@@ -676,7 +706,7 @@ function dayText(day) {
 }
 async function loadArchive() {
   if (archiveState === 'loading') return;
-  archiveState = 'loading';
+  archiveState = 'loading'; movesAt = Date.now();
   const url = CFG.movesUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'moves.json');
   try {
     const r = await fetch(url, { cache: 'no-cache' });
@@ -1085,21 +1115,26 @@ function analysesPage() {
     + `<button class="an-beg" data-begreber><span><b>Begreber</b><small>${esc(c.pages)}</small></span><svg><use href="#i-chev"/></svg></button></div>`
     + `<div class="an-list">${analysesList()}</div>`;
 }
+let anYear = '', azLetter = '';
 function analysesList() {
   need('mix'); need('ans');
   const A = answers();
-  if (!A.list.length) return waiting('mix') ? '<div class="empty">Henter svarene …</div>' : '<div class="empty">Kunne ikke hente svarene lige nu.</div>';
+  if (!A.list.length) return waiting('mix') ? '<div class="empty">Henter svarene …</div>' : retry('svarene', 'mix', 'ans');
   const terms = fold(anQuery.trim()).split(/\s+/).filter(Boolean);
   if (terms.length) need('bfull');   // an answer is found by the concepts it reads too
   const shown = terms.length ? A.list.filter(a => { const s = anSearchText(a); return terms.every(w => s.includes(w)); }) : A.list;
   if (!shown.length) return `<div class="empty">Intet svar matcher »${esc(anQuery.trim())}«.</div>`;
   let html = terms.length ? `<p class="an-n">${shown.length} svar</p>` : '', y = '';
+  if (!terms.length) {   // the years as quiet chips: a tap jumps to the year's band
+    const years = [...new Set(shown.filter(a => !a.fresh).map(a => a.date.slice(0, 4)))];
+    if (years.length > 3) html += `<nav class="jump" aria-label="Gå til år">${years.map(yr => `<button data-year="${esc(yr)}">${esc(yr)}</button>`).join('')}</nav>`;
+  }
   const fresh = shown.filter(a => a.fresh);
   if (fresh.length) html += '<div class="day an-y"><span>Nye svar</span></div>' + fresh.map(a => anRow(a, terms)).join('');
   for (const a of shown) {
     if (a.fresh) continue;
     const yr = a.date.slice(0, 4);
-    if (yr !== y) { y = yr; html += `<div class="day an-y"><span>${esc(yr)}</span></div>`; }
+    if (yr !== y) { y = yr; html += `<div class="day an-y" id="an-y-${esc(yr)}"><span>${esc(yr)}</span></div>`; }
     html += anRow(a, terms);
   }
   return html;
@@ -1127,28 +1162,39 @@ const paras = text => String(text || '').trim().split(/\n\s*\n+/).map(b => {
 // a subject of the layer by its page ('rusland--usa' is two)
 const subjLinks = s => String(s || '').split('--').map(p => { const pg = pageOf(p);
   return pg ? `<a class="bg sj" href="?begreb=${encodeURIComponent(pg)}" data-begreb="${esc(pg)}">${esc(nameOf(pg))}</a>` : `<span class="sj">${esc(nameOf(p))}</span>`; }).join(' og ');
-function readingsOf(a, full) {
-  if (a.readings && a.readings.length) return a.readings.filter(r => r.text_da).map(r => ({ s: r.subject, text: r.text_da }));
+// what this answer reads: only readings that are this answer's own (a reading over several answers belongs to the newest
+// of them), each said once – one that repeats 'Svaret kort' or another reading is folded away
+function readingsOf(a, full, note = '') {
+  const sig = t => new Set(String(t || '').toLowerCase().replace(/^ifølge [^,:]*?svar\w*(?: af [\d/]+)?:?\s*/, '').match(/[\p{L}\p{N}]{4,}/gu) || []);
+  const like = (x, y) => { let n = 0; for (const w of x) if (y.has(w)) n++; return n / Math.max(1, Math.min(x.size, y.size)); };
+  const said = [sig(note)], out = [];
+  const keep = (s, text) => { const g = sig(text); if (said.some(x => like(g, x) >= 0.6)) return; said.push(g); out.push({ s, text }); };
+  if (a.readings && a.readings.length) { for (const r of a.readings) if (r.text_da) keep(r.subject, r.text_da); return out; }
   if (!full) return [];
-  const ab = aboutOf(a), out = [], seen = new Set();
-  for (const [s, rows] of Object.entries(full.readings || {})) for (const r of rows) {
-    if (r.nr !== a.nr && !(r.also || []).includes(a.nr)) continue;
-    if (seen.has(r.text_da)) continue;
-    seen.add(r.text_da); out.push({ s, text: r.text_da, own: r.nr === a.nr ? 1 : 0 });
-  }
+  const ab = aboutOf(a), rows = [];
+  for (const [s, list] of Object.entries(full.readings || {})) for (const r of list) if (r.nr === a.nr) rows.push({ s, text: r.text_da });
   const weight = s => Math.max(0, ...s.split('--').map(p => ab.get(p) || 0));
-  return out.sort((x, y) => y.own - x.own || weight(y.s) - weight(x.s));
+  rows.sort((x, y) => weight(y.s) - weight(x.s));
+  for (const r of rows) keep(r.s, r.text);
+  return out;
 }
 const KIND_ORDER = ['begreb', 'aftale', 'proces', 'sted', 'organisation', 'gruppe', 'sag', 'magt', 'stat'];
 // the pages as quiet chips, the first ten and the rest behind one more
-const SHOW_CHIPS = 10;
-const chips = (ids, key) => { const all = unfolded.has(key), shown = all || ids.length <= SHOW_CHIPS + 2 ? ids : ids.slice(0, SHOW_CHIPS);
-  return `<div class="wk-chips">${shown.map(id => `<a class="chip" href="?begreb=${encodeURIComponent(id)}" data-begreb="${esc(id)}">${esc(nameOf(id))}</a>`).join('')}`
+const SHOW_CHIPS = 10, SHOW_SVAR_CHIPS = 6;
+// a chip names its page; an issue page also says it is the issue ('Iran · sag'), so it is never taken for the state's
+const chipName = id => { const e = ((V('bix') || {}).items || {})[id]; return e && e.kind === 'sag' && /-sagen$/.test(e.name || '')
+  ? `${esc(e.name.replace(/-sagen$/, ''))}<small> · sag</small>` : esc(nameOf(id)); };
+const chips = (ids, key, max = SHOW_CHIPS) => { const all = unfolded.has(key), shown = all || ids.length <= max + 2 ? ids : ids.slice(0, max);
+  return `<div class="wk-chips">${shown.map(id => `<a class="chip" href="?begreb=${encodeURIComponent(id)}" data-begreb="${esc(id)}">${chipName(id)}</a>`).join('')}`
     + (shown.length < ids.length ? `<button class="chip more" data-unfold="${esc(key)}">+ ${ids.length - shown.length}</button>` : '') + '</div>'; };
+// a file that could not be fetched (offline, a hiccup) is said as such, with another try – never 'findes ikke'
+const failed = (...ks) => ks.some(k => vd[k] && vd[k].state === 'error' && !vd[k].v);
+const retry = (what, ...ks) => `<div class="empty">Kunne ikke hente ${what} lige nu.<button class="wide soft" data-retry="${ks.join(',')}">Prøv igen</button></div>`;
 function svarPage() {
   need('mix'); need('ans');
   const A = answers(), a = A.by.get(String(svarNr));
-  if (!a) return waiting('mix') || waiting('ans') ? '<div class="empty">Henter svaret …</div>' : '<div class="empty">Svaret findes ikke.</div>';
+  if (!a) return waiting('mix') || waiting('ans') ? '<div class="empty">Henter svaret …</div>'
+    : failed('mix') ? retry('svaret', 'mix', 'ans') : '<div class="empty">Svaret findes ikke.</div>';
   const full = a.layer ? need('mfull') : null, mv = full && (full.answers || {})[a.nr], bf = need('bfull');
   const texts = a.fresh ? need('txt') : null, area = areaOf(a), orig = a.orig ? cleanTitle(ourWords(a.orig)) : '';
   let h = `<header class="rd-top"><span class="thr-meta">Hizb ut-Tahrirs svar af ${esc(dSlash(a.date))}${area ? ` · ${esc(area)}` : ''}</span>`
@@ -1157,7 +1203,7 @@ function svarPage() {
   const note = a.note || (mv && mv.note_da) || '';
   if (note) h += `<section class="ht-box"><div class="ht-l">Svaret kort</div><p class="ht">${rich(note, linkSession())}</p></section>`;
   else if (a.layer && waiting('mfull')) h += '<p class="explain pad">Henter svaret …</p>';
-  const reads = readingsOf(a, full), rk = `svar|${a.nr}|reads`, allReads = unfolded.has(rk);
+  const reads = readingsOf(a, full, note), rk = `svar|${a.nr}|reads`, allReads = unfolded.has(rk);
   if (reads.length) {
     // grouped by subject; inside the answer's own page its own date's attribution is short ('Ifølge svaret …')
     const own = new RegExp(`^Ifølge Hizb ut-Tahrirs svar af ${reEsc(dSlash(a.date))}(:?)\\s+`), groups = new Map();
@@ -1166,9 +1212,11 @@ function svarPage() {
       `<li><div class="rd-s">${subjLinks(sj)}</div>${texts.map(t => `<p class="ht">${esc(t)}</p>`).join('')}</li>`).join('')}</ul>`
       + (reads.length > SHOW_READS ? `<button class="ht-more" data-unfold="${esc(rk)}">${allReads ? 'Vis færre' : `Alle ${reads.length} læsninger`}</button>` : '') + '</section>';
   }
+  // the pages it uses, the central first (the subjects of its readings, its area), at most SHOW_SVAR_CHIPS before '+ n'
+  const central = new Set([...reads.flatMap(r => String(r.s || '').split('--')), ...(a.issues || []).slice(0, 1), ...(a.states || []).slice(0, 1)].map(x => pageOf(x) || x));
   const pages = [...new Set([...(answerPages().get(a.nr) || []), ...(a.begreber || []).filter(id => ((V('bix') || {}).items || {})[id])])]
-    .sort((x, y) => KIND_ORDER.indexOf(((V('bix') || {}).items[x] || {}).kind) - KIND_ORDER.indexOf(((V('bix') || {}).items[y] || {}).kind) || nameOf(x).localeCompare(nameOf(y), 'da'));
-  if (pages.length) h += `<div class="arch-h rd-h">Begreber i svaret</div>${chips(pages, `svar|${a.nr}|pages`)}`;
+    .sort((x, y) => central.has(y) - central.has(x) || KIND_ORDER.indexOf(((V('bix') || {}).items[x] || {}).kind) - KIND_ORDER.indexOf(((V('bix') || {}).items[y] || {}).kind) || nameOf(x).localeCompare(nameOf(y), 'da'));
+  if (pages.length) h += `<div class="arch-h rd-h">Begreber i svaret</div>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS)}`;
   const cites = ((mv && mv.cites_nrs) || []).map(nr => A.by.get(String(nr))).filter(Boolean);
   if (cites.length) h += `<div class="arch-h rd-h">Svaret henviser til</div><div class="rd-list">${cites.map(c => anRow(c)).join('')}</div>`;
   const held = texts && (texts.items || []).find(x => String(x.id) === a.nr && x.text);
@@ -1194,7 +1242,13 @@ function svarPage() {
 // for a state its relations; the answers about it; the pages related to it; today's stories that name it. Everything
 // on it is the movement's, attributed; the page itself only gathers.
 let begrebId = params.get('begreb') || '';
-const SHOW_TL = 5, SHOW_ANS = 6, SHOW_NEWS = 6;
+const SHOW_TL = 5, SHOW_ANS = 6, SHOW_NEWS = 6, STEP = 20;
+// a long list unfolds twenty at a time ('Vis 20 mere'), then folds back – the USA's 313 answers are no 44,000 px page
+const steps = {};
+const stepOf = k => steps[k] || STEP;
+const moreBtn = (k, n, open, first, cls) => !open ? `<button class="${cls}" data-unfold="${esc(k)}">${first}</button>`
+  : stepOf(k) < n ? `<button class="${cls}" data-step="${esc(k)}">Vis ${Math.min(STEP, n - stepOf(k))} mere · ${n - stepOf(k)} tilbage</button>`
+    + `<button class="${cls} fold" data-unfold="${esc(k)}">Vis færre</button>` : `<button class="${cls}" data-unfold="${esc(k)}">Vis færre</button>`;
 function mentions(i, id) {
   const s = subj(id);
   if ((i.actors || []).some(x => x === id || x === s)) return true;
@@ -1203,36 +1257,46 @@ function mentions(i, id) {
 function begrebPage() {
   const ix = need('bix'), bf = need('bfull'), id = begrebId;
   const head = ix && (ix.items || {})[id], e = bf && (bf.items || {})[id], x = e || head;
-  if (!x) return waiting('bix') || waiting('bfull') ? '<div class="empty">Henter …</div>' : '<div class="empty">Siden findes ikke.</div>';
+  if (!x) return waiting('bix') || waiting('bfull') ? '<div class="empty">Henter …</div>'
+    : failed('bix', 'bfull') ? retry('siden', 'bix', 'bfull') : '<div class="empty">Siden findes ikke.</div>';
   const n = e ? new Set([...(e.answers || []).map(String), ...answers().list.filter(a => a.fresh && (a.begreber || []).includes(id)).map(a => a.nr)]).size : head.n_answers;
-  let h = `<header class="wk-top"><span class="thr-meta">${esc(KINDS[x.kind] || x.kind)} · ${n} svar</span><h2>${esc(x.name)}</h2></header>`;
+  const title = x.kind === 'sag' && /-sagen$/.test(x.name || '') ? `${x.name.replace(/-sagen$/, '')} – sagen` : x.name;
+  let h = `<header class="wk-top"><span class="thr-meta">${esc(KINDS[x.kind] || x.kind)} · ${n} svar</span><h2>${esc(title)}</h2></header>`;
   if (!e) return h + (waiting('bfull') ? '<p class="explain pad">Henter siden …</p>' : '<p class="explain pad">Siden kunne ikke hentes lige nu.</p>');
-  const A = answers(), la = e.lead_nr && A.by.get(String(e.lead_nr));
-  if (e.lead_da) h += `<section class="ht-box wk-lead"><p class="ht">${esc(e.lead_da)}</p>${la ? `<button class="ht-go" data-svar="${esc(la.nr)}"><span>Svaret af ${esc(dSlash(la.date))}: `
-    + `<span class="ht">${esc(la.title)}</span></span><svg><use href="#i-chev"/></svg></button>` : ''}</section>`;
+  const A = answers();
   // the editor's new answers (after the static layer) are on the page at once: their readings of it lead its timeline,
-  // and they lead its answers – the next build of the wiki takes them in for good
+  // and they lead its answers – the next build of the wiki takes them in for good. The newest answer governs: a filed
+  // reading of the page's own subject that is newer than the lead is the lead now, the built lead under it
   const s0 = subj(id), newer = A.list.filter(a => a.fresh && ((a.begreber || []).includes(id)
     || (a.readings || []).some(r => String(r.subject || '').split('--').includes(s0))));
+  const govern = newer.filter(a => a.date > String(e.lead_date || '')).flatMap(a => (a.readings || [])
+    .filter(r => r.text_da && r.subject === s0).map(r => ({ a, text: r.text_da })))[0];
+  const goBtn = la => la ? `<button class="ht-go" data-svar="${esc(la.nr)}"><span>Svaret af ${esc(dSlash(la.date))}: `
+    + `<span class="ht">${esc(la.title)}</span></span><svg><use href="#i-chev"/></svg></button>` : '';
+  if (govern) h += `<section class="ht-box wk-lead"><p class="ht">${esc(govern.text)}</p>${goBtn(govern.a)}</section>`;
+  if (e.lead_da) h += `<section class="ht-box wk-lead${govern ? ' wk-was' : ''}">${govern ? '<div class="ht-l">Før det nyeste svar</div>' : ''}`
+    + `<p class="ht">${esc(e.lead_da)}</p>${goBtn(e.lead_nr && A.by.get(String(e.lead_nr)))}</section>`;
   const tl = [...newer.flatMap(a => (a.readings || []).filter(r => r.text_da && String(r.subject || '').split('--').includes(s0))
     .map(r => ({ date: a.date, nr: a.nr, text_da: r.text_da }))), ...(e.timeline || [])], tk = `${id}|tl`, tlAll = unfolded.has(tk);
   if (tl.length) {
     let y = '', rows = '';
-    for (const r of tlAll ? tl : tl.slice(0, SHOW_TL)) {
+    for (const r of tl.slice(0, tlAll ? stepOf(tk) : SHOW_TL)) {
       const yr = String(r.date || '').slice(0, 4);
       if (yr !== y) { y = yr; rows += `<li class="wk-y">${esc(yr)}</li>`; }
       rows += `<li><button class="wk-r" data-svar="${esc(r.nr)}"><span class="ht">${esc(r.text_da)}</span><svg><use href="#i-chev"/></svg></button></li>`;
     }
-    h += `<div class="arch-h rd-h">Gennem årene</div><section class="ht-box wk-tl"><ol>${rows}</ol>`
-      + (tl.length > SHOW_TL ? `<button class="ht-more" data-unfold="${esc(tk)}">${tlAll ? 'Vis færre' : `Hele forløbet · ${tl.length}`}</button>` : '') + '</section>';
+    h += `<div class="arch-h rd-h">Gennem årene</div>`
+      + (e.history_da ? `<section class="ht-box wk-hist"><div class="ht-l">Forløbet</div><p class="ht">${esc(e.history_da)}</p></section>` : '')
+      + `<section class="ht-box wk-tl"><ol>${rows}</ol>`
+      + (tl.length > SHOW_TL ? moreBtn(tk, tl.length, tlAll, `Hele forløbet · ${tl.length}`, 'ht-more') : '') + '</section>';
   }
   const rel = e.relations || [], rkk = `${id}|rel`, relAll = unfolded.has(rkk);
   if (rel.length) h += `<div class="arch-h rd-h">Forhold</div><section class="ht-box rd-reads"><ul>${(relAll ? rel : rel.slice(0, SHOW_TL)).map(r =>
     `<li><div class="rd-s">${subjLinks(r.with)}</div><p class="ht">${esc(r.text_da)}</p></li>`).join('')}</ul>`
     + (rel.length > SHOW_TL ? `<button class="ht-more" data-unfold="${esc(rkk)}">${relAll ? 'Vis færre' : `Alle ${rel.length} forhold`}</button>` : '') + '</section>';
   const ans = [...new Set([...newer.map(a => a.nr), ...(e.answers || []).map(String)])].map(nr => A.by.get(nr)).filter(Boolean), ak = `${id}|ans`, ansAll = unfolded.has(ak);
-  if (ans.length) h += `<div class="arch-h rd-h">Svar om emnet</div><div class="rd-list">${(ansAll ? ans : ans.slice(0, SHOW_ANS)).map(a => anRow(a)).join('')}</div>`
-    + (ans.length > SHOW_ANS ? `<button class="wide soft" data-unfold="${esc(ak)}">${ansAll ? 'Vis færre' : `Alle ${ans.length} svar`}</button>` : '');
+  if (ans.length) h += `<div class="arch-h rd-h">Svar om emnet</div><div class="rd-list">${ans.slice(0, ansAll ? stepOf(ak) : SHOW_ANS).map(a => anRow(a)).join('')}</div>`
+    + (ans.length > SHOW_ANS ? moreBtn(ak, ans.length, ansAll, `Alle ${ans.length} svar`, 'wide soft') : '');
   const related = (e.related || []).filter(r => ((ix || {}).items || {})[r]);
   if (related.length) h += `<div class="arch-h rd-h">Relaterede begreber</div>${chips(related, `${id}|related`)}`;
   if (data) {
@@ -1246,13 +1310,16 @@ function begrebPage() {
 // the wiki's index: every page A–Å
 function begreberPage() {
   const ix = need('bix');
-  if (!ix) return waiting('bix') ? '<div class="empty">Henter …</div>' : '<div class="empty">Kunne ikke hente begreberne lige nu.</div>';
+  if (!ix) return waiting('bix') ? '<div class="empty">Henter …</div>' : retry('begreberne', 'bix');
   const items = Object.entries(ix.items || {}).map(([id, e]) => ({ id, ...e })).sort((a, b) => a.name.localeCompare(b.name, 'da'));
   let h = `<header class="ud-top"><span><b>Begreber</b><small>${items.length} sider, samlet alene fra Hizb ut-Tahrirs svar</small></span></header>`, L = '';
+  const letters = [...new Set(items.map(e => e.name.charAt(0).toLocaleUpperCase('da')))];
+  h += `<nav class="jump az-jump" aria-label="Gå til bogstav">${letters.map(l => `<button data-letter="${esc(l)}">${esc(l)}</button>`).join('')}</nav>`;
   for (const e of items) {
     const l = e.name.charAt(0).toLocaleUpperCase('da');
-    if (l !== L) { L = l; h += `<div class="day az"><span>${esc(l)}</span></div>`; }
-    h += `<button class="az-row" data-begreb="${esc(e.id)}"><b>${esc(e.name)}</b><small>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</small></button>`;
+    if (l !== L) { L = l; h += `<div class="day az" id="az-${esc(l)}"><span>${esc(l)}</span></div>`; }
+    const nm = e.kind === 'sag' && /-sagen$/.test(e.name) ? `${e.name.replace(/-sagen$/, '')} – sagen` : e.name;
+    h += `<button class="az-row" data-begreb="${esc(e.id)}"><b>${esc(nm)}</b><small>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</small></button>`;
   }
   return h;
 }
@@ -1276,7 +1343,9 @@ function pageHtml(t, all, opts = {}) {
 // what the pages show changes with the data and the user's choices; each page notes the state it was drawn from
 let ver = 0;
 // Analyser and the wiki's index show no news: drawn again only when what they show has changed (not at every reload)
-const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, (vd.bfull || {}).state].join('|'), begreber: () => String(!!V('bix')) };
+const vstate = k => (vd[k] || {}).state || '';
+const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, vstate('bfull'), vstate('mix'), vstate('ans'), anYear].join('|'),
+  begreber: () => [!!V('bix'), vstate('bix'), azLetter].join('|') };
 function draw(t, opts = {}) {
   const pg = pageEl(t);
   if (!pg) return;
@@ -1317,7 +1386,15 @@ function staleOn(tabs) { if (tabs.includes(tab)) render(); else { ver++; drawSoo
 // a file of the wiki or the answers came: only the pages that show it are drawn again – the one in view at once, in place
 function redrawPages(tabs) {
   for (const t of tabs) { const p = pageEl(t); if (p && p.dataset.ver) p.dataset.ver = -1; }
-  if (tabs.includes(tab) && (data || OWN[tab])) { const y = cur().scrollTop; draw(tab); cur().scrollTop = y; }
+  if (tabs.includes(tab) && (data || OWN[tab])) {
+    // what the reader is reading stays where it is: an answer line or a link that arrives above it moves nothing
+    const p = cur(), y = p.scrollTop, edge = $('bar').getBoundingClientRect().bottom;
+    const anchor = y > 0 ? [...p.querySelectorAll('[id]')].find(x => x.getBoundingClientRect().top >= edge) : null;
+    const at = anchor && anchor.getBoundingClientRect().top;
+    draw(tab); p.scrollTop = y;
+    const again = anchor && pg$(anchor.id);
+    if (again) p.scrollTop += again.getBoundingClientRect().top - at;
+  }
   drawSoon();
 }
 // pictures: the first ones on a page load at once (on a page beside the one in view too, so a swipe shows them), the
@@ -1428,6 +1505,13 @@ function pin(el, top, ms = 380) {
   };
   step(t0);
 }
+// a list folded back: its button stays under the finger while the page is drawn again (the rows above it shrink away)
+function keepPlace(btn, redraw) {
+  const key = btn.dataset.unfold, top = btn.getBoundingClientRect().top;
+  redraw();
+  const p = cur(), same = p && [...p.querySelectorAll('[data-unfold]')].find(b => b.dataset.unfold === key);
+  if (same) p.scrollTop += same.getBoundingClientRect().top - top;
+}
 // an opened story that reaches past the tabs comes up just enough – never with its headline under the top bar
 function keepInView(el) {
   setTimeout(() => {
@@ -1520,7 +1604,22 @@ $('list').addEventListener('click', async e => {
   if (uf) {   // a list on a wiki page or in an answer unfolds in place; folded back, its button stays under the finger
     const k = uf.dataset.unfold, was = unfolded.has(k);
     was ? unfolded.delete(k) : unfolded.add(k);
+    delete steps[k];
     if (was) keepPlace(uf, render); else render();
+    return;
+  }
+  const st = t.closest('[data-step]');   // twenty more of a long list, the button kept under the finger
+  if (st) { const k = st.dataset.step; steps[k] = stepOf(k) + STEP; const y = cur().scrollTop; render(); cur().scrollTop = y; return; }
+  const rt = t.closest('[data-retry]');   // a file that failed: asked for again at once
+  if (rt) {
+    for (const k of rt.dataset.retry.split(',')) { if (vd[k] && vd[k].state === 'error') vd[k].state = 'idle'; need(k); }
+    rt.disabled = true; rt.textContent = 'Henter …';
+    return;
+  }
+  const yj = t.closest('[data-year]') || t.closest('[data-letter]');   // Analyser's years, the index's letters
+  if (yj) {
+    const band = pg$(yj.dataset.year ? 'an-y-' + yj.dataset.year : 'az-' + yj.dataset.letter);
+    if (band) scrollToEl(band.nextElementSibling || band, 8 + band.offsetHeight);   // the band itself sticks: aim below it
     return;
   }
   if (t.closest('[data-go]')) { const go = t.closest('[data-go]').dataset.go; if (SIDE.has(go)) openSide(go); else setTab(go, { top: true }); return; }
@@ -1646,6 +1745,16 @@ let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved
 // the side pages one came through (a story's concept, its answer, an earlier answer …): the logo goes back through them
 const backStack = [];
 const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : '';
+// The phone's own back (Android's button and gesture, a browser's swipe) goes the app's way back: every side page
+// opened is a step in the browser's history, and stepping back there is stepping back here. A tab chosen from a side
+// page takes those steps away again; the address names the page in view and nothing older.
+const BASE = location.pathname + (params.get('dev') ? `?dev=${encodeURIComponent(params.get('dev'))}` : '');
+let sideDepth = 0, unwinding = false;
+const sideUrl = (t, arg) => {
+  const q = t === 'svar' ? `svar=${encodeURIComponent(arg)}` : t === 'begreb' ? `begreb=${encodeURIComponent(arg)}` : '';
+  return q ? BASE + (BASE.includes('?') ? '&' : '?') + q : BASE;
+};
+try { history.replaceState({ khabar: 'base' }, '', BASE); } catch {}
 function openSide(t, arg = '') {
   arg = String(arg || '');
   if (SIDE.has(tab)) {
@@ -1654,9 +1763,23 @@ function openSide(t, arg = '') {
     if (backStack.length > 40) backStack.shift();
   }
   if (t === 'svar') svarNr = arg; else if (t === 'begreb') begrebId = arg;
+  try { history.pushState({ khabar: 'side', t, arg }, '', sideUrl(t, arg)); sideDepth++; } catch {}
   if (t === tab) { render({ view: true }); cur().scrollTop = 0; } else setTab(t, { top: true });
 }
+// the logo's back mark: one step back in the browser's history when the side page is a step there, else at once
 function goBack() {
+  if (sideDepth > 0) { history.back(); return; }
+  stepBack();
+}
+addEventListener('popstate', () => {
+  if (unwinding) { unwinding = false; return; }
+  if (sideDepth > 0) { sideDepth--; stepBack(); }
+});
+// a tab from a side page: the side pages' steps leave the browser's history too
+function leaveSides() {
+  if (sideDepth > 0) { unwinding = true; const n = sideDepth; sideDepth = 0; history.go(-n); }
+}
+function stepBack() {
   const b = backStack.pop();
   if (!b) { setTab(backTo || 'home'); return; }
   if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg;
@@ -1726,7 +1849,7 @@ function setTab(next, opts = {}) {
   document.documentElement.classList.toggle('aside', SIDE.has(tab));
   document.querySelectorAll('.page.side').forEach(p => p.classList.toggle('on', p.dataset.tab === tab));
   if (SIDE.has(tab) && !ASIDE.has(was)) backTo = was;
-  if (!SIDE.has(tab)) backStack.length = 0;   // a tab: the way back starts afresh
+  if (!SIDE.has(tab)) { backStack.length = 0; leaveSides(); }   // a tab: the way back starts afresh
   if (tab === 'analyses') markAnswersSeen();
   if (tab === 'search') { loadIndex(); cur().scrollTop = 0; setTimeout(() => $('search').focus({ preventScroll: true }), 60); } else $('search').blur();
   $('freshPill').hidden = true;

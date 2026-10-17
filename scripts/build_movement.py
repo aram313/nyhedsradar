@@ -79,6 +79,7 @@ ATTRIB = [   # the movement's readings name the movement: 'Ifølge Hizb ut-Tahri
     (re.compile(r'^Bevægelsens svar '), 'Hizb ut-Tahrirs svar '),
 ]
 OPENINGS = [   # a text that opens on the answers without naming the movement
+    (re.compile(r'^Fra (\d{4}) til (\d{4}) læser (?:svarene|bevægelsens svar) '), r'Fra \1 til \2 læser Hizb ut-Tahrirs svar '),
     (re.compile(r'^Svarene (?:af )?'), 'Hizb ut-Tahrirs svar '),
     (re.compile(r'^Svaret '), 'Hizb ut-Tahrirs svar '),
     (re.compile(r'^Bevægelsen '), 'Hizb ut-Tahrir '),
@@ -159,8 +160,41 @@ class Numbers:
                       lambda m: ALIASES.get(m.group(1) or m.group(2), m.group(1) or m.group(2)), s or '')
 
 
-def attributed(s, when=None):
+# Khabar's own words about the corpus are no reading of the movement's and stay out of the reader texts (2026-10-17
+# review): 'Ingen nyere svar …', 'Kuwait nævnes ikke særskilt', '(svarets påstand … er ikke gengivet)' – what an answer
+# does not say is simply not said
+META = [
+    (re.compile(r'\s*\((?:svarets påstand|svarets påstande)[^()]*?er ikke gengivet(?:; gerningsbelæg mangler)?\)'), ''),
+    (re.compile(r';\s*svarets påstand[^;.]*?er ikke gengivet(?:; gerningsbelæg mangler)?(?=[.;]|$)'), ''),
+    (re.compile(r'(?:^|(?<=[.;:] ))(?:Hizb ut-Tahrirs|Bevægelsens) svar har ingen nutidig stillingslæsning af [^.]+\.\s*'), ''),
+    (re.compile(r'\s*(?:Der er intet|Ingen) nyere (?:svar|læsning)[^.]*\.'), ''),
+    (re.compile(r'\s*(?:Intet svar dækker|Der er intet svar om|Svarene har ingen (?:egen )?læsning af)[^.]*\.'), ''),
+    (re.compile(r';\s*[A-ZÆØÅ][\w-]* (?:får ingen særskilt læsning|nævnes ikke særskilt)[^.;]*'), ''),
+    (re.compile(r'\s*[A-ZÆØÅ][\w-]* nævnes ikke som part i svarene[^.]*\.'), ''),
+    (re.compile(r' – det seneste om regionen –'), ''),
+    (re.compile(r'; svaret af [\d/]+ er det seneste(?=\.)'), ''),
+    (re.compile(r'(?:^|(?<=\. ))Svaret af ([\d/]+) er det seneste: (\w+) er '), r'Ifølge svaret af \1 er \2 '),
+]
+# the people loyal to a power, never 'Storbritanniens folk' – in Danish that first reads as the British people, and
+# Khabar judges states, never peoples (review 2026-10-17); 'vasaller' is an agent word – the layer says 'underordnede'
+WORDING = [
+    (re.compile(r"\b(USA's|USA’s|Storbritanniens|Frankrigs|Europas|Ruslands|Amerikas|Englands|kolonimagts|kolonimagtens) folk\b"),
+     r'\1 tilhængere'),
+    (re.compile(r'\bdets folk\b(?= (?:i|afløser|fra|mod)\b|,|$)'), 'dets tilhængere'),
+    (re.compile(r'(?<!det )\b(amerikanske og britiske|britiske|amerikanske|franske) folk\b'), r'\1 tilhængere'),
+    (re.compile(r'\bikke meget forskelligt fra vasaller\b'), 'ikke meget forskelligt fra underordnede stater'),
+]
+
+
+def tidy(s):
     s = ' '.join(str(s or '').split())
+    for rx, to in META + WORDING:
+        s = rx.sub(to, s)
+    return re.sub(r'\s+([.;,])', r'\1', s).strip()
+
+
+def attributed(s, when=None):
+    s = tidy(s)
     for rx, to in ATTRIB:
         if rx.match(s):
             return rx.sub(to, s, count=1)
@@ -246,7 +280,7 @@ def build(now=None):
         nr = nums.by_key[x['key']]
         a = answers.get(nr)
         if a is None:
-            answers[nr] = {'date': x['date'], 'title_da': x['title_da'], 'question_da': nums.text(x['question_da']),
+            answers[nr] = {'date': x['date'], 'title_da': x['title_da'], 'question_da': tidy(nums.text(x['question_da'])),
                            'note_da': nums.text(x['note_da']), 'url': en_url.get(nr) or x['url'],
                            'issues': list(x['issues']), 'states': list(x['states']), 'powers': list(x['powers']),
                            '_cites': list(x.get('cites') or [])}
@@ -407,7 +441,7 @@ def build(now=None):
 
 # the layer's own vocabulary for 'serves' (card H1): the agent words plus the softer ones the answers use
 SERVE = re.compile(AGENT_WORDS.pattern[:-1] + r'|redskab\w*|[\w-]*loyal\w*|knyttet til|tjener|i hånden|underlagt|'
-                   r'søjle for|støttes af|støttet af|hører til|\w+s (?:mand|mænd|folk)\b|planlagt af|planlagde)', re.I)
+                   r'søjle for|støttes af|støttet af|hører til|\w+s (?:mand|mænd|folk|tilhængere)\b|planlagt af|planlagde)', re.I)
 # an attack with dead or a bombing: never said to be staged or sponsored on a reader surface (card G13), whoever the subject
 STAGED = re.compile(r'\b(iscenesat\w*|iscenesæt\w*|står bag|stod bag|falsk flag|planlagt af|planlagde|på ordre fra)\b', re.I)
 ATTACK = re.compile(r'\b(\w*angreb\w*|\w*bombe\w*|bombning\w*|drab\w*|dræb\w*|massakre\w*|attentat\w*|eksplosion\w*|volden)\b',

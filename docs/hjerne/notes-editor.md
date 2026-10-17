@@ -125,3 +125,11 @@ and outlets as found by then (items.json), wire lines published by then, the rec
   every quarter becomes a full update – the cost then is that of 96 full updates a day, about 8 times today.
 - summaries.json grows with more updates (today 288 summaries and 384 headlines, 153 KB, over four days; with 28
   updates a day up to about twice that) – relevant to the performance work.
+
+## Review fix (2026-10-17): the look in Actions, Claude when it is needed
+
+The four-routines design is replaced (routines have a daily run cap): `editor.py gate` runs after every radar pass and
+fires the routine through its API trigger, once per reason, at most `editor_fires_per_day` a day. The verdict counts a
+story as new only when its first article is, leaves picks and recap stories out, waits with big stories of tier 11 and
+13 (not Danish ones), needs a change for the two-hour reason and names a stopped radar. Brain lines prefer a newer
+filed reading; all of the editor's own text is checked. Replay, rules and tokens: [cadence.md](cadence.md).

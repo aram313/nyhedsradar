@@ -703,6 +703,10 @@ a.bg { pointer-events: auto; color: inherit; -webkit-text-decoration-line: under
   text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
 .story:not(.open) a.bg { pointer-events: none; text-decoration: none; }
 a.bg:active { opacity: .55; }
+/* its touch area reaches past its letters – about 44 px high at text size 1.3 – without moving the text: a near miss
+   opens the page, not the row's toggle under it */
+a.bg { position: relative; }
+a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 
 /* ------------------------------------------------------------ Hizb ut-Tahrir's own face: everything that is the
    movement's (a page's lead and readings, an answer's question, note, readings and text) is set in a serif on a soft
@@ -784,6 +788,20 @@ a.bg:active { opacity: .55; }
 .wk-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 16px 4px; }
 .wk-chips .chip { display: inline-flex; align-items: center; min-height: 36px; }
 .wk-chips .chip.more { color: var(--text-3); }
+.chip small { margin-left: 3px; font-size: calc(12.5px * var(--ts, 1)); font-weight: 500; color: var(--text-3); }
+/* long lists: the years of Analyser and the letters of the index as quiet chips that jump to their band */
+.jump { display: flex; gap: 6px; margin: 10px 0 2px; padding: 0 16px; overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }   /* one quiet row that slides sideways */
+.jump::-webkit-scrollbar { display: none; }
+.jump button { flex: none; min-width: 44px; min-height: 36px; padding: 6px 10px; border-radius: 999px; background: var(--fill);
+  font-size: calc(13.5px * var(--ts, 1)); font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.jump button:active { background: var(--fill-2); }
+.az-jump button { min-width: 38px; }
+/* a wiki page whose newest answer came after the build: the built lead under it, as what came before */
+.wk-was { margin-top: 10px; }
+.wk-was p.ht, .wk-hist p.ht { font-size: calc(15.5px * var(--ts, 1)); line-height: 1.5; }
+.wk-hist { margin-bottom: 10px; }
+.empty .wide { display: flex; margin: 14px auto 0; }
 /* search: the wiki's pages its words name, as chips above the news */
 .sug-bg { margin: 2px 0 12px; }
 .sug-bg .sug-h { margin: 4px 16px 0; }

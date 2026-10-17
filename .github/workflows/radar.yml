@@ -99,6 +99,22 @@ jobs:
           RADAR_STATE: state
         run: python -m radar.energy
 
+      # the editor's quarter-hour look (scripts/editor.py gate, plain Python, no tokens): when something of weight has
+      # happened since the last update, it fires the editor's Claude routine through its API trigger – at most
+      # editor_fires_per_day (config/settings.json) a Danish day, spread over the day; the fires are kept in
+      # state/editor-gate.json. Without the two secrets it only looks (a dry run). A failure here never stops the save.
+      - name: Editor's quarter-hour look
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          PYTHONPATH: src
+          ROUTINE_FIRE_URL: ${{ secrets.ROUTINE_FIRE_URL }}
+          ROUTINE_FIRE_TOKEN: ${{ secrets.ROUTINE_FIRE_TOKEN }}
+        run: |
+          git fetch -q --depth=1 origin +refs/heads/digest:refs/remotes/origin/digest || true
+          if [ -n "$ROUTINE_FIRE_URL" ] && [ -n "$ROUTINE_FIRE_TOKEN" ]; then fire=--fire; else fire=; fi
+          python scripts/editor.py gate --data-dir state $fire
+
       - name: Save state
         run: |
           rm -f .cache/profile.jsonl .cache/digest.json
