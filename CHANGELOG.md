@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Vigtigste runs as time runs** (2026-10-17, the owner: 'det er forvirrende at "vigtigste" nyheder ikke er
+  kronologiske'; `?v=20261018u`): the day's 30 most important stories (the editor's picks, then the radar's strongest;
+  'Vis flere vigtige' takes 60) are shown newest first with Seneste's time column and day rows – the two views differ
+  in what they hold, never in their order.
+
 - **EU summits weigh in the middle** (2026-10-17, the owner agreed): what they decide binds Denmark and settles the
   sanctions on Russia, the money for Ukraine and the trade with “israel”, so they carry the middle mark; the editor
   raises one to high weight when its agenda holds such a decision (the routine's prompt says how).

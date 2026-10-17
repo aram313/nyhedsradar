@@ -1677,12 +1677,16 @@ function latestPage(all, opts) {
   const seg = gone;   // the sort and the three filters sit in the dock above the tabs (liveOpts)
   if (liveSec) all = all.filter(i => secOf(i) === liveSec);
   if (liveSort === 'top') {
+    // the day's most important – the editor's picks and the radar's strongest – shown as time runs, newest first, like
+    // Seneste (the owner, 17/10: "det er forvirrende at 'vigtigste' nyheder ikke er kronologiske"): the two views
+    // differ in what they hold, never in their order
     const day = all.filter(i => hours(i) < 24);
-    const list = [...day.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b)),
+    const ranked = [...day.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b)),
       ...day.filter(i => pickRank(i) === 99).sort((a, b) => rankOf(b) - rankOf(a))];
-    const shown = liveTopAll ? list : list.slice(0, 30);
-    return seg + shown.map((i, n) => story(i, n, { ...opts, tag: !liveSec, top: true, full: true })).join('')
-      + (shown.length < list.length ? `<button class="qbtn" data-live-top-all>Vis flere (${list.length - shown.length})</button>` : '');
+    const most = liveTopAll ? 60 : 30, chosen = new Set(ranked.slice(0, most).map(i => i.id));
+    const list = day.filter(i => chosen.has(i.id));   // in Live's own order: newest first
+    return seg + timeline(list, { ...opts, tag: !liveSec, tick: true })
+      + (!liveTopAll && ranked.length > most ? `<button class="qbtn" data-live-top-all>Vis flere vigtige (${Math.min(ranked.length, 60) - most})</button>` : '');
   }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
   let html = seg + timeline(recent, { ...opts, tag: !liveSec, tick: true });
