@@ -242,9 +242,15 @@ def check_lede(lede, top_title, where, problems):
                         "headline stands right under it: open with the day's other stories, as a standfirst does")
 
 
+# the media groups that are news outlets (config/feeds.json): an outlet's name before a colon is its report; a
+# government's own channel ('official') or the movement's ('bevægelsen') is who speaks, as a person or a state is
+NEWS_GROUPS = {'dk', 'west', 'mena', 'il', 'east', 'channel'}
+
+
 def check_prefix(title, outlets, labels, where, problems):
-    """'X: …' where X is an outlet: only one of the story's own outlets (whose report the claim is). An outlet that
-    does not carry the story is no speaker of it (pro-plan 3.4); 'Who: what' with a person or a state stays."""
+    """'X: …' where X is a news outlet: only one of the story's own outlets (whose report the claim is). An outlet that
+    does not carry the story is no speaker of it (pro-plan 3.4); 'Who: what' with a person, a state or a government's
+    channel ('Kreml: …') stays – `labels` holds the news outlets' names only (NEWS_GROUPS)."""
     m = re.match(r'^([^:»«"]{2,40}):\s', title or '')
     if not m:
         return

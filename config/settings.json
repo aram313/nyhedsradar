@@ -44,6 +44,7 @@
   "rank_fit": 10,
   "lead_curious": 0.5,
   "lead_danish": 0.35,
+  "lead_comment": 0.6,
   "live_levels": {
     "få": [
       104,

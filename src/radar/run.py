@@ -219,6 +219,31 @@ def load_learned_embeddings(embed, learned, path=None):
     return out
 
 
+def story_kind(it, members):
+    """'kommentar' when every readable article of the story (Danish or English; else its lead) is an opinion or analysis
+    piece, else None: one column among the news reports does not make the story a column."""
+    readable = [m for m in [it, *members] if m.get('lang') in READABLE] or [it]
+    return 'kommentar' if all(commentary(m.get('link'), m.get('title')) for m in readable) else None
+
+
+def top_now(shown, picks, now_local, n=5, hours=12):
+    """The stories the app marks 'Topnyhed' (topNow in public/app.js – keep the two alike): the strongest big stories of
+    the Danish day, the editor's picks first, then rank, each for twelve hours after it was published; no commentary."""
+    order = {}
+    for k, p in enumerate(picks or []):
+        pid = p.get('id') if isinstance(p, dict) else p
+        order.setdefault(pid, k)
+    offset, day = now_local.utcoffset() or timedelta(0), now_local.date()
+
+    def pick_rank(it):
+        return min((order[i] for i in [it['id'], *(a.get('id') for a in it.get('also') or [])] if i in order), default=99)
+    big = [it for it in shown if it.get('big') and it.get('kind') != 'kommentar'
+           and NOW - ts(it.get('published') or it['found']) < timedelta(hours=hours)
+           and (ts(it.get('published') or it['found']) + offset).date() == day]
+    big.sort(key=lambda it: (pick_rank(it), -(it.get('rank') if it.get('rank') is not None else it.get('pct') or 0)))
+    return {it['id'] for it in big[:n]}
+
+
 def local_now(settings):
     """Now in Danish time (wall clock; the date and hour are what matter)."""
     try:
@@ -476,6 +501,8 @@ def main():
              + (0.1 if x.get('summary') else 0) + x['pct'] / 1000)
         if x.get('lang') in READABLE and curious(x['title']):
             q -= s.get('lead_curious', 0.5)
+        if commentary(x.get('link'), x.get('title')):   # a story with a news report is led by it, not by a column
+            q -= s.get('lead_comment', 0.6)
         return round(q, 4)
 
     def story(members):
@@ -804,6 +831,12 @@ def main():
         if t:
             v['title_da'] = tidy(t)
 
+    # commentary is labelled in the app, never leads the editor's front page (pro-plan 3.3) and is never notified: a
+    # story is commentary only when every readable article of it is (a news story whose lead is a column is news)
+    for it in shown:
+        it['kind'] = story_kind(it, members_of.get(it['id'], []))
+    tops = top_now(shown, ((digest.get('editor') or {}).get('picks') or []), local_now(s))
+
     # 7. notifications: never twice for the same story, batched, capped, quiet at night
     new_ids = {i['id'] for i in new}
     notified = [n for n in pushes.get('notified', []) if ts(n['at']) >= NOW - timedelta(hours=48) and n['id'] in emb_store]
@@ -813,6 +846,8 @@ def main():
         why = 'top' if it['id'] in new_ids and it.get('cluster_pct', it['pct']) >= s['notify_percentile'] else 'big' if it['big'] else None
         if not why or first_run or (it['foreign'] and not it.get('title_tr')) or not it['confirmed'] or not it['live']:
             continue   # never for a Telegram/YouTube post no established outlet carries, nor one Live does not show
+        if it.get('kind') == 'kommentar':
+            continue   # an opinion piece is no news to buzz about
         e = emb_store[it['id']]
         if len(told) and float((told @ e).max()) >= s['same_story_similarity']:
             continue  # already told about this story
@@ -830,7 +865,8 @@ def main():
         headline = push_headline(lead, ed_titles)
         if len(batch) == 1:
             where = ' i Danmark' if lead.get('sec') == 'dk' else ''
-            title = (f"Topnyhed{where} · {lead['outlets']} medier" if lead['big']
+            # 'Topnyhed' only where the app says it too (its five of the day); another big story is 'Vigtig nyhed'
+            title = (f"{'Topnyhed' if lead['id'] in tops else 'Vigtig nyhed'}{where} · {lead['outlets']} medier" if lead['big']
                      else label_of.get(lead['source'], lead['source']))
             body = headline
         else:
@@ -880,7 +916,11 @@ def main():
     fresh_svar = analyses.to_tell(found_analyses, told_svar, NOW)
     if fresh_svar and not first_run and not in_quiet_hours(s):
         a = fresh_svar[0]
-        result = push.send({'title': 'Nyt svar fra Hizb ut-Tahrir', 'body': analyses.push_title(a['title']),
+        # in Danish, as the app is: the title machine-translated (the app shows it the same way until the editor files
+        # its Danish title), else a plain line
+        en = analyses.push_title(a['title'])
+        da = translator([en], 'en', 'da')[0] if en != analyses.NO_TITLE else None
+        result = push.send({'title': 'Nyt svar fra Hizb ut-Tahrir', 'body': tidy(da) if da else analyses.NO_TITLE,
                             'url': f"./?svar={a['id']}&n=1", 'tag': f"svar-{a['id']}"}, push.everyone(phones, 'svar'))
         print('answer push:', result)
         phones = [p for p in phones if p['endpoint'] not in set(result.get('gone') or [])]
@@ -910,8 +950,6 @@ def main():
         return out
 
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
-    for it in shown:   # commentary is labelled in the app and never leads the editor's front page (pro-plan 3.3)
-        it['kind'] = 'kommentar' if commentary(it.get('link'), it.get('title')) else None
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
     common = {
         'updated': NOW.isoformat(),

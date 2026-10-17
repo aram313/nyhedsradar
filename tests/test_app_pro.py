@@ -43,12 +43,33 @@ def test_red_means_live_or_big():
     head = CODE.split('const blockHead')[1].split('\n')[0]
     assert "${live ? '<i class=\"live\"" in head   # a block title carries the red dot only when asked for: Live
     assert "blockHead('Live', moreLink('Se alt', 'latest'), true)" in CODE   # the front page's one red dot
-    assert re.search(r'\.lede-d span \{[^}]*color: var\(--text-3\)', RULES)
+    assert re.search(r'\.lede-d > span \{[^}]*color: var\(--text-3\)', RULES)
     assert '.live-tab.has-new { color' not in RULES
     assert re.search(r'\.day span \{[^}]*background: var\(--fill-2\); color: var\(--text\)', RULES)
     # 'Topnyhed' is rationed: the five strongest big stories of the Danish day, twelve hours each, never in chosen blocks
     assert 'const TOP_MAX = 5, TOP_HOURS = 12' in CODE and "topNow().has(i.id)" in fn('meta')
     assert 'opts.top' in fn('meta')
+
+
+def test_red_is_used_only_for_live_big_and_new():
+    # review of 2026-10-17: the stale box, search marks, the switches, the focus ring and the offline logo were red
+    allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root')
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
+        sel, decl = ' '.join(m.group(1).split()), m.group(2)
+        if 'var(--pulse' in decl:
+            assert any(a in sel for a in allowed), sel
+    for sel in ('.notice', 'mark', '.switch:checked', ':focus-visible', '.chip.on', '.sources li.bad::before'):
+        body = ''.join(re.findall(r'(?:^|\})\s*' + re.escape(sel) + r'\s*\{([^}]*)\}', RULES))
+        assert body and 'pulse' not in body, sel
+    assert "classList.toggle('stale', !!isStale() || offline)" in fn('renderHeader')   # the logo's dot grey offline
+    # a chosen chip is a chosen segment: a step lighter in dark, never a white pill
+    assert re.search(r'\.chip\.on \{[^}]*background: var\(--seg-on\)', RULES)
+
+
+def test_the_lede_is_whole_and_no_paragraph_is_a_button():
+    assert not re.search(r'\.lede-t \{[^}]*line-clamp', RULES)
+    head = fn('ledeHead')
+    assert 'data-go' not in head and 'Del overblik' in head and 'data-brief' in head
 
 
 def test_rows_keep_their_words_and_the_meta_line_breaks_between_items():
@@ -79,7 +100,13 @@ def test_every_state_has_a_message_and_a_way_on():
     assert 'function stateBlock(' in CODE and 'function noNews(' in CODE
     assert "Date.now() - bootAt < 4000" in fn('noNews') and 'data-reload' in fn('noNews')
     assert "addEventListener('online', () => load(true))" in CODE
-    assert "'ingen forbindelse'" in fn('renderHeader') and "'offline · '" in fn('renderHeader')
+    assert "x.state === 'error') { x.state = 'idle'; need(k); }" in CODE   # every file that failed, again online
+    hdr = fn('renderHeader')
+    assert "'offline'" in hdr and '#i-${icon}' in hdr and "'Ingen forbindelse. '" in hdr
+    # the same cause, the same words: no network says so on every page, with its icon
+    assert "netDown() ? 'offline' : 'error'" in CODE and "Ingen forbindelse. ${cap(what)} kommer" in CODE
+    notice = fn('pageHtml')
+    assert 'fromWhen(data.updated)' in notice and '#i-offline' in notice and 'clock(data.updated)' not in notice
     assert "retry('svarets tekst', 'mfull')" in fn('svarPage') and "retry('siden', 'bfull')" in fn('begrebPage')
     assert 'Siden findes ikke.' in fn('begrebPage') and 'Svaret findes ikke.' in fn('svarPage')
     assert 'Historien er ikke længere i Live.' in fn('latestPage')
@@ -141,7 +168,13 @@ def test_one_search_with_scopes():
     page = fn('searchPage')
     for group in ('Begreber', 'Udviklinger', 'Hizb ut-Tahrirs svar', 'På Khabar', 'Andre nyheder'):
         assert group in page, group
-    assert page.index('Begreber</h2>') < page.index('Udviklinger</h2>') < page.index('Hizb ut-Tahrirs svar') < page.index('På Khabar')
+    # a news app: the news before the movement's answers; the answers named in their title first, 'via' last
+    assert page.index('Begreber</h2>') < page.index('Udviklinger</h2>') < page.index('På Khabar') < page.index('Hizb ut-Tahrirs svar')
+    assert 'm.via ? 2 : 1' in page and "data-unfold=\"${ok}\">Vis flere" in page
+    assert "hasWord(f, w)" in page and 'startsAt(f, i)' in fn('mark')   # 'iran' is not marked in 'Mirán'
+    # a file that comes later redraws the search page and Gemt too
+    loaded = fn('vLoaded')
+    assert "'search', 'gemt'" in loaded and "bfull: ['begreb', 'svar', 'search'" in loaded
     assert "idle(() => store.set('recentQ', recentQ))" in fn('rememberQuery')
 
 
@@ -152,10 +185,12 @@ def test_the_catch_up_line_stores_nothing_new():
     assert "classList.add('fade')" in fn('fadeCatchUp') and re.search(r'\.catch \{[^}]*transition: opacity', RULES)
 
 
-def test_the_days_overview_uses_checked_headlines_only():
+def test_the_days_overview_takes_one_story_per_block_with_checked_words_only():
     brief = fn('briefText')
-    assert '*Dagens nyheder – ' in brief and "'via khabar.nu'" in brief and 'slice(0, 5)' in brief
-    assert "x.ed" in brief
+    assert '*Dagens nyheder – ' in brief and "'via khabar.nu'" in brief and 'rows.length < 5' in brief
+    assert 'put(ids(b).find(' in brief and 'cleanLink(x.i.link)' in brief   # one from each block, then the rest
+    ok = CODE.split('const briefOk = ')[1].split('\n')[0]
+    assert "i.how === 'ed'" in ok and "i.lang === 'da' && !i.how && !i.teased && !curious(i.title)" in ok and 'kommentar' in ok
 
 
 def test_notifications_by_choice_travel_with_the_phones_own_address():
@@ -163,6 +198,86 @@ def test_notifications_by_choice_travel_with_the_phones_own_address():
     assert "...(kind === 'sub' ? { want: pushWant } : {})" in fn('tellKhabar')
     for want in ('top', 'digest', 'svar'):
         assert f'data-want="{want}"' in INDEX
+
+
+def test_gem_has_one_home_in_the_bar_and_sends_nothing():
+    assert 'id="openSaved"' in INDEX and "$('openSaved').addEventListener('click', () => openSide('gemt'))" in CODE
+    save = fn('toggleSave')
+    assert 'learnFrom' not in save and 'relay(' not in save and "['Se Gemt', () => openSide('gemt')]" in save
+    gemt = fn('gemtPage')
+    assert "stateBlock('empty', 'Intet gemt endnu.', [['Til Live', 'data-go=\"latest\"']])" in gemt
+    assert "unsave('a', a.nr)" in gemt and "unsave('b', x.id)" in gemt
+    assert 'data-go="gemt"' not in CODE   # no scattered ways in: the bar's bookmark is the one
+
+
+def test_a_notification_choice_that_was_not_sent_is_sent_later():
+    assert "store.set('wantDirty', 1); toast(" in CODE and "store.set('wantDirty', 0)" in fn('tellKhabar')
+    assert "if (store.get('pushWant', null) === null) store.set('wantDirty', 1)" in CODE   # a phone from before the switches
+    assert 'resendWant()' in CODE.split("addEventListener('online', () => { for")[1].split('\n')[0]
+    assert "document.addEventListener('visibilitychange', () => { if (!document.hidden) resendWant(); })" in CODE
+
+
+def test_the_library_is_fetched_once_per_build_and_read_only_when_needed():
+    pre = fn('prefetchLibrary')
+    assert "store.get('libFor', '') === built" in pre and 'arrayBuffer()' in pre and "need('mfull')" not in pre
+
+
+def test_the_wiki_index_filters_every_page_into_one_group():
+    kinds = CODE.split('const AZ_KINDS = ')[1].split(';')[0]
+    for k in ('stat', 'magt', 'gruppe', 'organisation', 'sted', 'sag', 'proces', 'begreb', 'aftale'):
+        assert f"'{k}'" in kinds, k
+    assert 'class="an-chips az-kinds"' in fn('begreberPage')   # one sideways chip row, not a two-row segment
+
+
+def test_the_main_storys_development_and_answer_belong_to_it():
+    # 17/10: Trump's pause of the Russia sanctions wore 'Iran og angrebet' and the Iran answer – the development's name
+    # must share a subject with the headline (or the editor filed the story in it) before it, or its name, is used
+    body = fn('composedHome')
+    assert 'if (tp && !topicOf(shown, tp))' in body and 'tp = t2 && topicOf(shown, t2) ? t2 : null' in body
+    assert 'overlap(storyStems(shown), topicStems(tp)) < 3' not in body
+    assert "own = pkg && pkg.topic && topicOf(lead, pkg.topic)" in fn('fixedHome')
+    assert 'topicFits(i, t)' in fn('threadFor')
+    fits = fn('topicFits')
+    assert 'GEN.has(w)' in fits and 'BROAD' in fits and 'i.actors' in fits
+
+
+def test_the_outlet_is_said_once_and_a_speaker_stays():
+    disp = fn('display')
+    assert 'x === outletKey(d.source) || outletNames().has(x)' in disp
+    assert "const NEWS_GROUPS = new Set(['dk', 'west', 'mena', 'il', 'east', 'channel'])" in CODE
+    assert 'NEWS_GROUPS.has(v.group' in CODE.split('const outletNames = ')[1].split('.set;')[0]
+
+
+def test_small_pure_helpers_behave(tmp_path):
+    import shutil
+    import subprocess
+    import pytest
+    if not shutil.which('node'):
+        pytest.skip('node is not installed')
+    take = lambda start, end: APP[APP.index(start):APP.index(end, APP.index(start))]  # noqa: E731
+    js = '\n'.join([
+        take('const fold = ', '\n') + '\n',
+        take('const OUTLET_ALIAS = ', '// commentary') if '// commentary' in APP[APP.index('const OUTLET_ALIAS = '):] else '',
+        take('const TRACKING = ', 'const briefOk'),
+        take('const LETTER = ', 'function mark('),
+        'const esc = s => String(s);',
+        fn('mark'),
+        'console.log(JSON.stringify(['
+        'cleanLink("https://www.berlingske.dk/a/b?referrer=RSS"),'
+        'cleanLink("https://x.dk/a?utm_source=x&id=7"),'
+        'outletKey("The Guardian"), outletKey("Associated Press"), outletKey("Quds News (arabisk)"),'
+        'hasWord("directorate of miran", "iran"), hasWord("irans atomprogram", "iran"),'
+        'mark("Directorate of Mirán og Iran", ["iran"])]))'])
+    f = tmp_path / 'h.js'
+    f.write_text(js, encoding='utf-8')
+    out = subprocess.run(['node', str(f)], capture_output=True, text=True, encoding='utf-8')
+    assert out.returncode == 0, out.stderr
+    import json
+    got = json.loads(out.stdout)
+    assert got[0] == 'https://www.berlingske.dk/a/b' and got[1] == 'https://x.dk/a?id=7'
+    assert got[2:5] == ['guardian', 'ap', 'quds news']
+    assert got[5] is False and got[6] is True
+    assert got[7] == 'Directorate of Mirán og <mark>Iran</mark>'
 
 
 def test_no_ids_no_prompts_and_no_claude():

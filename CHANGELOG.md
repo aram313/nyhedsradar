@@ -9,6 +9,48 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Khabar made professional – the review's fixes** (2026-10-17, the reviewers of the professional build; `?v=20261017pro2`).
+  - **Fixed – trust:** the editor's lede is shown whole (it was cut at three lines and hid the Gaza clause; no paragraph
+    is a hidden button any more). Dagens historie no longer wears another development: its timeline, and the
+    development's name as a clue for the answer line, are used only when the development's name shares a subject with
+    the story's headline (a wiki page or a word, never Trump or the USA alone) or the editor filed the story in it – the
+    Russia-sanctions story lost 'Iran og angrebet' and the Iran answer (`topicFits` in app.js; the fixed page and an
+    opened story's 'Udvikling' too). 'Del dagens overblik' takes one story from each of the editor's blocks in the page's
+    order (the main story, then each list's first), only headlines that are checked or a Danish outlet's own plain words,
+    no commentary, links without tracking tails (`?referrer=RSS`, `utm_*`). An editor's 'Kreml: …', 'Det Hvide Hus: …'
+    stays (the app and `editor.py publish` strip or refuse only news outlets' names, never a government's channel), and a
+    headline that names its own row's outlet ('AP: …' on AP) drops it – the outlet is said once, in the meta line. Saving
+    a story sends nothing any more (it was counted as a share).
+  - **Fixed – red means live or big:** the old-news and offline box is a grey panel with its icon, search marks are bold
+    on grey, the settings' switches are the owner's neutral, the focus ring is the text colour, the logo's dot is grey
+    while the news are old or the phone is offline, a failing source a hollow dot; a test fails on red anywhere else. The
+    chosen chip in dark mode is a chosen segment, not a white pill.
+  - **Changed – Gem has a home:** a bookmark in the top bar (filled once something is saved) opens Gemt from every page;
+    the save toast says 'Gemt på telefonen · Se Gemt ›'; answers and pages can be taken out of Gemt as stories can; the
+    empty page is one line and 'Til Live'; the scattered ways in (the search page's row, Analyser's chip) are gone.
+  - **Changed – states and words:** the same cause gives the same message: with no network every page says 'Ingen
+    forbindelse …' with its icon; files that failed are fetched again when the network returns; the boxes say the day of
+    an old copy ('fra i går kl. 21.34'); the bar shows the offline mark and the copy's time (short at every text size).
+    A notification choice made offline is sent when the phone is back online (or at the next start), and a phone that
+    signed up before the three switches sends its choice once, so 'Nye svar' is real.
+  - **Changed – views:** search puts the news first (developments, then the stories in Live – five under Alle with 'Alle
+    n nyheder' –, then the answers, those named in their title first, 'via' last), marks words only where they start
+    ('iran' no longer in 'Mirán'), shows ten other headlines with 'Vis flere', and redraws when the answers or the wiki
+    arrive. The A–Å index files every page in one of six groups (Stater · Aktører · Steder · Sager · Begreber · Aftaler),
+    as one sideways chip row. The coverage count follows one rule everywhere (three outlets and more), and a list of mostly
+    one section names the section only on the other stories. Analyser's area filter lasts for the visit. 'Del overblik'
+    has its word; the wiki's contents row is chips; its 'I nyhederne nu' and the answer's news have day rows; the
+    answer's byline breaks between items; the timeline's ↗ stays with its last word; the Live block's dot follows its
+    title; one separator rule in the Live block and the search groups; the search field's ✕ only with text; the day band
+    has no second hairline; the catch-up line's counts are 44 high and never leave a '·' at a line's end; the timeline
+    under Dagens historie takes its own development's colour; the iPhone hint counts as shown only when Forside showed it.
+  - **Radar:** a story is 'Kommentar' only when every readable article of it is commentary, and a news report leads
+    before a column (`lead_comment`, 0.6); commentary is never notified; a notification says 'Topnyhed' only for the
+    app's five of the day (`top_now`, the same rule as the app), else 'Vigtig nyhed'; a new answer's notification is in
+    Danish (machine-translated title, else 'Et nyt svar på politiske spørgsmål').
+  - **Speed:** the offline library is fetched once per build of the wiki, not every visit, and not parsed until a page
+    needs it. Measured before and after (docs/hjerne/notes-r2-speed.md, 'Review fixes').
+
 - **Khabar made professional** (the owner's request of 2026-10-17: "Gennemgå alle sidens funktioner og
   brugervenlighed …"; docs/hjerne/pro-plan.md, built in full). The look stays khabar.nu; it is refined.
   - **Changed – the visual system:** eight type sizes instead of 28 (`--fs-*` tokens), and the text size now reaches

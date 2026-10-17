@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- the pen's letters load beside the page, not before it: the intro waits for them itself (at most a second) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="style.css?v=20261017pro">
+<link rel="stylesheet" href="style.css?v=20261017pro2">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -100,8 +100,9 @@
 <header class="bar" id="bar">
   <div class="brand" role="link" tabindex="0" aria-label="Til forsiden"><svg class="back" aria-hidden="true"><use href="#i-back"/></svg><svg class="logo" viewBox="162 112 272 196" aria-hidden="true"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="M302.7 200.5 C302.7 202.5 307 206.8 316 206.29 L317 213 L300 213 Z M296 241.27 C299 240.81 303 240.92 306 240.39 L306 236 L296 236 Z"/><circle class="ring" cx="380" cy="128" r="12"/><circle class="ring two" cx="380" cy="128" r="12"/><circle class="dot" id="dot" cx="380" cy="128" r="12"/></svg><h1 class="title" id="title">Khabar.nu</h1></div>
   <button class="status" id="status" aria-label="Opdater nu"><span>henter …</span></button>
-  <button class="icon-btn" id="openSearch" aria-label="Søg"><svg><use href="#i-search"/></svg></button>
-  <button class="icon-btn" id="openSettings" aria-label="Indstillinger"><svg><use href="#i-gear"/></svg></button>
+  <button class="icon-btn" id="openSaved" aria-label="Gemt"><svg aria-hidden="true"><use href="#i-save"/></svg></button>
+  <button class="icon-btn" id="openSearch" aria-label="Søg"><svg aria-hidden="true"><use href="#i-search"/></svg></button>
+  <button class="icon-btn" id="openSettings" aria-label="Indstillinger"><svg aria-hidden="true"><use href="#i-gear"/></svg></button>
 </header>
 
 
@@ -132,7 +133,7 @@
   </nav>
 </div>
 
-<div class="toast" id="toast" role="status"><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toastText"></span></div>
+<div class="toast" id="toast" role="status"><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toastText"></span><button id="toastAct" hidden><span></span><svg aria-hidden="true"><use href="#i-chev"/></svg></button></div>
 <div class="sr" id="srStatus" role="status" aria-live="polite"></div>
 
 <div class="scrim" id="scrim"></div>
@@ -202,6 +203,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261017pro"></script>
+<script src="app.js?v=20261017pro2"></script>
 </body>
 </html>

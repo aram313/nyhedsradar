@@ -69,6 +69,36 @@ def test_the_lede_restates_the_main_story_only_when_its_first_clause_is_the_head
     assert not voice.restates('Angreb på Riyadh og en ny lov i Folketinget.', 'Houthi-angreb rammer Riyadh; 12 dræbt')
 
 
+def test_a_story_is_commentary_only_when_every_readable_article_is():
+    col = {'link': 'https://www.berlingske.dk/kommentatorer/x', 'title': 'En ridse i lakken', 'lang': 'da'}
+    news = {'link': 'https://www.dr.dk/nyheder/politik/x', 'title': 'Messerschmidt frifundet', 'lang': 'da'}
+    arabic = {'link': 'https://x.test/a', 'title': 'خبر', 'lang': 'ar'}
+    assert run.story_kind(col, [news]) is None              # a column leads a news story: still news
+    assert run.story_kind(col, [arabic]) == 'kommentar'     # its only readable article is a column
+    assert run.story_kind(col, [dict(col, link='https://politiken.dk/debat/x')]) == 'kommentar'
+    src = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
+    assert "if commentary(x.get('link'), x.get('title')):" in src and "s.get('lead_comment', 0.6)" in src   # news leads
+    assert "if it.get('kind') == 'kommentar':\n            continue   # an opinion piece" in src            # never notified
+
+
+def test_topnyhed_in_a_notification_is_the_apps_five_of_the_day():
+    from datetime import datetime, timedelta, timezone
+    now = run.NOW
+    local = now.astimezone(timezone(timedelta(hours=2)))
+    at = lambda h: (now - timedelta(hours=h)).isoformat()  # noqa: E731
+    shown = [{'id': f's{k}', 'big': True, 'rank': 100 - k, 'published': at(1), 'found': at(1)} for k in range(7)]
+    shown.append({'id': 'old', 'big': True, 'rank': 200, 'published': at(13), 'found': at(13)})
+    shown.append({'id': 'col', 'big': True, 'rank': 300, 'published': at(1), 'found': at(1), 'kind': 'kommentar'})
+    shown.append({'id': 'small', 'big': False, 'rank': 400, 'published': at(1), 'found': at(1)})
+    tops = run.top_now(shown, [{'id': 's6'}], local)
+    if (now - timedelta(hours=1)).astimezone(local.tzinfo).date() == local.date():   # the Danish day did not just begin
+        assert tops == {'s6', 's0', 's1', 's2', 's3'}
+    src = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
+    assert "'Topnyhed' if lead['id'] in tops else 'Vigtig nyhed'" in src
+    # a new answer's notification is in Danish: its title machine-translated, else a plain Danish line
+    assert "translator([en], 'en', 'da')[0]" in src and "'body': tidy(da) if da else analyses.NO_TITLE" in src
+
+
 def test_an_outlet_is_a_speaker_only_when_it_carries_the_story():
     labels = {'reuters', 'anadolu', 'bbc'}
     got = []
@@ -77,6 +107,12 @@ def test_an_outlet_is_a_speaker_only_when_it_carries_the_story():
     got = []
     for title in ('Anadolu: Israel bomber Gaza', 'Donald Trump: Grønland var gratis', 'Israel bomber Gaza'):
         voice.check_prefix(title, ['Anadolu'], labels, 't', got)
+    assert got == []
+    # a government's own channel is who speaks: the editor's labels are the news outlets' only, so 'Kreml: …' stays
+    assert voice.NEWS_GROUPS == {'dk', 'west', 'mena', 'il', 'east', 'channel'}
+    editor_src = (ROOT / 'scripts' / 'editor.py').read_text(encoding='utf-8')
+    assert "if (v.get('group') or 'west') in voice.NEWS_GROUPS}" in editor_src
+    voice.check_prefix('Kreml: Rusland genstarter dieseleksport', ['Reuters'], labels, 't', got)
     assert got == []
 
 
@@ -105,7 +141,7 @@ def test_the_check_notes_a_timeline_that_is_another_development(folder, capsys):
 
 def test_the_app_json_carries_the_kind_and_search_the_danish_headline():
     src = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
-    assert "'live', 'kind')" in src and "it['kind'] = 'kommentar' if commentary(" in src
+    assert "'live', 'kind')" in src and "it['kind'] = story_kind(it, members_of.get(it['id'], []))" in src
     assert "'da': v.get('title_da'), 's': label_of" in src
     flow = (ROOT / '.github' / 'workflows' / 'radar.yml').read_text(encoding='utf-8')
     assert 'FETCH_HEAD:summaries.json > .cache/summaries.json' in flow and 'RADAR_SUMMARIES: .cache/summaries.json' in flow

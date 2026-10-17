@@ -113,12 +113,15 @@ def to_tell(memory, told, now, hours=48):
     return out
 
 
+NO_TITLE = 'Et nyt svar på politiske spørgsmål'
+
+
 def push_title(title):
     """An answer's original title as a notification says it: without 'Answer to Question:', with Khabar's word for Israel."""
     t = re.sub(r'^\s*(?:updated\s+)?(?:ameer\'?s\s+)?(?:answer to (?:a )?questions?|questions? and answers?|q\s*&\s*a)\s*[:\-–]?\s*', '',
                title or '', flags=re.I)
     t = re.sub(r'\b(?:the\s+)?(?:Jewish|Zionist)\s+(?:Entity|State)\b', 'Israel', t, flags=re.I)
-    return (t[:1].upper() + t[1:]) if t else 'Et nyt svar på politiske spørgsmål'
+    return (t[:1].upper() + t[1:]) if t else NO_TITLE
 
 
 def for_app(memory):

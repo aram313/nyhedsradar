@@ -231,3 +231,48 @@ long course), Analyser (search, area filter), an answer, a wiki page, A–Å, se
 settings, the intro, a deep link, offline, a story that left Live and the fixed front page; the back paths (logo,
 history), `?forlob=`, `?svar=`, `?item=` and the admin long press checked by script. Shots: session scratchpad
 `pro/b3/s1` … `s5` (before: `pro/b3/shots0`); scripts: `speed/measure.js`, `speed/compare-pro2.js`.
+
+## Review fixes (2026-10-17, `?v=20261017pro2`)
+
+Measured the same way (headless Edge, 390 × 844 at 3x, CPU 5× slowed, `?dev=r2`, three runs each, medians), both runs
+on the same machine within the same hour: "before" is the professional build (commit b0dc0de), "after" the review's
+fixes.
+
+| Step | to next frame (ms) | long tasks | longest task (ms) | blocking time (ms) | frames > 34 ms | worst frame (ms) | layout shift |
+|---|---|---|---|---|---|---|---|
+| First start (empty phone) | 697 → 688 (first story) | 5 → 5 | 320 → 313 | 781 → 780 | 9 → 8 | 492 → 501 | 0.26 → 0.10 |
+| Start, next time | 182 → 188 (first story) | 3 → 3 | 126 → 127 | 180 → 179 | 4 → 4 | 208 → 204 | 0 → 0.002 |
+| Tab Forside → Live | 25 → 24 | 1 → 1 | 57 → 54 | 7 → 4 | 1 → 1 | 54 → 54 | 0 → 0 |
+| Tab Live → Analyser | 34 → 36 | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 29 → 33 | 0 → 0 |
+| Tab Analyser → Forside | 19 → 20 | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 25 → 17 | 0 → 0 |
+| Open a story (Live) | 59 → 58 | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 54 → 54 | 0 → 0 |
+| Open Udvikling | 130 → 161 * | 1 → 1 | 109 → 130 | 59 → 80 | 1 → 1 | 125 → 154 | 0 → 0 |
+| Back from Udvikling | 3 → 3 | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 58 → 54 | 0 → 0 |
+| Open Begreber A–Å | 145 → 124 | 1 → 1 | 123 → 108 | 73 → 58 | 1 → 1 | 138 → 117 | 0 → 0 |
+| Open a wiki page (Iran) | 102 → 30 | 1 → 1 | 80 → 80 | 30 → 30 | 2 → 2 | 96 → 104 | 0 → 0.10 ** |
+| Open an answer from it | 114 → 66 | 1 → 1 | 98 → 58 | 48 → 8 | 1 → 2 | 108 → 58 | 0 → 0.10 ** |
+| Background reload, 2 new stories, reader 1,800 px down in Live | 136 → 129 | 1 → 1 | 55 → 54 | 5 → 4 | 2 → 2 | 104 → 92 | 0 → 0; the row being read 0 → 0 px |
+| Background reload while the finger scrolls Live | – | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 58 → 59 | 0.02 → 0.02 |
+| Scroll Live (4,000 px flick) | – | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 8 → 8 | 0 → 0 |
+| Pull to refresh (Forside), 2 new stories | – | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 54 → 58 | 0 → 0 |
+| Intro (the short writing) | – | 3 → 3 | 272 → 283 | 320 → 337 | 4 → 4 | 342 → 355 | 0 → 0 |
+
+DOM after start 2,051 → 2,046 elements; kept on the phone 736 → 736 thousand characters.
+
+- **The library is no longer read at every visit.** After a visit to Analyser the answers' and the wiki's whole files
+  (1.7 MB) are only fetched, once per build of the wiki (the service worker keeps them), and parsed when a page needs
+  them – no 1.7 MB parse in a quiet moment of every session, which could stutter on a slow Android. So a wiki page and
+  an answer show their first frame three times sooner (102 → 30 ms, 114 → 66 ms); their body follows a moment later from
+  the phone's copy, which counts as a shift of 0.10 – what it was before the professional build. The other way round
+  (parse ahead, open complete) is what the reviewer asked to drop.
+- \* **Open Udvikling** is not slower: the script opens it with the first `[data-go="threads"]` on the front page, which
+  was the lede (that tap is gone – the lede is shown whole now) and is now 'Alle' under 'Følg udviklingen'. Timed
+  directly (`openSide('threads')` with layout, CPU 5× slowed, four times each) both builds take 129–137 ms the first
+  time and 38–42 ms after.
+- **First start:** the shift drops from 0.26 to 0.10 because a main story without its own development no longer gets a
+  timeline that arrives late and pushes the page down.
+- The checks hold: tab switches 20–36 ms to the next frame (≤ 40), no new long task at start, the row being read never
+  moves on a reload, scrolling and pulling drop at most one frame.
+
+Checks: `node --check` on app.js and sw.js; `py -m pytest -q tests`; phone shots at 430 px, 2x, light and dark, text
+sizes 1 and 1.3 (session scratchpad `pro/fx/a1` … `a3`; before: `pro/fx/before`).

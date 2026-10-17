@@ -74,7 +74,7 @@ a { color: inherit; text-decoration: none; }
 h1, h2, h3, h4 { margin: 0; font: inherit; }
 svg { width: 22px; height: 22px; flex: none; }
 [hidden] { display: none !important; }
-:focus-visible { outline: 2px solid var(--pulse); outline-offset: 2px; border-radius: 8px; }
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 8px; }   /* the owner's neutral: red means live or big */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ------------------------------------------------------------ top bar: identity, freshness, settings */
@@ -103,16 +103,20 @@ html.aside .brand .back { display: block; }
 .status svg { width: 14px; height: 14px; }
 .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; color: var(--text-2); }
 .icon-btn svg { width: 23px; height: 23px; }
+.icon-btn.on { color: var(--text); }   /* the page it opens is in view (Gemt, Søg) */
 
 /* ------------------------------------------------------------ lists */
 main { min-height: 70vh; }
-.notice { margin: var(--s3) var(--s4) 0; padding: 10px 12px; border-radius: var(--r-btn); background: var(--pulse-soft); color: var(--text); font-size: var(--fs-small); line-height: 1.45; }
+/* old news or no network: a quiet box with its icon on the news pages – never red (red means live or big) */
+.notice { display: flex; align-items: flex-start; gap: 10px; margin: var(--s3) var(--s4) 0; padding: 10px 12px; border-radius: var(--r-btn); background: var(--fill);
+  color: var(--text-2); font-size: var(--fs-small); line-height: 1.45; }
+.notice svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--text-3); }
 /* a block ('Døgnets vigtigste') is a large title with its 'more' link in the same row; a day ('I dag', 'I går') a light
    pill that stays under the top bar while its stories scroll past – told apart by size and form, not by colour */
 .block { margin-top: 28px; }
 .block-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 44px; padding: 0 4px 2px 16px; }
 .block-h h2 { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: var(--fs-block); font-weight: 780; line-height: 1.18; letter-spacing: -.022em; }
-.block-h .live { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--pulse); box-shadow: 0 0 0 4px var(--pulse-soft); }   /* the front page's one red dot: Live */
+.block-h .live { flex: none; width: 8px; height: 8px; margin-left: 2px; border-radius: 50%; background: var(--pulse); box-shadow: 0 0 0 4px var(--pulse-soft); }   /* the front page's one red dot: after 'Live', so the title keeps the left edge */
 .more { flex: none; display: flex; align-items: center; gap: 1px; min-height: 44px; padding: 0 8px 0 12px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
 .more svg { width: 15px; height: 15px; }
 .more:active { opacity: .55; }
@@ -120,11 +124,11 @@ main { min-height: 70vh; }
   margin-top: var(--s2); padding: 6px 16px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text);
   background: var(--bg); }
 .day span { padding: 3px 9px; border-radius: 7px; background: var(--fill-2); color: var(--text); letter-spacing: .05em; }
-.day::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+/* no line beside the pill: stuck under the bar it made a second hairline next to the bar's own (the band is opaque, full width) */
 /* a group of other things (search results, letters, settings): caps in the third colour and a hairline – never a pill */
 .grp { display: block; margin: 24px 16px 8px; padding: 0 0 6px; border-bottom: 1px solid var(--line); font-size: var(--fs-cap); font-weight: 750;
   letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
-.foot { padding: 20px 24px 8px; text-align: center; font-size: var(--fs-meta); line-height: 1.5; color: var(--text-3); }
+.foot { padding: 20px 24px 8px; text-align: center; font-size: var(--fs-meta); line-height: 1.5; color: var(--text-3); text-wrap: balance; }
 .skel { height: 88px; margin: 0 16px; position: relative; overflow: hidden; }
 .skel + .skel { box-shadow: inset 0 1px var(--line); }
 .skel::before, .skel::after { content: ""; position: absolute; left: 0; height: 12px; border-radius: 6px; background: var(--fill);
@@ -288,7 +292,7 @@ main { min-height: 70vh; }
 .hit:active { background: var(--fill); }
 .hit b { display: block; font-size: var(--fs-body); line-height: 1.32; font-weight: 560; }
 .hit span { display: block; margin-top: 3px; font-size: var(--fs-meta); color: var(--text-3); }
-mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
+mark { background: var(--fill-2); color: inherit; font-weight: 700; border-radius: 3px; padding: 0 1px; }   /* a search word: bold on a grey tint, not red */
 .scope { margin: 12px 16px 4px; }
 
 /* ------------------------------------------------------------ pull to refresh: the logo answers
@@ -335,6 +339,7 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
 .searchbar input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); font-family: var(--sans); font-size: max(16px, var(--fs-read)); }   /* 16 px and up: the phone does not zoom */
 .searchbar input::-webkit-search-cancel-button { display: none; }
 .searchbar button { width: 44px; height: 44px; display: grid; place-items: center; }
+.searchbar input:placeholder-shown + button { visibility: hidden; }   /* nothing to clear */
 
 /* ------------------------------------------------------------ toast: a calm confirmation above the tabs */
 .toast { position: fixed; z-index: 40; left: 50%; bottom: calc(var(--dock) + var(--kb) + 14px); display: flex; align-items: center; gap: 8px;
@@ -343,6 +348,11 @@ mark { background: var(--pulse-soft); color: inherit; border-radius: 3px; paddin
   transition: opacity .2s, transform .35s var(--out); }
 .toast svg { width: 18px; height: 18px; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.acts.show { pointer-events: auto; padding-right: 6px; }
+.toast button { display: inline-flex; align-items: center; gap: 1px; min-height: 32px; margin: -6px 0; padding: 0 6px 0 10px;
+  border-left: 1px solid color-mix(in srgb, var(--bg) 35%, transparent); color: var(--bg); font-weight: 750; }
+.toast button svg { width: 15px; height: 15px; }
+.toast button::after { content: ""; position: absolute; inset: 0; }   /* the whole toast is the way there: 44 and more */
 
 /* ------------------------------------------------------------ settings sheet: slides up, drag down to close */
 .scrim { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, .4); opacity: 0; pointer-events: none; transition: opacity .3s; }
@@ -376,8 +386,8 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
   flex: none; margin: 0; cursor: pointer; }
 .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .15), 0 1px 1px rgba(0, 0, 0, .16); transition: transform .3s var(--out); }
-.switch:checked { background: var(--pulse); }
-.switch:checked::after { transform: translateX(20px); }
+.switch:checked { background: var(--text); }   /* on: the owner's neutral, never red */
+.switch:checked::after { transform: translateX(20px); background: var(--bg); }
 /* a segmented control: 44 high; the chosen segment sits on its track as an inset pill, one step lighter in dark */
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: var(--r-btn); background: var(--fill); margin-bottom: 8px; }
 .seg button { min-height: 44px; padding: 0 4px; text-align: center; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); border-radius: var(--r-btn); }
@@ -400,7 +410,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .sources li { padding: 3px 0; break-inside: avoid; }
 .sources li::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; vertical-align: 2px; background: var(--text-3); }
 .sources li.bad { color: var(--text-3); }
-.sources li.bad::before { background: var(--pulse); }
+.sources li.bad::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--text-3); }   /* a source that fails: a hollow dot, not red */
 /* settings: the two setup guides side by side; the colour palettes folded under 'Flere farver' */
 .guides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .guides .wide { margin: 0; }
@@ -462,18 +472,23 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* ------------------------------------------------------------ the front page's head: the date, the lede, the catch-up */
 .lede { padding: 14px 16px 2px; }
 .lede-d { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
-.lede-d span { font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
-.lede-share { display: grid; place-items: center; width: 44px; height: 44px; margin: -6px -12px -6px 0; color: var(--text-2); }   /* Del dagens overblik */
-.lede-share svg { width: 19px; height: 19px; }
+.lede-d > span { font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
+.lede-share { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; margin: -6px -8px -6px 0; padding: 0 8px; font-size: var(--fs-meta);
+  font-weight: 650; color: var(--text-2); }   /* Del dagens overblik: the icon and its word */
+.lede-share svg { width: 17px; height: 17px; }
 .lede-share:active { opacity: .55; }
-/* the editor's lede in the app's own voice: three lines, a tap opens Udvikling where it stands whole */
-.lede-t { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 2px 0 0; font-size: var(--fs-lead);
-  font-weight: 500; line-height: 1.3; letter-spacing: -.01em; color: var(--text); text-wrap: pretty; cursor: pointer; }
+/* the editor's lede in the app's own voice, whole: what informs is never cut (the editor keeps it to about 25 words) */
+.lede-t { margin: 2px 0 0; font-size: var(--fs-lead); font-weight: 500; line-height: 1.3; letter-spacing: -.01em; color: var(--text); text-wrap: pretty; }
 /* 'Mens du var væk': one line of counts, each a way in; it fades after the first scroll or tab change */
-.catch { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; margin: 6px 0 0; font-size: var(--fs-small); line-height: 1.4; color: var(--text-3);
-  transition: opacity .4s ease-out; }
-.catch button { min-height: 36px; padding: 0; font-weight: 650; color: var(--text); }
-.catch i { font-style: normal; }
+/* each count carries its '·' before it, and the strip where a line's first one would stand is clipped away (as the meta
+   line does): a wrapped line never starts or ends with '·'; each count is a 44 high target */
+.catch { display: flex; flex-wrap: wrap; align-items: center; margin: 6px 0 0 -12px; clip-path: inset(-8px 0 -8px 12px); font-size: var(--fs-small);
+  line-height: 1.4; color: var(--text-3); transition: opacity .4s ease-out; }
+.catch > span { flex: none; padding-left: 12px; margin-right: 6px; }
+.catch button { position: relative; flex: none; min-height: 32px; padding: 0; font-weight: 650; color: var(--text); white-space: nowrap; }
+.catch button::before { content: "·"; display: inline-block; width: 12px; text-align: center; font-weight: 400; color: var(--text-3); }
+.catch span + button::before { content: ""; width: 0; }
+.catch button::after { content: ""; position: absolute; inset: -6px 0; }
 .catch.fade { opacity: 0; pointer-events: none; }
 /* the iPhone install hint: one quiet card, once */
 .hint-card { display: flex; align-items: center; margin: 10px 12px 0; border-radius: var(--r-btn); background: var(--fill); }
@@ -553,8 +568,13 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 
 /* ------------------------------------------------------------ the front page's Live block and the knowledge pages' news rows */
 .now { margin-left: 0; margin-right: 0; }
-.now ul { margin: 2px 16px 0; padding: 0; list-style: none; }
-.now li + li { border-top: 1px solid var(--line); }
+.now ul { margin: 2px 0 0; padding: 0; list-style: none; }
+.now li { position: relative; padding: 0 16px; }
+/* one separator rule everywhere: 16 from the left, to the screen's right edge */
+.now li + li::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.now li.nl-day::before, .now li.nl-day + li::before { display: none; }
+.now li.nl-day { padding: 10px 16px 2px calc(16px + 44px * var(--ts, 1) + var(--s3)); font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-3); }
 .now li > button { display: grid; grid-template-columns: calc(44px * var(--ts, 1)) 1fr; column-gap: var(--s3); width: 100%; padding: 10px 0; color: inherit; text-align: left; }
 .now time { font-size: var(--fs-meta); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); line-height: calc(16px * 1.33 * var(--ts, 1)); }
 .now span { font-size: var(--fs-body); line-height: 1.33; font-weight: 480; }
@@ -657,13 +677,14 @@ div.thr-head { padding-right: 12px; }
 .chip:active { background: var(--fill-2); }
 .chip small { margin-left: 3px; font-size: var(--fs-meta); font-weight: 500; color: var(--text-3); }
 .chip svg { width: 15px; height: 15px; }
-.chip.on { background: var(--text); color: var(--bg); }
-.chip.on small { color: inherit; opacity: .75; }
+/* chosen: the same as a chosen segment (a step lighter in dark, never the brightest thing on the screen) */
+.chip.on { background: var(--seg-on); color: var(--text); font-weight: 700; box-shadow: inset 0 0 0 1px var(--line); }
+.chip.on small { color: var(--text-2); }
 .chip.ht-chip, .ht-chips .chip { background: var(--ht-bg); color: var(--ht-text); }   /* a wiki page, not a word that completes a search */
 .chip.ht-chip small, .ht-chips .chip small { color: var(--ht-text-3); }
-.sug-th { margin: 0 16px 4px; }
-.sug-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 0; text-align: left; }
-.sug-row + .sug-row { border-top: 1px solid var(--line); }
+.sug-th { margin: 0 0 4px; }
+.sug-row { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 16px; text-align: left; }
+.sug-row + .sug-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }   /* one separator rule */
 .sug-row i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--sec); }
 .sug-row span { flex: 1; min-width: 0; font-size: var(--fs-body); font-weight: 600; }
 .sug-row em { font-style: normal; font-size: var(--fs-meta); color: var(--text-3); white-space: nowrap; }
@@ -837,16 +858,17 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .rd-top, .wk-top { margin: 16px 16px 8px; }
 .rd-top h1 { margin: 6px 0 0; font-size: var(--fs-title); font-weight: 600; line-height: 1.2; text-wrap: pretty; }
 .rd-orig { margin: 6px 0 0; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
-.rd-src { display: inline-flex; align-items: center; gap: 3px; min-height: 32px; color: var(--text-2); }
+.rd-by { margin-top: 0; clip-path: inset(-12px 0 -12px 12px); font-weight: 600; }   /* the answer's byline: a meta line */
+.rd-src { position: relative; display: inline-flex; align-items: center; gap: 3px; color: var(--text-2); }
+.rd-src::after { content: ""; position: absolute; inset: -12px -4px; }   /* 44 high */
 .rd-src svg { width: 13px; height: 13px; }
 .know-acts { margin: 6px 16px 10px; }
 .rd-newer { margin: 0 12px 4px; }
 .rd-newer .ht-line { margin-top: 0; }
 .wk-top h1 { margin: 4px 0 0; font-size: var(--fs-title); font-weight: 780; line-height: 1.16; letter-spacing: -.024em; }
 /* a wiki page's contents row: what it holds, each a jump to its part */
-.wk-toc { display: flex; flex-wrap: wrap; gap: 0 18px; margin-top: 6px; }
-.wk-toc button { min-height: 40px; font-size: var(--fs-small); color: var(--text-2); }
-.wk-toc b { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.wk-toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }   /* the page's contents: chips, each a jump to its part */
+.wk-toc .chip small { font-variant-numeric: tabular-nums; }
 .wk-top .qrow.pair { width: 100%; margin: 2px 0 0; }
 .rd-h { margin-top: 24px; }
 .rd-reads ul, .wk-tl ol { margin: 0; padding: 0; list-style: none; }
@@ -884,7 +906,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .wk-r:active { opacity: .6; }
 .wk-tl li > p.ht { margin: 0 0 10px; font-size: var(--fs-read); line-height: 1.5; color: var(--ht-text); }
 /* the wiki's index: the kinds, the most used pages, the letters that stay under the bar */
-.az-kind { grid-template-columns: repeat(3, 1fr); margin: 4px 16px 0; }
+.az-kinds { margin-top: 4px; }   /* the kinds: one sideways chip row, as Analyser's areas */
 .az-jump { position: sticky; top: var(--barh); z-index: 6; margin: 8px 0 0; padding: 4px 16px 6px; background: var(--bg); box-shadow: 0 1px 0 var(--line); }
 .grp.az { margin-top: 20px; color: var(--text-2); font-size: var(--fs-small); }
 .az-item { position: relative; }
@@ -898,7 +920,16 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 
 /* ------------------------------------------------------------ Gemt: the saved stories, answers and pages */
 .saved-s { position: relative; padding: 12px 16px 14px; }
-.saved-s + .saved-s { border-top: 1px solid var(--line); }
+.saved-s + .saved-s::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.sv-n { margin: 14px 16px 0; }
+/* a saved answer or page: its row, and the filled bookmark at the right that takes it out of Gemt */
+.sv-row { position: relative; display: flex; align-items: center; }
+.sv-row > :first-child { flex: 1; min-width: 0; }
+.sv-row + .sv-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.sv-pages .qrow { margin: 0 0 0 16px; min-height: 52px; }
+.sv-x { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin-right: 6px; color: var(--text-2); }
+.sv-x svg { width: 19px; height: 19px; }
+.sv-x:active { opacity: .55; }
 .sv-t { display: block; font-size: var(--fs-body); font-weight: 600; line-height: 1.33; text-align: left; }
 .saved-s .m { margin-bottom: 8px; }
 .saved-s .sum { font-size: var(--fs-small); color: var(--text-2); }

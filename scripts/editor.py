@@ -1606,7 +1606,10 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
                     voice.check_movement(text, f"quotes: '{who}: {text[:40]}'", problems)
                 quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
     find = resolver(data.get('items', []))
-    outlet_labels = {str(v.get('label') or k).casefold() for k, v in (data.get('sources') or {}).items()}
+    # the news outlets only: a government's own channel ('Kreml', 'Det Hvide Hus') or the movement's is who speaks, and
+    # 'Kreml: …' stays the attributed claim it is
+    outlet_labels = {str(v.get('label') or k).casefold() for k, v in (data.get('sources') or {}).items()
+                     if (v.get('group') or 'west') in voice.NEWS_GROUPS}
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
         x = x if isinstance(x, dict) else {'id': x}
