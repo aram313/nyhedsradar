@@ -29,12 +29,15 @@
   } catch (e) {}
 </script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- the pen's letters load beside the page, not before it: the intro waits for them itself (at most a second) -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
+<!-- The two faces' sheets are read before the first paint (18/10, the owner: on F5 the page showed 'det gamle logo' and
+     the old headline face for a split second – the sheets came after the first paint, so the phone's own faces were
+     drawn first). The service worker keeps the sheets and the files on the phone, so after the first visit they cost
+     nothing. The mark's three letters: 'block' (no stand-in glyphs, at most three seconds on a first visit); the
+     headline face: 'fallback' (a tenth of a second to arrive from the phone's copy, else the stand-in for that visit). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
 <!-- the front page's headline face (the owner, 17/10: "pænere skrift", "mere elegant", "Se til the Economist"): Source Serif 4 -->
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="style.css?v=20261018ap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=fallback">
+<link rel="stylesheet" href="style.css?v=20261018aq">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -214,6 +217,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261018ap"></script>
+<script src="app.js?v=20261018aq"></script>
 </body>
 </html>

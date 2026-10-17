@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **No flash of the stand-in faces on a reload** (2026-10-18, the owner: on F5 'gamle logo, gamle overskrift
+  skrifttype' for a split second; `?v=20261018aq`): the two Google font sheets (the mark's Aref Ruqaa, the headline's
+  Source Serif 4) are read before the first paint instead of after it (they were loaded with the `media="print"`
+  trick); the service worker already keeps the sheets and files on the phone, so on a reload they are there in a few
+  milliseconds. The mark keeps `display=block`, the headline face takes `display=fallback` (it shows when it arrives
+  within a tenth of a second, else the stand-in stays for that visit, never a late swap).
 - **A fuller calendar** (2026-10-18, the owner: 'kalenderen ser lidt tom ud, kunne der være noget vi har overset?'; he
   chose all four proposals; `?v=20261018ap`): about twice as many events of high or middle weight (20 → 39).
   - **Elections:** Wikipedia's 'Unknown date' elections of weight are kept as the year alone ('i løbet af 2027' –
