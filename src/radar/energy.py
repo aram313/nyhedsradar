@@ -409,7 +409,7 @@ def editor_titles(summaries):
 
 
 def energy_news(state, hours=72, limit=16, summaries=None):
-    """Stories about oil, fuel and gas, newest first, with the editor's headline where he wrote one."""
+    """Stories about oil, fuel and gas, newest first: those with the editor's headline and Danish outlets' own."""
     def load(name):
         try:
             return json.loads(Path(name if os.path.isabs(str(name)) else state / name).read_text(encoding='utf-8'))
@@ -424,9 +424,11 @@ def energy_news(state, hours=72, limit=16, summaries=None):
         if NEWS.search(text) and it.get('id') not in seen:
             seen.add(it.get('id'))
             mine = next((ed[k] for k in [it.get('id'), *(it.get('members') or [])] if k in ed), None)
+            if not mine and it.get('lang') != 'da':
+                continue      # the machine's Danish of a foreign headline reads badly: only the editor's or a Danish outlet's
             # every version the app knows; the page picks by the reader's language setting, as the app does
             out.append({'i': it.get('id'), 'o': it.get('title'), 'en': it.get('title_tr'), 'da': it.get('title_da'),
-                        'ed': mine, 'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [],
+                        'ed': mine, 'l': it.get('lang'), 'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [],
                         'kd': it.get('kw_da') or [], 's': it.get('source'), 'p': it.get('published') or it.get('found'),
                         'u': it.get('link'), 'n': it.get('outlets') or 1, 'big': bool(it.get('big'))})
     fresh = []
@@ -437,7 +439,14 @@ def energy_news(state, hours=72, limit=16, summaries=None):
         except ValueError:
             continue
     fresh.sort(key=lambda x: x['p'], reverse=True)
-    return fresh[:limit]
+    # one story once: a headline that shares two longer words with one shown already is the same news again
+    # (a word's start and end, so 'olieraffinaderier' meets 'raffinaderier')
+    words = lambda x: {p for w in re.findall(r'\w{5,}', (x['ed'] or x['o'] or '').lower()) for p in (w[:5], '-' + w[-6:])}  # noqa: E731
+    shown = []
+    for x in fresh:
+        if not any(len(words(x) & words(y)) >= 3 for y in shown):
+            shown.append(x)
+    return shown[:limit]
 
 
 # ---- one run -------------------------------------------------------------------------------------------------------

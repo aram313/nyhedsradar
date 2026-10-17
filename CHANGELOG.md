@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Energy news readable** (2026-10-17, the owner's screenshot: 'Der er noget galt med teksten her'): a row grows with
+  its headline (a fixed height let the line under a three-line headline run into the next row), and the news are only
+  stories with the editor's headline or a Danish outlet's own – the machine's Danish of a foreign headline read badly
+  ('eksploderer … diesel deal', "USA' s") – each story once.
+
 - **“israel” in every Danish headline the app shows** (2026-10-17, the owner: 'må gerne rette de resterende'):
   `quoteIsrael` in app.js (= `voice.quote_israel`) writes the outlets' Danish headlines and teasers and the machine's
   translations in the house style, the map's events and the energy page's news too; the outlet's original headline in

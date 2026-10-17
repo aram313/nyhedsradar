@@ -134,7 +134,7 @@
   .en-pchart .en-chart { height: 140px; }
 
   .en-news .row { text-align: left; }
-  .en-news .story:not(.open) .row { height: calc(78px * var(--ts, 1)); }
+  .en-news .story .row { height: auto; min-height: calc(64px * var(--ts, 1)); padding-top: 10px; padding-bottom: 10px; }   /* a row grows with its headline */
   .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: calc(15px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
   .en-showmore svg { width: 15px; height: 15px; transform: rotate(90deg); }
   @media (prefers-reduced-motion: reduce) { .en-item, .en-row, .en-plus svg { transition: none; } }
@@ -492,7 +492,8 @@ function news() {
   // Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
   const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, (_, w) => `“${w.toLowerCase()}”`)
     .replace(/(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu, (_, w) => `“${w.toLowerCase()}”`);
-  const pick = n => n.ed ? [qi(n.ed), n.kd] : danish && n.da ? [qi(n.da), n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
+  // the editor's headline, else a Danish outlet's own (the radar sends only those: the machine's Danish read badly)
+  const pick = n => n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : danish && n.da ? [qi(n.da), n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
   const tidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
     .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
   const words = (t, k) => {   // the app's bold: who and where
