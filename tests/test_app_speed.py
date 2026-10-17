@@ -23,9 +23,29 @@ def test_no_blend_layers_and_no_animated_filter_or_height():
         assert not re.search(r'\b(filter|height|grid-template-rows|top|left|box-shadow|background-color)\b', prop), prop
 
 
+# the type scale (pro-plan 2.1): eight tokens, each the text size times a fixed size; every rule names a token. Exempt:
+# the logo and the intro's mark (fixed letters in an SVG), the initials tiles, the tab label and the owner's statistics
+EXEMPT = ('.logo', '.intro-ink', '.th b', '.st-', '.tabs button')
+
+
+def font_sizes():
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
+        sel = ' '.join(m.group(1).split())
+        for f in re.finditer(r'font(?:-size)?:\s*([^;}]*)', m.group(2)):
+            if re.search(r'\d(?:px|em|rem)|var\(', f.group(1)):
+                yield sel, f.group(1)
+
+
 def test_every_font_size_follows_the_text_size():
-    sizes = re.findall(r'font(?:-size)?:\s*([^;}]*\d+(?:\.\d+)?px[^;}]*)', RULES)
-    assert sizes and all('var(--ts, 1)' in s for s in sizes), [s for s in sizes if 'var(--ts, 1)' not in s]
+    tokens = dict(re.findall(r'(--fs-[a-z]+):\s*([^;]+);', RULES))
+    assert set(tokens) == {'--fs-cap', '--fs-meta', '--fs-small', '--fs-body', '--fs-read', '--fs-lead', '--fs-block', '--fs-title'}
+    assert all(re.fullmatch(r'calc\(\d+(?:\.\d+)?px \* var\(--ts, 1\)\)', v.strip()) for v in tokens.values()), tokens
+    sizes = list(font_sizes())
+    bad = [(s, v) for s, v in sizes if 'var(--fs-' not in v and not (any(e in s for e in EXEMPT) and ('var(--ts, 1)' in v or re.fullmatch(r'\d+px', v.strip())))]
+    assert sizes and not bad, bad
+    # the text size reaches the chrome, capped at 1.2 (the tokens worked out again there)
+    assert re.search(r'\.bar, \.dock, [^{]*\{ --ts: min\(var\(--tsu, 1\), 1\.2\); \}', RULES)
+    assert "document.documentElement.style.setProperty('--tsu'" in CODE
 
 
 def test_reduce_motion_is_respected():
@@ -85,10 +105,14 @@ def test_every_redraw_waits_for_the_finger():
 def test_the_front_page_shows_a_story_once():
     body = CODE[CODE.index('function composedHome('):CODE.index('function home(')]
     assert re.search(r'nowStrip\(.*, skip\)', body)
-    assert re.search(r'nowStrip\(3, new Set\(', CODE[CODE.index('function fixedHome('):])
+    fixed = CODE[CODE.index('function fixedHome('):]
+    assert re.search(r'nowStrip\(3, onPage\)', fixed) and 'onPage.add(' in fixed
 
 
 def test_a_closed_headline_keeps_its_words_at_large_text():
-    assert re.search(r'\.story\.hero:not\(\.open\) \.hero-tx \.h[^{]*\{[^}]*-webkit-line-clamp: 3', RULES)
-    assert re.search(r'\.ts-l \.story\.pic:not\(\.open\):not\(\.hero\) \.h \{ -webkit-line-clamp: 3', RULES)
+    # pro-plan 2.6: a closed headline gets four lines and the row grows; its height is remembered after its first layout
+    assert re.search(r'\.story\.hero:not\(\.open\) \.hero-tx \.h[^{]*\{[^}]*-webkit-line-clamp: 4', RULES)
+    assert re.search(r'\.story:not\(\.open\) \.h \{[^}]*-webkit-line-clamp: 4', RULES)
+    assert not re.search(r'\.story:not\(\.open\):not\(\.hero\) \.row \{[^}]*height:', RULES)   # no fixed row height
+    assert re.search(r'contain-intrinsic-size: auto calc\(104px', RULES)
     assert "classList.toggle('ts-l'" in CODE

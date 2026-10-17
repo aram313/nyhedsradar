@@ -28,8 +28,8 @@ jobs:
           from radar import push
           import os
           phones = push.load_phones('phones.bin', os.environ.get('PROFILE_KEY', ''))
-          print('signed-up phones:', len(phones))
-          r = push.send({'title': 'Khabar', 'body': 'Det virker! Du får nu besked ved topnyheder, de vigtigste nyheder og dagens resumé.', 'url': './', 'tag': 'test'}, push.everyone(phones))
+          print('signed-up phones:', len(phones), '· by kind:', {k: len(push.everyone(phones, k)) for k in push.KINDS})
+          r = push.send({'title': 'Khabar', 'body': 'Det virker! Du får nu besked om det, du har valgt i Indstillinger.', 'url': './', 'tag': 'test'}, push.everyone(phones))
           print(r)
           assert r.get('sent'), r
           "

@@ -836,8 +836,8 @@ def main():
         else:
             title = f'{len(batch)} vigtige nyheder'
             body = f"{headline}  (+{len(batch) - 1} mere)"
-        result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}", 'tag': lead['id']},
-                           push.everyone(phones))
+        result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}&n=1", 'tag': lead['id']},
+                           push.everyone(phones, 'top'))
         print('push:', result)
         gone.update(result.get('gone') or [])
         if result.get('sent'):
@@ -853,7 +853,7 @@ def main():
             'title': f"Khabar · overblik {digest.get('period', '')}".strip(),
             'body': digest.get('intro') or (digest.get('items') or [{}])[0].get('headline', '')}
         if note:   # an update that added nothing is no news
-            result = push.send({**note, 'url': './?digest=1', 'tag': 'digest'}, push.everyone(phones))
+            result = push.send({**note, 'url': './?digest=1', 'tag': 'digest'}, push.everyone(phones, 'digest'))
             print('digest push:', result)
             gone.update(result.get('gone') or [])
         pushes['digest_sent'] = digest['created']
@@ -871,6 +871,20 @@ def main():
         known = set((load(ROOT / 'public' / 'viden' / 'movement-index.json', {}).get('answers') or {}))
         found_analyses = analyses.update(found_analyses, NOW, known=known)
         save(STATE / 'analyses.json', found_analyses)
+    # a new answer of Hizb ut-Tahrir's: one notification to the phones that asked for it (pro-plan 5.5), once, never at
+    # night (it waits for the morning while it is at most two days old); the answers already there the first time are
+    # no news
+    if 'svar_sent' not in pushes:
+        pushes['svar_sent'] = sorted(x['id'] for x in (found_analyses.get('items') or []))[-200:]
+    told_svar = set(pushes['svar_sent'])
+    fresh_svar = analyses.to_tell(found_analyses, told_svar, NOW)
+    if fresh_svar and not first_run and not in_quiet_hours(s):
+        a = fresh_svar[0]
+        result = push.send({'title': 'Nyt svar fra Hizb ut-Tahrir', 'body': analyses.push_title(a['title']),
+                            'url': f"./?svar={a['id']}&n=1", 'tag': f"svar-{a['id']}"}, push.everyone(phones, 'svar'))
+        print('answer push:', result)
+        phones = [p for p in phones if p['endpoint'] not in set(result.get('gone') or [])]
+        pushes['svar_sent'] = sorted(told_svar | {x['id'] for x in fresh_svar})[-200:]
 
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',

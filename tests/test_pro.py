@@ -109,3 +109,27 @@ def test_the_app_json_carries_the_kind_and_search_the_danish_headline():
     assert "'da': v.get('title_da'), 's': label_of" in src
     flow = (ROOT / '.github' / 'workflows' / 'radar.yml').read_text(encoding='utf-8')
     assert 'FETCH_HEAD:summaries.json > .cache/summaries.json' in flow and 'RADAR_SUMMARIES: .cache/summaries.json' in flow
+
+
+# ------------------------------------------------------------------ notifications by the reader's choice (pro-plan 5.5)
+
+def test_a_phone_gets_the_kinds_it_chose_and_an_older_one_what_it_had():
+    from radar import analyses, push
+    sub = lambda n: {'endpoint': f'https://fcm.googleapis.com/x/{n}', 'keys': {'p256dh': 'k', 'auth': 'a'}}  # noqa: E731
+    phones = push.sign_up([], [{'kind': 'sub', 'sub': sub(1)}, {'kind': 'sub', 'sub': sub(2), 'want': ['svar']}], 'now', 0)
+    assert 'want' not in phones[0] and phones[1]['want'] == ['svar']
+    phones = push.sign_up(phones, [{'kind': 'sub', 'sub': sub(1), 'want': ['top', 'svar', 'nonsense']}], 'now', 0)
+    assert len(phones) == 2 and phones[0]['want'] == ['top', 'svar']          # a new choice, the same place
+    ends = lambda kind: [p['endpoint'][-1] for p in push.everyone(phones, kind)]  # noqa: E731
+    assert ends('top') == ['1'] and ends('svar') == ['1', '2'] and ends('digest') == [] and ends(None) == ['1', '2']
+    old = push.sign_up([], [{'kind': 'sub', 'sub': sub(3)}], 'now', 0)       # signed up before the switches
+    assert [p['endpoint'][-1] for p in push.everyone(old, 'digest')] == ['3'] and push.everyone(old, 'svar') == []
+    # a new answer is told once, while it is new; its title as the notification says it
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 17, 12, tzinfo=timezone.utc)
+    memory = {'items': [{'id': '1', 'title': 'Answer to Question: the Jewish Entity and Gaza', 'text': 't', 'fetched': '2026-10-17T10:00:00+00:00'},
+                        {'id': '2', 'title': 'Old', 'text': 't', 'fetched': '2026-10-10T10:00:00+00:00'},
+                        {'id': '3', 'title': 'Known', 'text': 't', 'fetched': '2026-10-17T10:00:00+00:00', 'known': True}]}
+    assert [x['id'] for x in analyses.to_tell(memory, set(), now)] == ['1']
+    assert analyses.to_tell(memory, {'1'}, now) == []
+    assert analyses.push_title(memory['items'][0]['title']) == 'Israel and Gaza'

@@ -180,3 +180,54 @@ starts itself (Web Animations, the new-row glow) checks `reduceMotion` first.
   the intro after a night away.
 - A new app version now shows from the next start or the next return to the app, not on the same start. That is the
   price of opening at once from the phone's copy.
+
+## Professional build (2026-10-17, docs/hjerne/pro-plan.md)
+
+Measured the same way (headless Edge, 390 × 844 at 3x, CPU 5× slowed, round 2's data set `?dev=r2`, three runs each,
+medians). "Before" is `public/` at commit 63ea8d4 (the plan), "after" the professional build (`?v=20261017pro`).
+
+| Step | to next frame (ms) | long tasks | longest task (ms) | blocking time (ms) | frames > 34 ms | worst frame (ms) | layout shift |
+|---|---|---|---|---|---|---|---|
+| First start (empty phone) | 654 → 652 (first story) | 4 → 6 | 384 → 320 | 816 → 722 | 8 → 10 | 567 → 505 | 0.19 → 0.42 * |
+| Start, next time | 173 → 179 (first story) | 3 → 3 | 114 → 124 | 132 → 174 | 4 → 4 | 204 → 206 | 0 → 0 |
+| Tab Forside → Live | 28 → 25 | 1 → 1 | 90 → 51 | 40 → 1 | 1 → 1 | 88 → 46 | 0 → 0 |
+| Tab Live → Analyser | 37 → 33 | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 33 → 29 | 0 → 0 |
+| Tab Analyser → Forside | 22 → 20 | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 21 → 25 | 0 → 0 |
+| Open a story (Live) | 56 → 57 | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 54 → 54 | 0 → 0 |
+| Open Udvikling | 133 → 133 | 1 → 1 | 114 → 111 | 64 → 61 | 1 → 1 | 125 → 129 | 0 → 0 |
+| Back from Udvikling | 3 → 2 | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 50 → 54 | 0 → 0 |
+| Open Begreber A–Å | 116 → 122 | 1 → 1 | 100 → 106 | 50 → 56 | 1 → 1 | 104 → 117 | 0 → 0 |
+| Open a wiki page (Iran) | 39 → 104 ** | 1 → 1 | 104 → 81 | 54 → 31 | 2 → 2 | 129 → 100 | 0.10 → 0 |
+| Open an answer from it | 56 → 83 ** | 1 → 1 | 50 → 68 | 0 → 18 | 2 → 1 | 54 → 79 | 0.10 → 0 |
+| Background reload, 2 new stories, reader 1,800 px down in Live | 122 → 133 | 0 → 1 | 0 → 51 | 0 → 1 | 2 → 2 | 91 → 101 | 0 → 0; the row being read 0 → 0 px |
+| Background reload while the finger scrolls Live | – | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 54 → 59 | 0 → 0.02 |
+| Scroll Live (4,000 px flick) | – | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 13 → 8 | 0 → 0 |
+| Pull to refresh (Forside), 2 new stories | – | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 1 | 38 → 50 | 0 → 0 |
+| Intro (the short writing) | – | 3 → 3 | 261 → 274 | 270 → 317 | 4 → 4 | 334 → 345 | 0 → 0 |
+
+DOM after start: 1,998 → 2,064 elements; kept on the phone: 736 → 736 thousand characters (Gem adds only what the
+reader saves).
+
+The plan's checks hold: no layout shift on later starts, tab switches 20–33 ms to the next frame (≤ 40), no new long
+task at start (3 → 3), the row being read never moves on a reload, scrolling and pulling drop at most one frame.
+What changed and why:
+
+- **Rows that grow** (headlines are never cut) cost a little more layout at a start: blocking time 132 → 174 ms at 5×
+  slowed CPU (roughly 10–20 ms on a phone). The row size estimate for rows out of sight was raised to a typical row
+  (104 and 90 px) so rows coming into view barely move what follows.
+- ** **A wiki page and an answer open complete.** After the first visit to Analyser the library (movement.json,
+  begreber.json) is fetched in a quiet moment for Gem's offline reading. A page therefore draws whole in its first
+  frame instead of drawing its head and then pushing it down when the file came (layout shift 0.10 → 0; blocking time
+  on the wiki page 54 → 31 ms). The first frame comes later because there is more to lay out.
+- A background reload now has one task of 51 ms (1 ms over the 50 ms line) where there was none: the rows carry their
+  screen-reader label and their meta items. The reader's row stays put and the frames stay smooth.
+- \* **First start on an empty phone** (the measurement marks the intro as seen): the answer line now sits directly
+  under the main story, so when the answers' index arrives after the first drawing it pushes more of the first screen
+  down. A real first visit always shows the long intro over the page, and every later start shows nothing moving (0).
+
+Checks: `node --check` on app.js and sw.js; `py -m pytest -q tests`; no console errors in the phone shots (430 px, 2x,
+light and dark, text sizes 1 and 1.3) of Forside, Live (both orders, an opened story), Udvikling (folded, unfolded, the
+long course), Analyser (search, area filter), an answer, a wiki page, A–Å, search (empty and with hits), Gemt,
+settings, the intro, a deep link, offline, a story that left Live and the fixed front page; the back paths (logo,
+history), `?forlob=`, `?svar=`, `?item=` and the admin long press checked by script. Shots: session scratchpad
+`pro/b3/s1` … `s5` (before: `pro/b3/shots0`); scripts: `speed/measure.js`, `speed/compare-pro2.js`.

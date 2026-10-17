@@ -97,6 +97,30 @@ def update(memory, now=None, fetch=get, known=()):
     return memory
 
 
+def to_tell(memory, told, now, hours=48):
+    """The new answers (the app does not hold them, their text is in) not told about yet, newest first, found in the
+    last two days."""
+    out = []
+    for x in (memory or {}).get('items') or []:
+        if x.get('known') or not x.get('text') or x['id'] in told or not x.get('fetched'):
+            continue
+        try:
+            fetched = datetime.fromisoformat(x['fetched'])
+        except ValueError:
+            continue
+        if (now - fetched).total_seconds() <= hours * 3600:
+            out.append(x)
+    return out
+
+
+def push_title(title):
+    """An answer's original title as a notification says it: without 'Answer to Question:', with Khabar's word for Israel."""
+    t = re.sub(r'^\s*(?:updated\s+)?(?:ameer\'?s\s+)?(?:answer to (?:a )?questions?|questions? and answers?|q\s*&\s*a)\s*[:\-–]?\s*', '',
+               title or '', flags=re.I)
+    t = re.sub(r'\b(?:the\s+)?(?:Jewish|Zionist)\s+(?:Entity|State)\b', 'Israel', t, flags=re.I)
+    return (t[:1].upper() + t[1:]) if t else 'Et nyt svar på politiske spørgsmål'
+
+
 def for_app(memory):
     """What data.json lists: id, title, date and link of each new answer whose text the radar has (the text and the
     known answers stay out; the app shows the answers it holds from the wiki and the editor's answers.json)."""

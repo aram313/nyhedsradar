@@ -9,6 +9,52 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Khabar made professional** (the owner's request of 2026-10-17: "Gennemgå alle sidens funktioner og
+  brugervenlighed …"; docs/hjerne/pro-plan.md, built in full). The look stays khabar.nu; it is refined.
+  - **Changed – the visual system:** eight type sizes instead of 28 (`--fs-*` tokens), and the text size now reaches
+    the top bar, the tabs and the settings too (capped at 1.2 there); two voices – the app's sans for Khabar and the
+    outlets (the lede, development names, quotes), the serif only for Hizb ut-Tahrir's text; one spacing scale, one set
+    of corner radii, 1 px lines; red only for live and big – the block titles lost their red dot, the date and the day
+    pill are quiet, 'Topnyhed' goes to at most the five strongest big stories of the day for twelve hours; the chosen
+    segment in dark mode stands out instead of looking pressed in; every text colour reaches 4.5:1 in all eight palettes
+    (Papir's and Apple's third text colour a shade stronger); one icon set (back, bookmark, refresh, offline added; the
+    › and ↗ glyphs became icons); headlines and outlet names are never cut – a headline gets four lines and the row
+    grows, the meta line breaks between its items; buttons, chips, minis and segments reach 44 pt.
+  - **Changed – the views:** Forside – a three-line lede (a tap opens Udvikling), the answer line right under the main
+    story, its development named and opened by its label, lists of one section without the section word, a Live block
+    with its own header and the page's only red dot, an oil and fuel price row at the foot, the fixed page's 'Danmark'
+    block. Live and an opened story – commentary labelled 'Kommentar', teasers without calls to action, links or picture
+    captions, one credit line, up to three wiki chips, 'Udvikling: <name> ›', an oil row where the text names oil.
+    Udvikling – its own address (?forlob=), share and copy per card, a long history three days at a time, its name in
+    view while one reads it. Analyser – one title line, a strip under the bar with the search field and one row of chips
+    (Begreber A–Å, Gemt, the areas as a filter, the years), why a hit matched ('via Khilafah'), rows as links, opened
+    answers quieter. The answer reader – share, a pointer to a newer answer on the subject, the later answers that cite
+    it, today's news on it. A wiki page – a contents row, its paired page, share, today's news under the lead, dated rows
+    in 'Gennem årene'. A–Å – a kind filter, the most used pages, a state's issue under it, letters that stay in view.
+    Tabs – Analyser stays selected on its own sub-pages. Settings – Energi and the install guides under 'Mere'. The
+    intro's three lines match the app; links into the app skip the intro.
+  - **Added – five functions:** **Gem** (stories, answers and wiki pages saved on the phone, readable offline; the
+    library fetched quietly after the first visit to Analyser); **one search** over news, developments, wiki pages and
+    answers with scopes and the last five searches; **Mens du var væk** (one line of what came after three hours away);
+    **Del dagens overblik** (the day's top stories as a WhatsApp text); **notifications by choice** (top stories, the
+    recap at 21, new answers from Hizb ut-Tahrir – a new kind).
+  - **Fixed – states and trust:** a first start without network no longer shimmers for good (a message and 'Prøv igen'
+    after four seconds, a reload when the network returns; the bar says 'offline · 10.53' over the phone's copy); a
+    missing answer text or wiki page offers 'Prøv igen'; unknown pages and a story that left Live say so with a way on;
+    a share sends the summary on screen, not the outlet's teaser, and a link back into Khabar (?item=, ?svar=, ?begreb=,
+    ?forlob=); an answer shows once on the front page; one time format ('kl. 10.16', 'i går kl. 21.34', '12/10') and
+    timelines newest first with day rows; one word set ('udvikling' and 'opdatering'). Accessibility: tab panels, the
+    pages not in view hidden from screen readers, a row read once, headings for days, years and letters, new stories
+    read aloud.
+  - **Radar and editor:** teasers cleaned at intake (`headlines.clean_teaser`); `kind: 'kommentar'` from the outlets'
+    opinion sections and labels, carried in app.json and the editor's input, never a main story; the notification uses
+    the editor's headline (summaries.json from the digest branch); search.json carries the Danish headline; push kinds
+    per phone (`want`) and a notification for a new answer; `editor.py publish` refuses a lede that repeats the main
+    story's headline and an outlet named as speaker of a story it does not carry, and the check notes a timeline that
+    is another development; the movement build drops working labels ('ÆNDRING:'), with a test.
+  - Tests: tests/test_app_pro.py, test_app_contrast.py, test_pro.py; the speed tests follow the new type scale and
+    rows. Speed measured before and after (docs/hjerne/notes-r2-speed.md, 'Professional build').
+
 - **The brain weighs the news; the app shows no analysis** (the owner's decision of 2026-10-17, replacing the Khabar 2
   app): the books' order of importance and Hizb ut-Tahrir's newest answers are used only to select and order the news –
   by the radar's ranking and the editor's front page. One Live section, a front page the editor makes, an Analyser tab

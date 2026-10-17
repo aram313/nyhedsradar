@@ -15,6 +15,10 @@ from urllib.parse import urlparse
 HOSTS = ('fcm.googleapis.com', 'push.services.mozilla.com', 'push.apple.com', 'notify.windows.com')
 MAX_PHONES = 300
 NEW_PER_DAY = 30
+# the kinds of notification a phone can ask for (the app's switches, pro-plan 5.5): top stories, the day's recap at 21
+# and Hizb ut-Tahrir's new answers. A phone that signed up before the switches gets what it had: top and digest.
+KINDS = ('top', 'digest', 'svar')
+BEFORE = ['top', 'digest']
 
 
 def valid(sub):
@@ -54,29 +58,44 @@ def save_phones(path, secret, phones):
         f.write(_fernet(secret).encrypt(json.dumps(phones, separators=(',', ':')).encode('utf-8')))
 
 
+def wants(signal):
+    """The kinds a sign-up asks for, or None when it says nothing (an app from before the switches)."""
+    w = signal.get('want')
+    return [k for k in KINDS if k in w] if isinstance(w, list) else None
+
+
 def sign_up(phones, signals, now, today):
     """Adds new phones and removes the ones that switched off; at most NEW_PER_DAY new a day and MAX_PHONES in all,
-    so nobody can flood the list through the public relay. `today` = phones added in the last 24 hours."""
+    so nobody can flood the list through the public relay. `today` = phones added in the last 24 hours. A phone that
+    signs up again with other switches keeps its place and gets its new choice (nothing else about it is kept)."""
     have = {p['endpoint'] for p in phones}
     for s in signals:
         sub = s.get('sub')
         if not valid(sub):
             continue
+        want = wants(s)
         if s['kind'] == 'unsub':
             phones = [p for p in phones if p['endpoint'] != sub['endpoint']]
             have.discard(sub['endpoint'])
-        elif sub['endpoint'] not in have and today < NEW_PER_DAY and len(phones) < MAX_PHONES:
-            phones.append({'endpoint': sub['endpoint'], 'keys': {k: sub['keys'][k] for k in ('p256dh', 'auth')}, 'at': now})
+        elif sub['endpoint'] in have:
+            if want is not None:
+                phones = [{**p, 'want': want} if p['endpoint'] == sub['endpoint'] else p for p in phones]
+        elif today < NEW_PER_DAY and len(phones) < MAX_PHONES:
+            phones.append({'endpoint': sub['endpoint'], 'keys': {k: sub['keys'][k] for k in ('p256dh', 'auth')}, 'at': now,
+                           **({'want': want} if want is not None else {})})
             have.add(sub['endpoint'])
             today += 1
     return phones
 
 
-def everyone(phones):
-    """The signed-up phones plus the ones from the PUSH_SUBS secret, each once."""
+def everyone(phones, kind=None):
+    """The signed-up phones plus the ones from the PUSH_SUBS secret (the owner's: every kind), each once; with a kind,
+    only the phones that asked for it."""
     out, seen = [], set()
     for sub in json.loads(os.environ.get('PUSH_SUBS') or '[]') + phones:
         if isinstance(sub, dict) and sub.get('endpoint') and sub['endpoint'] not in seen:
+            if kind and kind not in (sub.get('want') if isinstance(sub.get('want'), list) else (BEFORE if 'at' in sub else KINDS)):
+                continue
             seen.add(sub['endpoint'])
             out.append({'endpoint': sub['endpoint'], 'keys': sub.get('keys', {})})
     return out

@@ -46,7 +46,9 @@ def pull(since):
         except json.JSONDecodeError:
             continue
         if body.get('kind') in ('sub', 'unsub') and isinstance(body.get('sub'), dict):   # a phone switching on/off
-            out.append({'kind': body['kind'], 'sub': body['sub'], 'at': msg.get('time')})
+            want = body.get('want')   # the kinds the phone asked for (the app's three switches); missing: as before
+            out.append({'kind': body['kind'], 'sub': body['sub'], 'at': msg.get('time'),
+                        **({'want': [k for k in want if k in ('top', 'digest', 'svar')]} if isinstance(want, list) else {})})
         elif body.get('kind') == 'admin':   # the owner removing or moving a story; admin.py checks the signature
             out.append({'kind': 'admin', **{k: str(body.get(k, ''))[:80] for k in ('act', 'id', 'why', 'sec', 'at', 'sig')}})
         elif body.get('kind') == 'visit':   # the app was opened: counted for the owner's statistics (stats.py)

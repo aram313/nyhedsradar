@@ -27,7 +27,11 @@ stories that name it. The **Udvikling** page holds every development step by ste
 important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire, grouped by topic, updated
 through the day) and the earlier days. Every story has a small picture; opening it shows a short summary, how Danish,
 Western, Arab/Muslim, Israeli and other media each tell it, and buttons to read, share (the phone's share sheet, so
-WhatsApp is one tap away) or copy. Top stories and the most relevant news also trigger a notification; a phone signs up
+WhatsApp is one tap away) or copy – a share sends what the screen shows and a link back to the story in Khabar. Answers,
+wiki pages and developments can be shared the same way. **Gem** keeps stories, answers and pages on the phone, readable
+offline; **one search** covers the news, the developments, the answers and the wiki; after a long break one line says
+what came meanwhile; the front page's date line shares the day's top stories as a WhatsApp text. Notifications are the
+reader's choice of three kinds – top stories, the day's recap at 21 and new answers from Hizb ut-Tahrir; a phone signs up
 with one tap (no code to send).
 
 ## Status

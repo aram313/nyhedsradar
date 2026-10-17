@@ -20,9 +20,9 @@ def test_three_tabs_forside_live_analyser_in_that_order():
 
 def test_every_page_the_app_draws_has_its_section():
     pages = re.findall(r'<section class="page[^"]*" data-tab="(\w+)"', INDEX)
-    assert pages == ['home', 'latest', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'search']
-    for side in ('threads', 'begreb', 'begreber', 'svar'):
-        assert f'<section class="page side" data-tab="{side}">' in INDEX
+    assert pages == ['home', 'latest', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'search']
+    for side in ('threads', 'begreb', 'begreber', 'svar', 'gemt'):
+        assert f'<section class="page side" data-tab="{side}"' in INDEX
 
 
 def test_the_old_section_tabs_open_live():
@@ -58,7 +58,7 @@ def test_the_movements_face_is_its_own_and_every_new_font_size_follows_the_text_
     assert '--ht-bg: #efe7d6' in CSS
     new = CSS[CSS.index("/* ------------------------------------------------------------ a row's tap lies under its words"):]
     sizes = re.findall(r'font-size:\s*([^;]+);', new)
-    assert sizes and all('var(--ts, 1)' in s for s in sizes), [s for s in sizes if 'var(--ts, 1)' not in s]
+    assert sizes and all('var(--fs-' in s for s in sizes), [s for s in sizes if 'var(--fs-' not in s]
 
 
 def test_a_link_to_the_wiki_is_never_put_inside_a_button():

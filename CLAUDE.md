@@ -67,6 +67,14 @@ da'wah.
 - `src/radar/headlines.py` – `curious(title)`: the radar's test for a curiosity headline (a question, 'Derfor/Se/Her
   er/Sådan/Hvorfor …', 'Why/How/What …', tabloid labels, '- opinion' at the end, a line that only names who speaks).
   The app holds a copy (`curious` in app.js) – keep the two alike; the editor's stricter one is `voice.curiosity`.
+  Also (2026-10-17, pro-plan): `clean_teaser(text, title)` – a teaser without its call to action ('Følg udviklingen …
+  her', 'Læs mere'), links and a picture's caption with its credit and markup (`feeds.tidy` at intake and over the kept
+  items; the app's `cleanTeaser` is the copy), and `commentary(link, title)` – an opinion or analysis piece by its
+  section's path or its label; `run.py` writes `kind: 'kommentar'` into data.json and app.json (the app's `isComment`
+  reads older copies the same way), the editor's input lists it and a commentary is never a 'top' block. The
+  notification says the app's headline: `run.push_headline` takes the editor's (summaries.json, `RADAR_SUMMARIES` from
+  the digest branch), else the Danish, the translation, the outlet's; a curiosity headline gives way to the teaser.
+  search.json carries `da` (the Danish headline).
 - `src/radar/level.py` – **Live's level** (the owner's rule of 2026-10-17, notes-owner-volume.md): the editor's
   `få` / `normal` / `mange` in `live.json` (digest branch, read by radar.yml into `.cache/live.json`, `RADAR_LIVE`)
   becomes a rank floor and a soft count for the last 24 hours (settings `live_levels` {få: [104, 20], normal: [96, 38],
@@ -119,7 +127,11 @@ da'wah.
   app shows worst, with the outlet's headline, teaser and three other outlets'), Live today (level, note, count, the
   radar's line, the six weakest in and strongest out, yesterday's take/drop still in force) and the front page's
   composition with its palette; `publish` checks every headline, block title and front-page line with
-  `voice.check_headline` (no curiosity headline, no '– video', no judgement of its own unless 'Who: what'), files
+  `voice.check_headline` (no curiosity headline, no '– video', no judgement of its own unless 'Who: what'; since the
+  pro-plan also `voice.check_prefix` – 'X:' with an outlet's name only when that outlet carries the story – and
+  `voice.check_lede` – a new lede whose first clause shares 60 % of its words with Dagens historie's headline is
+  refused: a standfirst names the day's other stories; the check notes a main story's timeline that shares fewer than
+  three words with it, `timeline_off`), files
   headlines under the story's id with its members (summaries.json `titles`; one that breaks today's rules covers no
   story and is removed at the next publish), writes `live.json` at every publish (today's and yesterday's Danish days;
   take/drop add to today's) and `front.json` (the composition: at most 8 blocks of top, liste, udvikling, citat, svar,
@@ -191,9 +203,12 @@ da'wah.
     The routine prompt also holds the owner's WEIGHING guide (what matters most geopolitically, from his own reading; it orders the lede, picks and topics, never the wording). It lives only in the private routine prompt: keep it out of this public repo.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
-- Phones sign up themselves: the app posts {kind: sub|unsub, sub} to the relay; `push.py` keeps them in
-  `state/phones.bin` (Fernet, key from PROFILE_KEY). The old `PUSH_SUBS` secret is still merged in.
-  Test with `gh workflow run push-test.yml`.
+- Phones sign up themselves: the app posts {kind: sub|unsub, sub, want} to the relay; `push.py` keeps them in
+  `state/phones.bin` (Fernet, key from PROFILE_KEY). The old `PUSH_SUBS` secret is still merged in (every kind).
+  `want` is the reader's own choice of kinds (the settings' three switches: `top`, `digest`, `svar` – a new answer of
+  Hizb ut-Tahrir's, `analyses.to_tell`, never at night); a phone from before the switches gets top and digest;
+  `everyone(phones, kind)` filters. A notification's link carries `&n=1` (the statistics tell it from a shared
+  `?item=`). Test with `gh workflow run push-test.yml` (it prints the phones per kind).
 
 ## Project-specific conventions
 
@@ -214,7 +229,7 @@ da'wah.
   (round 2): the editor's (summaries.json `titles`, matched by the card's id, a member or another outlet's article; one
   the app's `curious` flags is skipped), else the outlet's in Danish where the phone shows Danish; a plain curiosity
   headline gives way to the teaser's first sentence (cut at its main clause or a word, ≤ 120 characters) or another
-  outlet's plain headline; the opened story names the original ('Originaloverskrift: »…«'). **The front page the editor
+  outlet's plain headline; the opened story names the original in its one credit line ('Original: »…«'). **The front page the editor
   composed** (front.json, round 2): its blocks in its order with the app's own pieces – top (the Dagens historie card
   with its timeline, `with` stories and the answer line; no picture: a text lead), liste (`billeder`: the first story
   with a picture large), udvikling, citat, svar, live (the newest stories no other block shows), linje; a story once; a
@@ -244,15 +259,20 @@ da'wah.
   back the way one came, scroll kept; the phone's own back gesture does the same – each side page is a step in the
   browser's history, and the address names the page in view): Udvikling, an answer, a wiki page, the A–Å index. The **Udvikling** page holds
   the editor's lines once (2026-10-11 the owner had the recap and the developments merged – as two views they clashed):
-  'I dag' with the day's line count, update time and 'Del resumé' (the WhatsApp text); the day's topics in the editor's
+  'I dag' with 'Resumé kl. …', the count of updates and 'Del resumé' (the WhatsApp text), the lede whole; the day's developments in the editor's
   order, each a card with its lines of the day, newest first, that unfolds into the whole development across the days
   ('Hele forløbet'); then 'Fulgt de seneste dage'; then 'Tidligere dage' (whole recaps, to read or share). A development
   tapped elsewhere opens unfolded; the recap notification (?digest=1) opens the page at the top. The name is 'Live'
   everywhere. Foreign headlines show in Danish by default (the editor's checked Danish first, else the machine's; the
   opened story names the original). The intro plays on the first visit and after six hours away, else the app opens
-  straight in. Text size follows the phone (iPhone Dynamic Type) or the setting (every font size is
-  `calc(Npx * var(--ts, 1))`, --ts set on #list). Old news: only the box on the page, the top bar stays quiet. Shared
-  texts end with 'via khabar.nu'. Bump `?v=` on every change: the service worker serves versioned files from its cache.
+  straight in; a link into the app (`?item=`, `?svar=`, `?begreb=`, `?forlob=`, `?digest=`, `?tab=`, `?gemt=`) skips it.
+  Text size follows the phone (iPhone Dynamic Type) or the setting: app.js sets `--tsu` on `<html>`; the pages use it
+  whole, the bar, the tabs, the search field and the sheets capped at 1.2 (`--ts`); every font size is one of eight
+  tokens `--fs-cap/meta/small/body/read/lead/block/title`, each `calc(Npx * var(--ts, 1))` (exempt: the logo and the
+  intro's mark, the initials tiles, the tab label, the owner's statistics – tests/test_app_speed.py). Old news: only
+  the box on the page, the top bar stays quiet. Shared texts end with 'via khabar.nu/?item=…' (or ?svar=, ?begreb=,
+  ?forlob=), so the recipient lands in Khabar. Bump `?v=` on every change: the service worker serves versioned files
+  from its cache.
   Colour is minimal (the owner found section-coloured labels 'in your face'): a small section dot on mixed lists, red
   only for big stories and 'live', the ochre only for the movement's text. Headlines guide the eye with bold keywords
   (who and where) instead. Block titles and day markers must never look alike.
@@ -265,8 +285,9 @@ da'wah.
   (`badPics`) and one loaded in view is drawn without `loading="lazy"` after (`nearPics`), so a patch never undoes
   them; side pages hide the tabs behind with `content-visibility: hidden`, rows out of sight `content-visibility: auto`;
   no `backdrop-filter`, no blend modes, no animated filter/height/top/box-shadow/background-color, only transform and
-  opacity, Reduce Motion respected (tests/test_app_speed.py holds these). At text size 1.15 and up (`ts-l` on #list)
-  closed rows with a picture show three headline lines in the same height.
+  opacity, Reduce Motion respected (tests/test_app_speed.py holds these). A closed headline gets up to four lines and
+  its row grows (no fixed row height); `contain-intrinsic-size: auto` remembers a row's real height after its first
+  layout, so rows out of sight keep their place.
 - **Content rules for every Danish text Khabar writes** (the editor's lede, lines, summaries, titles; the app's words;
   the wiki's pages): 'Israel' in our own voice (the movement's term only inside a quotation); no praise of or call to
   violence; judge states, rulers, policies and ideas – never peoples or religions; no claim that a non-ruling person, a
@@ -277,6 +298,57 @@ da'wah.
   besættelsesfly'), 'martyr', 'heltemod', 'heroisk' and 'helte' near fighting.
 - The app never mentions Claude in visible text and has no 'how Khabar chooses' explainer (owner's request,
   2026-10-10). Default look: Dæmpet (light) and Notion (dark); the 'Blød' tone was removed.
+- **Khabar made professional (2026-10-17, docs/hjerne/pro-plan.md, built in full; tests/test_app_pro.py,
+  test_app_contrast.py, test_pro.py):**
+  - **Two voices:** the app's sans is Khabar's and the outlets' voice (the lede, block titles, development names, an
+    outlet's quote in italic sans, the intro); the serif only Hizb ut-Tahrir's (`.ht*`, `.an-*`, `.rd-*`, `.wk-*`).
+  - **Red** only for live and big: one red dot on the front page (its Live block, `blockHead(title, more, live)`), the
+    Live tab's dot; 'Topnyhed' on at most the five strongest big stories of the Danish day (picks first, then rank), each
+    for twelve hours, never in a chosen block or in Vigtigste (`topNow()` in `meta()`); the lede's date and the day pill
+    are quiet (`--text-3`, `--fill-2`). Dark segments: the chosen one a step lighter (`--seg-on`). Every text colour is
+    ≥ 4.5:1 on the page and on a panel in all eight palettes.
+  - **Rows keep their words:** four headline lines, the row grows; the meta line (`Kommentar` or `Topnyhed`, the section
+    on mixed lists, the outlet, the time) breaks between its items and never starts with '·' (each item carries its dot,
+    the line's first is clipped away); a list of one section drops the section word; a new story's dot sits before its
+    time. One spacing scale (4–32), radii 12 (buttons, the answer line, quotes), 16 (panels), 20 (sheets), 1 px
+    separators; a panel sits 12 from the edge with 12 inside. One of each component: `blockHead(title, more)` with its
+    right-aligned 'Alle ›', the quiet text button `.qbtn`, the quiet row `.qrow`, chips 36/44, minis 40/44, segments 44,
+    `.grp` group headers (search, A–Å, settings) that never look like a day pill, `stateBlock(kind, text, actions)`.
+  - **States:** skeleton rows at most four seconds, then 'Ingen forbindelse …' / 'Kunne ikke hente …' with 'Prøv igen'
+    (the bar: 'ingen forbindelse', or 'offline · 10.53' over the phone's copy); a reload when the network comes back;
+    'Prøv igen' on an answer's or a wiki page's missing file; 'Siden findes ikke' / 'Svaret findes ikke' / 'Historien
+    er ikke længere i Live' (a link's story looked for among everything the radar read) with a way on; new stories read
+    aloud through `#srStatus`.
+  - **Time and words:** one formatter `stamp()` ('nu', '4 min' to nine minutes, 'kl. 10.16', 'i går kl. 21.34',
+    'lør. kl. 23.32', '12/10'); timelines newest first with day rows ('I går', 'Torsdag'); a development is an
+    'udvikling', each of its lines an 'opdatering'; 'fulgt i 8 dage · senest kl. 10.36'.
+  - **Shared is what is seen:** a story's share sends the headline shown, the first sentence of the editor's summary
+    (else of the cleaned teaser), the outlet's link and 'via khabar.nu/?item=<id>'; teasers lose calls to action, links
+    and picture captions (`cleanTeaser` in app.js = `clean_teaser` in src/radar/headlines.py – keep them alike); one
+    credit line replaces the two notes; an answer the front page shows is not said again in a story opened there.
+  - **The views:** Forside – the lede three lines (a tap: Udvikling, where it stands whole), 'Del dagens overblik' on the
+    date line, 'Mens du var væk' after three hours away (counts only, fades on the first scroll; it stores nothing new),
+    the answer line right under the main story, its development named and opened by its label (`threadFor` when the
+    editor's timeline shares too few words), the Live block without commentary, 'Olie og brændstof – priser nu' at the
+    foot (links `energi/`, its code untouched), the fixed page's 'Danmark' block, the iPhone install hint once. An opened
+    story: up to three ochre wiki chips, 'Udvikling: <name> ›', the bookmark, an oil row when the text names oil or fuel.
+    Udvikling: its own address (`?forlob=<key>`), Del/Kopiér per card, a long course three days at a time, its name
+    sticky inside it. Analyser: one title line, a strip under the bar with the field and one chip row (A–Å, Gemt, the
+    areas as a filter kept on the phone, the years), the page a query names first, 'via <page>', the question's phrase,
+    rows as links, an opened answer drawn quieter (`ansRead`, ≤ 400). The answer reader: byline with 'Originalen',
+    Del · Kopiér · Gem, 'Nyeste svar om …', 'Senere svar, der henviser hertil', 'I nyhederne nu'; 'Ifølge dette svar og
+    svaret af …' where its own date is followed by 'og'. A wiki page: a contents row, the paired page (a state and its
+    issue), Del · Kopiér · Gem, today's news under the lead, 'Gennem årene' as dated rows without the lead's own. A–Å:
+    a kind filter, the most used pages, a state's issue under it, the letters sticky. Tabs: Analyser stays selected on
+    its side pages; a tap on the tab of a side page goes back to its list. Settings: notifications with three switches,
+    'Mere' (Energi, the install guides, the offline library's line). Accessibility: tab panels, the pages not in view
+    `aria-hidden`, a row's label read once, headings for days, years, letters and sections.
+  - **New functions:** Gem (`localStorage 'saved'`, ≤ 200, written in idle time: a story's snapshot – so it opens
+    offline and after it left Live –, an answer's number, a page's id; the side page 'Gemt'; the library –
+    movement.json and begreber.json – fetched in idle time after the first visit to Analyser, not on save-data or 2g);
+    one search with scopes Alle · Nyheder · Svar · Begreber (the last five searches on the phone); Mens du var væk; Del
+    dagens overblik (the editor's checked headlines only); notifications by choice. Waiting (the owner's call): following
+    a topic, picture share cards, a Live section filter, text selection in reading text.
 - Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
   tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
   copy of the live state, no fetching or embedding) and compare what Live (one list, with the method's tiers) and each
