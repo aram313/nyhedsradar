@@ -426,6 +426,11 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .story.tick .m { margin-top: 4px; }
 .story.tick + .story.tick::before { left: calc(16px + 44px * var(--ts, 1) + 12px); }
 .live-seg { margin: 12px 16px 6px; }
+/* Live's three filters (17/10): Danmark · Mellemøsten · Verden, each with its section's small dot */
+.live-secs { display: flex; gap: var(--s2); margin: 4px 16px 8px; }
+.live-secs .chip { flex: 1; justify-content: center; }
+.live-secs .sd { width: 7px; height: 7px; border-radius: 50%; background: var(--sec); }
+.live-secs .sd[data-sec="dk"] { background: var(--dk); } .live-secs .sd[data-sec="me"] { background: var(--me); } .live-secs .sd[data-sec="world"] { background: var(--world); }
 
 /* ------------------------------------------------------------ quotes: an outlet's statement in the app's own face */
 .quote { display: block; position: relative; margin: 6px 16px 10px; padding: 12px 14px 12px 18px; border-radius: var(--r-btn); background: var(--fill);

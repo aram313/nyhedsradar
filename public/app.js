@@ -153,6 +153,8 @@ function stamp(iso) {
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+// the day and the time, always both (Live's 'Vigtigste', where the order is not by time): '17/10 kl. 12.03'
+const fullStamp = iso => { const d = new Date(iso); return `${d.getDate()}/${d.getMonth() + 1} kl. ${clock(iso)}`; };
 // when something is from, said after 'fra' or 'siden': 'kl. 10.53', 'i går kl. 21.34', 'lør. kl. 23.32', '12/10' – never
 // 'nu' or minutes
 const fromWhen = iso => { const s = stamp(iso); return s === 'nu' || s.endsWith(' min') ? 'kl. ' + clock(iso) : s; };
@@ -864,7 +866,7 @@ function meta(i, opts = {}) {
   // mixed lists say where it belongs; a list of mostly one section says it only on the story from another
   if (opts.tag && secOf(i) !== opts.msec) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);
   m.push(`<span class="src">${esc(i.source)}</span>`);
-  if (!opts.tick) m.push(`<span class="tm">${isNew(i) ? '<i class="nd"></i>' : ''}${stamp(i.published || i.found)}</span>`);   // the ticker has its own time column
+  if (!opts.tick) m.push(`<span class="tm">${isNew(i) ? '<i class="nd"></i>' : ''}${opts.full ? fullStamp(i.published || i.found) : stamp(i.published || i.found)}</span>`);   // the ticker has its own time column
   if (i.outlets >= 3) m.push(`<span>${i.outlets} medier</span>`);   // one rule everywhere: three outlets and more
   if (i.confirmed === 0) m.push('<span class="warn">ubekræftet</span>');
   if (shared[i.id]) m.push('<span class="done">delt</span>');
@@ -1313,7 +1315,10 @@ function composedHome(all, opts, f) {
       html += '</section>';
       filled++;
     } else if (b.kind === 'liste') {
-      const all = (b.stories || []).map(take).filter(Boolean);
+      // the editor's order, but a story of the last 24 hours never waits behind an older one under 'Alle' (the owner,
+      // 17/10: "Hvordan kan en frisk historie blive gemt under vis flere ift en der er over 24 timer gammel?")
+      const named = (b.stories || []).map(take).filter(Boolean);
+      const all = [...named.filter(i => hours(i) < 24), ...named.filter(i => hours(i) >= 24)];
       if (!all.length) continue;
       // three stories (a quiet Danish block two), then 'Alle ›' unfolds the rest in place
       const key = 'front|' + (b.title || ''), most = b.dkQuiet ? 2 : 3, list = unfolded.has(key) ? all : all.slice(0, most);
@@ -1642,20 +1647,26 @@ function briefText() {
 // sections mixed, newest first; 'Vigtigste' – the last 24 hours by weight: the editor's picks in its order, then the
 // radar's strongest, with pictures
 let liveSort = store.get('liveSort', 'new'), liveTopAll = false;
+// three filters under the sort (the owner, 17/10: "3 nemme filtre … verden mellemøsten og danmark"): one tap shows one
+// section, a tap on it again all of Live; for the visit only, so Live never opens filtered
+let liveSec = '';
 function latestPage(all, opts) {
   const gone = focusMissing ? stateBlock('gone', 'Historien er ikke længere i Live.', [['Søg efter den', `data-find-item="${esc(focusMissing)}"`], ['Luk', 'data-gone-x']]) : '';
+  const secs = `<div class="live-secs" role="group" aria-label="Vis kun">${['dk', 'me', 'world'].map(k =>
+    `<button class="chip${liveSec === k ? ' on' : ''}" data-live-sec="${k}" aria-pressed="${liveSec === k}"><i class="sd" data-sec="${k}"></i>${SECTIONS[k]}</button>`).join('')}</div>`;
   const seg = gone + `<div class="seg two live-seg" role="radiogroup" aria-label="Sortér">${[['new', 'Seneste'], ['top', 'Vigtigste']].map(([v, l]) =>
-    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div>`;
+    `<button role="radio" data-live-sort="${v}" aria-checked="${liveSort === v}">${l}</button>`).join('')}</div>` + secs;
+  if (liveSec) all = all.filter(i => secOf(i) === liveSec);
   if (liveSort === 'top') {
     const day = all.filter(i => hours(i) < 24);
     const list = [...day.filter(i => pickRank(i) < 99).sort((a, b) => pickRank(a) - pickRank(b)),
       ...day.filter(i => pickRank(i) === 99).sort((a, b) => rankOf(b) - rankOf(a))];
     const shown = liveTopAll ? list : list.slice(0, 30);
-    return seg + shown.map((i, n) => story(i, n, { ...opts, tag: true, top: true })).join('')
+    return seg + shown.map((i, n) => story(i, n, { ...opts, tag: !liveSec, top: true, full: true })).join('')
       + (shown.length < list.length ? `<button class="qbtn" data-live-top-all>Vis flere (${list.length - shown.length})</button>` : '');
   }
   const recent = latestAll ? all : all.filter(i => hours(i) < 24);
-  let html = seg + timeline(recent, { ...opts, tag: true, tick: true });
+  let html = seg + timeline(recent, { ...opts, tag: !liveSec, tick: true });
   if (recent.length < all.length) html += `<button class="qbtn" data-latest-all>Vis ældre (${all.length - recent.length})</button>`;
   return html;
 }
@@ -2913,6 +2924,8 @@ $('list').addEventListener('click', async e => {
   const ls = t.closest('[data-live-sort]');
   if (ls) { liveSort = ls.dataset.liveSort; store.set('liveSort', liveSort); expanded.clear(); render(); cur().scrollTop = 0; return; }
   if (t.closest('[data-live-top-all]')) { liveTopAll = true; render(); return; }
+  const lsec = t.closest('[data-live-sec]');
+  if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
   if (!el) return;
   const sb = t.closest('[data-save]');
   if (sb && i) {   // the bookmark: the story kept on the phone with what it shows

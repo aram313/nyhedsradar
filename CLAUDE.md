@@ -261,7 +261,8 @@ da'wah.
   The oil row of an opened story and Indstillinger's 'Mere' open Priser (`data-priser`, `openPriser`); `?tab=kort` and
   `?tab=priser` open the tab; khabar.nu/energi stays a page of its own.
   The look stays as khabar.nu. **Live** is the stories the radar admits at the editor's level (app.json; data.json
-  filtered by its `live` marks when app.json is missing), sorted 'Seneste' or 'Vigtigste' (the editor's
+  filtered by its `live` marks when app.json is missing; since 17/10 three chips Danmark · Mellemøsten · Verden filter it
+  for the visit, and 'Vigtigste' shows day and time on each row), sorted 'Seneste' or 'Vigtigste' (the editor's
   picks, then rank; remembered per phone), each row with its small section dot; the owner's long-press 'move' sets the
   dot and the Danish lift. Old links (`?tab=dk|me|world`, a notification's `?item=`) open Live. **A story's headline**
   (round 2): the editor's (summaries.json `titles`, matched by the card's id, a member or another outlet's article; one
@@ -447,7 +448,7 @@ da'wah.
     the switches sends its choice once). Text selection (the owner, 17/10): only
     reading text – a summary, the lede, the movement's texts (`READING` in app.js = the rule in style.css) – never a row
     or a button, and the owner's long press skips it. Waiting (the owner's call): following a topic, picture share cards,
-    a Live section filter.
+    
 - Danish politics must never be buried **in Live and the radar**: keep the Danish lift (`rank_core_dk`), `protect_dk`
   and the dk-section rules when tuning the rank. The front page is another matter since 17/10: Denmark there only when
   it matters (a big Danish story, Danish policy on Islam and Muslims, Denmark's place in a great power's plan – the

@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Fresh first, Live's filters, the day under Vigtigste** (2026-10-17, the owner: 'Hvordan kan en frisk historie blive
+  gemt under vis flere ift en der er over 24 timer gammel?', '3 nemme filtre … verden mellemøsten og danmark', 'under
+  vigtigste skal man også kunne se dato og tid'; `?v=20261018p`): a front-page list keeps the editor's order but puts
+  the stories of the last 24 hours before older ones, so none waits under 'Alle'; Live has three chips under its sort –
+  Danmark · Mellemøsten · Verden, one tap one section, again all (for the visit only); 'Vigtigste' says the day and the
+  time on every row ('16/10 kl. 21.35').
+
 - **The front page's headline in the manner of The Economist, colour on the icons** (2026-10-17, the owner: 'Overskriften
   må gerne være mere fangende, pænere skrift', 'Det skal være mere elegant', 'Se til the Economist for inspiration',
   'lidt farve på ikonerne'; `?v=20261018o`): the date a small red fly title, the lede's first part a bold newspaper serif
