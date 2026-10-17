@@ -83,6 +83,12 @@
   @keyframes ecGlow { 0% { opacity: 0; } 15% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0; } }
   .ec-top::before { content: ""; display: block; width: 26px; height: 3px; margin-bottom: 11px; background: var(--red); }
   .ec-fly { display: block; margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
+  /* 'Finans og økonomi': under its headline line – the newest story – that story's outlet and time, the way to it */
+  .ec-lead-m { margin: 6px 16px 4px; font-size: var(--fs-meta); color: var(--text-3); }
+  .ec-lead-m a { color: inherit; text-decoration: none; font-weight: 600; }
+  /* pulled down to refresh (18/10, the owner: 'man kan ikke hive ned for at opdatere økonomi siden') */
+  main.en.pulling { will-change: transform; }
+  main.en.settling { transition: transform .38s cubic-bezier(.16, 1, .3, 1); }
   .ec-head { margin: 6px 0 0; font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.14; letter-spacing: -.012em;
     font-variation-settings: "opsz" 60; text-wrap: balance; }
   .ec-meta { margin: 10px 16px 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); text-wrap: pretty; }
@@ -528,9 +534,10 @@ const AIX_TXT = {
 const TOPICS = [
   { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
   // the economic crises in the news (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser")
-  // named 'Uro i økonomien' since 18/10 (the owner: 'Måske skal det ikke hedde "økonomiske kriser"'): it holds a state's
-  // borrowing stress, tariffs, sanctions and ratings as well as a crisis proper
-  { id: 'kris', tab: 'Uro', fly: 'Uro i økonomien', h: 'uro', src: 'Khabars nyheder' },
+  // 'Finans og økonomi' since 18/10 (the owner turned down 'Økonomiske kriser' and 'Uro i økonomien'): the news of
+  // states' borrowing, central banks, tariffs, sanctions and ratings; its headline line is its newest story, as a
+  // paper's section opens on its lead, and the list under it holds the rest
+  { id: 'kris', tab: 'Nyheder', fly: 'Finans og økonomi', h: 'nyheder', src: 'Khabars nyheder' },
   { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
     more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']]] },
   { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
@@ -998,7 +1005,7 @@ function head(id) {
   const s = D.s, low = lowest();
   try {
     if (id === 'nu') { const m = topMoves()[0]; if (m) return phrase(m.k); }
-    if (id === 'kris') { const n = (D.crisis || []).length; return n ? `${n} ${n === 1 ? 'nyhed' : 'nyheder'} om gæld, renter, told og sanktioner` : 'Ingen ny uro i nyhederne'; }
+    if (id === 'kris') { const n = (D.crisis || [])[0]; return n ? newsTidy(newsPick(n)[0]) : 'Ingen nye nyheder om finans og økonomi'; }
     if (id === 'fuel' && low.benzin && low.diesel) return `Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`;
     if (id === 'oil' && s.brent) return phrase('brent');
     if (id === 'mkt' && s.spx) return phrase('spx');
@@ -1006,7 +1013,7 @@ function head(id) {
     if (id === 'debt' && D.debt) return `USA’s gæld: ${nf(D.debt.v / 1e12, 1)} billioner $`;
     if (id === 'raw' && s.gold) return phrase('gold');
   } catch (e) { /* a missing number: the plain head */ }
-  return { nu: 'Tallene lige nu', kris: 'Uro i økonomien', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
+  return { nu: 'Tallene lige nu', kris: 'Finans og økonomi', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
 }
 
 // ---- Brændstof -----------------------------------------------------------------------------------------------------
@@ -1155,17 +1162,20 @@ function debtFold() {
 }
 
 // ---- news (Olie og gas, under Flere tal) -----------------------------------------------------------------------------
+// a story's headline as the list shows it – also the news topic's headline line (head('kris'))
+// the app's language setting: Danish where there is a Danish version, else the original if readable, else English
+const readableText = t => !/[؀-ۿ]/.test(t || '');
+// Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
+const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, (_, w) => `“${w.toLowerCase()}”`)
+  .replace(/(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu, (_, w) => `“${w.toLowerCase()}”`);
+// the editor's headline, else a Danish outlet's own (the radar sends only those: the machine's Danish read badly)
+const newsPick = n => { const danish = store.get('danish', true);
+  return n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : danish && n.da ? [qi(n.da), n.kd] : readableText(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd]; };
+const newsTidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
+  .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
 function news(list = D.news || [], empty = 'Ingen nyheder om olie og brændstof de seneste tre døgn.', all = newsAll, more = 'newsMore') {
   if (!list.length) return `<p class="en-note">${esc(empty)}</p>`;
-  // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
-  const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
-  // Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
-  const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, (_, w) => `“${w.toLowerCase()}”`)
-    .replace(/(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu, (_, w) => `“${w.toLowerCase()}”`);
-  // the editor's headline, else a Danish outlet's own (the radar sends only those: the machine's Danish read badly)
-  const pick = n => n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : danish && n.da ? [qi(n.da), n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
-  const tidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
-    .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
+  const pick = newsPick, tidy = newsTidy;
   const words = (t, k) => {   // the app's bold: who and where
     let out = esc(t);
     for (const w of k || []) if (w && w.length > 1) out = out.replace(esc(w), `<b>${esc(w)}</b>`);
@@ -1206,7 +1216,10 @@ function topicHtml(T) {
     base = baseOf(list.map(moveFig));
     h += nowRows(list, base);
   } else if (T.id === 'kris') {
-    h += news(D.crisis || [], 'Ingen nyheder om uro i økonomien de seneste fire døgn.', crisisAll, 'crisisMore');
+    // the newest story is the headline line above: its source and time under it, then the rest
+    const [lead, ...rest] = D.crisis || [];
+    if (lead) h += `<p class="ec-lead-m"><a href="${esc(lead.u)}" target="_blank" rel="noopener">${esc(lead.s)} · ${esc(when(lead.p))} ›</a></p>`;
+    h += news(rest, lead ? 'Ingen andre nyheder om finans og økonomi den seneste måned.' : 'Ingen nyheder om finans og økonomi den seneste måned.', crisisAll, 'crisisMore');
   } else {
     const tiles = tilesOf(T.id);
     base = baseOf(tiles);
@@ -1403,6 +1416,45 @@ async function load() {
   } else st.textContent = 'ikke hentet';
 }
 $('#status').addEventListener('click', () => { $('#status').textContent = 'henter …'; load(); });
+// pull down to refresh, as the app's pages (18/10, the owner: 'man kan ikke hive ned for at opdatere økonomi siden' –
+// the page scrolls inside the app's frame, where the app's own pull never reaches): the page follows the finger, a
+// deliberate pull fetches the numbers again; embedded, the app's logo gives its signal (khabarOkReady, khabarOkRefresh)
+{
+  const PULL = 130, page = $('#en');
+  let pull = null;
+  const app = name => { try { return EMBED && typeof parent[name] === 'function' ? parent[name] : null; } catch (e) { return null; } };
+  const reset = () => { page.classList.remove('pulling'); page.style.transform = ''; const r = app('khabarOkReady'); if (r) r(false); };
+  addEventListener('touchstart', e => { if (scrollY <= 0) pull = { x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 }; }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (!pull) return;
+    const dx = e.touches[0].clientX - pull.x;
+    pull.d = e.touches[0].clientY - pull.y;
+    if (!pull.lock && Math.hypot(dx, pull.d) > 10) pull.lock = Math.abs(pull.d) > Math.abs(dx) ? 'y' : 'x';
+    if (pull.lock === 'x') { pull = null; reset(); return; }
+    if (pull.lock !== 'y') return;
+    if (pull.d <= 0 || scrollY > 0) { page.style.transform = ''; return; }
+    page.classList.add('pulling');
+    page.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
+    const r = app('khabarOkReady'); if (r) r(pull.d >= PULL);
+  }, { passive: true });
+  addEventListener('touchcancel', () => { if (pull) { pull = null; reset(); } });
+  addEventListener('touchend', async () => {
+    if (!pull) return;
+    const go = pull.lock === 'y' && pull.d >= PULL;
+    pull = null;
+    page.classList.remove('pulling');
+    page.classList.add('settling');
+    const r = app('khabarOkReady'); if (r) r(false);
+    if (go) {
+      page.style.transform = 'translateY(48px)';
+      $('#status').textContent = 'henter …';
+      const signal = app('khabarOkRefresh');
+      if (signal) await signal(() => load()); else await load();
+    }
+    page.style.transform = '';
+    setTimeout(() => page.classList.remove('settling'), 420);
+  });
+}
 addEventListener('scroll', () => $('#bar').classList.toggle('scrolled', scrollY > 4), { passive: true });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 setInterval(() => { if (!document.hidden) load(); }, 5 * 60e3);

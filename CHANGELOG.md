@@ -9,6 +9,25 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Finans og økonomi' with a month's memory, a backward fill, its newest story as its headline; pull to refresh on
+  Økonomi; no 'Høj betydning' on 'Vigtige datoer'** (2026-10-18, the owner: 'kan vi fylde uro i økonomien i
+  retrospekt', 'synes ikke uro i økonomien lyder godt … overskriften … skal være lidt mere professionelt', 'man kan ikke
+  hive ned for at opdatere økonomi siden', 'der skal ikke stå "høj betydning" på forsiden'; `?v=20261018ba`):
+  - The economy page's news topic is **'Finans og økonomi'** ('Nyheder' in its dock, `#nyheder`); its serif headline
+    line is its newest story's headline, with that story's outlet and time under it as the way to it, and the list
+    holds the rest (`newsPick`, `newsTidy` shared with the list).
+  - **Its own memory:** `energy.crisis_archive` keeps the topic's stories 30 days (the radar's of the last four days
+    added at every run to what it held; one story once – its id, its link, or three shared stems within two days),
+    at most 40, newest first.
+  - **The backward fill** (`config/crisis-seed.json`): 13 stories of 18/9–17/10 found with the scouts' subjects on
+    Google News – Frankrigs lånerenter og ECB (Lagarde, Draghi, IMF-chefen, Scope's downgrade, the sell-off near the
+    euro crisis's level), IMF and Pakistan, Egypt and China, the EU–China car deal, Trump's Russian diesel, euro-zone
+    inflation, the Bank of England's warning – each with a Danish headline in the editor's style.
+  - **Pull to refresh on Økonomi:** its page scrolls inside the app's frame, so it has its own pull, as the app's
+    pages (the page follows the finger; a deliberate pull fetches the numbers again; embedded, the app's logo answers:
+    `khabarOkReady`, `khabarOkRefresh`).
+  - **'Vigtige datoer'** rows on the front page no longer say 'Høj betydning' (they all are; the title says it); the
+    Kalender keeps the label.
 - **'Vigtige datoer' on the front page; 'Uro i økonomien'** (2026-10-18, the owner: 'sker snart har i dag kun 1
   begivenhed … burde tage 3 måneders højt vigtige begivenheder i rækkefølge, maks 4. glem middel vigtighed. og måske en
   anden titel' and 'Måske skal det ikke hedde "økonomiske kriser"'; `?v=20261018az`): the front page's calendar block

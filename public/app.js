@@ -3142,6 +3142,17 @@ addEventListener('touchmove', e => {
   pg.style.transform = `translateY(${(110 * (1 - Math.exp(-pull.d / 170))).toFixed(1)}px)`;
   logo.classList.toggle('ready', pull.d >= PULL);
 }, { passive: true });
+// Økonomi's page scrolls inside its frame, so it has its own pull (18/10, the owner: 'man kan ikke hive ned for at
+// opdatere økonomi siden'); the logo answers it as it answers the app's own
+window.khabarOkReady = on => logo.classList.toggle('ready', !!on);
+window.khabarOkRefresh = async run => {
+  logo.classList.add('blink');
+  const t0 = performance.now();
+  try { await run(); } catch { /* the page says it itself */ }
+  const ring = 1400, spent = performance.now() - t0;
+  await wait(Math.max(1, Math.ceil(spent / ring)) * ring - spent);
+  logo.classList.remove('blink');
+};
 addEventListener('touchcancel', () => {   // an interrupted pull must not leave the page pulled down
   if (!pull) return;
   const pg = pull.pg;
@@ -3300,7 +3311,8 @@ function calRow(e, today, o = {}) {
     : `<button class="hit" data-cal="${esc(e.id)}" aria-expanded="${open}" aria-label="${esc(label)}"></button>`;
   // the weight (17/10): 3 a soft red ground, a red edge and 'Høj betydning'; 2 the red edge without the ground (18/10)
   const w = calWOf(e);
-  if (w === 3) parts.unshift('<span class="cw">Høj betydning</span>');
+  // the front page's 'Vigtige datoer' holds only these: its title says it, the row does not (the owner, 18/10)
+  if (w === 3 && !o.front) parts.unshift('<span class="cw">Høj betydning</span>');
   return `<div class="ce${open ? ' open' : ''}${w > 1 ? ' w' + w : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
     + `<span class="tx" aria-hidden="true"><span class="h">${esc(e.title)}</span><span class="m">${parts.join('')}</span></span></div>`
     + (open ? calDetail(e) : '') + '</div>';

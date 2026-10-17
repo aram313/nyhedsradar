@@ -723,6 +723,51 @@ def due(prev, source, t):
     return (t - datetime.fromisoformat(last)).total_seconds() >= EVERY[source] - 30
 
 
+# 'Uro i økonomien' keeps its own memory (the owner, 18/10: 'kan vi fylde uro i økonomien i retrospekt'): the stories
+# of the last CRISIS_DAYS days – the radar's of the last four days added at every run to what the topic held, and the
+# backward fill of config/crisis-seed.json – one story once, newest first
+CRISIS_DAYS, CRISIS_MAX = 30, 40
+SEED = Path(__file__).resolve().parents[2] / 'config' / 'crisis-seed.json'
+
+
+def _stems(x):
+    """A headline's longer words by their start and end, so 'olieraffinaderier' meets 'raffinaderier'."""
+    return {p for w in re.findall(r'\w{5,}', (x.get('ed') or x.get('o') or '').lower()) for p in (w[:5], '-' + w[-6:])}
+
+
+def crisis_seed(path=SEED):
+    try:
+        items = json.loads(Path(path).read_text(encoding='utf-8')).get('items') or []
+    except (OSError, ValueError):
+        return []
+    return [{'i': x['i'], 'o': x.get('o'), 'en': None, 'da': None, 'ed': x.get('ed'), 'l': x.get('l', 'en'), 'k': [], 'kd': [],
+             's': x.get('s'), 'p': x.get('p'), 'u': x.get('u'), 'n': 1, 'big': False}
+            for x in items if isinstance(x, dict) and x.get('i') and x.get('p') and (x.get('ed') or x.get('o'))]
+
+
+def crisis_archive(fresh, kept, seed, t=None, days=CRISIS_DAYS, limit=CRISIS_MAX):
+    """The topic's list: the fresh stories first (their newest headline wins), then what it held and the seed – each
+    story once (its id, its link, or three shared stems with one taken), none older than `days`, newest first."""
+    cut = (t or now()) - timedelta(days=days)
+    out, ids, links = [], set(), set()
+    for x in [*fresh, *kept, *seed]:
+        try:
+            if not x.get('p') or datetime.fromisoformat(x['p']) < cut:
+                continue
+        except (ValueError, TypeError):
+            continue
+        # the same news again: its id, its link, or three shared stems with a story of the same two days (across a
+        # month, two stories share words like 'stiger' and 'økonomien' without being one)
+        when = datetime.fromisoformat(x['p'])
+        if x.get('i') in ids or (x.get('u') and x['u'] in links) or any(
+                abs((when - datetime.fromisoformat(y['p'])).total_seconds()) < 48 * 3600 and len(_stems(x) & _stems(y)) >= 3 for y in out):
+            continue
+        ids.add(x.get('i')), links.add(x.get('u'))
+        out.append(x)
+    out.sort(key=lambda x: x['p'], reverse=True)
+    return out[:limit]
+
+
 def run(state):
     path = state / 'energy.json'
     try:
@@ -808,7 +853,8 @@ def run(state):
         'debt': debt,
         'imf': imf,
         'news': energy_news(state),
-        'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS),   # the economy page's crises
+        # the economy page's 'Uro i økonomien', with its memory of 30 days and the backward fill
+        'crisis': crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t),
     }
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     return out

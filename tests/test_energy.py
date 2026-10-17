@@ -257,7 +257,7 @@ def test_the_page_knows_every_series_the_file_carries():
         assert f'\n  {k}: [' in PAGE, k                     # every debt bar has its Danish name and note
 
 
-TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Uro'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
+TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Nyheder'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
                ('raw', 'Råvarer'))
 
 
@@ -367,8 +367,8 @@ def test_the_page_keeps_the_embed_contract_and_the_house_style():
 def test_economic_crises_are_news_of_their_own():
     assert energy.CRISIS.search('Egypt seeks IMF bailout as pound plunges') and energy.CRISIS.search('Ny straftold mod Kina')
     assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
-    assert "'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
-    assert "news(D.crisis || [], 'Ingen nyheder om uro i økonomien de seneste fire døgn.'" in PAGE
+    assert "'crisis': crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
+    assert "const [lead, ...rest] = D.crisis || [];" in PAGE and 'newsTidy(newsPick(n)[0])' in PAGE   # its headline: the newest story
 
 
 def test_embedded_the_topics_are_the_apps_dock():
@@ -384,3 +384,19 @@ def test_the_crisis_topic_knows_a_state_under_borrowing_stress():
               'Frankrigs lånerenter stiger', "Moody's kreditvurdering af Frankrig", 'Renteforskellen til Tyskland vokser'):
         assert energy.CRISIS.search(t), t
     assert not energy.CRISIS.search('Gaza ceasefire talks resume in Cairo')
+
+
+def test_the_unrest_topic_keeps_a_month_and_its_backward_fill():
+    # 18/10, the owner: 'kan vi fylde uro i økonomien i retrospekt' – a memory of 30 days and a seed of the month before
+    from datetime import datetime, timezone
+    t = datetime(2026, 10, 17, 20, tzinfo=timezone.utc)
+    row = lambda i, p, ed, u=None: {'i': i, 'p': p, 'ed': ed, 'o': ed, 'u': u or f'https://x/{i}'}  # noqa: E731
+    fresh = [row('a', '2026-10-17T10:00:00+00:00', 'Frankrigs lånerenter stiger igen efter budgetforslaget')]
+    kept = [row('a', '2026-10-17T09:00:00+00:00', 'Old headline of the same story'),                 # its id: once
+            row('b', '2026-10-16T08:00:00+00:00', 'Frankrigs lånerenter stiger igen efter budgettalen'),  # the same news
+            row('c', '2026-10-07T08:00:00+00:00', 'IMF-chefen til Frankrig: lånerenterne stiger'),       # words shared, days apart
+            row('d', '2026-09-01T08:00:00+00:00', 'Too old for the month')]
+    got = energy.crisis_archive(fresh, kept, [], t)
+    assert [x['i'] for x in got] == ['a', 'c']
+    seed = energy.crisis_seed()
+    assert len(seed) >= 10 and all(x['ed'] and x['u'] and x['p'] for x in seed)   # each with a Danish headline

@@ -1,0 +1,122 @@
+{
+ "_help": "The economy page's 'Uro i økonomien' filled backwards once (the owner, 18/10: 'kan vi fylde uro i økonomien i retrospekt'): stories of the month before 17/10 that the radar's sources had not carried, found with Google News on the scouts' subjects, each with a Danish headline in the editor's style (reality only, who did or said what). src/radar/energy.py merges them into the topic's own memory, which keeps its stories 30 days; they leave by themselves.",
+ "items": [
+  {
+   "i": "seed-474c5b0e9ed65c86",
+   "o": "Here’s why Moody’s has upgraded Egypt’s credit rating",
+   "ed": "Moody's opgraderer Egyptens kreditvurdering",
+   "l": "en",
+   "s": "Egypt Independent",
+   "p": "2026-10-17T11:33:43+00:00",
+   "u": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOYmRQaDNZVlk5TGZLTlE0clBFNXBneHhyNUhoOUlMbXBMVkUtZG5BNTVyemgzZHRscU53MkRJbEZxTGp5UEdCRk5PUjNIUFJTWmE3MFVpYlQycG5UT1p3SHJCcV81elpvWEh0MHl2WHBibk9KRlpYd2w1ZWtnMDFRcElCcVJ0N2tEMlE0QQ?oc=5"
+  },
+  {
+   "i": "seed-86a30b8d0b45060d",
+   "o": "Draghi Sees High Bar for ECB to Help France With Crisis Tool",
+   "ed": "Draghi: Høj tærskel for, at ECB bruger sit kriseværktøj til at hjælpe Frankrig",
+   "l": "en",
+   "s": "Bloomberg",
+   "p": "2026-10-15T07:59:17+00:00",
+   "u": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNQzNlRXY4aVBZclJadHpTcjdla2I5T0RELUNuZEl0b1hKOGpLRUNuaFVGRGExX081aVlNQk1BZ1dhd2xZc3ZrVjNUQ0RYM3hMN1pOMS1Ha2Fnb2VlYTEtanVvaHEyNF80TEEzSkpEelpnNmhjQk56cEE1RTdkRU9kS2c5c045QjFEOF8wcHpabGk1eVQ0Q2VOaU5PQUNFc3VZazhIa25CVENwOFJWeUFvbA?oc=5"
+  },
+  {
+   "i": "seed-6ba904a1ae096f41",
+   "o": "IMF urges China to deploy bigger fiscal stimulus",
+   "ed": "IMF opfordrer Kina til at bruge flere offentlige midler for at sætte gang i økonomien",
+   "l": "en",
+   "s": "The Business Times",
+   "p": "2026-10-15T06:56:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOZkhFRlhVSGgzZkNHQWxxaHhQNVB5UC1tV2JFbGJHVy1oYnNUb0kzc0tmMy1SdTZ6UC1OSlM2WU54VmM5ODlsQ0c2TUlrWk44UmpzeUVhWURsemMzdXZLTHRfdGNLZlFnRWQxY1RqYmx4UVZUTnNITHVMQ1JtZzByNER6YzJ6Y2hPZFhnWWdWcVFWUzVyTHV0aGJTMlNlSE0?oc=5"
+  },
+  {
+   "i": "seed-c735077890cada2b",
+   "o": "ECB's Lagarde says solution to French debt woes is at home",
+   "ed": "Lagarde: Løsningen på Frankrigs gældsproblemer skal findes i Frankrig",
+   "l": "en",
+   "s": "Reuters",
+   "p": "2026-10-14T03:22:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOMEJ0NHFvYk1XVi1ZRzBuRGUxMDA1czZ1SjNXYTE3OHZSWmV2ak9ZajNJamlmODVYd2w1QWMyTmppSVpHOGs1allzSS1QV2JwaHlkeVdtZ0tBU0R0ODhjOWV4a1F1Sktlel81aHYyNDA0VlhqLUJrdk1fV1J2S1VHRTR1ZW1rcF9nR2JUajZKanY0UWRfZkp5Zlp3SjBXSkhkSHpVMy1tSQ?oc=5"
+  },
+  {
+   "i": "seed-7f16e50d442fda68",
+   "o": "IMF calls for US to cut deficits amid bond woes, urges China to shift away from exports",
+   "ed": "IMF opfordrer USA til at skære i underskuddet, mens obligationsrenterne stiger",
+   "l": "en",
+   "s": "Reuters",
+   "p": "2026-10-14T11:51:37+00:00",
+   "u": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPTzl5X29wWW9IbDNPaWhLZDBzeGN2bjdVbnhRSGVmV2xyTHdkZmVnVkZocndZV3pTX2ItUWJ2eUZpa0hFNEw2bk1pR1pGZ0ZsX3dQc0RlZzZpYjdrRERRUXNyTkJfbGJNcUQ3ZHlGQU1TcWRNYjFQQ3oxT3ROVFQwNWVRUERON05HbUpOZ0tIdWtFeXZKMURlUnBIVXJGT0RUc0Q3MXUtZmU?oc=5"
+  },
+  {
+   "i": "seed-484c50c0d1c0dcdb",
+   "o": "China and Europe Step Back From Trade War With Limits on Chinese Car Exports",
+   "ed": "Kina og EU undgår handelskrig: Kina begrænser eksporten af biler til EU",
+   "l": "en",
+   "s": "The New York Times",
+   "p": "2026-10-09T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNMkR3MUJWaDBNRi1Cb0h4VkthVGF0blptSkcyTk9DME1XNzVvMmFMdFVKYm81XzRZNkdDYk1IdGhFVS10d2FuVWI1TTVUUy1Ea2hWYktlVDVlLWJRb2l3aVViMnlZNzdGeEFfc2NaNy14aFhCOWt6Ti0zbkNrWm1BTQ?oc=5"
+  },
+  {
+   "i": "seed-2f2dbe79349f0bf8",
+   "o": "Trump lifts sanctions on Russian diesel, suggests US may buy amid surging fuel prices",
+   "ed": "Trump ophæver sanktionerne mod russisk diesel og antyder, at USA kan købe den",
+   "l": "en",
+   "s": "Politico",
+   "p": "2026-10-09T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMijwFBVV95cUxNVm1iSTU5UlBYRUxoMUxWZ1ByWXhvWlc2R2o4QWFqeG5mNnQ4WEc3QS11YUlKZUFBZ2NQUUdaTHFKNm1SZmlsNVBxODBCSUcyM2lUUE54cFdhVnNFZURKYkJ4aXE0ak1xUExyaHBRdm9kbGs1ZWREQnRuX2VWdW9kN1FNOUs0dUVfbWJ2dHZJcw?oc=5"
+  },
+  {
+   "i": "seed-0d859f9023d2d1b0",
+   "o": "Pakistan Reaches IMF Deal to Unlock $1.2 Billion in New Funds",
+   "ed": "Pakistan når aftale med IMF om nye lån på 1,2 mia. dollar",
+   "l": "en",
+   "s": "Bloomberg",
+   "p": "2026-10-07T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPd3RCZUtlMVdZQXZCelcyZ0h0RVgzZFNud1BaZWgtRE9qMS05LUdnbU1UcjJxNUVPNVY5Q2dfdWUybHQ5anMtbXhjMHJDZS1KSUtpVFVtdXZxZTExZHYtSU4yTFR2S3M5Z0xIcU1kZjY5Yl9BZlBBajlxZTRNOTN5WlBfLUtBcnZvUlZMekFFNGN3VFFpNUxnLVM0cm1HNWJsYzZYQ3NSUWlNRmkyVDhJcg?oc=5"
+  },
+  {
+   "i": "seed-5dacdc5ab3dad9ad",
+   "o": "'Get your house in order': IMF chief's stark warning for France over surging bond yields",
+   "ed": "IMF-chefen til Frankrig: Få styr på økonomien, mens lånerenterne stiger",
+   "l": "en",
+   "s": "CNBC",
+   "p": "2026-10-07T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOM19vbFNTZUFISENoTHFGNUFWNlFhb2YzMGN3UjZ0MjV4N3BWNFdTRmpEUFJJaHozcWRtYmhkcTVDSUMxV2xzNDl1UVV2UWM3Q3ZsTVVldDVjUy1aOXo0RU0yX29taVV2QmFLa2RiSTdla0haYV90dVhzMlhwaDNrcEJB?oc=5"
+  },
+  {
+   "i": "seed-44ca658ac2f84fc5",
+   "o": "France's bond market sell-off is nearing euro debt crisis levels, Candriam CIO warns",
+   "ed": "Salget af franske statsobligationer nærmer sig niveauet fra eurokrisen, advarer kapitalforvalteren Candriam",
+   "l": "en",
+   "s": "Quartz",
+   "p": "2026-10-02T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMie0FVX3lxTE5sU01fSkI0eXUxa2hPcnhTd3lueFBmY0l1eHZ1QUgxcm1iT2NUYklqYzg4bWVxVnZvaEtsVjVIQ2xaRkI4VTU0V0M4WmIxRHZxdUFpaWRSTFVzbjU3Z0szZVpEN21valk5OTJfNkZGaVhLaDlaUzJnWDRKRQ?oc=5"
+  },
+  {
+   "i": "seed-083a7e1e86e519c3",
+   "o": "Inflation jumps across euro zone, raising pressure on ECB to hike",
+   "ed": "Inflationen stiger i eurozonen og øger presset på ECB for at hæve renten",
+   "l": "en",
+   "s": "Reuters",
+   "p": "2026-10-01T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQNzhjNlBXdURXZEpPX1pMd09GOFFzUDBhQTNvdjJpUUQ4RG9HLXM5cTZrOXQzQU56b091OUpkOWhqVktnUWg5SGxmUDM1NGQwRXRPQzJ3cno0djZQWjJkTUFFYjJSaEVueFU4a0NPM1ZQZWt0dmxqbkR4cjExdk1WZHZXTlVtWHozRlQwM2dfaHFMODdQQ2tSeTZGY2YtQl9BclRpWnR6NmJvMHM?oc=5"
+  },
+  {
+   "i": "seed-72ced30f3c82810b",
+   "o": "Bank of England warns of looming debt crisis",
+   "ed": "Bank of England advarer om en truende gældskrise",
+   "l": "en",
+   "s": "The Telegraph",
+   "p": "2026-09-30T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPb0hxTFl4WmV5TjJKSy1tU195a0hLQ1NJVGg4TmZ0d2Z3eGlhc0FMV3h3MkcyVGc2TjRubnZ1Y0h2LVlrMXBrX1RkTkdZV0JoQUEta21HN0tHUnRPSjltLVlmNzcxeU1RaUtjVjVOMTE2bG1rTXl0SnpOY0xUSzBEX0Q1a0xqRjZ0dEtqbE9LR0FrMXROOWl5ZQ?oc=5"
+  },
+  {
+   "i": "seed-a6d9bc2491ec0e2a",
+   "o": "France Downgraded by Scope as Political and Debt Concerns Mount",
+   "ed": "Ratingbureauet Scope nedgraderer Frankrig på grund af politisk uro og stigende gæld",
+   "l": "en",
+   "s": "Bloomberg",
+   "p": "2026-09-18T07:00:00+00:00",
+   "u": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNYjdCQVJrUzdFMy05aVJ2WC11NFVmMm4zSEZiYzF0TlNrMVd5OF9lNFRtaVNSdFhaMmRlRmVrcy1rLVhPTmhydDNTSWUzLWthQTYwZDBPblRsUFNPYUYyTUV6eHpmOTNTVkZWa2ZwVFMwNmlDaEQ1WHVDUnZBOHhyMTVDOW16UTFCdVNXRUhkdEpOWmZ2OHR0Y0tKajB2UUxVWVBhbXYtTEtWQQ?oc=5"
+  }
+ ]
+}
