@@ -891,11 +891,11 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    movement's (a page's lead and readings, an answer's question, note, readings and text) is set in a serif on a soft
    ochre tint, always with its attribution; everything else keeps the app's face */
 :root { --serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif;
-  --ht-bg: #efe7d6; --ht-line: #ddd1b9; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
+  --ht-bg: #f0ebe1; --ht-line: #dfd7c7; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --ht-bg: #2a251d; --ht-line: #3b3428; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+  :root:not([data-theme="light"]) { --ht-bg: #24211c; --ht-line: #35302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
 }
-:root[data-theme="dark"] { --ht-bg: #2a251d; --ht-line: #3b3428; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
+:root[data-theme="dark"] { --ht-bg: #24211c; --ht-line: #35302a; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
 .ht { font-family: var(--serif); font-variant-numeric: lining-nums; }
 .ht-box { margin: 10px 12px; padding: 12px; border-radius: var(--r-panel); background: var(--ht-bg); color: var(--ht-text); }
 .ht-box p.ht { margin: 0; font-size: var(--fs-read); line-height: 1.5; text-wrap: pretty; }
@@ -1034,7 +1034,20 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .wk-tl li > p.ht { margin: 0 0 10px; font-size: var(--fs-read); line-height: 1.5; color: var(--ht-text); }
 /* the wiki's index: the kinds, the most used pages, the letters that stay under the bar */
 .az-kinds { margin-top: 4px; }   /* the kinds: one sideways chip row, as Analyser's areas */
-.az-jump { position: sticky; top: var(--barh); z-index: 6; margin: 8px 0 0; padding: 4px 16px 6px; background: var(--bg); box-shadow: 0 1px 0 var(--line); }
+/* A–Å's letters (18/10, the owner: as the iPhone's contacts): a thin still column at the column's right edge between the
+   bar and the dock, red like the letter bands; a finger slides through it (touch-action: none) */
+.az-idx { position: fixed; z-index: 7; top: calc(var(--barh) + 8px); bottom: calc(var(--dock) + 8px); right: max(0px, calc((100vw - 680px) / 2));
+  display: flex; flex-direction: column; justify-content: center; width: 28px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.az-idx button { flex: 0 1 auto; min-height: 0; padding: 0; line-height: 1.2; font-size: var(--fs-cap); font-weight: 750; color: var(--red); }
+.page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 40px; }
+/* the letter bands stay under the bar while their letter lasts, in red */
+.page[data-tab="begreber"] .grp.az { position: sticky; top: var(--barh); z-index: 5; margin: 0; padding: 14px 40px 6px 16px; background: var(--bg); color: var(--red); }
+/* the large letter in the middle while one slides; it fades half a second after the last change */
+.az-bubble { position: fixed; z-index: 60; left: 50%; top: 50%; width: 96px; height: 96px; margin: -48px 0 0 -48px; display: grid; place-items: center;
+  border-radius: 24px; background: var(--fill-2); color: var(--text); font-size: calc(var(--fs-title) * 2); font-weight: 750; opacity: 0;
+  pointer-events: none; transition: opacity .25s ease-out; }
+.az-bubble.on { opacity: .96; transition: none; }
+@media (prefers-reduced-motion: reduce) { .az-bubble { transition: none; } }
 .grp.az { margin-top: 20px; color: var(--text-2); font-size: var(--fs-small); }
 .az-item { position: relative; }
 .az-item + .az-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
@@ -1218,3 +1231,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cal-past { margin-top: var(--s5); }
 .cal-pb small { font-weight: 500; color: var(--text-3); }
 .page[data-tab="home"] .ce .cw { color: var(--red); font-weight: 750; }
+
+/* the answer reader's and a wiki page's sections (18/10, the owner: 'bedre opdeling især under begreber, så måske at
+   overskrifter skrives med rødt'): red, with more room above, so each part stands apart */
+.page[data-tab="begreb"] .grp, .page[data-tab="svar"] .grp.rd-h { margin-top: 36px; color: var(--red); border-bottom-color: var(--line); }

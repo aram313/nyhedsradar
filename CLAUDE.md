@@ -337,8 +337,10 @@ da'wah.
   its own.
   The look stays as khabar.nu. **Live** is the stories the radar admits at the editor's level (app.json; data.json
   filtered by its `live` marks when app.json is missing; since 17/10 three chips Danmark · Mellemøsten · Verden filter it
-  for the visit, and 'Vigtigste' shows day and time on each row), sorted 'Seneste' or 'Vigtigste' (the editor's
-  picks, then rank; remembered per phone), each row with its small section dot; the owner's long-press 'move' sets the
+  for the visit) – since 18/10 ONE list, newest first (no Seneste/Vigtigste: the owner, 'Nyheder skal have én fane'),
+  each row showing its weight as the calendar's (`weightOf`: 'Høj betydning' – the former 'Topnyhed', topNow's five –
+  on a soft red ground with a red edge; middle – big, an editor's pick or the books' tiers 1–2 – a short red mark under
+  its time; the rest quiet), each row with its small section dot; the owner's long-press 'move' sets the
   dot and the Danish lift. Old links (`?tab=dk|me|world`, a notification's `?item=`) open Live. **A story's headline**
   (round 2): the editor's (summaries.json `titles`, matched by the card's id, a member or another outlet's article; one
   the app's `curious` flags is skipped), else the outlet's in Danish where the phone shows Danish; a plain curiosity

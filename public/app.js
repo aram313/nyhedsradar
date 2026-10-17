@@ -2418,7 +2418,9 @@ function begreberPage() {
     h += `<h2 class="grp">Mest brugt</h2>${chips(top, 'az|top', 8).replace('class="wk-chips"', 'class="wk-chips ht-chips"')}`;
   }
   const letters = [...new Set(items.map(e => e.name.charAt(0).toLocaleUpperCase('da')))];
-  h += `<nav class="jump az-jump" aria-label="Gå til bogstav">${letters.map(l => `<button data-letter="${esc(l)}">${esc(l)}</button>`).join('')}</nav>`;
+  // the letters as the iPhone's contacts have them (the owner, 18/10): all of them, still, in a thin column at the
+  // right; a finger held on it and slid runs through the letters, a large letter in the middle says where (azScrub)
+  h += `<nav class="az-idx" aria-label="Gå til bogstav">${letters.map(l => `<button data-az-l="${esc(l)}" aria-label="${esc(l)}">${esc(l)}</button>`).join('')}</nav>`;
   let L = '';
   for (const e of items) {
     const l = e.name.charAt(0).toLocaleUpperCase('da');
@@ -2950,15 +2952,10 @@ async function onTap(e) {
     rt.disabled = true; rt.textContent = 'Henter …';
     return;
   }
-  const yj = t.closest('[data-year]') || t.closest('[data-letter]');   // Analyser's years, the index's letters
-  if (yj) {
-    if (yj.dataset.year) {   // the year's band sticks under the strip: aim below both
-      const band = pg$('an-y-' + yj.dataset.year), strip = pg$('anStrip');
-      if (band) scrollToEl(band.nextElementSibling || band, 8 + band.offsetHeight + (strip ? strip.offsetHeight : 0));
-    } else {   // the letters' strip sticks under the bar: the letter just below it
-      const band = pg$('az-' + yj.dataset.letter), strip = cur().querySelector('.az-jump');
-      if (band) scrollToEl(band, 4 + (strip ? strip.offsetHeight : 0));
-    }
+  const yj = t.closest('[data-year]');   // Analyser's years (A–Å's letters: azScrub)
+  if (yj) {   // the year's band sticks under the strip: aim below both
+    const band = pg$('an-y-' + yj.dataset.year), strip = pg$('anStrip');
+    if (band) scrollToEl(band.nextElementSibling || band, 8 + band.offsetHeight + (strip ? strip.offsetHeight : 0));
     return;
   }
   if (t.closest('[data-reload]')) { renderHeader('henter …'); load(true); return; }
@@ -4378,6 +4375,45 @@ const ownScroller = el => {   // something under the mouse that scrolls by itsel
   return null;
 };
 const pageFree = () => !$('scrim').classList.contains('on');
+// A–Å's letter column (the owner, 18/10: 'ligesom når man scroller i en telefonbog på iphone … holde fingeren nede og
+// slide … et stort bogstav på midten som fader ud efter et halv sekund når man står stille med fingeren'): a press
+// jumps to its letter, a slide runs through them, each step at once (no smooth scroll); the large letter fades half a
+// second after the last change, also while the finger rests. Keyboard: Enter on a letter.
+let azAt = '', azFade = null, azDrag = null;
+function azGo(l) {
+  if (!l || l === azAt) return;
+  azAt = l;
+  const band = pg$('az-' + l);
+  if (band) scrollToEl(band, 0);
+  let b = $('azBubble');
+  if (!b) { b = document.createElement('div'); b.id = 'azBubble'; b.className = 'az-bubble'; b.setAttribute('aria-hidden', 'true'); document.body.append(b); }
+  b.textContent = l; b.classList.add('on');
+  clearTimeout(azFade);
+  azFade = setTimeout(() => b.classList.remove('on'), 500);
+}
+function azFrom(e) {
+  const box = azDrag, bs = box && [...box.querySelectorAll('[data-az-l]')];
+  if (!bs || !bs.length) return;
+  const y = e.clientY, hit = bs.find(b => { const r = b.getBoundingClientRect(); return y >= r.top && y < r.bottom; })
+    || (y < bs[0].getBoundingClientRect().top ? bs[0] : bs[bs.length - 1]);
+  azGo(hit.dataset.azL);
+}
+document.addEventListener('pointerdown', e => {
+  const box = e.target.closest('.az-idx');
+  if (!box) return;
+  e.preventDefault();   // no text selection, no tap on the row under it
+  azDrag = box; azAt = '';
+  try { box.setPointerCapture(e.pointerId); } catch { /* an old browser */ }
+  azFrom(e);
+});
+document.addEventListener('pointermove', e => { if (azDrag) azFrom(e); });
+const azEnd = () => { azDrag = null; };
+document.addEventListener('pointerup', azEnd);
+document.addEventListener('pointercancel', azEnd);
+document.addEventListener('click', e => {   // a keyboard's Enter on a letter (a finger's tap went through pointerdown)
+  const b = e.target.closest('[data-az-l]');
+  if (b && e.detail === 0) { azAt = ''; azGo(b.dataset.azL); }
+});
 addEventListener('wheel', e => {
   if (e.ctrlKey || !pageFree() || e.target.closest('#list') || ownScroller(e.target)) return;   // the page under the mouse scrolls itself
   const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerHeight : 1;

@@ -344,7 +344,8 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
     # the readable red only on the front page, the chosen tab's icon (17/10) and the Kalender tab's Economist accents (its
     # fly title, its block titles' rule and the dot of an event in the next 48 hours)
     # and since 18/10 Live's weights, as the calendar's (a red edge on high, a short red mark on middle)
-    calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i', '.page[data-tab="latest"] .story.tick.w')
+    calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i', '.page[data-tab="latest"] .story.tick.w',
+                '.az-idx', '.page[data-tab="begreber"] .grp.az', '.page[data-tab="begreb"] .grp')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         if 'var(--red)' in m.group(2):
             sel = m.group(1)

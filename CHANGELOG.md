@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A–Å as the iPhone's contacts, a quieter ochre and red section headings** (2026-10-18, the owner; `?v=20261018ae`):
+  the A–Å index's letters are a thin still column at the right (`.az-idx`) instead of a sideways strip: a press jumps
+  to the letter, a finger slid runs through them at once, and a large letter in the middle fades half a second after
+  the last change (`azGo`); the letter bands stay under the bar in red. The movement's ochre tint is dimmed (light
+  #efe7d6 → #f0ebe1, dark #2a251d → #24211c; contrast kept). A wiki page's and the answer reader's section headings are
+  red with more room above ('bedre opdeling … overskrifter skrives med rødt').
 - **Live is one list that shows each story's weight; 'Topnyhed' is 'Høj betydning'** (2026-10-18, the owner: 'Nyheder
   skal have én fane, ingen "seneste" og "vigtigste" men … fremhæve dem med høj betydning medium og lav som vi har gjort
   på kalenderen' and 'måske topnyhed termet burde ændres til høj betydning'; `?v=20261018ad`): Seneste/Vigtigste is

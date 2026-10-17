@@ -61,7 +61,7 @@ def test_the_app_never_names_claude():
 
 def test_the_movements_face_is_its_own_and_every_new_font_size_follows_the_text_size():
     assert re.search(r'--serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif', CSS)
-    assert '--ht-bg: #efe7d6' in CSS
+    assert '--ht-bg: #f0ebe1' in CSS   # dimmed 18/10 (the owner: 'Den gule baggrund … burde dæmpes lidt')
     new = CSS[CSS.index("/* ------------------------------------------------------------ a row's tap lies under its words"):]
     sizes = re.findall(r'font-size:\s*([^;]+);', new)
     assert sizes and all('var(--fs-' in s for s in sizes), [s for s in sizes if 'var(--fs-' not in s]
