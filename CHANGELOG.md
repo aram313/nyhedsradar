@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The Kalender's toggle as Live's chips; Økonomi's topic lights up** (2026-10-18, the owner: 'Vigtige / Alle er nu en
+  grå boks der ikke er centreret … vigtige knappen stadig kan have en rød accent … følge stilen som resten af siderne,
+  f.eks på live' and 'når man trykker på en kategori i økonomi, skal baggrunden på kategorien lige lyse lidt op';
+  `?v=20261018as`): the toggle is two chips in the middle of the dock, 'Vigtige' with the weights' short red edge, the
+  chosen one a step lighter as everywhere. On the economy page a topic tapped in the dock – the app's or its own – has
+  its top on a soft ground that fades out (1.6 s, only opacity; under Reduce Motion it shows and goes without a fade)
+  once the page stands still there (`flashTopic`).
 - **The Kalender's dock is one toggle: Vigtige · Alle** (2026-10-18, the owner: 'filter kun være "Vigtige" og "alle"
   og det skal være en toggle'; `?v=20261018ar`): a two-part segment replaces 'Kun vigtige' and the kinds' chips (Valg,
   Topmøder, Centralbanker, Frister, Danmark); the kind still shows by its dot on each row. The choice is remembered;

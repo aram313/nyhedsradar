@@ -289,7 +289,7 @@ def test_the_dock_holds_the_kinds_and_only_important():
     # 18/10, the owner: no window of months – everything ahead – and 'Kun vigtige' hides the events of low weight
     assert 'CAL_WINS' not in CODE and 'calWin' not in CODE and 'data-cal-win' not in CODE
     # and since 18/10 one toggle, Vigtige · Alle, the kinds' chips gone (the owner: 'kun være "Vigtige" og "alle"')
-    assert 'data-cal-f=' not in opts and 'data-cal-imp="1"' in opts and 'data-cal-imp="0"' in opts and 'class="seg two' in opts
+    assert 'data-cal-f=' not in opts and 'data-cal-imp="1"' in opts and 'data-cal-imp="0"' in opts and 'class="imp-i"' in opts and 'class="chip' in opts
     assert "store.set('calImp', calImp)" in fn('calTap') and '(!calImp || calWOf(e) > 1)' in fn('kalenderPage')
 
 

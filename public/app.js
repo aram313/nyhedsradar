@@ -3393,11 +3393,12 @@ function calBlock() {
     + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
 }
 // the dock: one toggle, Vigtige · Alle (the owner, 18/10: 'filter kun være "Vigtige" og "alle" og det skal være en
-// toggle'); the kinds' chips are gone – the kind still shows by its dot on every row
+// toggle'), as Live's chips – 'Vigtige' with the weights' short red edge (the owner: 'stadig kan have en rød accent …
+// følge stilen som resten af siderne, f.eks på live'); the kinds' chips are gone – the kind shows by its dot on a row
 function calOpts() {
-  return `<div class="o-row" id="o-cal-k"><div class="seg two cal-seg" role="radiogroup" aria-label="Vis">`
-    + `<button role="radio" data-cal-imp="1" aria-checked="${calImp}">Vigtige</button>`
-    + `<button role="radio" data-cal-imp="0" aria-checked="${!calImp}">Alle</button></div></div>`;
+  return `<div class="o-row cal-tog" id="o-cal-k" role="radiogroup" aria-label="Vis">`
+    + `<button class="chip imp-chip${calImp ? ' on' : ''}" role="radio" data-cal-imp="1" aria-checked="${calImp}"><i class="imp-i" aria-hidden="true"></i>Vigtige</button>`
+    + `<button class="chip${calImp ? '' : ' on'}" role="radio" data-cal-imp="0" aria-checked="${!calImp}">Alle</button></div>`;
 }
 // the calendar's own taps, in the page, on the front page and in the dock (onTap sends them here)
 async function calTap(t) {

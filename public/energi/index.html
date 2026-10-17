@@ -72,7 +72,11 @@
   /* a topic: generous space above, a short red rule, the red fly title, the headline line in the serif */
   .ec-sec { padding-top: 52px; }
   .ec-sec:first-child { padding-top: 14px; }
-  .ec-top { padding: 0 16px; }
+  .ec-top { position: relative; isolation: isolate; padding: 0 16px; }
+  /* a topic tapped in the dock: its top lights up for a moment once the page is there (only opacity moves) */
+  .ec-top::after { content: ""; position: absolute; z-index: -1; inset: -12px 6px -12px 6px; border-radius: 14px; background: var(--fill-2); opacity: 0; pointer-events: none; }
+  .ec-sec.glow .ec-top::after { animation: ecGlow 1.6s ease-out; }
+  @keyframes ecGlow { 0% { opacity: 0; } 15% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0; } }
   .ec-top::before { content: ""; display: block; width: 26px; height: 3px; margin-bottom: 11px; background: var(--red); }
   .ec-fly { display: block; margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
   .ec-head { margin: 6px 0 0; font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.14; letter-spacing: -.012em;
@@ -235,6 +239,7 @@
   .ec-tabs a[aria-current="true"]::before { opacity: 1; }
   .ec-tabs a:active { background: var(--fill); }
   @media (prefers-reduced-motion: reduce) { .ec-fold svg, .ec-tabs a, .ec-tabs a::before { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .ec-sec.glow .ec-top::after { animation: none; opacity: 1; } }   /* the ground shows, without the fade */
   /* inside the app's Økonomi tab (?embed=1): no bar and no way back of its own – the app's bar is above it and its
      tabs below the frame, so the dock is the frame's own bottom */
   html.embed .bar { display: none; }
@@ -1245,7 +1250,7 @@ const inView = new Set();
 // embedded, the app draws the topics in its dock: it is told the topics and the one in view, and asks for a jump
 const EMBED = document.documentElement.classList.contains('embed');
 const tellApp = () => { if (EMBED) try { parent.khabarOk(TOPICS.map(T => [T.id, T.tab]), current); } catch (e) { /* not the app */ } };
-window.okJump = id => { if (TOPIC[id]) jump(id); };
+window.okJump = id => { if (TOPIC[id]) jump(id, null, { glow: true }); };
 function dock() {
   $('#tabs').innerHTML = TOPICS.map(T => `<a href="#${T.h}" data-sec="${T.id}" aria-current="${T.id === current}">${esc(T.tab)}</a>`).join('');
   tellApp();
@@ -1280,7 +1285,7 @@ function watch() {
 // the foot in view at the end of the page: the last topic, which is too short to reach the line
 new IntersectionObserver(es => { atEnd = es[0].isIntersecting && scrollY > 10; spy(); }).observe($('#foot'));
 // a jump: the dock shows its goal at once and does not flicker through the topics on the way
-function jump(id, el, { instant = false } = {}) {
+function jump(id, el, { instant = false, glow = false } = {}) {
   mark(id);
   hold = Date.now() + 1500;
   clearTimeout(holdT);
@@ -1291,6 +1296,21 @@ function jump(id, el, { instant = false } = {}) {
   // overshoots and springs back
   const end = Math.max(0, document.documentElement.scrollHeight - innerHeight);
   scrollTo({ top: Math.min(end, Math.max(0, top)), behavior: instant || calm() ? 'auto' : 'smooth' });
+  if (glow) {   // a tap on a topic: once the page stands still there, the topic's top lights up for a moment
+    const go = () => { clearTimeout(t); removeEventListener('scrollend', go); flashTopic(id); };
+    const t = setTimeout(go, Math.abs(top - scrollY) < 4 || instant || calm() ? 0 : 900);   // no scrollend: soon after
+    addEventListener('scrollend', go);
+  }
+}
+// the topic tapped in the dock shows where it begins (the owner, 18/10: 'baggrunden på kategorien lige lyse lidt op så
+// man kan se den på siden efter den har scrollet hen på den'): its top on a soft ground that fades out
+function flashTopic(id) {
+  const s = secEl(id);
+  if (!s) return;
+  s.classList.remove('glow');
+  void s.offsetWidth;   // the animation runs again on a second tap
+  s.classList.add('glow');
+  setTimeout(() => s.classList.remove('glow'), 1700);
 }
 addEventListener('scrollend', () => { if (hold) { hold = 0; clearTimeout(holdT); spy(); } });
 // Lige nu's rows: to the figure in its topic, opened (unfolded first when it lives under Flere tal)
@@ -1318,7 +1338,7 @@ $('#tabs').addEventListener('click', e => {
   const a = e.target.closest('[data-sec]');
   if (!a) return;
   e.preventDefault();
-  jump(a.dataset.sec);
+  jump(a.dataset.sec, null, { glow: true });
 });
 $('#topics').addEventListener('click', e => {
   const t = e.target, el = t.closest('.ec-sec');
