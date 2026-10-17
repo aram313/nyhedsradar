@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An open story held past its edge no longer jitters** (2026-10-18, the owner: 'if you have a open story and you drag
+  it past its scroll point and hold it, it starts to glitch to get back in position'; `?v=20261018bn`): the page no
+  longer pulls against the finger; it follows it, and once the finger is off and the page stands still (140 ms after
+  the last scroll, a flick's glide included, or at the finger's release) it glides back to the nearest edge that
+  keeps the whole story in view (`outOfView`, `movePage`), as a list's end stretches and settles.
 - **A story reached from another page opens on a page of its own, with the way back; an edge drag goes back**
   (2026-10-18, the owner: 'any time you get directed to news … it has to have the temporary page with the back sign
   on top … so i can get right back to where i was redirected from' and 'a drag from screen border from left to right

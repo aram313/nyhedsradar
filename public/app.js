@@ -3174,14 +3174,22 @@ $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; c
 // the page in view scrolls (scroll events do not bubble: caught on their way down)
 // while a story is open the page scrolls only as far as keeps the whole story in view, between the bar and the dock
 // (18/10, the owner: first 'man ikke kan scrolle væk fra den', then 'I should at least be able to scroll a bit to
-// center the story'): scrolled past either edge, it is held at that edge; the app's own move into view goes first
+// center the story'). The finger is never fought (holding it past the edge made it jitter, the owner 18/10): the page
+// follows it, and once the finger is off and the page stands still, it glides back to the nearest edge
+function outOfView(p) {
+  const o = p.querySelector('.lift');
+  if (!o) return 0;
+  const r = o.getBoundingClientRect(), top = $('bar').offsetHeight, bottom = innerHeight - $('dock').offsetHeight;
+  return r.top < top - 1 ? r.top - top : r.bottom > bottom + 1 ? Math.min(r.bottom - bottom, r.top - top) : 0;
+}
 function holdOpen(p) {
   if (!p.classList.contains('locked') || performance.now() < (p.holdFrom || 0)) return;
-  const o = p.querySelector('.lift');
-  if (!o) return;
-  const r = o.getBoundingClientRect(), top = $('bar').offsetHeight, bottom = innerHeight - $('dock').offsetHeight;
-  if (r.top < top - 1) p.scrollTop -= top - r.top;
-  else if (r.bottom > bottom + 1) p.scrollTop += r.bottom - bottom;
+  clearTimeout(p.holdT);
+  p.holdT = setTimeout(() => {   // after the last scroll (a flick's glide included), with no finger on the screen
+    if (touching || !p.classList.contains('locked')) return;
+    const d = outOfView(p);
+    if (d) movePage(d, 260);
+  }, 140);
 }
 function onPageScroll() {
   if (cur()) holdOpen(cur());
@@ -4029,6 +4037,7 @@ function stepBack() {
 list.addEventListener('touchstart', () => { cancelAnimationFrame(glide); touching = true; jumping = false; list.style.scrollSnapType = ''; }, { passive: true });
 for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
   touching = false;
+  if (cur()) holdOpen(cur());   // an open story held past its edge: back into view once the page stands still
   if (paging) { clearTimeout(settleT); settleT = setTimeout(settle, 140); }
 }, { passive: true });
 // the title and the tab's bold label follow the page that fills most of the screen, already while it moves
