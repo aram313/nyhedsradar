@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi's topics in the app's dock, and three small fixes** (2026-10-18, the owner; `?v=20261018ab`): after
+  'Råvarer' on a phone the economy page's own dock (fixed inside the frame) could not be tapped until one scrolled up –
+  the topics are now chips in the app's dock above the tabs (`okOpts`, `khabarOk`, the frame's `okJump`), the frame
+  holds no fixed element when embedded, and a jump never asks for more than the page holds. On a wide screen the wheel
+  beside the column now scrolls Økonomi too (its page is in a frame). Gemt's 'Del eller flyt dine gemte' has Del and
+  'Kopiér link'. A list's large picture no longer turns grey when pressed: it darkens a little.
 - **Gemt to another phone, or to someone else** (2026-10-18, the owner chose 'Flyt-link' and asked for 'tilføj til
   eksisterende bogmærker' or 'erstat eksisterende bogmærker' when the link is opened; `?v=20261018z`): Gemt's foot has
   'Del eller flyt dine gemte' – a link (`?gemt=1#flyt=…`) holding the saves, deflated, in its fragment, which never

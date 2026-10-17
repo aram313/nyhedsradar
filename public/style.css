@@ -791,6 +791,8 @@ html.autoscroll, html.autoscroll * { cursor: ns-resize !important; }
 .row > .hit, .hero-row > .hit, .dl li > .hit { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; }
 .row > :not(.hit) { position: relative; z-index: 1; pointer-events: none; }
 .hero-row > .hit { z-index: 2; }
+/* pressed, the picture darkens a little – the grey of a row's press lies over it and hid it (the owner, 18/10) */
+.hero-row > .hit:active { background: rgba(0, 0, 0, .18); }
 .hero-row .hero-tx { z-index: 3; pointer-events: none; }
 .dl li > .ln { position: relative; z-index: 1; pointer-events: none; }
 .hit:focus-visible { outline-offset: -3px; }
@@ -1040,9 +1042,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    every row is the Analyser list's row (.an-item) with its one filled bookmark at the right */
 .sv-n { margin: 14px 16px 0; }
 /* 'Flyt til en anden telefon' at the foot: a quiet row under a separator, one line saying what the link does */
-.sv-move { margin-top: var(--s5); padding-top: var(--s2); border-top: 1px solid var(--line); margin-left: 16px; }
-.sv-move .qrow { margin-left: 0; width: calc(100% - 16px); }
-.sv-move-t { margin: 0 16px 16px 0; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+.sv-move { margin: var(--s5) 0 var(--s4) 16px; padding-top: var(--s3); border-top: 1px solid var(--line); }
+.sv-move-h { margin: 0 16px 2px 0; font-size: var(--fs-small); font-weight: 650; color: var(--text); }
+.sv-move-t { margin: 0 16px 8px 0; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+.sv-move .know-acts { margin-left: 0; }
 .sv-s b { -webkit-line-clamp: 4; }
 .sv-s .sv-sum { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 3px;
   font-size: var(--fs-small); line-height: 1.4; color: var(--text-2); }

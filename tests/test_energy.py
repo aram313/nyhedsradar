@@ -369,3 +369,10 @@ def test_economic_crises_are_news_of_their_own():
     assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
     assert "'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
     assert "news(D.crisis || [], 'Ingen nyheder om økonomiske kriser de seneste fire døgn.'" in PAGE
+
+
+def test_embedded_the_topics_are_the_apps_dock():
+    # 18/10, the owner: after 'Råvarer' on a phone the dock could not be tapped until one scrolled up
+    page = PAGE
+    assert 'html.embed .ec-dock { display: none; }' in page and 'parent.khabarOk(' in page and 'window.okJump' in page
+    assert 'Math.min(end, Math.max(0, top))' in page   # a jump never asks for more than the page holds

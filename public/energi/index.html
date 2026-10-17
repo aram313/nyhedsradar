@@ -239,7 +239,10 @@
      tabs below the frame, so the dock is the frame's own bottom */
   html.embed .bar { display: none; }
   html.embed main.en { padding-top: 0; }
-  html.embed { --bottom: 0px; }
+  html.embed { --bottom: 0px; --edock: 0px; }
+  /* the topics are the app's own dock when embedded (18/10: on an iPhone a fixed dock inside the frame stopped
+     answering after a jump to the last topic, Råvarer) – the frame holds no fixed element */
+  html.embed .ec-dock { display: none; }
   html.embed, html.embed body { overscroll-behavior-x: auto; overscroll-behavior-y: none; }
 </style>
 </head>
@@ -1239,12 +1242,18 @@ const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const barOff = () => document.documentElement.classList.contains('embed') ? 0 : $('#bar').offsetHeight;
 let current = 'nu', hold = 0, holdT = null, atEnd = false, spyIO = null;
 const inView = new Set();
+// embedded, the app draws the topics in its dock: it is told the topics and the one in view, and asks for a jump
+const EMBED = document.documentElement.classList.contains('embed');
+const tellApp = () => { if (EMBED) try { parent.khabarOk(TOPICS.map(T => [T.id, T.tab]), current); } catch (e) { /* not the app */ } };
+window.okJump = id => { if (TOPIC[id]) jump(id); };
 function dock() {
   $('#tabs').innerHTML = TOPICS.map(T => `<a href="#${T.h}" data-sec="${T.id}" aria-current="${T.id === current}">${esc(T.tab)}</a>`).join('');
+  tellApp();
 }
 function mark(id) {
   if (id === current) return;
   current = id;
+  tellApp();
   const box = $('#tabs');
   let chip = null;
   box.querySelectorAll('[data-sec]').forEach(a => { const on = a.dataset.sec === id; a.setAttribute('aria-current', on); if (on) chip = a; });
@@ -1278,7 +1287,10 @@ function jump(id, el, { instant = false } = {}) {
   holdT = setTimeout(() => { hold = 0; spy(); }, 1500);
   const target = el || secEl(id).querySelector('.ec-top');
   const top = id === 'nu' && !el ? 0 : target.getBoundingClientRect().top + scrollY - barOff() - 16;
-  scrollTo({ top: Math.max(0, top), behavior: instant || calm() ? 'auto' : 'smooth' });
+  // never past the page's end: the last topic is shorter than the screen, and a phone asked to scroll beyond it
+  // overshoots and springs back
+  const end = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+  scrollTo({ top: Math.min(end, Math.max(0, top)), behavior: instant || calm() ? 'auto' : 'smooth' });
 }
 addEventListener('scrollend', () => { if (hold) { hold = 0; clearTimeout(holdT); spy(); } });
 // Lige nu's rows: to the figure in its topic, opened (unfolded first when it lives under Flere tal)

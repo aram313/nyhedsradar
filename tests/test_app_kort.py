@@ -112,7 +112,7 @@ def test_the_dock_holds_the_pages_options_above_the_tabs():
     dock = INDEX[INDEX.index('<div class="dock" id="dock">'):INDEX.index('</nav>')]
     assert dock.index('<div class="opts" id="opts"') < dock.index('<nav class="tabs"')   # inside the dock, above the tabs
     paint = fn('paintOpts')
-    assert "t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : ''" in paint
+    assert "t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : t === 'okonomi' ? okOpts() : ''" in paint
     assert 'ASIDE.has(t)' in paint   # side pages and search: none
     assert 'morph(box, tpl.content, [])' in paint   # a row keeps its element and its sideways place
     assert '!reduceMotion' in paint
@@ -120,6 +120,8 @@ def test_the_dock_holds_the_pages_options_above_the_tabs():
     assert 'data-live-sort' in fn('liveOpts') and 'data-live-sec' in fn('liveOpts') and 'data-live-sort' not in fn('latestPage')
     assert 'data-cal-f' in fn('calOpts') and 'data-cal-win' in fn('calOpts') and 'data-cal-f' not in fn('kalenderPage')
     assert 'class="o-row an-chips"' in CODE and 'an-chips' not in fn('analysesPage')
+    # Økonomi (18/10): its topics are the app's dock; the frame has no fixed dock of its own when embedded
+    assert 'data-ok-sec' in CODE and 'window.khabarOk' in CODE and 'contentWindow.okJump' in CODE
     assert 'id="anQ"' in fn('analysesPage')   # the search field stays under the bar: the dock goes with the keyboard
     # the same buttons work in the dock
     assert "$('opts').addEventListener('click', onTap);" in CODE

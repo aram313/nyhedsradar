@@ -2545,8 +2545,11 @@ function gemtPage() {
       : waiting('bix') ? loadingBlock('Henter …') : retry('begreberne', 'bix'));
   }
   readyMove();
-  return h + `<div class="sv-move"><button class="qrow" data-move><span><b>Del eller flyt dine gemte</b></span><svg aria-hidden="true"><use href="#i-share"/></svg></button>`
-    + `<p class="sv-move-t">Send linket til dig selv på en ny telefon eller til en anden. Den, der åbner det, kan tilføje dem til sine gemte eller erstatte dem. De ligger kun i linket.</p></div>`;
+  // the link shared, or copied to paste anywhere (the owner, 18/10: 'burde også give et link man kan kopiere')
+  return h + `<div class="sv-move"><h2 class="sv-move-h">Del eller flyt dine gemte</h2>`
+    + `<p class="sv-move-t">Send linket til dig selv på en ny telefon eller til en anden. Den, der åbner det, kan tilføje dem til sine gemte eller erstatte dem. De ligger kun i linket.</p>`
+    + `<div class="acts know-acts"><button class="act" data-move="share"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button>`
+    + `<button class="act" data-move="copy"><svg aria-hidden="true"><use href="#i-copy"/></svg>Kopiér link</button></div></div>`;
 }
 const isStale = () => data && data.updated && (Date.now() - new Date(data.updated)) / 60000 > 60;
 // the bar's status: the time of the news with a small refresh mark (a tap reloads); 'offline · 10.53' while the phone's
@@ -3017,8 +3020,13 @@ async function onTap(e) {
     });
     render(); return;
   }
-  if (t.closest('[data-move]')) {   // Gemt's 'Flyt til en anden telefon': the link with the saves, shared or copied
-    share(`${saved.length} gemte fra Khabar – åbn linket for at lægge dem ind:\n${moveUrl || await moveLink()}`);
+  const oks = t.closest('[data-ok-sec]');   // Økonomi's topic in the dock: the frame jumps there
+  if (oks) { okCur = oks.dataset.okSec; paintOpts(); okJump(okCur); return; }
+  const mv = t.closest('[data-move]');   // Gemt's 'Del eller flyt dine gemte': the link with the saves, shared or copied
+  if (mv) {
+    const url = moveUrl || await moveLink();
+    if (mv.dataset.move === 'copy') { if (await copyText(url)) toast('Linket er kopieret'); }
+    else share(`${saved.length} gemte fra Khabar – åbn linket for at lægge dem ind:\n${url}`);
     return;
   }
   const fi = t.closest('[data-find-item]');   // a story that left Live: looked for among everything the radar read
@@ -3157,7 +3165,7 @@ addEventListener('touchend', async () => {
 function paintOpts(t = tab) {
   const box = $('opts');
   if (!box) return;
-  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : '';
+  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : t === 'okonomi' ? okOpts() : '';
   const was = dockTab;
   dockTab = t;
   if (box.hidden !== !html) box.hidden = !html;
@@ -3178,6 +3186,24 @@ function okPage(pg) {
   if (pg.querySelector('iframe')) return;
   pg.innerHTML = netDown() ? `<div>${stateBlock('offline', 'Ingen forbindelse. Priserne kommer, så snart telefonen er på nettet.', [['Prøv igen', 'data-okframe']])}</div>`
     : '<div class="ok-pr"><iframe src="energi/?embed=1" title="Økonomi – olie, brændstof og markeder"></iframe></div>';
+}
+// its topics in the app's dock (18/10, the owner: after 'Råvarer' on a phone the frame's own dock could not be tapped
+// until one scrolled up – a fixed element inside a frame): the frame tells the topics and the one in view, a chip asks
+// the frame to jump; the chosen chip is kept in view inside its row
+let okTopics = [], okCur = '';
+window.khabarOk = (topics, current) => {
+  if (topics) okTopics = topics;
+  if (current) okCur = current;
+  if (dockTab !== 'okonomi' && tab !== 'okonomi') return;
+  paintOpts();
+  const row = $('o-ok'), on = row && row.querySelector('[aria-current="true"]');
+  if (on && row.scrollWidth > row.clientWidth + 1) row.scrollTo({ left: on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2, behavior: reduceMotion ? 'auto' : 'smooth' });
+};
+const okOpts = () => okTopics.length ? `<nav class="o-row" id="o-ok" aria-label="Emner">${okTopics.map(([id, l]) =>
+  `<button class="chip${id === okCur ? ' on' : ''}" data-ok-sec="${esc(id)}" aria-current="${id === okCur}">${esc(l)}</button>`).join('')}</nav>` : '';
+function okJump(id) {
+  const f = pageEl('okonomi') && pageEl('okonomi').querySelector('iframe');
+  try { f.contentWindow.okJump(id); } catch { /* the frame is not ready */ }
 }
 // the oil row of a story, the settings' 'Mere' and ?tab=priser (kept as an alias of ?tab=okonomi): the Økonomi tab
 function openOkonomi() {
@@ -4368,6 +4394,9 @@ const pageFree = () => !$('scrim').classList.contains('on');
 addEventListener('wheel', e => {
   if (e.ctrlKey || !pageFree() || e.target.closest('#list') || ownScroller(e.target)) return;   // the page under the mouse scrolls itself
   const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerHeight : 1;
+  // Økonomi scrolls inside its frame: the wheel beside the column moves the frame's page (18/10, the owner)
+  const fr = tab === 'okonomi' && pageEl('okonomi') && pageEl('okonomi').querySelector('iframe');
+  if (fr) { try { fr.contentWindow.scrollBy(0, e.deltaY * k); } catch { /* not ready */ } return; }
   cur().scrollTop += e.deltaY * k;
 }, { passive: true });
 function stopAuto() { auto = null; document.documentElement.classList.remove('autoscroll'); }
