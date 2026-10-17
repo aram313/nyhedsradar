@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Dagens historie's picture smaller** (2026-10-18, the owner: 'dagens historie billede er for stort';
+  `?v=20261018ax`): 16:9 instead of 4:3 and at most 40 % of the screen instead of 62 % – about a quarter lower on a phone
+  (≈ 230 px at 430 px wide); a four-line headline and its line still fit on the fade.
 - **The front page's 'Det sker snart' only of high and middle weight** (2026-10-18, the owner: 'forsidens "sker snart"
   burde kun have middel og høj betydning'; `?v=20261018aw`): the block's next three or four events of the coming 14
   days leave out what is of low weight (`calWOf(e) > 1`); with none of weight in the fortnight there is no block.

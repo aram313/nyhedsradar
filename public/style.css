@@ -1103,7 +1103,8 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    on a dark fade at the bottom, so it reads on any picture, in the light look too */
 .story.lp .row { display: block; position: relative; margin: 0; padding: 0; min-height: 0;
   border-radius: var(--r-panel); overflow: hidden; background: #1c1c1c; }
-.lead-pic { position: relative; display: block; aspect-ratio: 4 / 3; max-height: 62vh; width: 100%; overflow: hidden; }
+/* 16:9 and at most 40 % of the screen (18/10, the owner: 'dagens historie billede er for stort'; it was 4:3 and 62 %) */
+.lead-pic { position: relative; display: block; aspect-ratio: 16 / 9; max-height: 40vh; width: 100%; overflow: hidden; }
 .lead-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: var(--press); }
 .story.lp.open .lead-pic img { filter: var(--press-open); }   /* 15 % colour, 30 % opened: the app's press photos */
 .lead-pic::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--film); opacity: .5; }   /* film grain */
