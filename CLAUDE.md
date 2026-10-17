@@ -308,6 +308,10 @@ da'wah.
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
+- **One thing open at a time (a strict rule, the owner 18/10):** opening a story, an event, a tile or a row closes
+  whatever else is open, on every page; while it is open the rest of the page is dimmed, and a tap outside it only
+  closes it – it never opens what lies under the tap (app: `focusSync`/`closeOpen`, a `.dim` layer; Økonomi: `sole`,
+  `focusSync`, `.dimmed`).
 - **The app (2026-10-17, the owner's decision; the fifth tab 2026-10-18; the map shelved for the calendar 17/10): five
   tabs, Forside · Live · Kalender · Økonomi · Analyser** (Danmark, Mellemøsten and Verden are gone; Kort was a tab from
   17/10 until the owner shelved it the same day: "meget mere taktisk, end det er strategisk … Så synes jeg godt, vi kunne

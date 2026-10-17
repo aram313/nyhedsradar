@@ -9,6 +9,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **One thing open at a time, the rest of the page dimmed; a tap outside only closes** (2026-10-18, the owner: 'når
+  noget er åbent på en side … bør resten af siden dæmpes til man lukker den igen … kunne lukkes hvis man trykker uden
+  for zonen', 'der er en streng regel med kun én ting bør kunne være åbnet af gangen' and 'hvis man rammer en anden
+  historie når man trykker på den dæmpede zone, så burde den historie ikke åbnes, men kun lukke den aktive';
+  `?v=20261018bg`):
+  - **In the app** an open story or calendar event lifts above a layer that dims the page in view (`focusSync`,
+    `.dim` placed right before what is open so the two share one stacking order, `.lift`); a tap on the layer only
+    closes (`closeOpen`) – the story under it is not opened; with nothing open the page is free again. Opening a
+    story closes every other story (other tabs too) and an opened event, and an event closes a story. The bar and
+    the dock are not dimmed.
+  - **On Økonomi** a tile, a row under 'Flere tal' or an unfolded story is the one open thing (`sole` closes the
+    rest, in any topic); everything around it dims (`.dimmed`, opacity only) and a tap outside it – caught on the
+    window first – only closes.
 - **Denmark's fuel prices as a chart; 'Finans og økonomi' a week at a time; every tap there into Khabar; A–Å's
   letters centred** (2026-10-18, the owner: 'Der er for mange nyheder på økonomi i dag, lav det så den viser 1 uge af
   gangen … når man trykker på en bør den sende til nyheden i khabar', 'kan vi få grafer på danske benzin og

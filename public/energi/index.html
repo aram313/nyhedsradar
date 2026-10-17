@@ -86,6 +86,9 @@
   /* 'Finans og økonomi': under its headline line – the newest story – that story's outlet and time, the way to it */
   .ec-lead-m { margin: 6px 16px 4px; font-size: var(--fs-meta); color: var(--text-3); }
   .ec-lead-m a { color: inherit; text-decoration: none; font-weight: 600; }
+  /* one thing open, the rest dimmed (18/10): only opacity moves */
+  .dimmed { opacity: .28; transition: opacity .2s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .dimmed { transition: none; } }
   /* a story unfolded here: its original headline and the way to the outlet */
   .en-x { padding: 0 16px 12px; }
   .en-x.lead { padding-top: 2px; }
@@ -1284,6 +1287,7 @@ function renderAll() {
   const anchor = secEl(current), y0 = anchor.getBoundingClientRect().top;
   for (const T of TOPICS) fill(T);
   if (scrollY > 0) scrollBy(0, anchor.getBoundingClientRect().top - y0);
+  focusSync();
 }
 function foot() {
   $('#foot').innerHTML = 'Opdateres hvert 5. minut. Tryk på et tal for dets graf, og hvad det betyder.'
@@ -1406,16 +1410,49 @@ $('#topics').addEventListener('click', e => {
     const box = cur.closest('[data-panel]'); box.innerHTML = more('curve'); drawCharts(box);
     return;
   }
-  if (tile) { const k = tile.dataset.tile; openTile[T.id] = openTile[T.id] === k ? null : k; fill(T); return; }
+  if (tile) { const k = tile.dataset.tile, opening = openTile[T.id] !== k; if (opening) sole(T.id); openTile[T.id] = opening ? k : null; fill(T); focusSync(); return; }
   if (fold) { if (folds.has(T.id)) folds.delete(T.id); else folds.add(T.id); fill(T); return; }
   if (t.closest('#newsMore')) { newsAll = true; fill(T); return; }
   if (t.closest('#crisisMore')) { crisisAll = true; fill(T); return; }
   const row = t.closest('.en-row');
   if (!row) return;
   const k = row.closest('.en-item').dataset.k;
-  if (open.has(k)) open.delete(k); else open.add(k);
+  if (open.has(k)) open.delete(k); else { sole(T.id); open.add(k); }
   fill(T);
+  focusSync();
 });
+// One thing open on the page, the rest dimmed until it is closed (the owner, 18/10: 'når noget er åbent på en side … bør
+// resten af siden dæmpes … kunne lukkes hvis man trykker uden for zonen' and 'kun én ting bør kunne være åbnet af
+// gangen'): opening one closes what else is open (sole); what is open lifts, everything around it dims (only opacity);
+// a tap outside it only closes – it opens nothing under it.
+function sole(keep) {
+  const was = new Set();
+  for (const id of Object.keys(openTile)) if (openTile[id]) { was.add(id); openTile[id] = null; }
+  for (const k of open) { const el = document.querySelector(`.en-item[data-k="${CSS.escape(k)}"]`); const sec = el && el.closest('.ec-sec'); if (sec) was.add(sec.dataset.t); }
+  open.clear();
+  for (const id of openNews) { const el = document.querySelector(`[data-story="${CSS.escape(id)}"]`); const sec = el && el.closest('.ec-sec'); if (sec) was.add(sec.dataset.t); }
+  openNews.clear();
+  for (const id of was) if (id !== keep && TOPIC[id]) fill(TOPIC[id]);
+}
+const LIFT = '.ec-tile[aria-expanded="true"], .ec-open, .en-item.open, .en-news .story.open, .ec-lead-m + .en-x';
+function focusSync() {
+  for (const el of document.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
+  const lifted = [...document.querySelectorAll(LIFT)];
+  document.body.classList.toggle('focus', lifted.length > 0);
+  if (!lifted.length) return;
+  for (const el of lifted) el.classList.add('lift');
+  // every block beside the open thing's line of boxes up to the page dims
+  const keep = new Set();
+  for (const el of lifted) for (let e = el; e && e !== document.body; e = e.parentElement) keep.add(e);
+  for (const e of keep) for (const sib of e.parentElement ? e.parentElement.children : []) if (!keep.has(sib) && !sib.matches('script, style, .ec-dock, #bar')) sib.classList.add('dimmed');
+}
+// a tap outside what is open only closes it (caught on the window first: before any other handler, so it opens nothing)
+addEventListener('click', e => {
+  if (!document.body.classList.contains('focus') || e.target.closest('.lift, .ec-dock, #bar')) return;
+  e.preventDefault(); e.stopPropagation();
+  sole(null);
+  focusSync();
+}, true);
 let resizeT;
 addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { watch(); if (D) drawCharts($('#topics')); }, 150); });
 addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== current) jump(id); });
@@ -1459,9 +1496,10 @@ document.addEventListener('click', e => {
   const item = n && { title: newsTidy(newsPick(n)[0]), source: n.s, link: n.u, published: n.p };
   try { if (EMBED && typeof parent.khabarOpenStory === 'function' && parent.khabarOpenStory(id, item)) return; } catch (err) { /* not the app */ }
   if (!EMBED && id && !id.startsWith('seed-')) { location.href = '../?item=' + encodeURIComponent(id); return; }
-  if (openNews.has(id)) openNews.delete(id); else openNews.add(id);
   const sec = a.closest('.ec-sec');
+  if (openNews.has(id)) openNews.delete(id); else { sole(sec && sec.dataset.t); openNews.add(id); }
   if (sec && TOPIC[sec.dataset.t]) fill(TOPIC[sec.dataset.t]);
+  focusSync();
 }, true);
 // pull down to refresh, as the app's pages (18/10, the owner: 'man kan ikke hive ned for at opdatere økonomi siden' –
 // the page scrolls inside the app's frame, where the app's own pull never reaches): the page follows the finger, a

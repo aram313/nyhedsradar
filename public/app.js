@@ -2687,6 +2687,7 @@ function draw(t, opts = {}) {
   }
   pictures(pg);
   edgesIn(pg);
+  if (t === tab) focusSync(pg);
   if (t === 'analyses') watchStrip(pg);
   if (t === 'begreber') azWatch(pg);
   // a calendar event a link or the front page named: brought just below the bar once drawn (the tab in view)
@@ -2903,6 +2904,9 @@ function toggle(el) {
   if (open) foldOthers(el);
   if (open && i) {
     if (visit) visit.opened++;
+    // one thing open in the whole app (the owner, 18/10: 'der er en streng regel med kun én ting bør kunne være åbnet
+    // af gangen'): the stories of other pages and an opened event close too
+    expanded.clear(); if (calOpen.size) { calOpen.clear(); ver++; }
     expanded.add(id);
     openRow(el, i);
     keepInView(el);
@@ -2911,6 +2915,37 @@ function toggle(el) {
     const tx = el.querySelector('.tx'); if (tx && !el.classList.contains('hero')) tx.setAttribute('aria-hidden', 'true');
   }
   el.querySelector('[data-toggle]').setAttribute('aria-expanded', open);
+  focusSync();
+}
+// What is open lifts above the rest of the page, which dims (the owner, 18/10: 'når noget er åbent … bør resten af siden
+// dæmpes til man lukker den igen … kunne lukkes hvis man trykker uden for zonen'): a layer over the page in view, under
+// the open story or event; a tap on it only closes – a story under the layer is not opened ('kun lukke den aktive');
+// with nothing open the page is free again. The bar and the dock stay as they are.
+const OPENED = 'article.story.open, .ce.open';
+function focusSync(pg = cur()) {
+  if (!pg) return;
+  const open = pg.querySelector(OPENED);
+  for (const el of pg.querySelectorAll('.lift')) if (el !== open) el.classList.remove('lift');
+  let dim = pg.querySelector('.dim');
+  if (open) {
+    open.classList.add('lift');
+    // the layer goes right before what is open, in its own box: the two are then always in one stacking order, also
+    // while the page fades in (an ancestor with opacity would hold the open one under a layer outside it)
+    if (!dim) { dim = document.createElement('div'); dim.className = 'dim'; dim.setAttribute('aria-hidden', 'true'); }
+    if (dim.nextElementSibling !== open) { open.before(dim); void dim.offsetWidth; }   // laid out unlit first, so it fades in
+    dim.classList.add('on');
+  } else if (dim) dim.classList.remove('on');
+}
+function closeOpen() {
+  const pg = cur();
+  for (const o of pg ? pg.querySelectorAll('article.story.open') : []) {
+    o.classList.remove('open'); expanded.delete(o.dataset.id);
+    const tg = o.querySelector('[data-toggle]'); if (tg) tg.setAttribute('aria-expanded', false);
+    const tx = o.querySelector('.tx'); if (tx && !o.classList.contains('hero')) tx.setAttribute('aria-hidden', 'true');
+  }
+  expanded.clear();
+  if (calOpen.size) { calOpen.clear(); render(); }
+  focusSync(pg);
 }
 
 // ---------------------------------------------------------------- share and copy
@@ -2955,6 +2990,7 @@ async function share(text, i) {
 
 async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
+  if (t.classList && t.classList.contains('dim')) { e.preventDefault(); closeOpen(); return; }   // the dimmed page: only closes
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
@@ -3459,7 +3495,7 @@ async function calTap(t) {
   if (r) {   // an event opens in place, one at a time; the row stays under the finger
     const id = r.dataset.cal, was = calOpen.has(id), row = r.closest('.ce'), top = row ? row.getBoundingClientRect().top : 0;
     calOpen.clear();
-    if (!was) calOpen.add(id);
+    if (!was) { calOpen.add(id); expanded.clear(); }   // one thing open
     render();
     const el = pg$('ce-' + id);
     if (el && row) cur().scrollTop += el.getBoundingClientRect().top - top;

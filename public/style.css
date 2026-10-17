@@ -1271,3 +1271,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* the answer reader's and a wiki page's sections (18/10, the owner: 'bedre opdeling især under begreber, så måske at
    overskrifter skrives med rødt'): red, with more room above, so each part stands apart */
 .page[data-tab="begreb"] .grp, .page[data-tab="svar"] .grp.rd-h { margin-top: 36px; color: var(--red); border-bottom-color: var(--line); }
+
+/* one thing open at a time, the rest of the page dimmed (18/10, the owner): a layer over the page in view (fixed, so it
+   covers what scrolls), under the open story or event; only opacity moves */
+.page .dim { position: fixed; inset: 0; z-index: 5; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .2s ease-out; }
+.page .dim.on { opacity: .72; pointer-events: auto; }
+.page .lift { position: relative; z-index: 6; background: var(--bg); }
+@media (prefers-reduced-motion: reduce) { .page .dim { transition: none; } }
