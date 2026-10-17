@@ -37,7 +37,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
 const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
-  begreb: 'Begreber', begreber: 'Begreber', gemt: 'Gemt' };
+  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt' };
 // the tab whose options the dock above the tabs shows (paintOpts)
 let dockTab = '';
 // the small pictures live next to data.json on the data branch
@@ -1872,7 +1872,7 @@ function threadsPage() {
 // answers (the best three and 'Alle n svar'), the stories in Live, and everything else the radar read in two days
 // (headlines that are one story folded into one row). Empty: the last searches on this phone, the pages today's news
 // names most, the developments that moved last, and what is saved.
-const SCOPES = [['alle', 'Alle'], ['nyheder', 'Nyheder'], ['svar', 'Svar'], ['begreber', 'Begreber']];
+const SCOPES = [['alle', 'Alle'], ['nyheder', 'Nyheder'], ['svar', 'Svar'], ['begreber', 'Leksikon']];
 let searchScope = 'alle';
 let recentQ = (() => { const v = store.get('recentQ', []); return Array.isArray(v) ? v.slice(0, 5) : []; })();
 function rememberQuery() {
@@ -1928,7 +1928,7 @@ function searchPage(all) {
   // the wiki's pages, as ochre chips (a short row first: a name one searched for is a page one may want)
   if (sc === 'alle' || sc === 'begreber') {
     const pages = pagesFor(q);
-    if (pages.length) { found += pages.length; html += `<h2 class="grp">Begreber</h2>${chips(pages.slice(0, sc === 'begreber' ? 40 : 6), 'search|pages', sc === 'begreber' ? 40 : 6).replace('class="wk-chips"', 'class="wk-chips ht-chips"')}`; }
+    if (pages.length) { found += pages.length; html += `<h2 class="grp">Leksikon</h2>${chips(pages.slice(0, sc === 'begreber' ? 40 : 6), 'search|pages', sc === 'begreber' ? 40 : 6).replace('class="wk-chips"', 'class="wk-chips ht-chips"')}`; }
   }
   // the news first, in a news app: the developments, then the stories in Live (the first five under Alle)
   if (news) {
@@ -1973,7 +1973,7 @@ function searchPage(all) {
   }
   if (!found && (searchIndex || sc === 'svar' || sc === 'begreber')) {
     html += stateBlock('empty', sc === 'nyheder' || sc === 'alle' ? `Ingen nyheder de seneste to døgn om »${esc(query.trim())}«.` : `Intet om »${esc(query.trim())}«.`,
-      [...(sc !== 'svar' ? [[`Se svarene om »${esc(query.trim())}«`, 'data-scope="svar"']] : []), ['Alle begreber A–Å', 'data-begreber']]);
+      [...(sc !== 'svar' ? [[`Se svarene om »${esc(query.trim())}«`, 'data-scope="svar"']] : []), ['Leksikon A–Å', 'data-begreber']]);
   }
   return html;
 }
@@ -2059,11 +2059,14 @@ function analysesPage() {
 }
 // the dock's row for Analyser: the wiki, the areas (a filter) and the years (a jump); what is saved is one tap away in
 // the bar. The search field stays under the bar: the dock goes while the keyboard is up, and the field must not go with it
-const anOpts = () => `<nav class="o-row an-chips" id="o-an" aria-label="Gå til">${anChips()}</nav>`;
-// the dock holds one way on, to the concepts' A–Å (the owner, 18/10: 'Under analyser, skal der ikke være filter i
-// bunden. Kun en Begreber knap'): no areas, no years – the search field above finds an answer
-function anChips() {
-  return '<button class="chip ht-chip" data-begreber>Begreber A–Å</button>';
+const anOpts = (t = tab) => `<div class="o-row an-chips" id="o-an" role="radiogroup" aria-label="Vis">${anChips(t)}</div>`;
+// the dock: one toggle, Svar · Leksikon (the owner, 18/10: 'Burde begreber a-å ikke hedde … opslagsværk og være lidt
+// mere fremtrædende' – he chose 'Leksikon' and the toggle): the answers' list, or the A–Å of the pages compiled from
+// them; the same toggle shows on both, no filter beside it (17/10: 'skal der ikke være filter i bunden')
+function anChips(t = tab) {
+  const lex = t === 'begreber';
+  return `<button class="chip${lex ? '' : ' on'}" role="radio" aria-checked="${!lex}" data-an-view="svar">Svar</button>`
+    + `<button class="chip ht-chip${lex ? ' on' : ''}" role="radio" aria-checked="${lex}" data-an-view="leksikon">Leksikon</button>`;
 }
 function analysesList() {
   need('mix'); need('ans');
@@ -2256,7 +2259,7 @@ function svarPage() {
   const central = new Set([...reads.flatMap(r => String(r.s || '').split('--')), ...(a.issues || []).slice(0, 1), ...(a.states || []).slice(0, 1)].map(x => pageOf(x) || x));
   const pages = [...new Set([...(answerPages().get(a.nr) || []), ...(a.begreber || []).filter(id => ((V('bix') || {}).items || {})[id])])]
     .sort((x, y) => central.has(y) - central.has(x) || KIND_ORDER.indexOf(((V('bix') || {}).items[x] || {}).kind) - KIND_ORDER.indexOf(((V('bix') || {}).items[y] || {}).kind) || nameOf(x).localeCompare(nameOf(y), 'da'));
-  if (pages.length) h += `<h2 class="grp rd-h">Begreber</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}`;
+  if (pages.length) h += `<h2 class="grp rd-h">I leksikonet</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}`;
   const cites = ((mv && mv.cites_nrs) || []).map(nr => A.by.get(String(nr))).filter(Boolean);
   if (cites.length) h += `<h2 class="grp rd-h">Svaret henviser til</h2><div class="rd-list">${cites.map(c => anRow(c)).join('')}</div>`;
   const later = citedBy(a.nr);
@@ -2347,7 +2350,7 @@ function begrebPage() {
   const head = ix && (ix.items || {})[id], e = bf && (bf.items || {})[id], x = e || head;
   if (!x) return waiting('bix') || waiting('bfull') ? loadingBlock('Henter …')
     : failed('bix', 'bfull') ? retry('siden', 'bix', 'bfull')
-      : stateBlock('gone', 'Siden findes ikke.', [['Søg efter den', `data-search-q="${esc(String(id).replace(/-/g, ' '))}" data-scope="begreber"`], ['Alle begreber A–Å', 'data-begreber']]);
+      : stateBlock('gone', 'Siden findes ikke.', [['Søg efter den', `data-search-q="${esc(String(id).replace(/-/g, ' '))}" data-scope="begreber"`], ['Leksikon A–Å', 'data-begreber']]);
   const A = answers();
   const n = e ? new Set([...(e.answers || []).map(String), ...A.list.filter(a => a.fresh && (a.begreber || []).includes(id)).map(a => a.nr)]).size : head.n_answers;
   // the paired page: a state and its issue ('Iran' and 'Iran – sagen')
@@ -2426,7 +2429,7 @@ function begreberPage() {
   // an issue sits under its state ('Iran' – '– sagen · 31 svar'), unless the filter shows the issues themselves
   const nested = new Set(azKind ? [] : all.filter(e => e.kind === 'sag' && ix.items[e.id.replace(/-sagen$/, '')] && /-sagen$/.test(e.id)).map(e => e.id));
   const items = all.filter(e => !nested.has(e.id) && (!azKind || kinds.has(e.kind))).sort((a, b) => a.name.localeCompare(b.name, 'da'));
-  let h = `<header class="ud-top"><span><b>Alle sider A–Å</b><small>${all.length} sider, samlet alene fra Hizb ut-Tahrirs svar</small></span></header>`;
+  let h = `<header class="ud-top"><span><b>Leksikon A–Å</b><small>${all.length} opslag, samlet alene fra Hizb ut-Tahrirs svar</small></span></header>`;
   h += `<nav class="an-chips az-kinds" aria-label="Slags">${AZ_KINDS.map(([v, l, ks]) => { const n = v ? all.filter(e => ks.includes(e.kind)).length : 0;
     return `<button class="chip${azKind === v ? ' on' : ''}" data-az-kind="${v}" aria-pressed="${azKind === v}">${l}${n ? `<small>${n}</small>` : ''}</button>`; }).join('')}</nav>`;
   if (!azKind) {
@@ -2551,7 +2554,7 @@ function gemtPage() {
   if (bg.length) {
     need('bix');
     const ix = V('bix');
-    h += `<h2 class="grp">Begreber · ${bg.length}</h2>` + (ix ? `<div class="rd-list">${bg.filter(x => ix.items[x.id]).map(x => { const e = ix.items[x.id];
+    h += `<h2 class="grp">Leksikon · ${bg.length}</h2>` + (ix ? `<div class="rd-list">${bg.filter(x => ix.items[x.id]).map(x => { const e = ix.items[x.id];
       return `<div class="an-item"><a class="an-row" href="?begreb=${encodeURIComponent(x.id)}" data-begreb="${esc(x.id)}"><b>${esc(pageTitle(e))}</b><span>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</span></a>${svBtn('b', x.id, pageTitle(e))}</div>`; }).join('')}</div>`
       : waiting('bix') ? loadingBlock('Henter …') : retry('begreberne', 'bix'));
   }
@@ -2954,6 +2957,12 @@ async function onTap(e) {
   const sv = t.closest('[data-svar]');
   if (sv) { e.preventDefault(); openSide('svar', sv.dataset.svar); return; }
   if (t.closest('[data-begreber]')) { openSide('begreber'); return; }
+  const av = t.closest('[data-an-view]');   // Analyser's toggle: the answers' list or the Leksikon
+  if (av) {
+    if (av.dataset.anView === 'leksikon') { if (tab !== 'begreber') openSide('begreber'); }
+    else if (tab !== 'analyses') { backStack.length = 0; leaveSides(); setTab('analyses'); }
+    return;
+  }
   const uf = t.closest('[data-unfold]');
   if (uf) {   // a list on a wiki page or in an answer unfolds in place; folded back, its button stays under the finger
     const k = uf.dataset.unfold, was = unfolded.has(k);
@@ -3168,7 +3177,7 @@ addEventListener('touchend', async () => {
 function paintOpts(t = tab) {
   const box = $('opts');
   if (!box) return;
-  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : t === 'okonomi' ? okOpts() : '';
+  const html = t === 'analyses' || t === 'begreber' ? anOpts(t) : ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'okonomi' ? okOpts() : '';
   const was = dockTab;
   dockTab = t;
   if (box.hidden !== !html) box.hidden = !html;
@@ -3177,7 +3186,8 @@ function paintOpts(t = tab) {
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
   morph(box, tpl.content, []);   // a row's own element stays, so a chip row keeps its sideways place
-  if (was !== t && !reduceMotion) box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
+  const pair = new Set([was, t]).size === 1 || (['analyses', 'begreber'].includes(was) && ['analyses', 'begreber'].includes(t));   // the toggle stays put
+  if (!pair && !reduceMotion) box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
 }
 
 // ---------------------------------------------------------------- Økonomi: the economy page in the app (the owner, 17/10:
@@ -4229,7 +4239,7 @@ const LANGS = { da: 'Dansk', ar: 'Arabisk', en: 'Engelsk', tr: 'Tyrkisk', ur: 'U
 const VIA_NAMES = { push: 'En notifikation', whatsapp: 'WhatsApp', facebook: 'Facebook / Messenger', google: 'Google', sms: 'En sms',
   web: 'Andre sider', direct: 'Direkte (ikon eller bogmærke)' };
 const TAB_NAMES = { home: 'Forside', dk: 'Danmark', me: 'Mellemøsten', world: 'Verden', threads: 'Udvikling', latest: 'Live', search: 'Søg',
-  analyses: 'Analyser', svar: 'Et svar', begreb: 'Begreber', begreber: 'Begreber A–Å' };
+  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å' };
 async function loadStats() {
   const url = CFG.statsUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 'stats.enc');
   const r = await fetch(url, { cache: 'no-cache' });

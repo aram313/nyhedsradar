@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Leksikon', and a Svar · Leksikon toggle; search words underlined in red** (2026-10-18, the owner: 'Burde begreber
+  a-å ikke hedde måske opslagsværk og være lidt mere fremtrædende?' – he chose 'Leksikon' and the toggle – and 'når man
+  søger burde ordet … være markeret med en rød [under]stregning, i dag er den grå'; `?v=20261018av`): Analyser's dock is
+  one toggle of two chips, Svar · Leksikon, shown on the answers' list and on the Leksikon A–Å alike (Leksikon opens the
+  A–Å as a side page, Svar goes back to the list; the toggle does not fade between them). The wiki is called Leksikon
+  wherever the app named it Begreber: the bar's title, the A–Å's header ('Leksikon A–Å · 203 opslag'), search's scope
+  and group, Gemt's group, an answer's 'I leksikonet', the intro; the A–Å's kind 'Begreber' (the concept pages) stays.
+  A search word is bold with a 2 px red underline instead of a grey tint.
 - **Økonomi: the whole topic block lights up** (2026-10-18, the owner: 'det skal være hele blocken der lyser op'): the
   soft ground behind a topic tapped in the dock now covers its whole block, from just above its red rule to its foot,
   behind its tiles and rows (`.ec-sec::after`), not only its title.

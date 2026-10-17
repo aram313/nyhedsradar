@@ -171,12 +171,12 @@ def test_gem_keeps_snapshots_on_the_phone_in_idle_time():
 
 
 def test_one_search_with_scopes():
-    assert "const SCOPES = [['alle', 'Alle'], ['nyheder', 'Nyheder'], ['svar', 'Svar'], ['begreber', 'Begreber']]" in CODE
+    assert "const SCOPES = [['alle', 'Alle'], ['nyheder', 'Nyheder'], ['svar', 'Svar'], ['begreber', 'Leksikon']]" in CODE
     page = fn('searchPage')
-    for group in ('Begreber', 'Udviklinger', 'Hizb ut-Tahrirs svar', 'På Khabar', 'Andre nyheder'):
+    for group in ('Leksikon', 'Udviklinger', 'Hizb ut-Tahrirs svar', 'På Khabar', 'Andre nyheder'):
         assert group in page, group
     # a news app: the news before the movement's answers; the answers named in their title first, 'via' last
-    assert page.index('Begreber</h2>') < page.index('Udviklinger</h2>') < page.index('På Khabar') < page.index('Hizb ut-Tahrirs svar')
+    assert page.index('Leksikon</h2>') < page.index('Udviklinger</h2>') < page.index('På Khabar') < page.index('Hizb ut-Tahrirs svar')
     assert 'm.via ? 2 : 1' in page and "data-unfold=\"${ok}\">Vis flere" in page
     assert "hasWord(f, w)" in page and 'startsAt(f, i)' in fn('mark')   # 'iran' is not marked in 'Mirán'
     # a file that comes later redraws the search page and Gemt too
@@ -214,7 +214,7 @@ def test_gem_has_one_home_in_the_bar_and_sends_nothing():
     gemt = fn('gemtPage')
     assert "stateBlock('empty', 'Intet gemt endnu.', [['Til Live', 'data-go=\"latest\"']])" in gemt
     # 18/10, the owner: 'Ser lidt uprofessionelt ud, analyser bør også være over nyheder (kald det ikke historier)'
-    assert gemt.index('Analyser · ') < gemt.index('Nyheder · ') < gemt.index('Begreber · ') and 'Historier' not in gemt
+    assert gemt.index('Analyser · ') < gemt.index('Nyheder · ') < gemt.index('Leksikon · ') and 'Historier' not in gemt
     assert 'rows.map(a => anRow(a))' in gemt and "svBtn('b', x.id" in gemt   # one bookmark a row: the answers' own
     story = CODE.split('const savedStory = x => {')[1].split('\n};')[0]
     assert 'class="act' not in story and "svBtn('s', x.id" in story and 'data-live=' in story   # a quiet row, no Læs/Del
@@ -261,7 +261,7 @@ def test_the_answer_reader_is_one_panel_under_a_quiet_header():
     # the newer answer is a quiet row under the panel, not a box
     assert page.index('rd-ans') < page.index('class="qrow rd-newer"') and 'ht-line' not in page
     # four concepts at most before '+ n', under 'Begreber'
-    assert 'SHOW_SVAR_CHIPS = 4' in CODE and "h2 class=\"grp rd-h\">Begreber</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}" in page
+    assert 'SHOW_SVAR_CHIPS = 4' in CODE and "h2 class=\"grp rd-h\">I leksikonet</h2>${chips(pages, `svar|${a.nr}|pages`, SHOW_SVAR_CHIPS, 0)}" in page
     # no big 'Åbn originalen' (the byline's 'Originalen' is it); a held text folded behind one quiet row
     assert 'Åbn originalen' not in page and 'class="wide' not in page and 'Originalen<svg' in page
     assert 'Læs hele svaret' in page and 'if (open) h +=' in page
@@ -349,7 +349,7 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
     # fly title, its block titles' rule and the dot of an event in the next 48 hours)
     # and since 18/10 Live's weights, as the calendar's (a red edge on high, a short red mark on middle)
     calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i', '.page[data-tab="latest"] .story.tick.w',
-                '.az-idx', '.imp-i', '.page[data-tab="begreber"] .grp.az', '.page[data-tab="begreb"] .grp')
+                '.az-idx', '.imp-i', 'mark', '.page[data-tab="begreber"] .grp.az', '.page[data-tab="begreb"] .grp')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         if 'var(--red)' in m.group(2):
             sel = m.group(1)

@@ -112,7 +112,9 @@ def test_the_dock_holds_the_pages_options_above_the_tabs():
     dock = INDEX[INDEX.index('<div class="dock" id="dock">'):INDEX.index('</nav>')]
     assert dock.index('<div class="opts" id="opts"') < dock.index('<nav class="tabs"')   # inside the dock, above the tabs
     paint = fn('paintOpts')
-    assert "t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : t === 'okonomi' ? okOpts() : ''" in paint
+    assert "t === 'analyses' || t === 'begreber' ? anOpts(t) : ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'okonomi' ? okOpts() : ''" in paint
+    # 18/10: Analyser's toggle Svar · Leksikon, the same on its list and on the Leksikon A–Å
+    assert 'data-an-view="svar"' in CODE and 'data-an-view="leksikon"' in CODE
     assert 'ASIDE.has(t)' in paint   # side pages and search: none
     assert 'morph(box, tpl.content, [])' in paint   # a row keeps its element and its sideways place
     assert '!reduceMotion' in paint

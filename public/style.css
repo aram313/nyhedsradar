@@ -283,7 +283,8 @@ main { min-height: 70vh; }
 .hit:active { background: var(--fill); }
 .hit b { display: block; font-size: var(--fs-body); line-height: 1.32; font-weight: 560; }
 .hit span { display: block; margin-top: 3px; font-size: var(--fs-meta); color: var(--text-3); }
-mark { background: var(--fill-2); color: inherit; font-weight: 700; border-radius: 3px; padding: 0 1px; }   /* a search word: bold on a grey tint, not red */
+/* a search word: bold with a red line under it (18/10, the owner: 'markeret med en rød [under]stregning, i dag er den grå') */
+mark { background: none; color: inherit; font-weight: 700; text-decoration: underline 2px var(--red); text-underline-offset: 3px; text-decoration-skip-ink: none; }
 .scope { margin: 12px 16px 4px; }
 
 /* ------------------------------------------------------------ pull to refresh: the logo answers
