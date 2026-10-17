@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi: the whole topic block lights up** (2026-10-18, the owner: 'det skal være hele blocken der lyser op'): the
+  soft ground behind a topic tapped in the dock now covers its whole block, from just above its red rule to its foot,
+  behind its tiles and rows (`.ec-sec::after`), not only its title.
 - **Analyser's dock: only 'Begreber A–Å'** (2026-10-18, the owner: 'Under analyser, skal der ikke være filter i bunden.
   Kun en Begreber knap'; `?v=20261018at`): the areas and the years are gone from the dock; the one chip sits in its
   middle and opens the A–Å index. The search field under the bar still finds an answer; the list keeps its year bands.

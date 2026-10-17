@@ -72,10 +72,14 @@
   /* a topic: generous space above, a short red rule, the red fly title, the headline line in the serif */
   .ec-sec { padding-top: 52px; }
   .ec-sec:first-child { padding-top: 14px; }
-  .ec-top { position: relative; isolation: isolate; padding: 0 16px; }
+  .ec-top { padding: 0 16px; }
   /* a topic tapped in the dock: its top lights up for a moment once the page is there (only opacity moves) */
-  .ec-top::after { content: ""; position: absolute; z-index: -1; inset: -12px 6px -12px 6px; border-radius: 14px; background: var(--fill-2); opacity: 0; pointer-events: none; }
-  .ec-sec.glow .ec-top::after { animation: ecGlow 1.6s ease-out; }
+  /* the whole topic's block (the owner, 18/10: 'det skal være hele blocken der lyser op'), from just above its rule to
+     its foot, behind its tiles and rows */
+  .ec-sec { position: relative; isolation: isolate; }
+  .ec-sec::after { content: ""; position: absolute; z-index: -1; inset: 38px 4px -10px 4px; border-radius: 16px; background: var(--fill-2); opacity: 0; pointer-events: none; }
+  .ec-sec:first-child::after { top: 2px; }
+  .ec-sec.glow::after { animation: ecGlow 1.6s ease-out; }
   @keyframes ecGlow { 0% { opacity: 0; } 15% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0; } }
   .ec-top::before { content: ""; display: block; width: 26px; height: 3px; margin-bottom: 11px; background: var(--red); }
   .ec-fly { display: block; margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
@@ -239,7 +243,7 @@
   .ec-tabs a[aria-current="true"]::before { opacity: 1; }
   .ec-tabs a:active { background: var(--fill); }
   @media (prefers-reduced-motion: reduce) { .ec-fold svg, .ec-tabs a, .ec-tabs a::before { transition: none; } }
-  @media (prefers-reduced-motion: reduce) { .ec-sec.glow .ec-top::after { animation: none; opacity: 1; } }   /* the ground shows, without the fade */
+  @media (prefers-reduced-motion: reduce) { .ec-sec.glow::after { animation: none; opacity: 1; } }   /* the ground shows, without the fade */
   /* inside the app's Økonomi tab (?embed=1): no bar and no way back of its own – the app's bar is above it and its
      tabs below the frame, so the dock is the frame's own bottom */
   html.embed .bar { display: none; }
