@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Kalender: Alberta's referendum 19/10** (2026-10-18, the owner: 'Du mangler Alberta election kanada 19 oktober'):
+  a curated event of middle weight – the vote on staying in Canada or starting the constitutional process towards a
+  binding referendum on separation (non-binding, one of several questions). Wikipedia's national calendar leaves
+  provinces out and Canada is no country of weight there, so it is curated; 'Dates in the news' names such votes
+  ('referendum') for the editor.
 - **'Dagens citat' on Økonomi** (2026-10-18, the owner: 'Lad os tilføje en dagens citat under økonomi også'): under
   'Finans og økonomi''s headline a quote card – the statement large in the serif, who said it (and the outlet) under
   it; a tap opens the story in Khabar. It is the editor's newest quote marked `"okonomi": true` (a central banker, a
