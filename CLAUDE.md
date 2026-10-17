@@ -452,8 +452,11 @@ da'wah.
   - **Two voices:** the app's sans is Khabar's and the outlets' voice (the lede, block titles, development names, an
     outlet's quote in italic sans, the intro); the serif only Hizb ut-Tahrir's (`.ht*`, `.an-*`, `.rd-*`, `.wk-*`).
   - **Red** only for live and big: one red dot on the front page (its Live block, `blockHead(title, more, live)`), the
-    Live tab's dot; 'Topnyhed' on at most the five strongest big stories of the Danish day (picks first, then rank), each
-    for twelve hours, never in a chosen block or in Vigtigste (`topNow()` in `meta()`); the lede's date and the day pill
+    Live tab's dot; 'Høj betydning' (the former 'Topnyhed') on at most five stories at a time by `topScore` – the
+    editor's first three picks 4, another pick 3, the books' heaviest tiers (1–4, 6) 2, a big story (coverage) 1; two
+    points needed, so coverage alone never does it (the owner, 18/10: 'stor dækning burde vægte mindre end redaktørens
+    valg eller bøgernes tungeste katagorier'); a pick holds 24 hours, the rest twelve, by hours not the calendar day;
+    never in a chosen block (`topNow()` in `meta()`; `run.top_score`/`top_now` the same for the notifications); the lede's date and the day pill
     are quiet (`--text-3`, `--fill-2`). Dark segments and chosen chips: a step lighter (`--seg-on`). No other red:
     the old-news and offline box is a grey panel with its icon, search marks bold on grey, switches and the focus ring the
     text colour, the logo's dot grey while the news are old or the phone offline, a failing source a hollow dot

@@ -47,7 +47,11 @@ def test_red_means_live_or_big():
     assert '.live-tab.has-new { color' not in RULES
     assert re.search(r'\.day span \{[^}]*background: var\(--fill-2\); color: var\(--text\)', RULES)
     # 'Topnyhed' is rationed: the five strongest big stories of the Danish day, twelve hours each, never in chosen blocks
-    assert 'const TOP_MAX = 5, TOP_HOURS = 12' in CODE and "topNow().has(i.id)" in fn('meta')
+    assert 'const TOP_MAX = 5, TOP_HOURS = 12, PICK_HOURS = 24' in CODE and "topNow().has(i.id)" in fn('meta')
+    # 18/10: the editor's picks and the books' heaviest tiers weigh more than the coverage, which alone is not enough
+    ts = fn('topScore')
+    assert '(p < 3 ? 4 : ed ? 3 : 0) + (heavy(i) ? 2 : 0) + (i.big ? 1 : 0)' in ts and 'dkYmd' not in fn('topNow')
+    assert 'n >= 2' in fn('topNow')
     assert 'opts.top' in fn('meta')
 
 
@@ -371,7 +375,7 @@ def test_a_live_story_can_be_saved_from_its_row():
 def test_live_is_one_list_whose_rows_show_their_weight():
     # 18/10, the owner: 'Nyheder skal have én fane … fremhæve dem med høj betydning medium og lav som … kalenderen'
     w = CODE.split('const weightOf = i =>')[1].split(';')[0]
-    assert "i.kind === 'kommentar' ? 1" in w and 'topNow().has(i.id) ? 3' in w and 'pickRank(i) < 99' in w
+    assert "i.kind === 'kommentar' ? 1" in w and 'topNow().has(i.id) ? 3' in w and 'pickRank(i) < 99 || heavy(i) || i.big' in w
     assert "w > 1 && 'w' + w" in fn('story') and 'tick: true' in fn('latestPage')
     assert re.search(r'\.story\.tick\.w3 > \.row \{[^}]*var\(--pulse-soft\)', RULES)
     assert re.search(r'\.story\.tick\.w2 \.tt::after \{[^}]*var\(--red\)', RULES)

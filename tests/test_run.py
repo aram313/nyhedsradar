@@ -105,7 +105,8 @@ def test_notifies_once_per_story_and_learns(tmp_path, monkeypatch):
             for i, s in enumerate(['TV 2', 'BT', 'Politiken', 'Berlingske', 'Information'])]
     batches['items'] = filler + gaza
     run.main()
-    assert len(sent) == 1 and 'Høj betydning' in sent[0]['title'], sent
+    # a big story by coverage alone is 'Vigtig nyhed': 'Høj betydning' needs the editor's pick or a heaviest tier (18/10)
+    assert len(sent) == 1 and sent[0]['title'].startswith(('Vigtig nyhed', 'Høj betydning')), sent
 
     batches['items'] = filler + gaza + [make_item(50, 'Israel bomber Gaza flygtningelejr angreb version50', 'Community')]
     run.main()

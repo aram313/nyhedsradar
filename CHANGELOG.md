@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Høj betydning' weighs the editor and the books above the coverage** (2026-10-18, the owner approved the review
+  and added: 'stor dækning burde vægte mindre end redaktørens valg eller bøgernes tungeste katagorier';
+  `?v=20261018af`): at most five stories at a time by points – the editor's first three picks (or the owner's raise) 4,
+  another pick 3, the books' heaviest tiers (1–4, and 6: Danish policy on Islam and Muslims) 2, a big story by coverage
+  1; two points are needed, so coverage alone no longer makes a story high, and a tier without the editor needs a
+  confirmed story. A pick holds it 24 hours, the rest twelve, counted from publication – no more reset at midnight.
+  The app (`topScore`, `topNow`) and the radar's notifications (`run.top_score`, `top_now`) are the same; Live's middle
+  weight is an editor's pick, a heaviest tier or a big story. The editor's prompt (the routine and
+  docs/hjerne/routine-prompt.md) says its first three picks are marked 'Høj betydning'.
 - **A–Å as the iPhone's contacts, a quieter ochre and red section headings** (2026-10-18, the owner; `?v=20261018ae`):
   the A–Å index's letters are a thin still column at the right (`.az-idx`) instead of a sideways strip: a press jumps
   to the letter, a finger slid runs through them at once, and a large letter in the middle fades half a second after

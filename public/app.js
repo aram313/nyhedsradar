@@ -883,7 +883,7 @@ function thumb(source, file) {
 function meta(i, opts = {}) {
   const m = [];
   if (i.kind === 'kommentar') m.push('<span class="kind">Kommentar</span>');
-  else if (i.big && !opts.top && topNow().has(i.id)) m.push('<span class="big">Høj betydning</span>');   // in a chosen block it goes without saying
+  else if (!opts.top && topNow().has(i.id)) m.push('<span class="big">Høj betydning</span>');   // in a chosen block it goes without saying
   // mixed lists say where it belongs; a list of mostly one section says it only on the story from another
   if (opts.tag && secOf(i) !== opts.msec) m.push(`<span class="sec"><i></i>${SECTIONS[secOf(i)]}</span>`);
   m.push(`<span class="src">${esc(i.source)}</span>`);
@@ -893,25 +893,37 @@ function meta(i, opts = {}) {
   if (shared[i.id]) m.push('<span class="done">delt</span>');
   return m.join('');
 }
-// 'Høj betydning' (called 'Topnyhed' until 18/10, the owner: 'måske topnyhed termet burde ændres til høj betydning')
-// keeps its meaning: the five strongest big stories of the Danish day carry it (the editor's picks first, then rank),
-// each for twelve hours after it was published – the radar's big flag still drives push and rank
-const TOP_MAX = 5, TOP_HOURS = 12;
+// 'Høj betydning' (called 'Topnyhed' until 18/10, the owner: 'måske topnyhed termet burde ændres til høj betydning'):
+// at most five stories at a time, chosen by weight, where the coverage weighs least (the owner, 18/10: 'stor dækning
+// burde vægte mindre end redaktørens valg eller bøgernes tungeste kategorier'). Points: the editor's first three picks
+// (or the owner's raise) 4, another pick 3; the books' heaviest tiers (1–4 and Danish policy on Islam and Muslims, 6) 2;
+// a big story – the coverage – 1. A story needs 2 points, so coverage alone never makes it high; a tier without the
+// editor needs a confirmed story. A pick holds for 24 hours, the rest for twelve – hours since it was published, not
+// the calendar day, so a story of 23.30 keeps it past midnight. Ties: the editor's order, then rank. No commentary.
+// src/radar/run.py's top_now is the same – keep the two alike (the notifications say 'Høj betydning' by it).
+const TOP_MAX = 5, TOP_HOURS = 12, PICK_HOURS = 24;
+const HEAVY = new Set([1, 2, 3, 4, 6]);
+const heavy = i => HEAVY.has(+i.tier);
+function topScore(i) {
+  if (i.kind === 'kommentar') return 0;
+  const p = pickRank(i), ed = p < 99;
+  if (hours(i) >= (ed ? PICK_HOURS : TOP_HOURS)) return 0;
+  if (!ed && i.confirmed === 0) return 0;
+  return (p < 3 ? 4 : ed ? 3 : 0) + (heavy(i) ? 2 : 0) + (i.big ? 1 : 0);
+}
 // a story's weight in Live, shown as the calendar shows its events' (the owner, 18/10: 'fremhæve dem med høj betydning
-// medium og lav som vi har gjort på kalenderen'): 3 – 'Høj betydning', a soft red ground and a red edge; 2 – a short red
-// mark under its time: a big story, one of the editor's picks or of the books' two heaviest tiers (about a quarter of a
-// day's Live; the radar's 'important' marks half of it, too many to stand out); 1 – the rest, quiet. A commentary is
-// never weighted.
-const weightOf = i => i.kind === 'kommentar' ? 1 : i.big && topNow().has(i.id) ? 3
-  : i.big || pickRank(i) < 99 || (i.tier && i.tier <= 2) ? 2 : 1;
+// medium og lav som vi har gjort på kalenderen'): 3 – 'Høj betydning' (topNow), a soft red ground and a red edge; 2 – a
+// short red mark under its time: an editor's pick, a story of the books' heaviest tiers, or a big story; 1 – the rest,
+// quiet. A commentary is never weighted.
+const weightOf = i => i.kind === 'kommentar' ? 1 : topNow().has(i.id) ? 3
+  : pickRank(i) < 99 || heavy(i) || i.big ? 2 : 1;
 let topMemo = null;
 function topNow() {
   const all = stories(), at = Math.floor(Date.now() / 600e3);   // worked out again every ten minutes, or with the news
   if (topMemo && topMemo.list === all && topMemo.at === at && topMemo.dg === digest && topMemo.own === ownerLocal) return topMemo.set;
-  const today = dkYmd(new Date());
-  const big = all.filter(i => i.big && i.kind !== 'kommentar' && hours(i) < TOP_HOURS && dkYmd(new Date(i.published || i.found)) === today)
-    .sort((a, b) => pickRank(a) - pickRank(b) || rankOf(b) - rankOf(a));
-  topMemo = { list: all, at, dg: digest, own: ownerLocal, set: new Set(big.slice(0, TOP_MAX).map(i => i.id)) };
+  const top = all.map(i => [i, topScore(i)]).filter(([, n]) => n >= 2)
+    .sort(([a, x], [b, y]) => y - x || pickRank(a) - pickRank(b) || rankOf(b) - rankOf(a)).map(([i]) => i);
+  topMemo = { list: all, at, dg: digest, own: ownerLocal, set: new Set(top.slice(0, TOP_MAX).map(i => i.id)) };
   return topMemo.set;
 }
 // A row is not one button: the button that opens it lies under the whole row, and the headline and its line lie on top
@@ -933,7 +945,7 @@ const rowSave = i => { const on = isSaved('s', i.id);
   return `<button class="st-save${on ? ' on' : ''}" data-save aria-pressed="${on}" aria-label="${on ? 'Gemt' : 'Gem'}"><svg aria-hidden="true"><use href="#i-${on ? 'saved' : 'save'}"/></svg></button>`; };
 // what a screen reader says for a row: the headline once, then the outlet, the time and its label
 const rowLabel = (i, opts = {}) => [i.title + '.', [i.source, stamp(i.published || i.found), i.kind === 'kommentar' ? 'Kommentar'
-  : i.big && !opts.top && topNow().has(i.id) ? 'Høj betydning' : opts.tick && weightOf(i) === 2 ? 'Middel betydning' : '', isNew(i) ? 'ny' : ''].filter(Boolean).join(', ')].join(' ');
+  : !opts.top && topNow().has(i.id) ? 'Høj betydning' : opts.tick && weightOf(i) === 2 ? 'Middel betydning' : '', isNew(i) ? 'ny' : ''].filter(Boolean).join(', ')].join(' ');
 // an opened story on the front page does not say the answer again that the page shows already (pro-plan 3.4)
 const frontAns = new Set();
 const detailOpts = (i, opts = {}) => (opts.home ? { skip: [...frontAns].join(',') } : {});

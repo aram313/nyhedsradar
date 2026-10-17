@@ -59,7 +59,9 @@ plain Danish without "Ifølge …".
      Each part of the lede (cut at ", ", " mens ", " og ", ";" and " – ") opens its story on the front page; the app
      finds it by the part's words, or give `lede_ids`: one story id per part, in order ("" for none).
    - `picks`: up to 8, the weightiest first by the brain; a few plain words of `why` (who acts, the tier). Danish
-     stories are picked only when they are very big news. Leave out to keep.
+     stories are picked only when they are very big news. Your first three picks are marked 'Høj betydning' in the app
+     (with the stories of the books' heaviest tiers; the number of outlets weighs least), so the order matters. Leave
+     out to keep.
    - recap lines (`topics`): one to four, at most five – 'who' and one short factual sentence – continuing a topic by
      its exact name; none when nothing new and important happened. `order`: the day's topics, weightiest first – its
      first topic with three lines or more is Dagens historie.

@@ -226,22 +226,45 @@ def story_kind(it, members):
     return 'kommentar' if all(commentary(m.get('link'), m.get('title')) for m in readable) else None
 
 
-def top_now(shown, picks, now_local, n=5, hours=12):
-    """The stories the app marks 'Høj betydning' (topNow in public/app.js – keep the two alike): the strongest big stories of
-    the Danish day, the editor's picks first, then rank, each for twelve hours after it was published; no commentary."""
+HEAVY_TIERS = {1, 2, 3, 4, 6}   # the books' heaviest tiers (6: Danish policy on Islam and Muslims)
+
+
+def top_score(it, pick_rank, hours=12, pick_hours=24):
+    """A story's points for 'Høj betydning' (topScore in public/app.js – keep the two alike; the owner, 18/10: 'stor
+    dækning burde vægte mindre end redaktørens valg eller bøgernes tungeste kategorier'): the editor's first three picks
+    4, another pick 3, a heaviest tier 2, a big story (the coverage) 1; two points are needed, so coverage alone never
+    does it. A pick holds 24 hours, the rest twelve; a tier without the editor needs a confirmed story."""
+    if it.get('kind') == 'kommentar':
+        return 0
+    p = pick_rank(it)
+    ed = p < 99
+    if NOW - ts(it.get('published') or it['found']) >= timedelta(hours=pick_hours if ed else hours):
+        return 0
+    if not ed and it.get('confirmed') == 0:
+        return 0
+    try:
+        heavy = int(it.get('tier') or 0) in HEAVY_TIERS
+    except (TypeError, ValueError):
+        heavy = False
+    return (4 if p < 3 else 3 if ed else 0) + (2 if heavy else 0) + (1 if it.get('big') else 0)
+
+
+def top_now(shown, picks, now_local=None, n=5, hours=12):
+    """The stories the app marks 'Høj betydning' (topNow in public/app.js – keep the two alike): at most five, by
+    top_score (two points at least), then the editor's order, then rank. Hours since publication, not the calendar day.
+    `now_local` is kept for the callers; the day no longer matters."""
     order = {}
     for k, p in enumerate(picks or []):
         pid = p.get('id') if isinstance(p, dict) else p
         order.setdefault(pid, k)
-    offset, day = now_local.utcoffset() or timedelta(0), now_local.date()
 
     def pick_rank(it):
         return min((order[i] for i in [it['id'], *(a.get('id') for a in it.get('also') or [])] if i in order), default=99)
-    big = [it for it in shown if it.get('big') and it.get('kind') != 'kommentar'
-           and NOW - ts(it.get('published') or it['found']) < timedelta(hours=hours)
-           and (ts(it.get('published') or it['found']) + offset).date() == day]
-    big.sort(key=lambda it: (pick_rank(it), -(it.get('rank') if it.get('rank') is not None else it.get('pct') or 0)))
-    return {it['id'] for it in big[:n]}
+    scored = [(it, top_score(it, pick_rank, hours)) for it in shown]
+    top = [it for it, sc in scored if sc >= 2]
+    sc = dict((it['id'], v) for it, v in scored)
+    top.sort(key=lambda it: (-sc[it['id']], pick_rank(it), -(it.get('rank') if it.get('rank') is not None else it.get('pct') or 0)))
+    return {it['id'] for it in top[:n]}
 
 
 def local_now(settings):

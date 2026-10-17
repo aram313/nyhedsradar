@@ -86,13 +86,16 @@ def test_topnyhed_in_a_notification_is_the_apps_five_of_the_day():
     now = run.NOW
     local = now.astimezone(timezone(timedelta(hours=2)))
     at = lambda h: (now - timedelta(hours=h)).isoformat()  # noqa: E731
-    shown = [{'id': f's{k}', 'big': True, 'rank': 100 - k, 'published': at(1), 'found': at(1)} for k in range(7)]
-    shown.append({'id': 'old', 'big': True, 'rank': 200, 'published': at(13), 'found': at(13)})
-    shown.append({'id': 'col', 'big': True, 'rank': 300, 'published': at(1), 'found': at(1), 'kind': 'kommentar'})
-    shown.append({'id': 'small', 'big': False, 'rank': 400, 'published': at(1), 'found': at(1)})
-    tops = run.top_now(shown, [{'id': 's6'}], local)
-    if (now - timedelta(hours=1)).astimezone(local.tzinfo).date() == local.date():   # the Danish day did not just begin
-        assert tops == {'s6', 's0', 's1', 's2', 's3'}
+    # 18/10, the owner: the coverage weighs less than the editor's picks or the books' heaviest tiers
+    S = lambda i, h=1, **k: {'id': i, 'rank': 100, 'published': at(h), 'found': at(h), **k}  # noqa: E731
+    shown = [S(f'big{k}', big=True, rank=200 + k) for k in range(4)]                        # coverage alone: never high
+    shown += [S('pick', rank=50), S('pick-old', h=20, rank=60),                           # the editor's: 24 hours
+              S('tier', tier=2, rank=90), S('tier-big', tier=1, big=True, rank=80),       # the books' heaviest
+              S('tier-alone', tier=3, confirmed=0), S('tier-old', h=13, tier=1),           # unconfirmed, too old
+              S('col', tier=1, kind='kommentar'), S('tier5', tier=5, big=True)]
+    tops = run.top_now(shown, [{'id': 'pick'}, {'id': 'pick-old'}], local)
+    assert tops == {'pick', 'pick-old', 'tier-big', 'tier'}, tops
+    assert run.top_score(S('x', tier=6, big=True), lambda it: 99) == 3   # Danish policy on Islam: a heavy tier
     src = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
     assert "'Høj betydning' if lead['id'] in tops else 'Vigtig nyhed'" in src
     # a new answer's notification is in Danish: its title machine-translated, else a plain Danish line
