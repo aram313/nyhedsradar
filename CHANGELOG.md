@@ -24,6 +24,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
     actors, tier, tags, powers, method. `src/radar/analyses.py` (on in radar.yml) keeps the text of the amir's answers
     the static layer does not hold yet. `scripts/rank_check.py` shows Live as one list with tiers (`RANK_CHECK_OUT`,
     `RANK_CHECK_STATE`). Notes: docs/hjerne/notes-radar.md.
+  - **Sources** (`config/feeds.json`): every source judged by how well it serves the editor, measured on 4.9 days of
+    real data (informative vs curiosity headlines, weight by the books' order, first and unique, the editor's picks,
+    health): six removed (Islamisk Viden, DIP Podcast, Kristeligt Dagblad, Weekendavisen, Islam21c, TV Midtvest), 36
+    verified new ones (AFP's wire, Reuters and AP, state agencies of the Muslim world, governments' and four Danish
+    ministries' own channels, Naharnet, Rudaw, Kyiv Independent, Libya Herald, Dabanga, Yonhap); each source carries a
+    measured `fit` (0.5–1.3) for the radar's rank and lead outlet to use (not read by the radar yet). Notes:
+    docs/hjerne/kilder-maaling.md, kilder-nye.md.
   - **Editor** (`scripts/editor.py`): looks every quarter of an hour – four routines at minutes 0, 15, 30, 45 – and
     `check` (at most ~40 lines) says INTET NYT AF VÆGT or OPDATÉR: why (a big story, a tier 1–3 story with two outlets, a
     new answer, two hours without an update, the first run after 06 and after 21). Small updates keep the lede, picks

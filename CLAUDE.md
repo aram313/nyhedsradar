@@ -53,7 +53,9 @@ in their da'wah.
   camp (31 of them, 2026-10-17): it never moves the established sources' scale (taste percentiles, a section's bar,
   the outlet lift, big stories) and leads at most `max_added_per_day` (config/settings.json, 3) cards of its own a day,
   and only stories no established source carries. The movement's own outlets (group `bevægelsen`) never count as an
-  outlet or confirmation, and governments' channels (`official`) never lead a story others carry.
+  outlet or confirmation, and governments' channels (`official`) never lead a story others carry. `fit` (0.5–1.3,
+  measured 2026-10-17, docs/hjerne/kilder-maaling.md) says how well a source serves the editor; the radar does not read
+  it yet (meant for the rank and for which outlet leads a story).
 - `src/radar/method.py` + `config/method.json` – **the brain in the selection** (2026-10-17): every story gets the
   heaviest of the books' 13 tiers its headline shows, the powers as Hizb ut-Tahrir's newest answers read them (each
   reading dated and attributed in `_why`: USA leading; Britain and France weakened great powers; Russia a middle power
