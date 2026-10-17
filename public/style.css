@@ -20,12 +20,12 @@
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
   --r-btn: 12px; --r-panel: 16px; --r-sheet: 20px;
 }
-:root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #656562; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --red: #b03d38; --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
+:root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #656562; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --red: #b03d38; --red-deep: #7e2a26; --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
 /* dark: the selected segment is one step lighter than its track (darker would read as pressed in) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
+  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --red-deep: #a8403c; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
 }
-:root[data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --red-deep: #a8403c; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
 /* colour is used sparingly: a small dot tells the section on mixed lists; red is for big news and 'live' – and, on the
    front page, its accents (below): --red is the palette's red at a strength text can be read in (4.5:1 on page and panel) */
 :root { --dk: #3b6fc4; --me: #2f855a; --world: #8058b8; --warn: #9a5800; --sec: var(--text-3); }
@@ -456,7 +456,7 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .page[data-tab="latest"] .story.tick.w3 .h { font-weight: 700; }
 .page[data-tab="latest"] .story.tick.w3 + .story.tick::before, .page[data-tab="latest"] .story.tick + .story.tick.w3::before { opacity: 0; }
 /* middle (18/10, the owner: 'en rød streg på samme måde som stor betydning men bare uden den røde baggrund') */
-.page[data-tab="latest"] .story.tick.w2 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }
+.page[data-tab="latest"] .story.tick.w2 > .row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red-deep); }
 .page[data-tab="latest"] .story.tick.w2 .h { font-weight: 620; }
 /* 'Kun vigtige' (18/10) in Live's and the Kalender's dock: a chip with a short red edge, the weights' own sign; on the
    page, one quiet line says what is hidden, with the way back */
@@ -1234,7 +1234,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="kalender"] .ce.w3 .h { font-weight: 750; }
 .page[data-tab="kalender"] .ce.w3 + .ce::before, .page[data-tab="kalender"] .ce + .ce.w3::before { opacity: 0; }
 .page[data-tab="kalender"] .ce .cw { color: var(--red); font-weight: 750; }
-.page[data-tab="kalender"] .ce.w2::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); }   /* as high, without the ground (18/10) */
+.page[data-tab="kalender"] .ce.w2::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red-deep); }   /* as high, without the ground (18/10) */
 .page[data-tab="kalender"] .ce.w2 .h { font-weight: 680; }
 .ce .m .cn { color: var(--text); font-weight: 650; }
 .ce-x { padding: 0 var(--s4) var(--s3) 72px; }

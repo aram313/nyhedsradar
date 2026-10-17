@@ -311,6 +311,8 @@ def test_eu_summits_weigh_in_the_middle_and_climate_summits_low():
     assert c.weight({'kind': 'topmøde', 'title': "FN's klimatopmøde COP31"}) == 1
     assert c.weight({'kind': 'topmøde', 'title': 'G20-topmøde'}) == 3
     assert c.weight({'kind': 'topmøde', 'title': 'EU-topmøde', 'w': 3}) == 3   # raised by the editor
+    # 18/10, the owner: the rate decisions are abstract – no mark, the Fed's too (the app holds the same, calWOf)
+    assert c.weight({'kind': 'centralbank', 'title': 'Fed: rentebeslutning', 'place': 'USA'}) == 1
 
 
 def test_events_of_weight_get_their_fuller_explanation_in_reality_only():

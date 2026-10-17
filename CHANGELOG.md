@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Middle weight in a darker red; rate decisions quiet** (2026-10-18, the owner: 'den røde streg ved middel betydning
+  [lidt mørkere] … og den burde fjernes på kalenderens rentebeslutninger, da det er abstrakt'; `?v=20261018ao`): the
+  middle weight's edge in Live and the Kalender takes `--red-deep` (#7e2a26 light, #a8403c dark), the high one keeps
+  `--red`; every central bank's rate decision is of low weight (`calendar.weight`, and the app's `calWOf` at once).
 - **'Kun vigtige' in Live and the Kalender; the Kalender shows everything** (2026-10-18, the owner: 'en knap der
   frasorterer alt med lav betydning på kalender og nyheder. kalender skal ikke have en sortering med måneder, men skal
   som standard vise "alt"'; `?v=20261018an`): a chip 'Kun vigtige' (with a short red edge, the weights' sign) first in

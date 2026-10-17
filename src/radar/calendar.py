@@ -386,7 +386,7 @@ def weight(e):
             return 1     # the climate summits move no power's position
         return 3 if HEAVY_SUMMIT.search(title) else 2 if MID_SUMMIT.search(title) else 1
     if kind == 'centralbank':
-        return 2 if title.startswith('Fed') else 1
+        return 1     # a rate decision is abstract to the readers (the owner, 18/10): quiet, whichever bank
     return 1
 
 

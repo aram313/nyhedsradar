@@ -378,6 +378,6 @@ def test_live_is_one_list_whose_rows_show_their_weight():
     assert "i.kind === 'kommentar' ? 1" in w and 'topNow().has(i.id) ? 3' in w and 'pickRank(i) < 99 || heavy(i) || i.big' in w
     assert "w > 1 && 'w' + w" in fn('story') and 'tick: true' in fn('latestPage')
     assert re.search(r'\.story\.tick\.w3 > \.row \{[^}]*var\(--pulse-soft\)', RULES)
-    assert re.search(r'\.story\.tick\.w2 > \.row::after \{[^}]*width: 3px; background: var\(--red\)', RULES)   # the edge, no ground
+    assert re.search(r'\.story\.tick\.w2 > \.row::after \{[^}]*width: 3px; background: var\(--red-deep\)', RULES)   # a darker edge, no ground
     # 'Topnyhed' is now 'Høj betydning', in the rows, the notifications' switch and the screen reader's label
     assert "'<span class=\"big\">Høj betydning</span>'" in fn('meta') and 'Topnyhed' not in INDEX

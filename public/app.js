@@ -3239,7 +3239,7 @@ const calIn = (f, e) => !f || (f === 'valg' ? e.kind === 'valg' : f === 'top' ? 
 let calF = '', calPast = false, calGen = 0, calMemo = null, calPend = '', calGone = '';
 // everything ahead is shown (the owner, 18/10: 'kalender skal ikke have en sortering med måneder, men skal som standard
 // vise "alt"'); 'Kun vigtige' hides the events of low weight – remembered on the phone, like Live's
-const calWOf = e => (e.w === 3 || e.w === 2 ? e.w : 1);
+const calWOf = e => (e.kind === 'centralbank' ? 1 : e.w === 3 || e.w === 2 ? e.w : 1);   // a rate decision is quiet (18/10)
 let calImp = !!store.get('calImp', false);
 const calOpen = new Set();                         // events opened (their why, source and stories)
 let calFocus = params.get('kalender') || '';       // ?kalender=<id>: the tab opens at that event
