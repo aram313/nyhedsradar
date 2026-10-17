@@ -121,6 +121,12 @@ def test_noise_trust_balance_and_danish(tmp_path, monkeypatch):
     from fake_embed import FakeEmbedder
     monkeypatch.setattr(run, 'STATE', tmp_path / 'state')
     monkeypatch.setattr(run, 'CACHE', tmp_path / 'cache')
+    # three stories of equal taste in one section: the sources' fit alone would order them (test_fit.py measures it)
+    import shutil
+    shutil.copytree(Path(run.ROOT) / 'config', tmp_path / 'config')
+    st = json.loads((tmp_path / 'config' / 'settings.json').read_text(encoding='utf-8'))
+    (tmp_path / 'config' / 'settings.json').write_text(json.dumps({**st, 'rank_fit': 0}), encoding='utf-8')
+    monkeypatch.setattr(run, 'CONFIG', tmp_path / 'config')
     (tmp_path / 'cache').mkdir()
     (tmp_path / 'cache' / 'profile.jsonl').write_text(
         '\n'.join(json.dumps({'d': SHARED, 't': t}) for t in

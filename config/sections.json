@@ -1,5 +1,5 @@
 {
-  "_help": "Sections in the app and the words that place a story in them. A word matches at the start of a word (gaza matches gazas); a trailing = means the whole word only; a word with a capital letter is matched case-sensitively (Venstre = the party, not the direction); Arabic words match anywhere because prefixes attach to them. 'core' words mark the group's core subjects and lift a story; 'core_dk' words (Danish politics, Islam and Muslims, immigration) give a Danish story its bigger lift; 'trivia' words mark light news and 'local' words everyday crime and accidents; both push a story down (local only when no core word lifts it).",
+  "_help": "Sections in the app and the words that place a story in them. A word matches at the start of a word (gaza matches gazas); a trailing = means the whole word only; a word with a capital letter is matched case-sensitively (Venstre = the party, not the direction); Arabic words match anywhere because prefixes attach to them. 'core' words mark the group's core subjects and lift a story; 'core_dk' words (Danish politics, Islam and Muslims, immigration) give a Danish story its bigger lift; 'protect_dk' words (Islam and Muslims, integration and immigration, foreign policy) in the headline of a confirmed Danish story keep it in Live whatever the editor's level (src/radar/level.py); 'trivia' words mark light news and 'local' words everyday crime and accidents; both push a story down (local only when no core word lifts it).",
   "names": {
     "dk": "Danmark",
     "me": "Mellemøsten",
@@ -99,6 +99,13 @@
     "messerschmidt", "vanopslagh", "olsen dyhr", "dragsted", "søren gade", "hummelgaard", "dybvad",
     "demonstration", "terror", "dkpol", "opposition", "EU=", "EU's", "partistøtte", "ministerium", "retsforbeh",
     "grundloven"
+  ],
+  "protect_dk": [
+    "muslim", "islam", "moské", "imam", "koran", "tørklæde", "hijab", "niqab", "burka", "halal", "ramadan",
+    "hizb ut-tahrir", "racisme", "diskrimin", "flygtning", "asyl", "udvis", "indvandr", "udlænding", "integration",
+    "statsborgerskab", "indfødsret", "ghetto", "parallelsamfund", "udenrigs", "Gaza", "Israel", "palæstin",
+    "Mellemøsten", "Iran", "Vestbredden", "Libanon", "Syrien", "Irak", "Afghanistan", "Ukraine", "Rusland", "Putin",
+    "Trump", "USA", "Grønland", "Nato", "våbenhvile", "sanktion", "anerkend", "folkedrab", "våbeneksport"
   ],
   "trivia": [
     "vejret", "selfie", "vejrudsigt", "regnvejr", "solskin", "hedebølge", "nordlys", "northern lights", "trafik",

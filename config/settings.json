@@ -40,5 +40,23 @@
   "same_story_other_city": 0.88,
   "lines_hours": 36,
   "max_added_per_day": 3,
-  "editor_fires_per_day": 12
+  "editor_fires_per_day": 12,
+  "rank_fit": 10,
+  "lead_curious": 0.5,
+  "lead_danish": 0.35,
+  "live_levels": {
+    "få": [
+      104,
+      20
+    ],
+    "normal": [
+      96,
+      38
+    ],
+    "mange": [
+      88,
+      72
+    ]
+  },
+  "live_keep_margin": 4
 }

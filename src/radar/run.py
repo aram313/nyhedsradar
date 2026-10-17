@@ -10,9 +10,10 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from radar import admin, analyses, feedback, push, stats
+from radar import admin, analyses, feedback, level, push, stats
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
-from radar.feeds import fetch_all
+from radar.feeds import fetch_all, tidy as tidy_headline
+from radar.headlines import curious
 from radar.method import Method
 from radar.sections import Sections
 
@@ -218,15 +219,20 @@ def load_learned_embeddings(embed, learned, path=None):
     return out
 
 
-def in_quiet_hours(settings):
-    start, end = settings['quiet_hours']
+def local_now(settings):
+    """Now in Danish time (wall clock; the date and hour are what matter)."""
     try:
-        h = NOW.astimezone(ZoneInfo(settings['timezone'])).hour
+        return NOW.astimezone(ZoneInfo(settings['timezone']))
     except Exception:  # no time zone database (plain Windows): Danish summer/winter time by EU rule
         def last_sunday(month):
             d = datetime(NOW.year, month, 31, 1, tzinfo=timezone.utc)
             return d - timedelta(days=(d.weekday() + 1) % 7)
-        h = (NOW + timedelta(hours=2 if last_sunday(3) <= NOW < last_sunday(10) else 1)).hour
+        return NOW + timedelta(hours=2 if last_sunday(3) <= NOW < last_sunday(10) else 1)
+
+
+def in_quiet_hours(settings):
+    start, end = settings['quiet_hours']
+    h = local_now(settings).hour
     return h >= start or h < end if start > end else start <= h < end
 
 
@@ -259,6 +265,10 @@ def main():
     # sources added for their camp's view (scale: false) are ranked against the established sources' scale and
     # never move it: not the taste percentiles, not a section's bar, not the outlet count of the rank or a big story
     off_scale = {f['name'] for f in feeds if f.get('scale') is False}
+    # how well a source serves the editor (measured 2026-10-17, docs/hjerne/kilder-maaling.md): a small weight in the
+    # rank, and above all which outlet leads a story
+    fit_of = {f['name']: float(f.get('fit') or 1.0) for f in feeds}
+    feed_of = {f['name']: f for f in feeds}
     sections = Sections(load(CONFIG / 'sections.json', {}))
     find_cities = place_finder(load(CONFIG / 'places.json', {}))
     city_of = lambda it: find_cities(f"{it['title']} {it.get('title_tr') or ''}")
@@ -270,6 +280,8 @@ def main():
     relay = load(STATE / 'relay.json', {'since': None})
     health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
+    live_plan = load(os.environ.get('RADAR_LIVE', CACHE / 'live.json'), {})    # the editor's level for Live (level.py)
+    admitted = load(STATE / 'admitted.json', {})    # member id -> when its story was first admitted to Live
     phones = push.load_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''))   # signed up in the app
     owner = admin.load(STATE / 'removed.json')      # what the owner removed or moved with a long press in the app
     emb_store = {}
@@ -280,6 +292,13 @@ def main():
 
     fetched, status = fetch_all(feeds)
     health = {name: 0 if st['ok'] else health.get(name, 0) + 1 for name, st in status.items()}
+    # the headline rules (feeds.tidy) also hold for what earlier runs kept: a site's name cut off, a blog or a betting
+    # ad left out, a channel's 'Who:' line joined to what was said – done once, changes nothing a second time
+    for k in list(items):
+        f = feed_of.get(items[k]['source'])
+        if f and (f.get('drop') or f.get('cut') or f.get('type') in ('gnews', 'telegram')):
+            if not tidy_headline(items[k], f) or len(norm_title(items[k]['title']).split()) < 4:
+                del items[k]
 
     # 1. keep fresh, unseen, de-duplicated items (same link, or same headline from two feeds)
     known_titles = {norm_title(i['title']) for i in items.values()}
@@ -412,17 +431,29 @@ def main():
                   first={'source': label_of.get(it['source'], it['source']), 'camp': camp_of.get(it['source']) or None,
                          'published': it.get('published')})
         for k in ('cluster_pct', 'cluster_gpct', 'sec', 'secs', 'rank', 'spct', 'cover', 'actors', 'tier', 'tags',
-                  'powers', 'method'):
+                  'powers', 'method', 'fit', 'live'):
             it.pop(k, None)
+
+    def lead_quality(x):
+        """How well this article would lead its story (the owner: informative headlines, never curiosity ones). A
+        Danish headline that says the news goes before an English one, which the app would show machine-translated
+        until the editor has written his own."""
+        q = (fit_of.get(x['source'], 1.0) + (s.get('lead_danish', 0.35) if x.get('lang') == 'da' else 0)
+             + (0.1 if x.get('summary') else 0) + x['pct'] / 1000)
+        if x.get('lang') in READABLE and curious(x['title']):
+            q -= s.get('lead_curious', 0.5)
+        return round(q, 4)
 
     def story(members):
         """One card for the members: a Danish/English article from an established outlet leads when there is
         one (a channel post or a foreign-language article still counts as an outlet); the movement's outlets and
         governments' own channels lead only a story no one else carries, and a source added for its camp's view
-        only one the established sources do not carry (the camps show in the coverage)."""
+        only one the established sources do not carry (the camps show in the coverage). Among the rest the most
+        informative headline leads: the source's fit, less for a curiosity headline, a little for a teaser and the
+        group's taste."""
         lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in movement,
                                            x['source'] not in official, x['source'] not in off_scale,
-                                           x['source'] not in channel, x['pct'], x['score']))
+                                           x['source'] not in channel, lead_quality(x), x['pct'], x['score']))
         outlets = lambda ms: len({outlet_of.get(m['source'], m['source']) for m in ms})
         counted = [m for m in members if m['source'] not in movement]
         n_out = outlets(counted) or 1
@@ -518,6 +549,9 @@ def main():
             r += s['rank_core_dk'] if core_dk >= 2 else s['rank_core_dk'] / 2
         elif core:
             r += s['rank_core'] if core >= 2 else s['rank_core'] / 2
+        # the lead's fit (the most informative outlet the story has, chosen by fit): a small weight, about −5 to +3
+        lead['fit'] = fit_of.get(lead['source'], 1.0)
+        r += s.get('rank_fit', 0) * (lead['fit'] - 1)
         lead['sec'] = secs[0]
         lead['actors'] = meth.actors(meth.text(lead))
         lead['tier'], lead['tags'], lead['powers'] = meth.weigh(lead, ls['trivia'], lead['actors'])
@@ -628,6 +662,29 @@ def main():
         if it['big'] and cpct >= s['learn_big_min_percentile'] and it['id'] not in learned_ids:
             learned.append({'id': it['id'], 't': text(it), 'at': NOW.isoformat(), 'why': 'big'})
             learned_ids.add(it['id'])
+
+    # what Live shows (level.py): the editor's level for the day as a rank floor and a soft count for the last 24
+    # hours, plus take and drop; a big story and Danish politics on Islam, Muslims, integration and foreign policy are
+    # never cut. `shown` stays the whole candidate pool (data.json, for the editor and search); app.json holds the
+    # admitted stories
+    members_of_lead = {st[0]['id']: st[1:] for st in stories}
+
+    def protect(it):
+        if it['big']:
+            return 'big'
+        danish = [m for m in [it] + members_of_lead.get(it['id'], []) if m.get('lang') == 'da']
+        if (it['sec'] == 'dk' and it['confirmed'] and not sig[it['id']]['trivia']
+                and (it.get('tier') == 6 or any(sections.protect_dk.hits(m['title']) for m in danish))):
+            return 'dk'
+        return None
+    day_plan = level.plan(live_plan, local_now(s).date().isoformat(), local_now(s).hour, NOW)
+    levels = {k: tuple(v) for k, v in s.get('live_levels', {'få': [104, 20], 'normal': [96, 38], 'mange': [88, 72]}).items()}
+    on_live, admitted, live_info = level.admit(
+        shown, levels, s.get('live_keep_margin', 4), day_plan, admitted, NOW,
+        lambda it: ts(it['published'] or it['found']), protect)
+    for it in shown:
+        it['live'] = on_live.get(it['id'])
+
     for it in items.values():
         for k in ('_core', '_core_dk', '_dk_outlets', '_ref_out', '_ref_est'):
             it.pop(k, None)
@@ -720,8 +777,8 @@ def main():
     pending = [p for p in pushes['pending'] if ts(p['at']) >= NOW - timedelta(hours=3) and p['id'] in emb_store]
     for it in shown:
         why = 'top' if it['id'] in new_ids and it.get('cluster_pct', it['pct']) >= s['notify_percentile'] else 'big' if it['big'] else None
-        if not why or first_run or (it['foreign'] and not it.get('title_tr')) or not it['confirmed']:
-            continue   # never for a Telegram/YouTube post no established outlet carries
+        if not why or first_run or (it['foreign'] and not it.get('title_tr')) or not it['confirmed'] or not it['live']:
+            continue   # never for a Telegram/YouTube post no established outlet carries, nor one Live does not show
         e = emb_store[it['id']]
         if len(told) and float((told @ e).max()) >= s['same_story_similarity']:
             continue  # already told about this story
@@ -785,24 +842,59 @@ def main():
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
                      'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da',
-                     'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method')
+                     'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live')
+    app_fields = ('id', 'title', 'summary', 'link', 'lang', 'published', 'found', 'rank', 'sec', 'secs', 'big', 'important',
+                  'outlets', 'confirmed', 'cover', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb',
+                  'pic', 'kw', 'kw_tr', 'kw_da', 'actors', 'members', 'live')
+    also_fields = ('id', 'source', 'title', 'link', 'lang', 'group', 'title_tr')
+
+    def slim(d, keys):   # empty values left out (the app reads a missing field as empty); 0 stays (confirmed: 0)
+        return {k: d[k] for k in keys if d.get(k) is not None and d.get(k) is not False and d.get(k) not in ('', [], {})}
+
+    def app_item(it):
+        out = slim(it, app_fields)
+        if out.get('members') == [it['id']]:
+            out.pop('members')   # a story of one article: its id is its only member
+        out['source'] = label_of.get(it['source'], it['source'])
+        out['group'] = group_of.get(it['source'], 'west')
+        if it.get('also'):
+            out['also'] = [slim(a, also_fields) for a in it['also']]
+        return out
+
     shown.sort(key=lambda x: x['found'] + x['published'], reverse=True)
     why_count = {w: sum(1 for l in learned if l['why'] == w) for w in s['learn_weights']}
-    save(STATE / 'data.json', {
+    common = {
         'updated': NOW.isoformat(),
         'sections': sections.names,
-        'items': [{**{k: it.get(k) for k in public_fields}, 'source': label_of.get(it['source'], it['source']),
-                   'group': group_of.get(it['source'], 'west')} for it in shown],
-        'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0),
-                        'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
         'scanned_24h': sum(1 for v in items.values() if ts(v['found']) >= NOW - timedelta(hours=24)),
-        'learned': why_count,
         # the movement's new answers the radar has found (titles, dates and links; the text stays in the state)
         'analyses': analyses.for_app(found_analyses),
         # the owner's front-page choices: quote, main story, raised/lowered stories
         'owner': {'quote': (owner.get('quote') or {}).get('key'), 'lead': (owner.get('lead') or {}).get('id'),
                   'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()}},
+    }
+    # the whole candidate pool, for the editor and search: every story with its rank line (`live`: why Live shows it,
+    # or null) and the level applied (`live` at the top)
+    save(STATE / 'data.json', {
+        **common,
+        'items': [{**{k: it.get(k) for k in public_fields}, 'source': label_of.get(it['source'], it['source']),
+                   'group': group_of.get(it['source'], 'west')} for it in shown],
+        'sources': {k: {'ok': v['ok'], 'items': v['items'], 'failing_runs': health.get(k, 0),
+                        'group': group_of.get(k, 'west'), 'label': label_of.get(k, k)} for k, v in status.items()},
+        'learned': why_count,
+        'live': live_info,
     })
+    # what the app shows (the owner's rule of 2026-10-17, notes-owner-volume.md): the admitted stories of the last 48
+    # hours and every big story, with only the fields the app reads (public/app.js) – a fraction of data.json
+    save(STATE / 'app.json', {
+        **common,
+        'items': [app_item(it) for it in shown
+                  if it['big'] or (it['live'] and NOW - ts(it['published'] or it['found']) <= timedelta(hours=48))],
+        'sources': {k: {'label': label_of.get(k, k), 'group': group_of.get(k, 'west'),
+                        **({'failing_runs': health[k]} if health.get(k) else {})} for k in status},
+        'live': {'level': live_info['level'], 'n_24h': live_info['n_24h']},
+    })
+    save(STATE / 'admitted.json', admitted)
     # every wire line of the window (Claude translates them all into 'Bevægelser'), plus the newest other statements
     newest = sorted(statements, key=lambda v: v['published'], reverse=True)
     keep = [v for v in newest if v['source'] in wire] + [v for v in newest if v['source'] not in wire][:300]
@@ -835,6 +927,7 @@ def main():
                         m=np.array([emb_store[k] for k in keep], dtype=np.float16) if keep else np.zeros((0, 384), np.float16))
     bad = [k for k, v in status.items() if not v['ok']]
     print(f"fetched {len(fetched)} · new {len(new)} · kept {len(items)} · shown {len(shown)} · "
+          f"live {live_info['n_24h']} in 24 h ({live_info['level']}: {live_info['why']}, line {live_info['line']}) · "
           f"learned {why_count} · owner: {acted} new, {len(owner['removed'])} removed · pending pushes {len(pending)} · failed: {', '.join(bad) or 'none'}")
 
 

@@ -44,7 +44,11 @@
   "url": "https://www.bt.dk/bt/seneste/rss",
   "group": "dk",
   "camp": "dk",
-  "fit": 0.9
+  "fit": 0.9,
+  "drop": [
+   "\\bexpekt\\b",
+   "\\bbet builder\\b"
+  ]
  },
  {
   "name": "Ekstra Bladet",
@@ -220,7 +224,10 @@
   "group": "il",
   "sec": "me",
   "camp": "il",
-  "fit": 0.95
+  "fit": 0.95,
+  "drop": [
+   "\\s[-–]\\s(?:opinion|analysis|comment|editorial|op-ed)$"
+  ]
  },
  {
   "name": "The National",
@@ -333,7 +340,10 @@
   "group": "il",
   "sec": "me",
   "camp": "il",
-  "fit": 0.95
+  "fit": 0.95,
+  "drop": [
+   "^The Blogs:"
+  ]
  },
  {
   "name": "The New Arab",
@@ -673,7 +683,13 @@
   "camp": "eg",
   "sec": "me",
   "scale": false,
-  "fit": 0.75
+  "fit": 0.75,
+  "drop": [
+   "\\s-\\s(?:sports|advertising|opinion)$"
+  ],
+  "cut": [
+   "(?:\\s-\\s[A-Z][\\w&’\\' ]{1,25})+$"
+  ]
  },
  {
   "name": "The Hindu",
@@ -862,7 +878,10 @@
   "camp": "iq",
   "sec": "me",
   "scale": false,
-  "fit": 1.1
+  "fit": 1.1,
+  "cut": [
+   "^shafaq news\\s*\\.{2,}\\s*"
+  ]
  },
  {
   "name": "Antara",

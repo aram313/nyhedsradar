@@ -158,11 +158,15 @@ def headline(text, limit=160):
 ARABIC = re.compile(r'[؀-ۿ]')
 TURKISH = re.compile(r'[ğışİĞŞ]')   # letters English and Danish never use
 ENGLISH = re.compile(r"\b(?:the|of|and|to|in|on|for|with|from|after|over|amid|says|said|is|are|was|has|have|by|at)\b", re.I)
+# Turkish words that carry a sentence (a Turkish post often has only one or two of the letters above)
+TURKISH_WORDS = re.compile(r'(?<!\w)(?:ve|bir|ile|için|bu|şu|gibi|olarak|değil|daha|çok|olan|kadar|sonra|karşı|yönelik|'
+                           r'ancak|ama|veya|ise|mi|mı|ne|hiç|tüm|bütün|devam|etti|eden|edildi|oldu|yaptı|dedi)(?!\w)', re.I)
 
 
 def sniff(text, lang):
     """The channel's own language, unless one post is plainly in another: some channels mix English, Turkish
-    and Arabic posts, and a Turkish post filed as English would reach the owner untranslated."""
+    and Arabic posts (Daily Islamist: about half Turkish), and a Turkish post filed as English would reach the owner
+    untranslated. A post is Turkish when its Turkish words and letters outnumber its English words more than twice."""
     letters = sum(ch.isalpha() for ch in text)
     if not letters:
         return lang
@@ -171,9 +175,78 @@ def sniff(text, lang):
         return 'ar'
     if lang == 'ar' and arabic < .1 and ENGLISH.search(text):
         return 'en'
-    if lang == 'en' and not ENGLISH.search(text) and sum(1 for w in text.split() if TURKISH.search(w)) >= 2:
-        return 'tr'
+    if lang == 'en':
+        turkish = sum(1 for w in text.split() if TURKISH.search(w)) + len(TURKISH_WORDS.findall(text))
+        if turkish >= 2 and turkish > 2 * len(ENGLISH.findall(text)):
+            return 'tr'
     return lang
+
+
+# ------------------------------------------------------------------ headlines that say the news
+# (docs/hjerne/kilder-maaling.md, 'Små rettelser'): what a source's headline carries that is not the news is cut off,
+# and what is no news at all (blogs, opinion, betting ads, sport) never enters. Rules for one source are in its
+# feeds.json entry: "drop" (headlines matching any of these patterns are left out) and "cut" (these patterns are cut
+# out of the headline); the rules below hold for every source of a kind.
+
+# a channel post whose first line only names who speaks: 'Palantir CTO Shyam Sankar:', 'Kamala Harris on Israel:'
+LABEL_ONLY = re.compile(r'^[^:\n]{2,90}:$')
+# the site's own name or slogan behind a Google News headline: '… » Iraqi News Agency', '… | Latest breaking news in
+# Iraq and the world', '… - The Jordan News Agency', '… - Latest news, videos and opinion'
+GN_ANGLE = re.compile(r'\s+»\s+[^»]{1,70}$')
+GN_TAIL = re.compile(r'\s+(?:\||-|–|—|_)\s*([^|»–—_]{2,70})$|_([^_]{2,90})$')
+SITE_WORDS = re.compile(r'\b(?:news|agency|latest|breaking|online|diplomatie|official website|\w+\.(?:com|cn|net|org|iq|eg))\b',
+                        re.I)
+_RULES = {}
+
+
+def _rules(feed):
+    key = feed['name']
+    if key not in _RULES:
+        own = {w.lower() for w in re.findall(r'[^\W\d_]{4,}', ' '.join(
+            str(feed.get(k) or '') for k in ('name', 'label', 'outlet')))} - {'news', 'world', 'english', 'arabic'}
+        _RULES[key] = ([re.compile(p, re.I) for p in feed.get('drop', [])],
+                       [re.compile(p, re.I) for p in feed.get('cut', [])], own)
+    return _RULES[key]
+
+
+def _site_tail(tail, own):
+    """Is this end of a headline the site's name or slogan rather than part of the news?"""
+    words = {w.lower() for w in re.findall(r'[^\W\d_]{4,}', tail)}
+    return bool(SITE_WORDS.search(tail) or (words and words & own and len(tail.split()) <= 8))
+
+
+def tidy(item, feed):
+    """The item with a headline that says the news, or None when it is no news (a blog, an opinion piece, a betting
+    ad, sport by a source's own rules). The same for a fresh item and one kept from earlier runs: it changes nothing a
+    second time."""
+    title, summary = item['title'], item.get('summary') or ''
+    drop, cut, own = _rules(feed)
+    kind = feed.get('type', 'rss')
+    if kind == 'gnews':
+        for _ in range(3):
+            m = GN_ANGLE.search(title)
+            if not m:
+                m = GN_TAIL.search(title)
+                if not m or not _site_tail(m.group(1) or m.group(2), own):
+                    break
+            title = title[:m.start()].rstrip()
+    if any(p.search(title) for p in drop):
+        return None
+    for p in cut:
+        title = p.sub('', title).strip(' .:|-–')
+    if kind == 'telegram' and LABEL_ONLY.match(title) and summary:
+        # only who speaks on the first line: the headline is that and the first sentence of what they said
+        first, rest = headline(summary, 200)
+        title, summary = f'{title} {first.strip()}', clean(rest).strip(' -–:|')
+    if kind == 'telegram' and item.get('lang') == 'en' and sniff(f'{title} {summary}', 'en') == 'tr':
+        for k in ('title_tr', 'summary_tr', 'title_da', 'summary_da', 'kw', 'kw_tr', 'kw_da', 'tr_v'):
+            item.pop(k, None)   # made again from the Turkish
+        item['lang'] = 'tr'
+    if title != item['title']:
+        for k in ('title_tr', 'summary_tr', 'title_da', 'summary_da', 'tr_v'):
+            item.pop(k, None)
+    item['title'], item['summary'] = title, summary
+    return item if title else None
 
 
 def parse_telegram(page, feed):
@@ -235,6 +308,7 @@ def fetch_one(feed, timeout=20):
             for it in items:
                 it['title'] = it['title'].rsplit(' - ', 1)[0] if ' - ' in it['title'] else it['title']
                 it['summary'] = ''
+        items = [it for it in (tidy(it, feed) for it in items) if it]
         return feed['name'], items, None
     except Exception as e:  # one broken feed must never stop the radar
         return feed['name'], [], f'{type(e).__name__}: {e}'[:200]

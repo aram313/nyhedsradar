@@ -7,10 +7,12 @@ through the method, and what each section would show. Needs the decrypted profil
 .cache (profile.jsonl and profile-*.npz), which are there after any local run.
 
 Usage:  py scripts/rank_check.py [stories per list, default 25]
-        RANK_CHECK_OUT=<folder>    also keep the pass's data.json, lines.json and analyses.json there (a preview of
-                                   the app on today's real data)
+        RANK_CHECK_OUT=<folder>    also keep the pass's data.json, app.json, lines.json and analyses.json there (a
+                                   preview of the app on today's real data)
         RANK_CHECK_STATE=<folder>  read the state from a saved copy instead of the data branch (the same snapshot
-                                   for a before/after comparison; the pass runs at the snapshot's own time)
+                                   for a before/after comparison; the pass runs at the snapshot's own time); a
+                                   live.json there is the editor's level (else the digest branch's)
+        RANK_CHECK_LEVEL=få|normal|mange  try a level as if the editor had just set it for today
 """
 import contextlib
 import io
@@ -32,9 +34,11 @@ sys.path.insert(0, str(ROOT / 'src'))
 import radar.run as run  # noqa: E402
 
 RAW = 'https://raw.githubusercontent.com/aram313/nyhedsradar/data/'
+DIGEST = 'https://raw.githubusercontent.com/aram313/nyhedsradar/digest/'
 FILES = ['items.json', 'seen.json', 'learned.json', 'pushes.json', 'relay.json', 'health.json', 'emb.npz', 'learned_emb.npz']
-OPTIONAL = ['removed.json', 'analyses.json']   # the owner's removals apply as in the app; the movement's new answers
-KEEP = ['data.json', 'lines.json', 'analyses.json']
+# the owner's removals apply as in the app; the movement's new answers; the stories Live admitted before
+OPTIONAL = ['removed.json', 'analyses.json', 'admitted.json']
+KEEP = ['data.json', 'app.json', 'lines.json', 'analyses.json']
 
 
 class NoNewEmbeddings:
@@ -89,6 +93,8 @@ def fetch_state(state):
         for name in FILES + OPTIONAL:
             if (Path(saved) / name).exists():
                 shutil.copy(Path(saved) / name, state / name)
+        if (Path(saved) / 'live.json').exists():
+            shutil.copy(Path(saved) / 'live.json', state / 'live.json')
         data = Path(saved) / 'data.json'
         if data.exists():   # the snapshot's own time, so 'the last 24 hours' are the snapshot's
             run.NOW = datetime.fromisoformat(json.loads(data.read_text(encoding='utf-8'))['updated'])
@@ -100,11 +106,29 @@ def fetch_state(state):
         except urllib.error.HTTPError:
             if name not in OPTIONAL:
                 raise
+    try:   # the editor's level for Live (absent until the editor sets one: then 'normal')
+        with urllib.request.urlopen(DIGEST + 'live.json', timeout=20) as r:
+            (state / 'live.json').write_bytes(r.read())
+    except (urllib.error.URLError, TimeoutError):
+        pass
+
+
+def try_level(state, name):
+    """live.json as if the editor had just set this level for today."""
+    s = run.load(run.CONFIG / 'settings.json', {})
+    today = run.local_now(s).date().isoformat()
+    live = run.load(state / 'live.json', {})
+    days = live.get('days') or {}
+    days[today] = {**(days.get(today) or {}), 'level': name}
+    (state / 'live.json').write_text(json.dumps({'updated': run.NOW.isoformat(), 'days': days}), encoding='utf-8')
 
 
 def check(cache, state, per_list):
     fetch_state(state)
     run.STATE, run.CACHE = state, cache
+    os.environ['RADAR_LIVE'] = str(state / 'live.json')
+    if os.environ.get('RANK_CHECK_LEVEL'):
+        try_level(state, os.environ['RANK_CHECK_LEVEL'])
     run.Embedder, run.Translator = NoNewEmbeddings, NoTranslation
     run.feedback.pull = lambda since: ([], since)
     run.push.send = lambda payload, *phones, **kw: {'sent': 0}
@@ -139,9 +163,20 @@ def check(cache, state, per_list):
     for i in sorted(method, key=lambda i: (i['tier'], -i['rank']))[:15]:
         out.write(f"  method{line(i)}")
     live = sorted(day, key=lambda i: -i['rank'])
-    out.write(f"\nLive, Vigtigste (one list, the last 24 hours by rank): {len(live)} stories\n")
-    for i in live[:per_list]:
-        out.write(line(i))
+    lv = data.get('live') or {}
+    app = json.loads((state / 'app.json').read_text(encoding='utf-8'))
+    size = lambda n: (state / n).stat().st_size / 1024
+    out.write(f"\nLive's level: {lv.get('level')} ({lv.get('why')}) · floor {lv.get('floor')}, count {lv.get('count')}, "
+              f"line {lv.get('line')} · admitted {lv.get('n_24h')} of {lv.get('candidates_24h')} in 24 hours "
+              f"{lv.get('by_why_24h')}, {lv.get('n_48h')} in 48 · app.json {size('app.json'):.0f} KB "
+              f"({len(app['items'])} stories) against data.json {size('data.json'):.0f} KB ({len(data['items'])})\n")
+    out.write(f"\nLive, Vigtigste (the admitted stories of the last 24 hours by rank; L = admitted, - = below the line): "
+              f"{sum(1 for i in live if i.get('live'))} of {len(live)} candidates\n")
+    for i in [i for i in live if i.get('live')][:per_list]:
+        out.write(f"L{line(i)}")
+    out.write("  … the strongest candidates below the line:\n")
+    for i in [i for i in live if not i.get('live')][:8]:
+        out.write(f"-{line(i)}")
     for sec, name in data['sections'].items():
         items = sorted((i for i in data['items'] if i['sec'] == sec), key=lambda i: -i['rank'])
         out.write(f"\n{name}: {len(items)} stories ({sum(i['important'] for i in items)} important)\n")

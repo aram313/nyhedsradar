@@ -58,6 +58,8 @@ class Sections:
         self.lex = {k: Lexicon(cfg['keywords'][k]) for k in self.keys}
         self.core = Lexicon(cfg.get('core', []))
         self.core_dk = Lexicon(cfg.get('core_dk', []))
+        # Danish politics on Islam and Muslims, integration and foreign policy: never cut from Live (level.py)
+        self.protect_dk = Lexicon(cfg.get('protect_dk', []))
         self.trivia = Lexicon(cfg.get('trivia', []))
         self.local = Lexicon(cfg.get('local', []))
 
