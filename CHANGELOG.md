@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An open story holds the page still, and closing it returns to where one was** (2026-10-18, the owner: 'når man
+  åbner en historie, at man ikke kan scrolle væk fra den, kun i dens område, og når man lukker den igen er man tilbage
+  til den position som da man åbnede den'; `?v=20261018bk`): while a story or an event is open the page is locked
+  (`.page.locked`: no scroll of its own, no pull to refresh, the wheel goes to the story); what is open fits between
+  the bar and the dock and scrolls within itself when it is taller; the page gets room below while locked, so a story
+  opened low still comes fully into view. Closing it – by its own headline or a tap outside – puts the page back at
+  the position it had when the story was opened (`focusY`).
 - **The dimming without a layer, and steady while one scrolls** (2026-10-18, the owner: 'når man folder en historie ud
   nu er den dæmpet et kort sekund' and 'hvis man åbner en historie … og scroller op og ned, kan nogle af de historier der
   er dæmpet blive lyse igen'; `?v=20261018bi`): in the app the rest of the page is no longer covered by a layer – every

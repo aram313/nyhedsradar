@@ -2901,6 +2901,8 @@ function openInLive(id) {
 }
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = asShown(el);
+  const pg = cur();
+  if (open && pg && !pg.classList.contains('focus')) pg.focusY = pg.scrollTop;   // where one was, for when it closes
   if (open) foldOthers(el);
   if (open && i) {
     if (visit) visit.opened++;
@@ -2928,6 +2930,11 @@ function focusSync(pg = cur()) {
   for (const el of pg.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
   const open = pg.querySelector(OPENED), was = pg.classList.contains('focus');
   pg.classList.toggle('focus', !!open);
+  // while it is open the page stands still and only what is open scrolls, within its own box; closed, the page is back
+  // where one opened it (the owner, 18/10: 'man ikke kan scrolle væk fra den, kun i dens område, og når man lukker den
+  // igen er man tilbage til den position som da man åbnede den')
+  pg.classList.toggle('locked', !!open);
+  if (!open && was && pg.focusY != null) { cancelAnimationFrame(moveT); pg.scrollTop = pg.focusY; pg.focusY = null; }
   // the fade runs only as something opens: a row that scrolls into view later is dimmed already (a row out of sight is
   // drawn late – content-visibility – and a transition there showed it light for a moment, the owner 18/10)
   if (open && !was) { pg.classList.add('fading'); clearTimeout(pg.fadeT); pg.fadeT = setTimeout(() => pg.classList.remove('fading'), 260); }
@@ -3175,7 +3182,7 @@ const PULL = 130;   // a deliberate pull refreshes; a little extra drag at the t
 const logo = document.querySelector('.brand .logo');
 addEventListener('touchstart', e => {
   const pg = e.target.closest && e.target.closest('.page');
-  if (pg && pg === cur() && pg.scrollTop <= 0 && tab !== 'search' && !paging && !e.target.closest('.k-box')) pull = { pg, x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
+  if (pg && pg === cur() && pg.scrollTop <= 0 && tab !== 'search' && !paging && !pg.classList.contains('locked') && !e.target.closest('.k-box')) pull = { pg, x: e.touches[0].clientX, y: e.touches[0].clientY, d: 0 };
 }, { passive: true });
 addEventListener('touchmove', e => {
   if (!pull) return;
@@ -4557,6 +4564,8 @@ addEventListener('wheel', e => {
   // Økonomi scrolls inside its frame: the wheel beside the column moves the frame's page (18/10, the owner)
   const fr = tab === 'okonomi' && pageEl('okonomi') && pageEl('okonomi').querySelector('iframe');
   if (fr) { try { fr.contentWindow.scrollBy(0, e.deltaY * k); } catch { /* not ready */ } return; }
+  const lockd = cur().classList.contains('locked') && cur().querySelector('.lift');   // a story open: only it scrolls
+  if (lockd) { lockd.scrollTop += e.deltaY * k; return; }
   cur().scrollTop += e.deltaY * k;
 }, { passive: true });
 function stopAuto() { auto = null; document.documentElement.classList.remove('autoscroll'); }

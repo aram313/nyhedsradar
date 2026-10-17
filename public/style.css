@@ -1276,4 +1276,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    only, app.js focusSync) – nothing lies over the open story or event */
 .page .dimmed { opacity: .28; }
 .page.fading .dimmed { transition: opacity .2s ease-out; }   /* only as it opens */
+/* while a story or an event is open the page stands still; what is open fits between the bar and the dock and scrolls
+   within itself when it is taller (18/10, the owner: 'man ikke kan scrolle væk fra den, kun i dens område') */
+.page.locked { overflow-y: hidden; }
+.page.locked::after { height: calc(var(--dock) + 28px + var(--vvh, 100dvh)); }   /* room below, so a story opened low can come fully into view */
+.page.locked .lift { max-height: calc(var(--vvh, 100dvh) - var(--barh) - var(--dock) - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.page.locked .lift::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) { .page.fading .dimmed { transition: none; } }
