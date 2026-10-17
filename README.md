@@ -22,7 +22,7 @@ story). Names of people, parties and places are in bold. Three tabs:
   one), with a search field and the reader: the question, the answer in short, what it reads, the original.
 
 Concepts named in the news (states, powers, groups, issues, agreements, places, ideas) open a **wiki page** compiled only
-from those answers – always attributed, the newest answer governing – with its readings through the years and today's
+from those answers – each block labelled as Hizb ut-Tahrir's answer with its date, the newest answer governing – with its readings through the years and today's
 stories that name it. The **Udvikling** page holds every development step by step, the recap of the day (the day's most
 important movements as short 'Who: what' lines in the style of Al Jazeera's breaking wire, grouped by topic, updated
 through the day) and the earlier days. Every story has a small picture; opening it shows a short summary, how Danish,

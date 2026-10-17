@@ -510,12 +510,16 @@ def test_the_rules_tell_news_from_readings():
               'Iran vender tilbage som satellit.',
               'Ifølge Hizb ut-Tahrirs svar af 2/5/2026 vil USA give Israel en ledende rolle.']:
         assert problems(t, voice.check_voice, voice.check_reality), t
-    said = 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 '
-    for t in ['er styret under Sisi loyalt over for USA.', 'er BJP-regeringens linje knyttet til USA.']:   # a government
-        assert problems(said + t, voice.check_movement) == [], t
-    for t in ['tjener BJP USA.', 'tjener avisen USA.', 'er imamen loyal over for Qatar.', 'er Japan en vasal af USA.',
-              'fjerner USA Storbritanniens folk i syd.']:
-        assert problems(said + t, voice.check_movement), t
+    for t in ['Styret under Sisi er loyalt over for USA.', 'BJP-regeringens linje er knyttet til USA.']:   # a government
+        assert problems(t, voice.check_movement, voice.check_plain) == [], t
+    for t in ['BJP tjener USA.', 'Avisen tjener USA.', 'Imamen er loyal over for Qatar.', 'Japan er en vasal af USA.',
+              'USA fjerner Storbritanniens folk i syd.']:
+        assert problems(t, voice.check_movement), t
+    # a reading of an answer is said without its attribution: the app's label says whose and when
+    for t in ['Ifølge Hizb ut-Tahrirs svar af 9/10/2026 er Iran en satellit.', 'Ifølge svaret er Iran en satellit.',
+              'Iran er ifølge svarene en satellit.', 'Hizb ut-Tahrirs svar læser Iran som en satellit.']:
+        assert problems(t, voice.check_plain), t
+    assert problems('Svaret af 3/6/2026 er afløst; Iran er en satellit (svarene af 18/8/2026 og 27/9/2026).', voice.check_plain) == []
 
 
 # ------------------------------------------------------------------ Hizb ut-Tahrir's new answers
@@ -528,11 +532,11 @@ FETCHED = {'items': [
     {'id': '30420', 'title': 'Answer to Question: Yemen', 'date': '2026-09-27T22:30:00+03:00', 'url': 'u', 'text': 'old'}]}
 GOOD = {'nr': '30555', 'date': '2026-10-09', 'title_da': 'Svar på spørgsmål: Iran efter krigen',
         'question_da': 'Hvad har ændret sig i Iran efter krigen?',
-        'note_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 er Iran stadig i USA\'s bane. Svaret venter nye forhandlinger.',
+        'note_da': 'Iran er stadig i USA\'s bane. Svaret venter nye forhandlinger.',
         'readings': [{'subject': 'iran', 'kind': 'stilling', 'object': 'usa', 'value': 'satellit',
-                      'text_da': "Ifølge Hizb ut-Tahrirs svar af 9/10/2026 er Iran fortsat en satellit i USA's bane."},
+                      'text_da': "Iran er fortsat en satellit i USA's bane."},
                      {'subject': 'iran--usa', 'kind': 'forhold',
-                      'text_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 presser USA Iran mod en aftale.'}],
+                      'text_da': 'USA presser Iran mod en aftale.'}],
         'begreber': ['iran', 'usa', 'iran']}
 
 
@@ -542,7 +546,8 @@ def test_a_new_answer_is_asked_for_noted_and_kept(folder, tmp_path, capsys):
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
     asked = text.split("## Hizb ut-Tahrir's new answer")[1]
     assert 'nr 30555 · 2026-10-09 · Answer to Question: Iran after the war' in asked and ANSWER_TEXT in asked
-    assert 'begin "Ifølge Hizb ut-Tahrirs svar af 9/10/2026 …"' in asked and 'saudi-arabien' in asked.split('Subject ids')[1]
+    assert 'plain Danish without "Ifølge Hizb ut-Tahrirs svar …"' in asked and 'saudi-arabien' in asked.split('Subject ids')[1]
+    assert 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026' not in asked
     assert '"answer": {' in text.split('## Write /tmp/editor/update.json')[1] and 'nr 30420 · 2026' not in text   # static: known
     assert check(folder, capsys)[-1].count('nyt svar fra Hizb ut-Tahrir (2026-10-09) skal noteres') == 1
     publish(folder, tmp_path, {'lede': 'Dagen kort.', 'answer': GOOD})
@@ -576,28 +581,28 @@ def test_an_answer_seen_by_an_update_does_not_call_for_one_again(folder, capsys)
 
 def test_an_answer_must_keep_the_rules(folder, tmp_path, capsys):
     (folder / 'analyses.json').write_text(json.dumps(FETCHED), encoding='utf-8')
-    bad = {**GOOD, 'date': '2026-10-10', 'note_da': 'Iran er en satellit.', 'readings': [
+    bad = {**GOOD, 'date': '2026-10-10', 'note_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 er Iran en satellit.', 'readings': [
         {'subject': 'Saudi_Arabien', 'kind': 'stilling', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 er kongen agent for USA.'},
         {'subject': 'saudiarabien', 'kind': 'mening', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 bryder den jødiske entitet aftalen.'},
         {'subject': 'usa--iran', 'kind': 'forhold', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 var angrebet i Teheran iscenesat af USA.'},
         {'subject': 'iran', 'kind': 'rolle', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 tjener moskéen i byen Irans styre.'},
-        {'subject': 'yemen', 'kind': 'rolle', 'text_da': 'Houthierne tog kysten.'}]}
+        {'subject': 'yemen', 'kind': 'rolle', 'text_da': 'Ifølge svaret tog houthierne kysten.'}]}
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, {'lede': 'Dagen kort.', 'answer': bad})
     out = capsys.readouterr().out
-    for problem in ("date must be the answer's own, 2026-10-09", "note_da must say 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 …'",
+    for problem in ("date must be the answer's own, 2026-10-09", "note_da: 'Ifølge Hizb ut-Tahrirs' – write it without the attribution",
                     "subject 'Saudi_Arabien': a known id or a new lowercase-with-hyphens id",
                     "subject 'saudiarabien': use the known id 'saudi-arabien'", 'kind must be one of',
                     "subject 'usa--iran': a relation's two ids in alphabetical order, 'iran--usa'",
                     "'agent' – the movement's readings say 'underordnet' or 'satellit'", "Khabar says 'Israel'",
                     'an attack said to be staged or sponsored (G13)', "a serving claim near 'moskéen'",
-                    "reading 5: text_da must say 'Ifølge Hizb ut-Tahrirs svar af 9/10/2026 …'"):
+                    "reading 5 text_da: 'Ifølge svaret' – write it without the attribution"):
         assert problem in out, problem
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, {'lede': 'Dagen kort.', 'answer': {**GOOD, 'nr': '30420'}})   # the static layer has it
     assert '30420 is no new answer of Hizb ut-Tahrir in the input' in capsys.readouterr().out
-    unproven = {**GOOD, 'readings': [{'subject': 'iran', 'kind': 'rolle', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af '
-                                      '9/10/2026 var angrebet planlagt af USA; gerningsbelæg mangler.'}]}
+    unproven = {**GOOD, 'readings': [{'subject': 'iran', 'kind': 'rolle',
+                                      'text_da': 'Angrebet var planlagt af USA; gerningsbelæg mangler.'}]}
     publish(folder, tmp_path, {'lede': 'Dagen kort.', 'answer': unproven})   # said with the deeds missing: allowed
 
 

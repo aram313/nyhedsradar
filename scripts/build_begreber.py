@@ -1,8 +1,15 @@
 """Build Khabar's wiki of concepts: public/viden/begreber.json (the pages) and the app's small linker index
 public/viden/begreber-index.json. One page per state, power, group and issue that Hizb ut-Tahrir's political answers
 read, compiled only from the movement layer (public/viden/movement.json, built by scripts/build_movement.py) – never a
-word of Khabar's own analysis. Every text is the movement's reading as the layer holds it, attributed ('Ifølge Hizb
-ut-Tahrirs svar af d/m/åååå …'), and the newest answer governs the lead.
+word of Khabar's own analysis. Every text is the movement's reading as the layer holds it, the newest answer governs
+the lead, and every text sits under a dated answer (lead_nr/lead_date, each row's date and nr). No text names the
+movement in its words ('Ifølge Hizb ut-Tahrirs svar …', the owner 2026-10-17: "det står over det hele"): the app says
+whose and when once per block, in its label.
+
+The build reads the layer back into its working form (build_movement.working: each plain text's key in
+docs/hjerne/uden-ifolge.json, where the attribution carries the answer's day), so its rules date and compare readings
+as before; the concept file and the issues' leads (scripts/begreber_leads.py) may be written either way. Its last step
+writes every text in its plain form (build_movement.plain); a text that still names the movement fails the check.
 
 Pages
   stat · magt · gruppe · organisation   every subject the layer holds readings or a current reading for (the subject
@@ -11,8 +18,8 @@ Pages
                                         NAMES gives the reader's own (Israel, Yemen) or the model has none
       lead_da      the current reading (movement.json 'current': the newest answer governs, reconciled by
                    build_movement); without one, the newest reading; a party of a relation only: that relation
-      timeline     every reading of the subject, newest first, each naming its day (a reading over several answers
-                   gets their span: 'Ifølge Hizb ut-Tahrirs svar fra 12/3/2016 til 29/7/2018 …'); a reading two
+      timeline     every reading of the subject, newest first, dated by its row (a reading over several answers that
+                   names no day gets their span: '… (svarene fra 12/3/2016 til 29/7/2018).'); a reading two
                    syntheses drew from one answer once
       relations    each relation ('a--b' subject) on both parties' pages: its current reading, else its newest
       answers      every answer that touches it – tagged with it in movement-index.json (states, powers) or behind
@@ -390,10 +397,14 @@ def seed_names(seed):
 
 
 def with_date(text, first, last=None):
-    """A reading that names the movement but no day gets its answers' span in the attribution ('Ifølge Hizb ut-Tahrirs
-    svar fra 12/3/2016 til 29/7/2018 samlede …'), so a timeline row read alone says when."""
+    """A reading over several answers that names no day says their span, so a timeline row read alone says when. In the
+    working form the span joins the attribution ('Ifølge Hizb ut-Tahrirs svar fra 12/3/2016 til 29/7/2018 samlede …';
+    one answer: 'af 12/3/2016') – the key of its plain form; a plain text (one written without the attribution) is
+    dated by its row and gets only a span, at its end ('… (svarene fra 12/3/2016 til 29/7/2018).')."""
     if names_a_time(text):
         return text
+    if 'Hizb ut-Tahrir' not in text:
+        return bm.at_end(text, f'(svarene fra {bm.d_slash(first)} til {bm.d_slash(last)})') if last and last != first else text
     span = f'fra {bm.d_slash(first)} til {bm.d_slash(last)}' if last and last != first else f'af {bm.d_slash(first)}'
     m = re.search(r'Hizb ut-Tahrirs svar(?:ene)?(?=[ ,:])', text)
     if not m:
@@ -433,6 +444,8 @@ def build(now=None, ideas=None):
     seed = load(SEED)
     if layer is None or index is None:
         raise SystemExit('public/viden/movement.json and movement-index.json are needed: run py scripts/build_movement.py')
+    table = bm.load_plain()
+    layer = bm.working(layer, table)
     if seed is None:
         raise SystemExit('docs/hjerne/knowledge-v0.json is needed for the names of the states, powers and actors')
     answers = index['answers']
@@ -609,13 +622,26 @@ def build(now=None, ideas=None):
             report.append(f'begreber-ideer.json is not valid JSON ({err}) – the concepts are left out')
             ideas = None
     if ideas:
-        merge_ideas(items, ideas, answers, report)
+        merge_ideas(items, ideas, answers, report, table)
 
     for e in items.values():
         e['related'] = [k for k in dict.fromkeys(e['related']) if k in items and k != e['id']]
+    for e in items.values():
+        plain_page(e, table)
     doc = {'version': 1, 'built': (now or datetime.now(timezone.utc)).isoformat(timespec='seconds'),
            'items': {k: ordered(items[k]) for k in sorted(items)}}
     return doc, report
+
+
+def plain_page(e, table):
+    """The build's last step for one page: every text in its plain form (build_movement.plain)."""
+    for f in ('lead_da', 'history_da'):
+        if isinstance(e.get(f), str):
+            e[f] = bm.plain(e[f], table)
+    for r in (e.get('timeline') or []) + (e.get('relations') or []):
+        if isinstance(r, dict) and isinstance(r.get('text_da'), str):
+            r['text_da'] = bm.plain(r['text_da'], table)
+    return e
 
 
 def drop_cited(text, iso):
@@ -635,7 +661,8 @@ def drop_cited(text, iso):
 def newest_lead(e, answers):
     """The newest answer governs the first sentence. A state's, group's or organisation's newer reading than its current
     one leads, the current reading after it (without what it said of that answer); a lead whose attribution names no
-    day ('Ifølge Hizb ut-Tahrirs svar 2023-2025 …') rests on the newest answer its first sentence cites."""
+    day ('Ifølge Hizb ut-Tahrirs svar 2023-2025 …') rests on the newest answer its first sentence cites (a lead written
+    plain rests on the answer the layer gives it)."""
     if not e.get('lead_da'):
         return
     row = e['timeline'][0] if e['timeline'] else None
@@ -645,7 +672,7 @@ def newest_lead(e, answers):
         while len(lead) > LEAD_SENTENCES:
             lead.pop()
         e.update(lead_da=' '.join(lead), lead_nr=row['nr'], lead_date=row['date'])
-    if not re.match(r'^Ifølge Hizb ut-Tahrirs svar af \d', e['lead_da']):
+    if 'Hizb ut-Tahrir' in e['lead_da'] and not re.match(r'^Ifølge Hizb ut-Tahrirs svar af \d', e['lead_da']):
         first = (sentences(e['lead_da']) or [''])[0]
         hit = next((n for n in e['answers'] if n in answers and cited(first, answers[n]['date'])), None)
         if hit and answers[hit]['date'] > e['lead_date']:
@@ -674,11 +701,12 @@ def ordered(e):
     return out
 
 
-def merge_ideas(items, ideas, answers, report):
+def merge_ideas(items, ideas, answers, report, table=None):
     """The concept pages join the wiki. A concept that breaks the schema or a voice rule is left out; an answer number
     or a relation the wiki does not know is dropped, and so is an alias that breaks the alias rules. The concept's own
     entry wins an id clash, its alias wins an alias clash (the movement page loses the alias), each reported; a page
-    a concept names as related links back to it."""
+    a concept names as related links back to it. Its texts join in their plain form (table: uden-ifolge.json)."""
+    table = bm.load_plain() if table is None else table
     got = ideas.get('items') if isinstance(ideas, dict) else None
     if not isinstance(got, dict):
         report.append("begreber-ideer.json: no 'items' object – the concepts are left out")
@@ -695,6 +723,7 @@ def merge_ideas(items, ideas, answers, report):
         for f in ('aliases', 'timeline', 'relations', 'answers', 'related'):
             c[f] = list(c.get(f) or [])
         c['answers'] = [str(n) for n in c['answers']]
+        plain_page(c, table)
         bad = [n for n in c['answers'] if n not in answers]
         if bad:
             report.append(f'concept {cid}: answers not in movement-index.json dropped: {bad}')
@@ -752,8 +781,8 @@ def merge_ideas(items, ideas, answers, report):
 # --------------------------------------------------------------------------------------------------- the check
 
 def entry_problems(e, answers, where):
-    """One page against the schema: its fields and types, attributed and dated texts, known answers with their own
-    dates, newest first, the lead at most four sentences."""
+    """One page against the schema: its fields and types, texts under dated answers (the lead's lead_nr/lead_date, each
+    row's date and nr) that the movement layer knows, newest first, the lead at most four sentences."""
     problems = []
     for f in ('id', 'name', 'kind', 'lead_da', 'lead_nr', 'lead_date'):
         if not isinstance(e.get(f), str) or not e.get(f).strip():
@@ -783,20 +812,11 @@ def entry_problems(e, answers, where):
     def text(w, t):
         if not isinstance(t, str) or not t.strip():
             problems.append(f'{w}: no text')
-            return
-        if 'Hizb ut-Tahrir' not in t:
-            problems.append(f"{w}: not attributed – the movement's reading names it ('Ifølge Hizb ut-Tahrirs svar af …'): {t[:80]}")
-        if not names_a_time(t):
-            problems.append(f'{w}: names no date: {t[:80]}')
     text(f'{where} lead', e['lead_da'])
     dated(f'{where} lead', e['lead_nr'], e['lead_date'])
     n = len(sentences(e['lead_da']))
     if n > LEAD_SENTENCES:
         problems.append(f'{where} lead: {n} sentences – at most {LEAD_SENTENCES}')
-    first = (sentences(e['lead_da']) or [''])[0]
-    if not cited(first, e['lead_date']):
-        problems.append(f"{where} lead: the first sentence must name its answer's day ({bm.d_slash(e['lead_date'])}) – "
-                        'the newest answer leads')
     newer = [r for r in e['timeline'] if isinstance(r, dict) and str(r.get('date')) > e['lead_date']]
     if newer and e['kind'] not in LEAD_IS_STANDING | {'sag'}:
         problems.append(f"{where} lead: the timeline has a newer reading ({newer[0]['date']}, nr {newer[0]['nr']}) than "
@@ -845,10 +865,15 @@ def page_texts(k, e):
 
 
 def text_problems(where, t, names):
-    """The movement layer's voice (build_movement.check) on one text: no forgeries or verdicts on peoples, Israel by its
-    name, no agent words, no attack said to be staged, no serving claim about a protected or non-ruling person or a
-    party, no long quotations, no local paths."""
+    """The movement layer's voice (build_movement.check) on one text: the movement not named as its own subject (the
+    app's label says whose and when), no forgeries or verdicts on peoples, Israel by its name, no agent words, no attack
+    said to be staged, no serving claim about a protected or non-ruling person or a party, no long quotations, no local
+    paths."""
     problems = []
+    hit = bm.NAMES_MOVEMENT.search(t) if not where.endswith(' name') else None
+    if hit:
+        problems.append(f"{where}: names the movement ('{hit.group(0)}') – the app's label says whose and when; write the "
+                        f"text's plain form into docs/hjerne/uden-ifolge.json: {t[:80]}")
     bm.check_voice(t, where, problems)
     hit = re.search(r'\bagent\w*', t, re.I)
     if hit:
@@ -863,7 +888,8 @@ def text_problems(where, t, names):
 
 
 def check(doc, answers=None):
-    """Every page keeps the schema and Khabar's rules: attributed, dated texts whose answers exist; aliases that name
+    """Every page keeps the schema and Khabar's rules: texts under dated answers that exist, none naming the movement in
+    its words; aliases that name
     one page and are never an ordinary word, an adjective or a word for a people; related ids and relations that are
     pages; and the voice of the movement layer in every text."""
     answers = answers if answers is not None else load(MINDEX)['answers']

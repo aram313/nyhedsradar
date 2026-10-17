@@ -9,6 +9,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Ifølge Hizb ut-Tahrir' is gone from the texts** (the owner, 2026-10-17: "Kan vi godt fjerne 'ifølge Hizb
+  ut-Tahrir' – det står over det hele"). The 2,615 readings, notes, leads and histories of the movement layer and the
+  wiki are written in plain Danish without their attribution ('Ifølge svaret er Saudi-Arabien underordnet USA' →
+  'Saudi-Arabien er underordnet USA'); the meaning, hedges and dates are kept, a span of answers stays in brackets
+  ('(svarene 2013–2015)', '(svaret af 1/7/2004)' where a lead gathers several answers). `docs/hjerne/uden-ifolge.json`
+  holds every plain form; `build_movement.py` and `build_begreber.py` apply it as their last step, and their checks now
+  say that no shown text names the movement and that every text sits under a dated answer. The app says whose and when
+  once per block: 'Hizb ut-Tahrirs svar · d/m/åååå' on a wiki lead (the lead's answer opens from its title), on the
+  timeline and the relations a date on every row (the year bands are gone), and the reader's header in the same form;
+  the reader's 'Ifølge svaret' shortening is removed. The editor writes a new answer's note and readings plain
+  (`voice.check_plain`, the routine prompt's 'answer' bullet; the live routine's prompt needs the same change –
+  docs/hjerne/launch-done.md). App v20261017u.
+
 - **The brain weighs the news; the app shows no analysis** (the owner's decision of 2026-10-17, replacing the Khabar 2
   app): the books' order of importance and Hizb ut-Tahrir's newest answers are used only to select and order the news –
   by the radar's ranking and the editor's front page. One Live section, a front page the editor makes, an Analyser tab

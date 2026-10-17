@@ -13,7 +13,9 @@ as a source):** the brain – the order of importance of Hizb ut-Tahrir's politi
 answers, the newest answer governing older material – is used **only to select and weigh the news**: the radar's tiers
 (`src/radar/method.py`) and the editor's front page (`scripts/brain.py`). The app shows **no analysis, judgement or
 hypothesis by Claude or Khabar**; the editor's own text stays reality (lede, recap lines, summaries, titles). The amir's
-answers appear only as his, attributed ('Ifølge Hizb ut-Tahrirs svar af d/m/åååå …') and in their own face. Concepts
+answers appear only as his, in their own face, and **said once per block, in its label** ('Hizb ut-Tahrirs svar ·
+d/m/åååå'; a block of several answers' texts dates each row) – never 'Ifølge Hizb ut-Tahrirs svar …' in the texts
+themselves (the owner, 2026-10-17: "det står over det hele"). Concepts
 named in the news open a wiki page compiled only from those answers. The site is looked at every quarter of an hour
 ("Claude skal køre hvert 15. minut … der er tokens nok"): the look is plain Python after every radar pass
 (`editor.py gate`), and it fires Claude – the editor's routine – when something needs adjusting, within the
@@ -93,7 +95,10 @@ da'wah.
   radar.yml) and keeps, in `state/analyses.json`, the text only of answers the static layer (`public/viden`) lacks; the
   editor files them in `answers.json`. The repository is public: no answer texts in committed files.
 - `public/viden/` – the movement layer and the wiki, built locally and committed: `scripts/build_movement.py` →
-  `movement.json` and `movement-index.json` (the 321 political answers 2004–2026 as dated, attributed Danish readings);
+  `movement.json` and `movement-index.json` (the 321 political answers 2004–2026 as dated Danish readings in plain
+  Danish – every text under its dated answer, none naming the movement; the build works on the attributed form and
+  writes each text's plain form from `docs/hjerne/uden-ifolge.json` as its last step, which `build_begreber.py` reads
+  back);
   `scripts/build_begreber.py` → `begreber.json` and `begreber-index.json` (203 pages: states, powers, groups, issues and
   the concept pages of `docs/hjerne/begreber-ideer.json`; aliases are Danish news forms, never an adjective, a people's
   word or a capital for its government). A test fails when the committed wiki is not a fresh build.
@@ -239,7 +244,10 @@ da'wah.
   the whole row (`.hit`) and its words on top let the tap through. A wiki page: the lead (the newest answer governs),
   'Gennem årene', relations, the answers, related pages, today's stories that name it. **Everything that is Hizb
   ut-Tahrir's** (leads, timelines, notes, readings, answer texts, the answer lines) is set in the serif (`--serif`) on the
-  soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark) with its attribution; everything else keeps the app's face.
+  soft ochre tint (`--ht-bg`, contrast ≥ 4.5:1 light and dark); every such block carries ONE label with the name and
+  date ('Hizb ut-Tahrirs svar · d/m/åååå': the answer line, the reader's header, a wiki lead's `htLabel`), a block of
+  several answers' texts (the wiki's timeline and relations) a small date on each row (`htDate`), and the texts
+  themselves never say 'Ifølge …'; everything else keeps the app's face.
   **Side pages** over the tabs, reached from a button or link and left by a tab or the logo with its back mark (which goes
   back the way one came, scroll kept; the phone's own back gesture does the same – each side page is a step in the
   browser's history, and the address names the page in view): Udvikling, an answer, a wiki page, the A–Å index. The **Udvikling** page holds
@@ -310,8 +318,15 @@ da'wah.
   becomes a control character and a word boundary a backspace): write files with regular expressions through the Write
   or Edit tool, not cat or py heredocs, and scan for control characters after an edit.
 - The wiki's issue leads are written by hand, newest first, in `scripts/begreber_leads.py` (from the issue's own
-  history); `build_begreber.py`'s check fails when an issue's newest main answer, or any page's newest reading, is
-  newer than its lead, or when a lead's first sentence does not carry its answer's day.
+  history, in the attributed working form whose first sentence carries its answer's day – that day picks `lead_nr`);
+  `build_begreber.py`'s check fails when an issue's newest main answer, or any page's newest reading, is newer than its
+  lead, or when a shown text still names the movement.
+- **No 'Ifølge Hizb ut-Tahrir' in a shown text** (2026-10-17): `docs/hjerne/uden-ifolge.json` maps every text as the
+  builds wrote it (attribution and all) to its plain Danish form, and both builds apply it last. A new or changed
+  reading without an entry loses only the 'Ifølge Hizb ut-Tahrirs svar af d/m/åååå: ' the build put in front; one that
+  still names the movement ('Ifølge svaret …', 'Hizb ut-Tahrirs svar læser …') fails the check – add its plain form to
+  the map (V2 word order: 'Ifølge svaret er X …' → 'X er …'; a span of answers in brackets at the end). The editor's
+  new answers are written plain from the start (`voice.check_plain`).
 - The wiki is a build: edit `docs/hjerne/begreber-ideer.json` (concepts) or the movement layer's inputs, never
   `public/viden/*.json` by hand, then `py scripts/build_begreber.py` and commit both wiki files.
 

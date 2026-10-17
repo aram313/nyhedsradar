@@ -583,6 +583,11 @@ function answerFor(i, extra = '') {
   }
   return best;
 }
+// every block of the movement's says whose and when once, in its label: 'Hizb ut-Tahrirs svar · d/m/åååå' (its texts are
+// plain Danish without 'Ifølge …' – the owner, 2026-10-17: "det står over det hele"); a block of several answers' texts
+// gives each row its own date (htDate)
+const htLabel = (date, extra = '') => `<div class="ht-who"><b>Hizb ut-Tahrirs svar</b>${date ? ` · ${esc(dSlash(date))}` : ''}${extra}</div>`;
+const htDate = date => date ? `<time class="ht-d">${esc(dSlash(date))}</time>` : '';
 // 'Hizb ut-Tahrirs svar: <title> · d/m/åååå' – one quiet line to the answer reader
 // (whose and when on the first row, so a long title or a large text size never cuts the date off)
 const answerLine = a => `<button class="ht-line" data-svar="${esc(a.nr)}"><span class="ht-tx"><span class="ht-k"><b>Hizb ut-Tahrirs svar</b>`
@@ -1444,7 +1449,7 @@ const subjLinks = s => String(s || '').split('--').map(p => { const pg = pageOf(
 // what this answer reads: only readings that are this answer's own (a reading over several answers belongs to the newest
 // of them), each said once – one that repeats 'Svaret kort' or another reading is folded away
 function readingsOf(a, full, note = '') {
-  const sig = t => new Set(String(t || '').toLowerCase().replace(/^ifølge [^,:]*?svar\w*(?: af [\d/]+)?:?\s*/, '').match(/[\p{L}\p{N}]{4,}/gu) || []);
+  const sig = t => new Set(String(t || '').toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) || []);
   const like = (x, y) => { let n = 0; for (const w of x) if (y.has(w)) n++; return n / Math.max(1, Math.min(x.size, y.size)); };
   const said = [sig(note)], out = [];
   const keep = (s, text) => { const g = sig(text); if (said.some(x => like(g, x) >= 0.6)) return; said.push(g); out.push({ s, text }); };
@@ -1476,7 +1481,7 @@ function svarPage() {
     : failed('mix') ? retry('svaret', 'mix', 'ans') : '<div class="empty">Svaret findes ikke.</div>';
   const full = a.layer ? need('mfull') : null, mv = full && (full.answers || {})[a.nr], bf = need('bfull');
   const texts = a.fresh ? need('txt') : null, area = areaOf(a), orig = a.orig ? cleanTitle(ourWords(a.orig)) : '';
-  let h = `<header class="rd-top"><span class="thr-meta">Hizb ut-Tahrirs svar af ${esc(dSlash(a.date))}${area ? ` · ${esc(area)}` : ''}</span>`
+  let h = `<header class="rd-top"><span class="thr-meta">Hizb ut-Tahrirs svar · ${esc(dSlash(a.date))}${area ? ` · ${esc(area)}` : ''}</span>`
     + `<h2 class="ht">${esc(a.title)}</h2>${orig && a.da ? `<p class="rd-orig" dir="auto" lang="en">${esc(orig)}</p>` : ''}</header>`;
   if (a.q) h += `<section class="ht-box"><div class="ht-l">Spørgsmålet</div><p class="ht">${esc(a.q)}</p></section>`;
   const note = a.note || (mv && mv.note_da) || '';
@@ -1484,9 +1489,9 @@ function svarPage() {
   else if (a.layer && waiting('mfull')) h += '<p class="explain pad">Henter svaret …</p>';
   const reads = readingsOf(a, full, note), rk = `svar|${a.nr}|reads`, allReads = unfolded.has(rk);
   if (reads.length) {
-    // grouped by subject; inside the answer's own page its own date's attribution is short ('Ifølge svaret …')
-    const own = new RegExp(`^Ifølge Hizb ut-Tahrirs svar af ${reEsc(dSlash(a.date))}(:?)\\s+`), groups = new Map();
-    for (const r of allReads ? reads : reads.slice(0, SHOW_READS)) { if (!groups.has(r.s)) groups.set(r.s, []); groups.get(r.s).push(r.text.replace(own, (_, c) => `Ifølge svaret${c} `)); }
+    // grouped by subject; the answer's own page says whose and when in its header
+    const groups = new Map();
+    for (const r of allReads ? reads : reads.slice(0, SHOW_READS)) { if (!groups.has(r.s)) groups.set(r.s, []); groups.get(r.s).push(r.text); }
     h += `<div class="arch-h rd-h">Hvad svaret læser</div><section class="ht-box rd-reads"><ul>${[...groups].map(([sj, texts]) =>
       `<li><div class="rd-s">${subjLinks(sj)}</div>${texts.map(t => `<p class="ht">${esc(t)}</p>`).join('')}</li>`).join('')}</ul>`
       + (reads.length > SHOW_READS ? `<button class="ht-more" data-unfold="${esc(rk)}">${allReads ? 'Vis færre' : `Alle ${reads.length} læsninger`}</button>` : '') + '</section>';
@@ -1519,7 +1524,8 @@ function svarPage() {
 // ---------------------------------------------------------------- a wiki page: one state, power, group, issue or concept
 // Its name and kind; the lead (the newest answer governs); 'Gennem årene' (its readings, newest first, folded to five);
 // for a state its relations; the answers about it; the pages related to it; today's stories that name it. Everything
-// on it is the movement's, attributed; the page itself only gathers.
+// on it is the movement's, each block labelled whose and when (the lead its answer's date, a row of the years and a
+// relation each its own); the page itself only gathers.
 let begrebId = params.get('begreb') || '';
 const SHOW_TL = 5, SHOW_ANS = 6, SHOW_NEWS = 6, STEP = 20;
 // a long list unfolds twenty at a time ('Vis 20 mere'), then folds back – the USA's 313 answers are no 44,000 px page
@@ -1550,28 +1556,26 @@ function begrebPage() {
     || (a.readings || []).some(r => String(r.subject || '').split('--').includes(s0))));
   const govern = newer.filter(a => a.date > String(e.lead_date || '')).flatMap(a => (a.readings || [])
     .filter(r => r.text_da && r.subject === s0).map(r => ({ a, text: r.text_da })))[0];
-  const goBtn = la => la ? `<button class="ht-go" data-svar="${esc(la.nr)}"><span>Svaret af ${esc(dSlash(la.date))}: `
-    + `<span class="ht">${esc(la.title)}</span></span><svg><use href="#i-chev"/></svg></button>` : '';
-  if (govern) h += `<section class="ht-box wk-lead"><p class="ht">${esc(govern.text)}</p>${goBtn(govern.a)}</section>`;
-  if (e.lead_da) h += `<section class="ht-box wk-lead${govern ? ' wk-was' : ''}">${govern ? '<div class="ht-l">Før det nyeste svar</div>' : ''}`
+  // the lead's answer to open (its date is the block's label)
+  const goBtn = la => la ? `<button class="ht-go" data-svar="${esc(la.nr)}"><span class="ht">${esc(la.title)}</span>`
+    + `<svg><use href="#i-chev"/></svg></button>` : '';
+  if (govern) h += `<section class="ht-box wk-lead">${htLabel(govern.a.date)}<p class="ht">${esc(govern.text)}</p>${goBtn(govern.a)}</section>`;
+  if (e.lead_da) h += `<section class="ht-box wk-lead${govern ? ' wk-was' : ''}">${htLabel(e.lead_date, govern ? ' · før det nyeste svar' : '')}`
     + `<p class="ht">${esc(e.lead_da)}</p>${goBtn(e.lead_nr && A.by.get(String(e.lead_nr)))}</section>`;
   const tl = [...newer.flatMap(a => (a.readings || []).filter(r => r.text_da && String(r.subject || '').split('--').includes(s0))
     .map(r => ({ date: a.date, nr: a.nr, text_da: r.text_da }))), ...(e.timeline || [])], tk = `${id}|tl`, tlAll = unfolded.has(tk);
   if (tl.length) {
-    let y = '', rows = '';
-    for (const r of tl.slice(0, tlAll ? stepOf(tk) : SHOW_TL)) {
-      const yr = String(r.date || '').slice(0, 4);
-      if (yr !== y) { y = yr; rows += `<li class="wk-y">${esc(yr)}</li>`; }
-      rows += `<li><button class="wk-r" data-svar="${esc(r.nr)}"><span class="ht">${esc(r.text_da)}</span><svg><use href="#i-chev"/></svg></button></li>`;
-    }
+    // each row its answer's date (the rows are of many answers; newest first)
+    const rows = tl.slice(0, tlAll ? stepOf(tk) : SHOW_TL).map(r => `<li><button class="wk-r" data-svar="${esc(r.nr)}"><span class="wk-tx">`
+      + `${htDate(r.date)}<span class="ht">${esc(r.text_da)}</span></span><svg><use href="#i-chev"/></svg></button></li>`).join('');
     h += `<div class="arch-h rd-h">Gennem årene</div>`
-      + (e.history_da ? `<section class="ht-box wk-hist"><div class="ht-l">Forløbet</div><p class="ht">${esc(e.history_da)}</p></section>` : '')
-      + `<section class="ht-box wk-tl"><ol>${rows}</ol>`
+      + (e.history_da ? `<section class="ht-box wk-hist">${htLabel('', ' · forløbet')}<p class="ht">${esc(e.history_da)}</p></section>` : '')
+      + `<section class="ht-box wk-tl">${htLabel('')}<ol>${rows}</ol>`
       + (tl.length > SHOW_TL ? moreBtn(tk, tl.length, tlAll, `Hele forløbet · ${tl.length}`, 'ht-more') : '') + '</section>';
   }
   const rel = e.relations || [], rkk = `${id}|rel`, relAll = unfolded.has(rkk);
-  if (rel.length) h += `<div class="arch-h rd-h">Forhold</div><section class="ht-box rd-reads"><ul>${(relAll ? rel : rel.slice(0, SHOW_TL)).map(r =>
-    `<li><div class="rd-s">${subjLinks(r.with)}</div><p class="ht">${esc(r.text_da)}</p></li>`).join('')}</ul>`
+  if (rel.length) h += `<div class="arch-h rd-h">Forhold</div><section class="ht-box rd-reads">${htLabel('')}<ul>${(relAll ? rel : rel.slice(0, SHOW_TL)).map(r =>
+    `<li><div class="rd-s">${subjLinks(r.with)}${r.date ? ` · ${htDate(r.date)}` : ''}</div><p class="ht">${esc(r.text_da)}</p></li>`).join('')}</ul>`
     + (rel.length > SHOW_TL ? `<button class="ht-more" data-unfold="${esc(rkk)}">${relAll ? 'Vis færre' : `Alle ${rel.length} forhold`}</button>` : '') + '</section>';
   const ans = [...new Set([...newer.map(a => a.nr), ...(e.answers || []).map(String)])].map(nr => A.by.get(nr)).filter(Boolean), ak = `${id}|ans`, ansAll = unfolded.has(ak);
   if (ans.length) h += `<div class="arch-h rd-h">Svar om emnet</div><div class="rd-list">${ans.slice(0, ansAll ? stepOf(ak) : SHOW_ANS).map(a => anRow(a)).join('')}</div>`
