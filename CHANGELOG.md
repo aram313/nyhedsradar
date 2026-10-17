@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A livelier front page and two looks** (2026-10-17, the owner: 'Forsiden bliver for monoton, brug gerne lidt rød og
+  flere nuancer' and 'Skær farvetemaet med til to, de primære mørk og lys'; `?v=20261018j`). On the front page red shows
+  where to look: the day's date, a small bar before every block's title, the newest step of a development and its time,
+  the ways on ('Alle ›', 'Hele udviklingen ›') and the day's quote (a red tint, a large »); the developments' panel is a
+  step deeper than Dagens historie's. `--red` is each palette's red at a strength text reads in (≥ 4.5:1 on page and
+  panel). The appearance settings keep only Automatisk · Lys · Mørk: Dæmpet and Notion are the only palettes, and a
+  phone that chose another returns to them once.
+
 - **Energy news readable** (2026-10-17, the owner's screenshot: 'Der er noget galt med teksten her'): a row grows with
   its headline (a fixed height let the line under a three-line headline run into the next row), and the news are only
   stories with the editor's headline or a Danish outlet's own – the machine's Danish of a foreign headline read badly

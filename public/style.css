@@ -4,9 +4,8 @@
    The visual system (docs/hjerne/pro-plan.md, 2026-10-17): eight type sizes, two voices (the app's sans for Khabar and
    the outlets, the serif only for Hizb ut-Tahrir's text), one spacing scale, one set of radii, red only for live and big,
    one of each component. */
-/* Light tones (data-tone, default "Dæmpet" = soft grey; also Papir with a paper grain, Klassisk and Kølig) and
-   proven dark palettes (data-dark, default "Notion"; also Grafit, Material and Apple). data-theme forces light/dark,
-   else the phone decides. Every text colour is at least 4.5:1 on the page and on a panel (tests/test_app_contrast.py). */
+/* One light look ("Dæmpet", soft grey) and one dark ("Notion") since 17/10 (the owner: "Skær farvetemaet med til to").
+   data-theme forces light/dark, else the phone decides. Every text colour is at least 4.5:1 on the page and on a panel (tests/test_app_contrast.py). */
 :root {
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --logo: var(--sans);
@@ -21,22 +20,14 @@
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
   --r-btn: 12px; --r-panel: 16px; --r-sheet: 20px;
 }
-:root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #656562; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
-:root[data-tone="papir"] { color-scheme: light; --bg: #efe5d1; --text: #141210; --text-2: #4f473b; --text-3: #645b4c; --line: #ddd1b8; --fill: #e6dbc3; --fill-2: #dacdb1; --pulse: #d4110a; --pulse-soft: rgba(212, 17, 10, 0.1); --bar: rgba(239, 229, 209, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 .13'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); --seg-on: var(--bg); }
-:root[data-tone="klassisk"] { color-scheme: light; --bg: #ffffff; --text: #000000; --text-2: #333333; --text-3: #6e6e6e; --line: #e5e5e5; --fill: #f2f2f2; --fill-2: #e6e6e6; --pulse: #e10600; --pulse-soft: rgba(225, 6, 0, 0.1); --bar: rgba(255, 255, 255, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
-:root[data-tone="kolig"] { color-scheme: light; --bg: #f4f6f8; --text: #12161b; --text-2: #434b55; --text-3: #5f6873; --line: #e1e6eb; --fill: #e9edf1; --fill-2: #dde3e9; --pulse: #d62d30; --pulse-soft: rgba(214, 45, 48, 0.1); --bar: rgba(244, 246, 248, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
+:root { color-scheme: light; --bg: #eeeeeb; --text: #2a2a2a; --text-2: #575757; --text-3: #656562; --line: #dcdcd8; --fill: #e4e4e0; --fill-2: #d8d8d4; --pulse: #b8403a; --pulse-soft: rgba(184, 64, 58, 0.1); --red: #b03d38; --bar: rgba(238, 238, 235, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .14); --grain: none; --seg-on: var(--bg); }
 /* dark: the selected segment is one step lighter than its track (darker would read as pressed in) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
-  :root[data-dark="material"]:not([data-theme="light"]) { color-scheme: dark; --bg: #121212; --text: #ececec; --text-2: #a6a6a6; --text-3: #8a8a8a; --line: #262626; --fill: #1e1e1e; --fill-2: #2a2a2a; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(18, 18, 18, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #353535; }
-  :root[data-dark="apple"]:not([data-theme="light"]) { color-scheme: dark; --bg: #1c1c1e; --text: #ffffff; --text-2: #aeaeb2; --text-3: #98989d; --line: #38383a; --fill: #2c2c2e; --fill-2: #3a3a3c; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(28, 28, 30, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #48484a; }
-  :root[data-dark="grafit"]:not([data-theme="light"]) { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #98938b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3e3c38; }
+  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
 }
-:root[data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
-:root[data-dark="material"][data-theme="dark"] { color-scheme: dark; --bg: #121212; --text: #ececec; --text-2: #a6a6a6; --text-3: #8a8a8a; --line: #262626; --fill: #1e1e1e; --fill-2: #2a2a2a; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(18, 18, 18, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #353535; }
-:root[data-dark="apple"][data-theme="dark"] { color-scheme: dark; --bg: #1c1c1e; --text: #ffffff; --text-2: #aeaeb2; --text-3: #98989d; --line: #38383a; --fill: #2c2c2e; --fill-2: #3a3a3c; --pulse: #ff453a; --pulse-soft: rgba(255, 69, 58, 0.14); --bar: rgba(28, 28, 30, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #48484a; }
-:root[data-dark="grafit"][data-theme="dark"] { color-scheme: dark; --bg: #1e1d1b; --text: #f0ece4; --text-2: #b8b3aa; --text-3: #98938b; --line: #312f2c; --fill: #282725; --fill-2: #33312e; --pulse: #ff5a4e; --pulse-soft: rgba(255, 90, 78, 0.14); --bar: rgba(30, 29, 27, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3e3c38; }
-/* colour is used sparingly: a small dot tells the section on mixed lists; red is only for big news and 'live' */
+:root[data-theme="dark"] { color-scheme: dark; --bg: #191919; --text: #e3e3e1; --text-2: #a5a5a3; --text-3: #8f8f8c; --line: #2f2f2f; --fill: #252525; --fill-2: #2f2f2f; --pulse: #eb5757; --pulse-soft: rgba(235, 87, 87, 0.14); --red: #ec6060; --bar: rgba(25, 25, 25, 0.86); --shadow: 0 10px 40px rgba(0, 0, 0, .6); --grain: none; --seg-on: #3a3a3a; }
+/* colour is used sparingly: a small dot tells the section on mixed lists; red is for big news and 'live' – and, on the
+   front page, its accents (below): --red is the palette's red at a strength text can be read in (4.5:1 on page and panel) */
 :root { --dk: #3b6fc4; --me: #2f855a; --world: #8058b8; --warn: #9a5800; --sec: var(--text-3); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dk: #7aa7ff; --me: #4cc38a; --world: #b794f6; --warn: #f0b45a; } }
 :root[data-theme="dark"] { --dk: #7aa7ff; --me: #4cc38a; --world: #b794f6; --warn: #f0b45a; }
@@ -395,16 +386,8 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .seg.two { grid-template-columns: repeat(2, 1fr); }
 .seg.four { grid-template-columns: repeat(4, 1fr); }
 .seg.four button { font-size: var(--fs-meta); }
-.tones { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
-.tones.four { grid-template-columns: repeat(4, 1fr); }
-.tones-label { margin: 2px 0 6px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
-.tones button { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 64px; padding: 6px 0; border-radius: var(--r-btn);
   font-size: var(--fs-cap); font-weight: 600; color: var(--text-2); }
-.tones button i { position: relative; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--c-bg);
   transition: transform .25s var(--out); }
-.tones button i::after { content: ""; position: absolute; right: 5px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--c-ac); }
-.tones button[aria-checked="true"] { color: var(--text); background: var(--fill); }
-.tones button[aria-checked="true"] i { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text); transform: scale(1.05); }
 .sources h4 { margin: 14px 0 4px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
 .sources ul { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 16px; font-size: var(--fs-meta); color: var(--text-2); }
 .sources li { padding: 3px 0; break-inside: avoid; }
@@ -414,11 +397,6 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* settings: the two setup guides side by side; the colour palettes folded under 'Flere farver' */
 .guides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .guides .wide { margin: 0; }
-.looks { margin: 4px 0 6px; }
-.looks summary { display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: var(--fs-body); font-weight: 620; color: var(--text-2); cursor: pointer; list-style: none; }
-.looks summary::-webkit-details-marker { display: none; }
-.looks summary svg { width: 15px; height: 15px; transform: rotate(90deg); transition: transform .2s; }
-.looks[open] summary svg { transform: rotate(-90deg); }
 
 /* ------------------------------------------------------------ motion: quiet, short, only where it explains */
 @keyframes rise { from { opacity: 0; transform: translateY(7px); } }
@@ -871,7 +849,6 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    ochre tint, always with its attribution; everything else keeps the app's face */
 :root { --serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif;
   --ht-bg: #efe7d6; --ht-line: #ddd1b9; --ht-text: #2b2620; --ht-text-2: #5b5142; --ht-text-3: #6a5f4e; }
-:root[data-tone="papir"] { --ht-bg: #e6d7b7; --ht-line: #d3c29f; --ht-text-3: #655b4b; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --ht-bg: #2a251d; --ht-line: #3b3428; --ht-text: #ece4d4; --ht-text-2: #c9bfac; --ht-text-3: #a99f8c; }
 }
@@ -1072,3 +1049,21 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 @supports (content-visibility: hidden) {
   html.aside .page:not(.side.on), html.searching .page:not([data-tab="search"]) { visibility: visible; content-visibility: hidden; }
 }
+
+/* ------------------------------------------------------------ the front page's accents (the owner, 17/10: "Forsiden bliver
+   for monoton, brug gerne lidt rød og flere nuancer"): red shows where to look – the day's date, a small bar before each
+   block's title, the newest step of a development, the ways on ('Alle ›', 'Hele udviklingen ›') and the day's quote –
+   and the panels take more than one shade: Dagens historie the panel's, the developments a step deeper, the quote a
+   red tint. Only on the front page; Live and Analyser keep their quiet */
+.page[data-tab="home"] .lede-d > span { color: var(--red); }
+.page[data-tab="home"] .block-h h2::before { content: ""; flex: none; align-self: center; width: 4px; height: .8em; margin-right: -2px;
+  border-radius: 2px; background: var(--red); }
+.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all { color: var(--red); }
+.page[data-tab="home"] .follow li:first-child::before, .page[data-tab="home"] .pkg .follow li:first-child::before { background: var(--red); border-color: var(--red); }
+.page[data-tab="home"] .follow li:first-child time { color: var(--red); }
+.page[data-tab="home"] .fol { background: var(--fill); }   /* a step deeper than Dagens historie's panel */
+.page[data-tab="home"] .fol-row:first-child .fol-m { color: var(--red); }   /* the development that moved last */
+.page[data-tab="home"] .qday .quote { background: var(--pulse-soft); }
+.page[data-tab="home"] .qday .quote::before { background: var(--red); }
+.page[data-tab="home"] .qday .quote q::before { content: "»"; display: block; height: .6em; margin: -4px 0 6px; font-size: var(--fs-title); font-style: normal;
+  font-weight: 800; line-height: 1; color: var(--red); }

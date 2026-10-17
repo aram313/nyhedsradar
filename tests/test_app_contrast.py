@@ -8,21 +8,12 @@ CSS = (Path(__file__).resolve().parents[1] / 'public' / 'style.css').read_text(e
 
 
 def palettes():
-    """name -> {token: '#rrggbb'}: the four light tones and the four dark palettes, each over the base it extends."""
+    """name -> {token: '#rrggbb'}: the one light look and the one dark (since 17/10 the owner keeps only these two)."""
     base = dict(re.findall(r'(--[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(r':root \{ color-scheme: light;([^}]*)\}', CSS).group(1)))
     ht = dict(re.findall(r'(--ht-[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(r':root \{ --serif:[^}]*\}', CSS).group(0)))
     dark_ht = dict(re.findall(r'(--ht-[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(r':root\[data-theme="dark"\] \{ --ht-bg[^}]*\}', CSS).group(0)))
-    out = {'daempet': {**base, **ht}}
-    for tone in ('papir', 'klassisk', 'kolig'):
-        t = dict(re.findall(r'(--[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(rf':root\[data-tone="{tone}"\] \{{ color-scheme: light;([^}}]*)\}}', CSS).group(1)))
-        extra = re.search(rf':root\[data-tone="{tone}"\] \{{ --ht-bg[^}}]*\}}', CSS)
-        out[tone] = {**base, **ht, **t, **(dict(re.findall(r'(--ht-[\w-]+):\s*(#[0-9a-fA-F]{6})', extra.group(0))) if extra else {})}
     notion = dict(re.findall(r'(--[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(r':root\[data-theme="dark"\] \{ color-scheme: dark;([^}]*)\}', CSS).group(1)))
-    out['notion'] = {**notion, **dark_ht}
-    for dark in ('material', 'apple', 'grafit'):
-        d = dict(re.findall(r'(--[\w-]+):\s*(#[0-9a-fA-F]{6})', re.search(rf':root\[data-dark="{dark}"\]\[data-theme="dark"\] \{{ color-scheme: dark;([^}}]*)\}}', CSS).group(1)))
-        out[dark] = {**notion, **dark_ht, **d}
-    return out
+    return {'daempet': {**base, **ht}, 'notion': {**notion, **dark_ht}}
 
 
 def lum(hexc):
@@ -36,14 +27,15 @@ def ratio(a, b):
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
 
 
-def test_eight_palettes_are_read():
-    assert set(palettes()) == {'daempet', 'papir', 'klassisk', 'kolig', 'notion', 'material', 'apple', 'grafit'}
+def test_two_palettes_are_read():
+    assert set(palettes()) == {'daempet', 'notion'}
+    assert 'data-tone=' not in CSS and 'data-dark=' not in CSS        # the other palettes are gone
 
 
 def test_every_text_colour_is_readable_on_its_surfaces():
     low = []
     for name, p in palettes().items():
-        for fg in ('--text', '--text-2', '--text-3'):
+        for fg in ('--text', '--text-2', '--text-3', '--red'):
             for bg in ('--bg', '--fill'):
                 if ratio(p[fg], p[bg]) < 4.5:
                     low.append(f'{name}: {fg} on {bg} {ratio(p[fg], p[bg]):.2f}')

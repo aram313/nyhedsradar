@@ -53,7 +53,9 @@ def test_red_means_live_or_big():
 
 def test_red_is_used_only_for_live_big_and_new():
     # review of 2026-10-17: the stale box, search marks, the switches, the focus ring and the offline logo were red
-    allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root')
+    # and since 17/10 the front page's accents (the owner: "Forsiden bliver for monoton, brug gerne lidt rød")
+    allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root',
+               '.page[data-tab="home"]')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         sel, decl = ' '.join(m.group(1).split()), m.group(2)
         if 'var(--pulse' in decl:
@@ -308,3 +310,12 @@ def test_no_ids_no_prompts_and_no_claude():
     assert not re.search(r'crypto\.randomUUID|uuid|fingerprint', CODE, re.I)
     assert 'confirm(' not in CODE and 'prompt(' not in CODE.replace('installEvent.prompt()', '')
     assert not re.search(r'claude', APP + INDEX + CSS, re.I)
+
+
+def test_the_front_page_has_its_red_accents_in_a_readable_red():
+    for sel in ('.page[data-tab="home"] .lede-d > span', '.page[data-tab="home"] .block-h h2::before',
+                '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
+        assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):   # the readable red only on the front page
+        if 'var(--red)' in m.group(2):
+            assert '.page[data-tab="home"]' in m.group(1), m.group(1)

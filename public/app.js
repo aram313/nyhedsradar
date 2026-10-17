@@ -4083,18 +4083,13 @@ $('foreignSeg').addEventListener('click', e => {
 });
 paintSeg();
 
-// appearance: four light tones (Dæmpet first), four dark palettes (Notion first), and automatic / light / dark
-const TONES = ['daempet', 'papir', 'klassisk', 'kolig'], DARKS = ['notion', 'grafit', 'material', 'apple'];
-let tone = store.get('tone', 'daempet'), mode = store.get('mode', 'auto'), dark = store.get('dark', 'notion');
-if (!TONES.includes(tone)) tone = 'daempet';   // e.g. 'blod', which no longer exists
-if (!DARKS.includes(dark)) dark = 'notion';
+// appearance: one light look (Dæmpet) and one dark (Notion) since 17/10 – the owner: "Skær farvetemaet med til to, de
+// primære mørk og lys" – and automatic / light / dark
+let mode = store.get('mode', 'auto');
 function applyLook() {
   const d = document.documentElement;
-  tone === 'daempet' ? delete d.dataset.tone : d.dataset.tone = tone;
+  delete d.dataset.tone; delete d.dataset.dark;
   mode === 'auto' ? delete d.dataset.theme : d.dataset.theme = mode;
-  dark === 'notion' ? delete d.dataset.dark : d.dataset.dark = dark;
-  document.querySelectorAll('#darkSeg [data-dark]').forEach(b => b.setAttribute('aria-checked', b.dataset.dark === dark));
-  document.querySelectorAll('#toneSeg [data-tone]').forEach(b => b.setAttribute('aria-checked', b.dataset.tone === tone));
   document.querySelectorAll('#modeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === mode));
   const bg = getComputedStyle(d).getPropertyValue('--bg').trim();
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
@@ -4102,8 +4097,6 @@ function applyLook() {
   if (cs) cs.content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
   kortLook();   // the map's tiles: light or dark with the app
 }
-$('toneSeg').addEventListener('click', e => { const b = e.target.closest('[data-tone]'); if (b) { tone = b.dataset.tone; store.set('tone', tone); applyLook(); } });
-$('darkSeg').addEventListener('click', e => { const b = e.target.closest('[data-dark]'); if (b) { dark = b.dataset.dark; store.set('dark', dark); applyLook(); } });
 $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { mode = b.dataset.v; store.set('mode', mode); applyLook(); } });
 if (!params.get('tone')) applyLook();
 

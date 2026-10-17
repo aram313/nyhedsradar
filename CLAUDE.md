@@ -334,7 +334,9 @@ da'wah.
   the box on the page, the top bar stays quiet. Shared texts end with 'via khabar.nu/?item=…' (or ?svar=, ?begreb=,
   ?forlob=), so the recipient lands in Khabar. Bump `?v=` on every change: the service worker serves versioned files
   from its cache.
-  Colour is minimal (the owner found section-coloured labels 'in your face'): a small section dot on mixed lists, red
+  Colour is minimal (the owner found section-coloured labels 'in your face') – except the front page's red accents since
+  17/10 ('Forsiden bliver for monoton, brug gerne lidt rød og flere nuancer': the date, a bar before each block title, the
+  newest step, the ways on, the quote; `--red`, readable in both looks, only under `.page[data-tab="home"]`): a small section dot on mixed lists, red
   only for big stories and 'live', the ochre only for the movement's text. Headlines guide the eye with bold keywords
   (who and where) instead. Block titles and day markers must never look alike.
 - **Speed rules (round 2, measured 2026-10-17, docs/hjerne/notes-r2-speed.md and notes-r2-review.md):** a reload
@@ -362,7 +364,8 @@ da'wah.
   source's framing word in Israel's place ('Besættelsesstyrker anholder …'; beside the name it may stay: 'Israelske
   besættelsesfly'), 'martyr', 'heltemod', 'heroisk' and 'helte' near fighting.
 - The app never mentions Claude in visible text and has no 'how Khabar chooses' explainer (owner's request,
-  2026-10-10). Default look: Dæmpet (light) and Notion (dark); the 'Blød' tone was removed.
+  2026-10-10). The looks: Dæmpet (light) and Notion (dark) only since 17/10 (the owner: "Skær farvetemaet med til to");
+  the settings choose Automatisk · Lys · Mørk.
 - **Khabar made professional (2026-10-17, docs/hjerne/pro-plan.md, built in full; tests/test_app_pro.py,
   test_app_contrast.py, test_pro.py):**
   - **Two voices:** the app's sans is Khabar's and the outlets' voice (the lede, block titles, development names, an

@@ -17,17 +17,13 @@
      this it is white even on a dark phone (a white flash between the start screen and the app) -->
 <meta name="color-scheme" content="light dark">
 <script>
-  // apply the saved tone and light/dark choice before the first paint (no flash)
+  // apply the saved light/dark choice before the first paint (no flash)
   try {
     const q = new URLSearchParams(location.search), d = document.documentElement;
-    // Dæmpet and Notion became the standard look (Oct 2026): everyone starts there once, then chooses freely
-    if (localStorage.getItem('look') !== '2') { localStorage.removeItem('tone'); localStorage.removeItem('dark'); localStorage.setItem('look', '2'); }
-    const tone = q.get('tone') || JSON.parse(localStorage.getItem('tone') || '"daempet"');
+    // one light and one dark look since 17/10/2026 (the owner: "Skær farvetemaet med til to"): the other palettes' choice goes
+    if (localStorage.getItem('look') !== '3') { localStorage.removeItem('tone'); localStorage.removeItem('dark'); localStorage.setItem('look', '3'); }
     const mode = q.get('theme') || JSON.parse(localStorage.getItem('mode') || '"auto"');
-    const dark = q.get('dark') || JSON.parse(localStorage.getItem('dark') || '"notion"');
-    if (tone !== 'daempet') d.dataset.tone = tone;
     if (mode !== 'auto') d.dataset.theme = mode;
-    if (dark !== 'notion') d.dataset.dark = dark;
     // the phone's own surface before the page is drawn takes the same light or dark
     document.querySelector('meta[name="color-scheme"]').content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
   } catch (e) {}
@@ -35,7 +31,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- the pen's letters load beside the page, not before it: the intro waits for them itself (at most a second) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="style.css?v=20261018h">
+<link rel="stylesheet" href="style.css?v=20261018j">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -69,10 +65,8 @@
     const q = new URLSearchParams(location.search), deep = ['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt'].some(k => q.has(k));
     if (deep || (seen && away < 6 * 3600e3)) d.classList.add('intro-skip');
     else { d.classList.add('intro-on'); if (seen) d.classList.add('intro-short'); }
-    const mode = get('mode'), tone = get('tone'), dark = get('dark');
+    const mode = get('mode');
     if (mode && mode !== 'auto') d.dataset.theme = mode;
-    if (tone && tone !== 'daempet') d.dataset.tone = tone;
-    if (dark && dark !== 'notion') d.dataset.dark = dark;
   } catch (e) {}
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -196,12 +190,6 @@
       <button role="radio" data-v="dark">Mørk</button>
     </div>
     <p class="hint">Automatisk følger telefonens lys/mørk-indstilling.</p>
-    <details class="looks"><summary>Flere farver<svg><use href="#i-chev"/></svg></summary>
-    <p class="tones-label">Lys</p>
-    <div class="tones four" id="toneSeg" role="radiogroup" aria-label="Lys tone"><button role="radio" data-tone="daempet" style="--c-bg:#eeeeeb;--c-ac:#b8403a"><i></i>Dæmpet</button><button role="radio" data-tone="papir" style="--c-bg:#efe5d1;--c-ac:#d4110a"><i></i>Papir</button><button role="radio" data-tone="klassisk" style="--c-bg:#ffffff;--c-ac:#e10600"><i></i>Klassisk</button><button role="radio" data-tone="kolig" style="--c-bg:#f4f6f8;--c-ac:#d62d30"><i></i>Kølig</button></div>
-    <p class="tones-label">Mørk</p>
-    <div class="tones four" id="darkSeg" role="radiogroup" aria-label="Mørk palet"><button role="radio" data-dark="notion" style="--c-bg:#191919;--c-ac:#eb5757"><i></i>Notion</button><button role="radio" data-dark="grafit" style="--c-bg:#1e1d1b;--c-ac:#ff5a4e"><i></i>Grafit</button><button role="radio" data-dark="material" style="--c-bg:#121212;--c-ac:#ff453a"><i></i>Material</button><button role="radio" data-dark="apple" style="--c-bg:#1c1c1e;--c-ac:#ff453a"><i></i>Apple</button></div>
-    </details>
 
     <h3>Kilder</h3>
     <div class="sources" id="sources"></div>
@@ -216,6 +204,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261018h"></script>
+<script src="app.js?v=20261018j"></script>
 </body>
 </html>
