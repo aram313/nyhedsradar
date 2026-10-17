@@ -95,7 +95,7 @@ jobs:
           FEEDBACK_TOPIC: ${{ vars.FEEDBACK_TOPIC }}
         run: python -m radar.run
 
-      # prices for khabar.nu/energi (src/radar/energy.py, stdlib only): each source on its own clock inside, the last
+      # the economy page khabar.nu/energi (src/radar/energy.py, stdlib only): each source on its own clock inside, the last
       # good numbers kept when one fails – and a failure here never stops the state from being saved
       - name: Energy prices
         continue-on-error: true

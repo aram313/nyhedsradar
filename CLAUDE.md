@@ -154,17 +154,42 @@ da'wah.
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
-- `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day) writes
-  `energy.json` for `public/energi/` (khabar.nu/energi) after every radar pass, stdlib only, a step in radar.yml that
-  may fail without stopping the save. Sources: Yahoo Finance chart API (futures, contract months for the curves,
-  USD/DKK), EIA's own daily history pages for the physical prices (FRED's CSV as the fallback – it does not answer
-  GitHub's runners), Circle K's public
-  price API (header X-App-Name: PRICES; Circle K + INGO) and q8.dk/Station/GetStationPrices (Q8 + F24). Each source
-  has its own clock (EVERY) and keeps its last good numbers, and one that failed rests RETRY (30 min) before it is
-  asked again; pump prices keep one point a day for 400 days; a chain's 'ændret' is the change time of its stations at
-  the list price; the news are data.json's oil and fuel stories with the editor's headline (RADAR_SUMMARIES), no wire
-  lines; on a weekend the page says the exchanges are closed and shows Friday's closes as such. The
-  page holds all names, units and explanations; the file only numbers.
+- `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day;
+  the same day made **the economy page**, the owner: "en femte fane med olie, diesel og benzinpriser … generelle
+  geopolitiske tal man skal holde øje med og hvorfor … s&p 500 … landes gæld … AI boblen … interaktiv … live") writes
+  `energy.json` for `public/energi/` (khabar.nu/energi; in the app's fifth tab Økonomi as `energi/?embed=1`, a frame
+  the other part of the app owns) after every radar pass, stdlib only, a step in radar.yml that may fail without
+  stopping the save. Sources, all keyless: Yahoo Finance's chart API (oil, product and gas futures, contract months
+  for the curves, USD/DKK and EUR/DKK, the indices ^GSPC ^NDX ^STOXX50E ^OMXC25 ^N225 000001.SS, the VIX, ^TNX, the
+  dollar index, gold, copper, wheat, Bitcoin and the AI giants NVDA MSFT GOOGL META AMZN AAPL TSM AVGO – each with its
+  session `o` [start, end], so the page tells a live price from a close), EIA's own daily history pages for the
+  physical prices (gas: the static `rngwhhdD.htm`, its LeafHandler is a 404; FRED's CSV as the fallback – it does not
+  answer GitHub's runners), EIA's weekly retail gasoline and diesel, US average (`eia_weeks`, two years of Mondays),
+  the EU's Weekly Oil Bulletin 'latest prices with taxes' (a stable document id; the .xlsx read with zipfile,
+  `xlsx_rows`; EUR per 1000 l, its EU average kept weekly for two years), State Street's daily SPY holdings .xlsx
+  (the AI giants' real weight in the S&P 500 – Alphabet's two classes added, TSMC not in the index – the ten largest,
+  the basket's share kept by day), the Treasury's Debt to the Penny (600 rows; `g` = growth a day against the figure
+  nearest a year earlier) and the IMF DataMapper's GGXWDG_NGDP for 16 lands up to last year (the current year is a
+  projection; the IMF turns a browser-like agent away and lets Python's own in), Circle K's public price API (header
+  X-App-Name: PRICES; Circle K + INGO) and q8.dk/Station/GetStationPrices (Q8 + F24). Each source has its own clock
+  (EVERY: markets 4 min … IMF a day) and keeps its last good numbers, one that failed rests RETRY (30 min), and the
+  five slow ones are asked side by side (a cold run ~35 s, a warm one < 1 s); pump prices keep one point a day for 400
+  days; a chain's 'ændret' is the change time of its stations at the list price; the news are data.json's oil and
+  fuel stories with the editor's headline (RADAR_SUMMARIES), no wire lines. energy.json is ~150 KB (markets 6 months
+  daily). **The page** (Økonomi): six sections in a dock at the bottom of the page (the frame's bottom when embedded;
+  `#braendstof` … `#raavarer` by `history.replaceState`, never a history step) – Brændstof (Lige nu, the cheapest
+  chain's petrol and diesel large with USA and the EU average beside, then Danmark · USA · Europa), Olie (Råolie ·
+  Fysisk · Raffinering · Produkter · Gas · Nyheder), Markeder (Aktier · Risiko), AI (the basket's weight, the basket
+  equal-weighted against the S&P 500 from 100, each company, why people speak of a bubble – no prediction), Gæld (USA:
+  the counter that ticks the last year's average growth onto the last official figure, labelled 'Skøn' and said so;
+  Lande: IMF bars, sorted, a tap opens the years) and Råvarer. Each section opens with a red fly title and a headline
+  line in Source Serif 4 made from the numbers; every figure is a row (its own time: 'kl. 15.59', 'lukkekurs i går',
+  'fredag lukkekurs', 'dagligt · 14/10', 'ugentlig · 12/10', 'årlig · 2025') that opens a chart with ranges its
+  history fills and three texts – Hvad er det, Hvorfor holde øje med det nu, Stiger det / Falder det – factual and
+  neutral; the foot says 'Siden er information, ikke investeringsrådgivning.' Lige nu: the moves most unusual against
+  each figure's typical day, Brent, the VIX's mood, the pump. Reload every 5 minutes and when the page is shown again;
+  a file the same as last time draws nothing. Israel's name in the bars as “israel”. The page holds all names, units
+  and explanations; the file only numbers (tests/test_energy.py checks both).
 - `public/` is the PWA. `config.js`, `data.json` and `dev/` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses, energy
   and map URLs, and the CARTO key from the repository variable `CARTO_KEY`). A local preview of round 2's data: `public/dev/r2/` with `?dev=r2` (`&front=0` the fixed front page, `&app=0`

@@ -101,12 +101,17 @@ with one tap (no code to send).
    branch. The app (`public/`, published to GitHub Pages by `pages.yml`) reads those files and the editor's files from
    the `digest` branch; the movement layer and the wiki (`public/viden/`, built by `scripts/build_movement.py` and
    `scripts/build_begreber.py`) are published with it.
-12. **Energy prices** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi, and the Kort tab's Priser view): after each radar pass
-   the job fetches Brent, WTI, RBOB, ULSD, TTF and Henry Hub futures and USD/DKK (Yahoo Finance), the Brent and
-   WTI forward curves, EIA's physical spot prices (via FRED), every Circle K/INGO and Q8/F24 station's pump
-   price, and computes crack spreads, physical-minus-paper Brent and prices in kroner per litre. The result is
-   `energy.json` on the data branch, with the energy stories of the last three days from `data.json` and
-   `lines.json`. Each source has its own clock and a failed fetch keeps the last good numbers.
+12. **The economy page** (`src/radar/energy.py`, page `public/energi/` = khabar.nu/energi, shown in the app as
+   `energi/?embed=1`): after each radar pass the job fetches the oil, product and gas futures, stock indices (S&P 500,
+   Nasdaq 100, Euro Stoxx 50, C25, Nikkei, Shanghai), the VIX, the US 10-year yield, the dollar index, gold, copper,
+   wheat, Bitcoin, the AI giants' shares, USD/DKK and EUR/DKK (Yahoo Finance), the Brent and WTI forward curves, EIA's
+   physical spot prices and weekly US pump prices, the EU's Weekly Oil Bulletin, SPY's holdings (the AI giants'
+   weight in the S&P 500), the US Treasury's daily debt, the IMF's debt in % of GDP and every Circle K/INGO and Q8/F24
+   station's pump price, and computes crack spreads, physical-minus-paper Brent and prices in kroner per litre. The
+   result is `energy.json` on the data branch, with the energy stories of the last three days. The page has six
+   sections (Brændstof, Olie, Markeder, AI, Gæld, Råvarer) in a dock at the bottom; every figure opens a chart and
+   says what it is, why to watch it and what a rise or a fall means. Each source has its own clock and a failed
+   fetch keeps the last good numbers.
 
 ## Secrets and settings (GitHub)
 

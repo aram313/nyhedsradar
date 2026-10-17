@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Energi – Khabar</title>
-<meta name="description" content="Olie, benzin, diesel og gas: Brent, WTI, fysiske priser, crack spreads, terminskurven og danske pumpepriser – opdateret hvert 5. minut.">
-<meta property="og:title" content="Energi – Khabar">
-<meta property="og:description" content="Brent, WTI, crack spreads, det fysiske marked og danske pumpepriser – opdateret hvert 5. minut.">
+<title>Økonomi – Khabar</title>
+<meta name="description" content="Benzin og diesel i Danmark, USA og Europa, olie og gas, aktier, frygtindekset, renten, dollaren, AI-giganterne, statsgæld og råvarer – opdateret hvert 5. minut, med hvad tallene betyder.">
+<meta property="og:title" content="Økonomi – Khabar">
+<meta property="og:description" content="Brændstof, olie, markeder, AI-boblen, gæld og råvarer – live, med hvad tallene betyder.">
 <meta property="og:image" content="https://khabar.nu/icons/icon-512.png">
 <meta name="theme-color" content="#eeeeeb" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
@@ -28,9 +28,9 @@
     const ts = JSON.parse(localStorage.getItem('textSize') || localStorage.getItem('size') || '"auto"');
     if (ts !== 'auto' && +ts) d.style.setProperty('--ts', ts);
   } catch (e) {}
-  // ?embed=1: the app's Kort tab shows this page in a frame under its own bar (its Priser view). The page's bar and its
-  // way back go, and it wears exactly the look the app wears now – the app's light or dark, tone, palette and text size
-  // (the app's own setting, a ?theme= of its address, or the phone's text size), and again whenever the app changes it
+  // ?embed=1: the app's Økonomi tab shows this page in a frame under its own bar. The page's bar and its way back go,
+  // and it wears exactly the look the app wears now – the app's light or dark, tone, palette and text size (the app's
+  // own setting, a ?theme= of its address, or the phone's text size), and again whenever the app changes it
   try {
     if (new URLSearchParams(location.search).get('embed') === '1' && parent !== window) {
       const d = document.documentElement, p = parent.document.documentElement;
@@ -49,100 +49,185 @@
 </script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block" media="print" onload="this.media='all'">
+<!-- the headline face, as on the app's front page (The Economist's manner): Source Serif 4, for the headline lines only -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../style.css">
 <style>
-  /* Energi: the same look as the app (its tones, bar, blocks and story rows come from style.css); prices are rows
-     that open in place with a chart, colour only for up/down next to an arrow */
-  :root { --up: #2f7a52; }
+  /* Økonomi: the app's look (its tokens, bar, blocks and story rows come from style.css). Six sections in a dock at the
+     bottom, in the thumb's reach; each opens with a red fly title and a serif headline line in the manner of The
+     Economist; figures are rows that open in place with a chart and what the number means; colour only for up/down
+     next to an arrow, red only for the fly title, the short rules and the chosen section */
+  :root { --up: #2f7a52; --edock: calc(52px + var(--bottom)); --display: "Source Serif 4", "Source Serif Pro", Georgia, serif; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --up: #4cc38a; } }
   :root[data-theme="dark"] { --up: #4cc38a; }
-  main.en { max-width: 680px; margin: 0 auto; padding: calc(var(--barh) + 2px) 0 calc(36px + var(--bottom)); font-size: calc(16px * var(--ts, 1)); }
+  main.en { max-width: 680px; margin: 0 auto; padding: calc(var(--barh) + 2px) 0 calc(var(--edock) + 20px); font-size: var(--fs-body); }
   .bar > .brand { max-width: 680px; }
   .en-home { flex: none; display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: -10px; padding: 0 4px; color: var(--text); }
   .en-home > svg { width: 20px; height: 20px; color: var(--text-2); transform: scaleX(-1); }
   .en-home .logo { width: 38px; height: 28px; }
   .en-title { margin: 0 0 0 8px; font-size: calc(18px * var(--ts, 1)); font-weight: 720; letter-spacing: -.015em; }
 
-  .en-hint { margin: -6px 16px 4px; font-size: calc(13px * var(--ts, 1)); line-height: 1.4; color: var(--text-3); }
+  /* the section's head: a red fly title, the headline line in the serif, a calm line under it */
+  .ec-top { padding: 18px 16px 2px; }
+  .ec-fly { display: block; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
+  .ec-head { margin: 6px 0 0; font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.14; letter-spacing: -.012em;
+    font-variation-settings: "opsz" 60; text-wrap: balance; }
+  .ec-stand { margin: 8px 0 0; font-size: var(--fs-small); line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
+  .en .block { margin-top: 22px; }
+  .en .block-h h2 { position: relative; padding-top: 9px; font-size: var(--fs-lead); font-weight: 760; }
+  .en .block-h h2::before { content: ""; position: absolute; top: 0; left: 0; width: 26px; height: 3px; background: var(--red); }
+  .en-hint { margin: 0 16px 4px; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); }
+
+  /* the choices under a section: the app's chips, in one row that scrolls sideways when the text is large */
+  .ec-chips { display: flex; gap: 8px; overflow-x: auto; margin: 14px 0 6px; padding: 4px 16px; scrollbar-width: none; }
+  .ec-chips::-webkit-scrollbar { display: none; }
+  .ec-chips .chip { flex: none; min-height: 36px; }
+
   /* Lige nu: short 'Who: what' lines, like the wire */
   .en-sig { list-style: none; margin: 0; padding: 0 16px; }
-  .en-sig li { padding: 9px 0 10px; font-size: calc(15.5px * var(--ts, 1)); line-height: 1.42; letter-spacing: -.005em; }
+  .en-sig li { padding: 9px 0 10px; font-size: var(--fs-small); line-height: 1.42; letter-spacing: -.005em; }
   .en-sig li + li { border-top: 1px solid var(--line); }
   .en-sig b { font-weight: 700; }
-  .en-sig .q { color: var(--text-2); }
+  .en-sig .q { color: var(--text-3); white-space: nowrap; }
 
-  /* one price: name and kind at the left, three months in a small line, price and day's move at the right */
-  .en-item { position: relative; transition: background-color .25s; }
+  /* the big numbers: two panels side by side (12 from the edge, 12 inside, radius 16 – the app's panel) */
+  .ec-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 12px 0; }
+  .ec-tile { min-width: 0; padding: 12px; border-radius: var(--r-panel); background: var(--fill); }
+  .ec-tile.ec-span { grid-column: 1 / -1; }
+  .ec-k { display: block; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
+  .ec-v { display: block; margin-top: 4px; font-size: calc(30px * var(--ts, 1)); font-weight: 720; line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ec-v small { margin-left: 3px; font-size: var(--fs-meta); font-weight: 600; letter-spacing: 0; color: var(--text-3); }
+  .ec-l { display: block; margin-top: 6px; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+  .ec-l b { color: var(--text-2); font-weight: 650; }
+  .ec-share { display: flex; height: 6px; margin-top: 8px; border-radius: 3px; overflow: hidden; background: var(--fill-2); }
+  .ec-share i { display: block; background: var(--text-2); }
+
+  /* one figure: name and its time at the left, three months in a small line, value and day's move at the right */
+  .en-item { position: relative; }
   .en-item + .en-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
   .en-item.open { background-color: var(--fill); }
   .en-item.open::before, .en-item.open + .en-item::before { opacity: 0; }
   .en-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 96px; align-items: center; gap: 12px; width: 100%;
-    min-height: calc(58px * var(--ts, 1)); padding: 8px 16px; transition: background-color .15s; }
+    min-height: calc(58px * var(--ts, 1)); padding: 8px 16px; text-align: left; }
   .en-row:active { background-color: var(--fill); }
   .en-name { min-width: 0; }
-  .en-name b { display: block; font-size: calc(16px * var(--ts, 1)); font-weight: 650; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .en-name small { display: block; margin-top: 2px; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .en-name b { display: block; font-size: var(--fs-body); font-weight: 650; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .en-name small { display: block; margin-top: 2px; font-size: var(--fs-meta); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   svg.en-spark { width: 64px; height: 26px; overflow: visible; }
   .en-spark path { fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
   .en-spark circle { fill: var(--text); }
   .en-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .en-v { display: block; font-size: calc(17px * var(--ts, 1)); font-weight: 650; letter-spacing: -.01em; }
-  .en-c { display: block; margin-top: 2px; font-size: calc(12.5px * var(--ts, 1)); font-weight: 600; color: var(--text-3); }
+  .en-c { display: block; margin-top: 2px; font-size: var(--fs-meta); font-weight: 600; color: var(--text-3); }
   .en-c.up { color: var(--up); }
   .en-c.down { color: var(--pulse); }
-  .en-c.old { font-weight: 500; }
 
-  /* opened: a chart you can touch, the range, what it is and where it comes from */
-  .en-more { padding: 0 16px 14px; }
-  .en-range { display: flex; gap: 2px; margin: -2px 0 2px -6px; }
-  .en-range button { min-height: 40px; padding: 0 6px; display: grid; place-items: center; }
-  .en-range span { padding: 4px 11px; border-radius: 14px; font-size: calc(13px * var(--ts, 1)); font-weight: 650; color: var(--text-2); }
-  .en-range button[aria-pressed="true"] span { background: var(--bg); color: var(--text); }
+  /* opened: a chart you can touch, its ranges, and what the number means */
+  .en-more { padding: 0 16px 16px; }
+  .en-range { display: flex; flex-wrap: wrap; gap: 2px; margin: -2px 0 2px -6px; }
+  .en-range button { min-height: 44px; padding: 0 4px; display: grid; place-items: center; }
+  .en-range span { padding: 5px 11px; border-radius: 14px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
+  .en-range button[aria-pressed="true"] span { background: var(--fill-2); color: var(--text); }
+  .en-item.open .en-range button[aria-pressed="true"] span { background: var(--bg); }
+  .block > .en-range, .ec-pad > .en-range { margin-left: 10px; }
   .en-chart { position: relative; height: 172px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
   .en-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .en-chart .grid { stroke: var(--line); stroke-width: 1; }
   .en-chart .zero { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; }
   .en-chart .ln { fill: none; stroke: var(--text); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   .en-chart .ln.two { stroke: var(--text-3); stroke-dasharray: 5 4; }
+  .en-chart .ln.red { stroke: var(--red); }
   .en-chart .pt { fill: var(--text); stroke: var(--fill); stroke-width: 2; }
   .en-chart .lbl { fill: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
   .en-chart .tag { fill: var(--text-2); font-size: 11.5px; font-weight: 650; }
   .en-chart .cross { stroke: var(--text-3); stroke-width: 1; }
   .en-tip { position: absolute; top: -4px; transform: translate(-50%, -100%); padding: 3px 8px; border-radius: 8px; background: var(--text); color: var(--bg);
-    font-size: calc(12.5px * var(--ts, 1)); font-weight: 650; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
-  .en-hl { margin: 8px 0 0; font-size: calc(13px * var(--ts, 1)); color: var(--text-2); font-variant-numeric: tabular-nums; }
-  .en-what { margin: 6px 0 0; font-size: calc(14px * var(--ts, 1)); line-height: 1.45; color: var(--text-2); }
-  .en-src { margin: 6px 0 0; font-size: calc(12.5px * var(--ts, 1)); color: var(--text-3); }
+    font-size: var(--fs-meta); font-weight: 650; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .en-hl { margin: 8px 0 0; font-size: var(--fs-meta); color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .en-src { margin: 10px 0 0; font-size: var(--fs-meta); color: var(--text-3); }
   .en-seg { display: inline-flex; gap: 2px; margin: 0 0 2px -6px; }
+  .ec-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; font-size: var(--fs-meta); color: var(--text-2); }
+  .ec-legend i { display: inline-block; width: 16px; height: 0; margin-right: 6px; vertical-align: 3px; border-top: 2px solid var(--text); }
+  .ec-legend i.two { border-top: 2px dashed var(--text-3); }
+  .ec-legend i.red { border-top-color: var(--red); }
+  .ec-pad { padding: 0 16px; }
+
+  /* what it is, why to watch it now, what a rise and a fall mean */
+  .ec-ex { margin: 12px 0 0; }
+  .ec-ex dt { margin-top: 10px; font-size: var(--fs-meta); font-weight: 700; color: var(--text); }
+  .ec-ex dd { margin: 2px 0 0; font-size: var(--fs-small); line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
+  .ec-ud { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ec-ud dt .a { margin-right: 4px; font-size: .85em; }
+  .ec-ud .up .a { color: var(--up); }
+  .ec-ud .down .a { color: var(--pulse); }
 
   /* Danish pump prices: one line per chain, the cheapest in bold */
   .en-pump { width: calc(100% - 32px); margin: 0 16px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  .en-pump th { padding: 6px 0; font-size: calc(12px * var(--ts, 1)); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); text-align: right; }
+  .en-pump th { padding: 6px 0; font-size: var(--fs-cap); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); text-align: right; }
   .en-pump th:first-child { text-align: left; }
   .en-pump th + th, .en-pump td + td { padding-left: 12px; white-space: nowrap; }
-  .en-pump td { padding: 9px 0; border-top: 1px solid var(--line); font-size: calc(16px * var(--ts, 1)); text-align: right; color: var(--text-2); }
+  .en-pump td { padding: 9px 0; border-top: 1px solid var(--line); font-size: var(--fs-body); text-align: right; color: var(--text-2); }
   .en-pump td:first-child { text-align: left; color: var(--text); }
   .en-pump td:first-child b { font-weight: 650; }
-  .en-pump td small { display: block; margin-top: 1px; font-size: calc(12px * var(--ts, 1)); color: var(--text-3); }
+  .en-pump td small { display: block; margin-top: 1px; font-size: var(--fs-meta); color: var(--text-3); }
   .en-pump td.low { color: var(--text); font-weight: 700; }
-  .en-note { margin: 8px 16px 0; font-size: calc(13px * var(--ts, 1)); line-height: 1.45; color: var(--text-3); }
+  .en-pump tr.me td { color: var(--text); font-weight: 700; }
+  .en-pump tr.avg td { font-style: italic; }
+  .en-note { margin: 8px 16px 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); }
   .en-note b { color: var(--text-2); font-weight: 650; }
-  .en-plus { display: flex; align-items: center; gap: 2px; min-height: 44px; margin: 0 0 0 16px; font-size: calc(14px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
+  .en-plus { display: flex; align-items: center; gap: 2px; min-height: 44px; margin: 0 0 0 16px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
   .en-plus svg { width: 15px; height: 15px; transition: transform .2s var(--ease); }
   .en-plus[aria-expanded="true"] svg { transform: rotate(90deg); }
   .en-pchart { margin: 6px 16px 0; }
-  .en-pchart .en-chart { height: 140px; }
+  .en-pchart .en-chart { height: 150px; }
+
+  /* the US debt counter: an estimate between the Treasury's daily figures, and it says so */
+  .ec-debt { margin: 14px 12px 0; padding: 14px 12px 12px; border-radius: var(--r-panel); background: var(--fill); }
+  .ec-debt .ec-k { display: flex; justify-content: space-between; gap: 8px; }
+  .ec-est { font-weight: 700; color: var(--red); letter-spacing: .04em; text-transform: uppercase; font-size: var(--fs-cap); }
+  .ec-count { display: block; margin-top: 6px; font-size: min(var(--fs-title), 7.2vw); font-weight: 720; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* debt in % of GDP: one bar per land, sorted, a tap opens its years */
+  .ec-bar { display: grid; grid-template-columns: 108px minmax(0, 1fr) 62px; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 4px 16px; text-align: left; }
+  .ec-bar:active { background-color: var(--fill); }
+  .ec-bar b { font-size: var(--fs-small); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ec-bar .tr { height: 10px; border-radius: 2px; background: var(--fill); overflow: hidden; }
+  .ec-bar .tr i { display: block; height: 100%; background: var(--text-3); }
+  .ec-bar.me .tr i { background: var(--text); }
+  .ec-bar .n { text-align: right; font-size: var(--fs-small); font-weight: 650; font-variant-numeric: tabular-nums; }
+  .en-item.bar-item + .en-item.bar-item::before { display: none; }
+  .en-item.open .ec-bar .tr { background: var(--bg); }
+
+  /* the bubble: a few plain points */
+  .ec-pts { margin: 4px 16px 0; padding: 0; list-style: none; }
+  .ec-pts li { padding: 10px 0; font-size: var(--fs-small); line-height: 1.48; color: var(--text-2); }
+  .ec-pts li + li { border-top: 1px solid var(--line); }
+  .ec-pts b { color: var(--text); font-weight: 700; }
 
   .en-news .row { text-align: left; }
   .en-news .story .row { height: auto; min-height: calc(64px * var(--ts, 1)); padding-top: 10px; padding-bottom: 10px; }   /* a row grows with its headline */
-  .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: calc(15px * var(--ts, 1)); font-weight: 600; color: var(--text-2); }
+  .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
   .en-showmore svg { width: 15px; height: 15px; transform: rotate(90deg); }
-  @media (prefers-reduced-motion: reduce) { .en-item, .en-row, .en-plus svg { transition: none; } }
-  /* inside the app's Kort tab (?embed=1): no bar and no way back of its own – the app's bar is above it; a sideways
-     swipe passes on to the app's tabs, a scroll stays in the frame */
+  .ec-advice { margin: 18px 16px 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: var(--fs-meta); line-height: 1.5; color: var(--text-3); text-align: center; }
+
+  /* the dock: the six sections in the thumb's reach, the chosen one with a short red rule over it (solid, no blur) */
+  .ec-dock { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; padding-bottom: var(--bottom); background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
+  .ec-tabs { display: flex; max-width: 680px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+  .ec-tabs::-webkit-scrollbar { display: none; }
+  .ec-tabs button { position: relative; flex: 1 0 auto; min-height: 52px; padding: 0 9px; font-size: calc(13px * min(var(--ts, 1), 1.2)); font-weight: 600;
+    color: var(--text-2); white-space: nowrap; }
+  .ec-tabs button::before { content: ""; position: absolute; top: 0; left: 50%; width: 22px; height: 3px; margin-left: -11px; background: var(--red); opacity: 0; transition: opacity .15s; }
+  .ec-tabs button[aria-selected="true"] { color: var(--text); font-weight: 750; }
+  .ec-tabs button[aria-selected="true"]::before { opacity: 1; }
+  .ec-tabs button:active { background: var(--fill); }
+  @media (prefers-reduced-motion: no-preference) { #sec.in { animation: ecIn .2s var(--out); } }
+  @keyframes ecIn { from { opacity: .35; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .en-plus svg, .ec-tabs button::before { transition: none; } }
+  /* inside the app's Økonomi tab (?embed=1): no bar and no way back of its own – the app's bar is above it and its
+     tabs below the frame, so the dock is the frame's own bottom */
   html.embed .bar { display: none; }
   html.embed main.en { padding-top: 0; }
-  html.embed main.en > .block:first-child { margin-top: 12px; }
+  html.embed { --bottom: 0px; }
   html.embed, html.embed body { overscroll-behavior-x: auto; overscroll-behavior-y: none; }
 </style>
 </head>
@@ -150,14 +235,17 @@
 <header class="bar" id="bar">
   <div class="brand">
     <a class="en-home" href="../" aria-label="Til Khabar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="logo" viewBox="162 112 272 196" aria-hidden="true"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="M302.7 200.5 C302.7 202.5 307 206.8 316 206.29 L317 213 L300 213 Z M296 241.27 C299 240.81 303 240.92 306 240.39 L306 236 L296 236 Z"/><circle class="dot" id="dot" cx="380" cy="128" r="12"/></svg></a>
-    <h1 class="en-title">Energi</h1>
+    <h1 class="en-title">Økonomi</h1>
   </div>
   <button class="status" id="status" aria-label="Opdater nu">henter …</button>
 </header>
 
 <main class="en" id="en">
-  <div class="block"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  <div id="sec" role="tabpanel"><div class="block"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>
+  <p class="foot" id="foot"></p>
 </main>
+
+<nav class="ec-dock" aria-label="Afsnit"><div class="ec-tabs" role="tablist" id="tabs"></div></nav>
 
 <script src="../config.js"></script>
 <script>
@@ -172,95 +260,304 @@ const CFG = window.RADAR_CONFIG || {};
 // the radar saves energy.json next to data.json (the data branch); locally both sit in public/
 const SRC = CFG.energyUrl || new URL((CFG.dataUrl || 'data.json').replace(/data\.json(\?.*)?$/, 'energy.json'), new URL('../', location.href)).href;
 
+// ---- what every figure is -------------------------------------------------------------------------------------------
 const FUT = 'ICE/NYMEX-future via Yahoo Finance, ca. 10 min. forsinket';
+const IDX = 'Indeks via Yahoo Finance, ca. 15 min. forsinket';
+const STK = 'Aktiekurs i New York via Yahoo Finance, ca. 15 min. forsinket';
 const EIA = 'Det amerikanske energiministerium (EIA) – et par dage bagud';
+const EIAW = 'Det amerikanske energiministerium (EIA), målt hver mandag';
 const CALC = 'Beregnet ud fra futures';
-// every price the page knows: name, kind and unit, decimals, 'spread' (moves in $, not %), what it is, source
+const OIL_UP = 'Dyrere benzin, diesel, fly og fragt og højere inflation – hårdest for lande, der importerer olie. Olieeksportører som Saudi-Arabien, Irak og Rusland får mere i statskassen.';
+const OIL_DOWN = 'Billigere brændstof og lavere inflation; eksportlandene får mindre. Et fald kan også være et tegn på, at verdensøkonomien svækkes.';
+const AI_UP = 'Investorerne tror mere på, at AI vil tjene de store investeringer hjem.';
+const AI_DOWN = 'Tvivl om, hvornår – og om – de store investeringer i AI betaler sig.';
+// n name · s unit · d decimals · kind: 'spread' (moves in $), 'pp' (a rate: moves in points), else % · w: weekly
 const C = {
-  brent: { n: 'Brent', s: 'Future · $/tønde', d: 2, src: FUT,
-    what: 'Prisreferencen for omkring to tredjedele af verdens olie: Nordsø-olie, nærmeste månedskontrakt.' },
-  wti: { n: 'WTI', s: 'Future · $/tønde', d: 2, src: FUT,
-    what: 'Amerikansk råolie leveret i Cushing, Oklahoma – nærmeste månedskontrakt.' },
-  brent_spot: { n: 'Brent, fysisk', s: 'Laster, Nordsøen · $/tønde', d: 2, src: EIA,
-    what: 'Prisen på rigtige laster Nordsø-olie, der lastes nu (FOB) – ikke papirkontrakter.' },
-  wti_spot: { n: 'WTI, fysisk', s: 'Cushing, USA · $/tønde', d: 2, src: EIA,
-    what: 'Prisen på fysisk WTI-olie, der leveres i Cushing nu.' },
-  phys_prem: { n: 'Fysisk minus papir', s: 'Brent-laster − future · $/tønde', d: 2, spread: true, src: 'Beregnet: EIA-spot minus futures samme dag',
-    what: 'Over nul betaler køberne ekstra for olie, der kan leveres nu, frem for olie på papir – et tegn på knaphed i det rigtige marked.' },
-  curve: { n: 'Terminskurven', s: 'Nærmeste måned − 6 mdr. frem', d: 2, spread: true, src: 'NYMEX-kontrakter via Yahoo Finance',
-    what: 'Prisen for hver leveringsmåned. Falder kurven (backwardation), betaler markedet ekstra for olie nu – tegn på knaphed. Stiger den (contango), er der olie nok, og det kan betale sig at lagre den.' },
-  brent_wti: { n: 'Brent − WTI', s: 'Europa mod USA · $/tønde', d: 2, spread: true, src: CALC,
-    what: 'Forskellen mellem europæisk og amerikansk råolie. Vokser, når olie uden for USA bliver knap.' },
-  crack321: { n: '3-2-1 crack', s: 'Raffinørmargin, USA · $/tønde', d: 2, spread: true, src: CALC,
-    what: 'Raffinaderiernes bruttomargin: tre tønder WTI bliver til to tønder benzin og én tønde diesel. Højt tal = stor efterspørgsel efter brændstof eller for lidt raffineringskapacitet.' },
-  crack_diesel: { n: 'Diesel-crack', s: 'Diesel − Brent · $/tønde', d: 2, spread: true, src: CALC,
-    what: 'En tønde diesel (New York Harbor ULSD) minus en tønde Brent. Diesel driver lastbiler, skibe, landbrug og industri.' },
-  crack_gas: { n: 'Benzin-crack', s: 'Benzin − Brent · $/tønde', d: 2, spread: true, src: CALC,
-    what: 'En tønde benzin (RBOB) minus en tønde Brent.' },
-  rbob: { n: 'Benzin (RBOB)', s: 'Future, New York · $/gallon', d: 3, src: FUT,
-    what: 'Benzin til levering i New York Harbor, nærmeste måned. 1 gallon = 3,785 liter.' },
-  ulsd: { n: 'Diesel (ULSD)', s: 'Future, New York · $/gallon', d: 3, src: FUT,
-    what: 'Diesel med ultralavt svovlindhold (også fyringsolie) til levering i New York Harbor, nærmeste måned.' },
-  gas_nyh: { n: 'Benzin, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA, what: 'Fysisk benzin, der handles i New York Harbor nu.' },
-  ulsd_nyh: { n: 'Diesel, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA, what: 'Fysisk diesel, der handles i New York Harbor nu.' },
-  jet_gulf: { n: 'Jetbrændstof, fysisk', s: 'Golfkysten, USA · $/gallon', d: 3, src: EIA, what: 'Fysisk jetbrændstof ved den amerikanske Golfkyst.' },
-  brent_kr: { n: 'Brent i kroner', s: 'Råolie · kr./liter', d: 2, src: CALC, what: 'Brent omregnet til kroner pr. liter (1 tønde = 159 liter).' },
-  rbob_kr: { n: 'Benzin, råvaren', s: 'Før afgifter · kr./liter', d: 2, src: CALC,
-    what: 'Hvad selve benzinen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.' },
-  ulsd_kr: { n: 'Diesel, råvaren', s: 'Før afgifter · kr./liter', d: 2, src: CALC,
-    what: 'Hvad selve dieselen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.' },
-  usddkk: { n: 'Dollaren', s: 'Kroner pr. dollar', d: 3, src: 'Valutakurs via Yahoo Finance',
-    what: 'Olie handles i dollar, så en stærkere dollar gør brændstof dyrere i Danmark, selv når olien står stille.' },
-  ttf: { n: 'TTF-gas', s: 'Future, Europa · €/MWh', d: 2, src: 'ICE Endex-future via Yahoo Finance',
-    what: 'Europas prisreference for naturgas (Holland), nærmeste måned. Smitter af på gas- og elpriser i Danmark.' },
-  hh: { n: 'Henry Hub', s: 'Future, USA · $/MMBtu', d: 3, src: FUT, what: 'Amerikansk naturgas, nærmeste måned på NYMEX.' },
-  hh_spot: { n: 'Henry Hub, fysisk', s: 'Louisiana, USA · $/MMBtu', d: 2, src: EIA, what: 'Fysisk naturgas i Henry Hub, Louisiana.' },
+  brent: { n: 'Brent', s: '$/tønde', d: 2, src: FUT,
+    what: 'Prisreferencen for omkring to tredjedele af verdens olie: Nordsø-olie, nærmeste månedskontrakt.',
+    why: 'Omkring en femtedel af verdens olie sejler gennem Hormuz-strædet. Krig og trusler mod skibsfarten i Golfen og Det Røde Hav og sanktioner mod Rusland og Iran slår først ud her.',
+    up: OIL_UP, down: OIL_DOWN },
+  wti: { n: 'WTI', s: '$/tønde · USA', d: 2, src: FUT,
+    what: 'Amerikansk råolie leveret i Cushing, Oklahoma – nærmeste månedskontrakt.',
+    why: 'USA er verdens største olieproducent; WTI viser det amerikanske marked, hvor skiferolie, lagre og eksport sætter prisen.',
+    up: OIL_UP, down: OIL_DOWN },
+  brent_spot: { n: 'Brent, fysisk', s: 'laster · $/tønde', d: 2, src: EIA,
+    what: 'Prisen på rigtige laster Nordsø-olie, der lastes nu (FOB) – ikke papirkontrakter.',
+    why: 'Når laster bliver knappe – fx når tankskibe undgår et stræde – stiger den fysiske pris før futures.',
+    up: 'Raffinaderierne betaler mere for olie, der kan leveres nu.', down: 'Der er rigeligt med olie på vandet.' },
+  wti_spot: { n: 'WTI, fysisk', s: 'Cushing · $/tønde', d: 2, src: EIA,
+    what: 'Prisen på fysisk WTI-olie, der leveres i Cushing nu.',
+    why: 'Viser, om der er olie nok i USA’s lagre lige nu.', up: 'Strammere amerikansk marked.', down: 'Fyldte lagre.' },
+  phys_prem: { n: 'Fysisk minus papir', s: '$/tønde', d: 2, kind: 'spread', src: 'Beregnet: EIA-spot minus futures samme dag',
+    what: 'Prisen på rigtige laster Brent minus prisen på papir-Brent samme dag.',
+    why: 'Forskellen afslører, om en krise er reel – mangel på olie – eller kun frygt i papirmarkedet.',
+    up: 'Større præmie: købere betaler ekstra for olie, der kan leveres nu – reel knaphed.', down: 'Under nul: der er mere olie, end køberne vil have lige nu.' },
+  curve: { n: 'Terminskurven', s: 'nærmeste måned − 6 mdr. frem', d: 2, kind: 'spread', src: 'NYMEX-kontrakter via Yahoo Finance',
+    what: 'Prisen for hver leveringsmåned. Falder kurven (backwardation), betaler markedet ekstra for olie nu. Stiger den (contango), er der olie nok, og det kan betale sig at lagre den.',
+    why: 'Kurven viser, om markedet frygter mangel nu eller venter rigelig olie senere.',
+    up: 'Mere backwardation: olie nu er mere værd end olie senere – tegn på knaphed.', down: 'Mod contango: der er olie nok, og lagrene fyldes.' },
+  brent_wti: { n: 'Brent − WTI', s: 'Europa mod USA · $/tønde', d: 2, kind: 'spread', src: CALC,
+    what: 'Forskellen mellem europæisk og amerikansk råolie.',
+    why: 'Vokser, når udbuddet uden for USA rammes – fx af sanktioner eller angreb i Mellemøsten – og USA eksporterer mere.',
+    up: 'Olie uden for USA bliver relativt knappere.', down: 'De to markeder nærmer sig hinanden.' },
+  crack321: { n: '3-2-1 crack', s: 'raffinørmargin · $/tønde', d: 2, kind: 'spread', src: CALC,
+    what: 'Raffinaderiernes bruttomargin: tre tønder WTI bliver til to tønder benzin og én tønde diesel.',
+    why: 'Viser, om flaskehalsen er råolien eller raffinaderierne – angreb på raffinaderier (fx i Rusland) eller nedlukninger presser marginen op.',
+    up: 'Brændstof bliver dyrere, end råolien alene tilsiger.', down: 'Rigeligt med brændstof eller svag efterspørgsel.' },
+  crack_diesel: { n: 'Diesel-crack', s: 'diesel − Brent · $/tønde', d: 2, kind: 'spread', src: CALC,
+    what: 'En tønde diesel (New York Harbor ULSD) minus en tønde Brent.',
+    why: 'Diesel er det mest geopolitisk følsomme produkt: Europa har mistet russisk diesel, og omvejen uden om Det Røde Hav forlænger ruterne fra Asien og Golfen.',
+    up: 'Dyrere lastbiltransport, landbrug og varer.', down: 'Lettere for transport og industri.' },
+  crack_gas: { n: 'Benzin-crack', s: 'benzin − Brent · $/tønde', d: 2, kind: 'spread', src: CALC,
+    what: 'En tønde benzin (RBOB) minus en tønde Brent.',
+    why: 'Benzinmarginen stiger typisk i den amerikanske kørselssæson om sommeren og når raffinaderier lukker ned.',
+    up: 'Benzin bliver dyrere end olien.', down: 'Rigeligt med benzin.' },
+  rbob: { n: 'Benzin (RBOB)', s: 'New York · $/gallon', d: 3, src: FUT,
+    what: 'Benzin til levering i New York Harbor, nærmeste måned. 1 gallon = 3,785 liter.',
+    why: 'Prisreferencen for benzin på verdensmarkedet; den danske råvarepris følger den tæt.',
+    up: 'Benzin bliver dyrere ved pumpen, typisk efter få dage.', down: 'Pumpeprisen følger efter, ofte lidt langsommere.' },
+  ulsd: { n: 'Diesel (ULSD)', s: 'New York · $/gallon', d: 3, src: FUT,
+    what: 'Diesel med ultralavt svovlindhold (også fyringsolie) til levering i New York Harbor, nærmeste måned.',
+    why: 'Følsom over for vinteren, sanktionerne mod Rusland og skibsruterne.',
+    up: 'Dyrere diesel og fyringsolie.', down: 'Billigere diesel og fyringsolie.' },
+  gas_nyh: { n: 'Benzin, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA,
+    what: 'Fysisk benzin, der handles i New York Harbor nu.', why: 'Det rigtige marked bag futures.', up: 'Strammere benzinmarked.', down: 'Rigeligt med benzin.' },
+  ulsd_nyh: { n: 'Diesel, fysisk', s: 'New York Harbor · $/gallon', d: 3, src: EIA,
+    what: 'Fysisk diesel, der handles i New York Harbor nu.', why: 'Det rigtige marked bag futures.', up: 'Strammere dieselmarked.', down: 'Rigeligt med diesel.' },
+  jet_gulf: { n: 'Jetbrændstof, fysisk', s: 'Golfkysten · $/gallon', d: 3, src: EIA,
+    what: 'Fysisk jetbrændstof ved den amerikanske Golfkyst.', why: 'Flybrændstof er flyselskabernes største udgift efter lønnen.',
+    up: 'Dyrere flybilletter.', down: 'Lettere for flyselskaberne.' },
+  brent_kr: { n: 'Brent i kroner', s: 'kr./liter', d: 2, src: CALC,
+    what: 'Brent omregnet til kroner pr. liter (1 tønde = 159 liter).',
+    why: 'Olien, som en dansker betaler for den: både olieprisen og dollarkursen tæller.', up: OIL_UP, down: OIL_DOWN },
+  rbob_kr: { n: 'Benzin, råvaren', s: 'før afgifter · kr./liter', d: 2, src: CALC,
+    what: 'Hvad selve benzinen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.',
+    why: 'Den del af pumpeprisen, der svinger med verdensmarkedet; afgifterne ligger fast.',
+    up: 'Pumpeprisen følger typisk efter inden for få dage.', down: 'Giver plads til lavere pumpepriser.' },
+  ulsd_kr: { n: 'Diesel, råvaren', s: 'før afgifter · kr./liter', d: 2, src: CALC,
+    what: 'Hvad selve dieselen koster pr. liter på råvaremarkedet. Resten af pumpeprisen er afgifter, moms, transport og avance.',
+    why: 'Den del af pumpeprisen, der svinger med verdensmarkedet; afgifterne ligger fast.',
+    up: 'Pumpeprisen følger typisk efter inden for få dage.', down: 'Giver plads til lavere pumpepriser.' },
+  usddkk: { n: 'Dollaren', s: 'kroner pr. dollar', d: 3, src: 'Valutakurs via Yahoo Finance',
+    what: 'Hvor mange kroner en dollar koster.',
+    why: 'Olie, gas, metaller og korn handles i dollar. Dollaren styrkes typisk, når verden er urolig, og når den amerikanske rente stiger.',
+    up: 'Alt, der købes i dollar, bliver dyrere i Danmark – også når olien står stille.', down: 'Import i dollar bliver billigere.' },
+  eurdkk: { n: 'Euroen', s: 'kroner pr. euro', d: 4, src: 'Valutakurs via Yahoo Finance',
+    what: 'Kroner pr. euro. Kronen er bundet til euroen (fastkurspolitikken), så kursen ligger tæt på 7,46.',
+    why: 'Bruges her til at omregne EU-landenes pumpepriser. Et større udsving fra 7,46 er sjældent og et tegn på pres på kronen.',
+    up: 'Kronen svækkes – Nationalbanken kan købe kroner eller hæve renten.', down: 'Kronen styrkes – Nationalbanken kan sælge kroner eller sænke renten.' },
+  ttf: { n: 'TTF-gas', s: 'Europa · €/MWh', d: 2, src: 'ICE Endex-future via Yahoo Finance',
+    what: 'Europas prisreference for naturgas (Holland), nærmeste måned.',
+    why: 'Europa erstattede russisk rørgas med flydende gas (LNG) fra især USA og Qatar – og Qatars LNG sejler gennem Hormuz-strædet.',
+    up: 'Dyrere varme, el og industri i Europa – også i Danmark.', down: 'Lettere for husholdninger og industri.' },
+  hh: { n: 'Henry Hub', s: 'USA · $/MMBtu', d: 3, src: FUT,
+    what: 'Amerikansk naturgas, nærmeste måned på NYMEX.',
+    why: 'Billig amerikansk gas har gjort USA til verdens største eksportør af LNG.',
+    up: 'Dyrere gas og el i USA og dyrere LNG til Europa.', down: 'Billigere gas i USA.' },
+  hh_spot: { n: 'Henry Hub, fysisk', s: 'Louisiana · $/MMBtu', d: 2, src: EIA,
+    what: 'Fysisk naturgas i Henry Hub, Louisiana.', why: 'Det rigtige marked bag futures.', up: 'Strammere gasmarked.', down: 'Rigeligt med gas.' },
+  // fuel in the USA
+  us_gas: { n: 'Benzin, USA', s: 'snit ved pumpen · $/gallon', d: 3, w: true, src: EIAW,
+    what: 'Gennemsnitsprisen for almindelig benzin ved amerikanske tankstationer, hele landet.',
+    why: 'Benzinprisen er en af de mest politiske priser i USA: præsidenter bliver målt på den, og den farver, hvordan amerikanerne ser økonomien.',
+    up: 'Mindre at gøre godt med for amerikanske husholdninger – og pres på præsidenten for at frigive nødlagre eller presse OPEC.', down: 'Lettelse for forbrugerne.' },
+  us_diesel: { n: 'Diesel, USA', s: 'snit ved pumpen · $/gallon', d: 3, w: true, src: EIAW,
+    what: 'Gennemsnitsprisen for diesel ved amerikanske tankstationer, hele landet.',
+    why: 'Diesel driver lastbiler, landbrug og byggeri; prisen slår igennem i varepriserne.',
+    up: 'Dyrere fragt og varer.', down: 'Billigere fragt.' },
+  // markets
+  spx: { n: 'S&P 500', s: 'aktier · USA', d: 2, src: IDX,
+    what: 'De 500 største børsnoterede selskaber i USA, vægtet efter børsværdi – det mest fulgte mål for verdens aktiemarkeder.',
+    why: 'Viser, hvad investorerne tror om amerikansk økonomi, renter og selskabernes indtjening. En stor del af stigningen de seneste år kommer fra få store tech-selskaber (se AI).',
+    up: 'Optimisme om vækst og indtjening – og større formuer i pensionskasser verden over, også danske.', down: 'Frygt for recession, højere renter eller uro; falder ofte samtidig med, at VIX stiger.' },
+  ndx: { n: 'Nasdaq 100', s: 'tech-aktier · USA', d: 2, src: IDX,
+    what: 'De 100 største ikke-finansielle selskaber på Nasdaq-børsen – domineret af tech.',
+    why: 'Det mest følsomme indeks over for forventningerne til AI og over for renten.',
+    up: 'Mere tro på tech og AI.', down: 'Tvivl om tech-selskabernes værdi eller højere renter.' },
+  sx5e: { n: 'Euro Stoxx 50', s: 'aktier · eurozonen', d: 2, src: IDX,
+    what: '50 af eurozonens største selskaber.',
+    why: 'Europa rammes hårdere end USA af dyr energi og handelskrig; indekset viser, hvordan europæisk industri klarer sig.',
+    up: 'Mere tro på europæisk økonomi.', down: 'Frygt for energipriser, told eller recession i Europa.' },
+  c25: { n: 'C25', s: 'aktier · Danmark', d: 2, src: IDX,
+    what: 'De 25 mest handlede aktier på Københavns Fondsbørs.',
+    why: 'Domineret af få store selskaber inden for medicin og skibsfart, så globale nyheder om netop dem slår hårdt igennem.',
+    up: 'Større værdi i danske selskaber og pensioner.', down: 'Tab for danske aktiemarkeder og pensioner.' },
+  n225: { n: 'Nikkei 225', s: 'aktier · Japan', d: 0, src: IDX,
+    what: '225 store japanske selskaber.',
+    why: 'Japan importerer næsten al sin energi og lever af eksport; yenen og Bank of Japans renter bevæger indekset.',
+    up: 'Mere tro på japansk eksport og økonomi.', down: 'Frygt for verdenshandlen eller en stærk yen.' },
+  sse: { n: 'Shanghai', s: 'aktier · Kina', d: 2, src: IDX,
+    what: 'Alle aktier på børsen i Shanghai (SSE Composite).',
+    why: 'Stemningen i Kinas økonomi, som staten ofte støtter direkte; handelskrigen med USA og ejendomskrisen fylder.',
+    up: 'Tegn på statsstøtte eller bedre tider i Kina.', down: 'Bekymring for Kinas vækst eller handelskrigen.' },
+  vix: { n: 'VIX', s: 'frygtindeks · USA', d: 2, src: 'Cboe-indeks via Yahoo Finance, ca. 15 min. forsinket',
+    what: 'Hvor store udsving investorerne venter i S&P 500 de næste 30 dage, målt på optionspriser. Kaldes markedets frygtindeks.',
+    why: 'Springer op ved krig, finanskriser og chok. Under 15 er roligt, 20–30 nervøst og over 30 frygt.',
+    up: 'Mere usikkerhed; aktierne falder ofte samtidig.', down: 'Ro i markedet.' },
+  tnx: { n: 'USA, 10-årig rente', s: 'statsobligation · %', d: 3, kind: 'pp', src: 'Cboe via Yahoo Finance, ca. 15 min. forsinket',
+    what: 'Renten på en amerikansk statsobligation med ti års løbetid – verdens vigtigste rente. Ændringen står i procentpoint.',
+    why: 'Den styrer boliglån og lånerenter verden over. Med en statsgæld på over 40 billioner dollar gør en højere rente gælden dyrere, efterhånden som den fornyes.',
+    up: 'Dyrere lån for stater, virksomheder og boligejere – kan være tegn på frygt for inflation eller for USA’s gæld.', down: 'Billigere lån; ofte tegn på, at investorer søger sikkerhed eller venter lavere renter.' },
+  dxy: { n: 'Dollarindekset', s: 'dollar mod seks valutaer', d: 2, src: 'ICE-indeks via Yahoo Finance',
+    what: 'Dollaren målt mod euro, yen, pund, canadiske dollar, svenske kroner og schweizerfranc.',
+    why: 'Dollaren er verdens reservevaluta: når den stiger, bliver olie og lån i dollar dyrere for resten af verden – hårdest for lande med gæld i dollar som Egypten, Pakistan og Tyrkiet.',
+    up: 'Strammere for udviklingslande og for dem, der køber råvarer.', down: 'Lettelse for lande med gæld i dollar; råvarer stiger ofte i dollar.' },
+  // commodities
+  gold: { n: 'Guld', s: '$ pr. ounce (31,1 g)', d: 0, src: 'COMEX-future via Yahoo Finance, ca. 10 min. forsinket',
+    what: 'Prisen på guld, nærmeste månedskontrakt i New York.',
+    why: 'Den klassiske sikre havn. Centralbanker – især Kinas, Ruslands og Tyrkiets – har købt rekordmeget guld for at blive mindre afhængige af dollaren.',
+    up: 'Frygt, inflation eller mistillid til dollaren og til statsgæld.', down: 'Mere tillid i markedet eller højere renter.' },
+  copper: { n: 'Kobber', s: '$ pr. pund (454 g)', d: 3, src: 'COMEX-future via Yahoo Finance, ca. 10 min. forsinket',
+    what: 'Industrimetallet i ledninger, motorer, elbiler og datacentre.',
+    why: 'Kaldes "Dr. Copper", fordi prisen følger verdensøkonomien – især Kinas, der bruger omkring halvdelen af verdens kobber. Elnet og AI-datacentre øger efterspørgslen.',
+    up: 'Tegn på vækst og efterspørgsel – eller mangel på udbud.', down: 'Tegn på svagere industri, især i Kina.' },
+  wheat: { n: 'Hvede', s: 'cent pr. bushel', d: 1, src: 'CBOT-future via Yahoo Finance, ca. 10 min. forsinket',
+    what: 'Hvede til levering i Chicago, verdens prisreference (amerikanske cent pr. bushel).',
+    why: 'Brød er en politisk vare: Egypten er en af verdens største hvedeimportører og giver millioner subsidieret brød. Rusland og Ukraine står for omkring en fjerdedel af verdens eksport, så krig ved Sortehavet slår hurtigt ud.',
+    up: 'Dyrere brød og pres på statsbudgetterne i Mellemøsten og Nordafrika.', down: 'Lettelse for de lande, der importerer korn.' },
+  btc: { n: 'Bitcoin', s: '$ · handles døgnet rundt', d: 0, src: 'Kurs via Yahoo Finance',
+    what: 'Den største kryptovaluta.',
+    why: 'Følger ofte risikovilligheden i tech-aktierne, og lande under sanktioner bruger krypto til at flytte penge uden om bankerne.',
+    up: 'Mere risikovillighed og spekulation.', down: 'Flugt fra risiko.' },
+  // the AI giants
+  nvda: { n: 'Nvidia', s: 'AI-chips · USA', d: 2, src: STK,
+    what: 'Laver de grafikchips, som de fleste store AI-modeller trænes på.',
+    why: 'Et af verdens mest værdifulde selskaber. USA begrænser salget af de bedste chips til Kina.', up: AI_UP, down: AI_DOWN },
+  msft: { n: 'Microsoft', s: 'software og sky · USA', d: 2, src: STK,
+    what: 'Windows, Office og skyen Azure.',
+    why: 'En af de største investorer i OpenAI og i AI-datacentre.', up: AI_UP, down: AI_DOWN },
+  googl: { n: 'Alphabet', s: 'Google · USA', d: 2, src: STK,
+    what: 'Google-søgning, YouTube og Google Cloud.',
+    why: 'Laver sine egne AI-chips og -modeller; AI-svar kan både styrke og true søgemaskinen.', up: AI_UP, down: AI_DOWN },
+  meta: { n: 'Meta', s: 'Facebook, Instagram, WhatsApp', d: 2, src: STK,
+    what: 'Ejer Facebook, Instagram og WhatsApp.',
+    why: 'Bruger rekordbeløb på AI-datacentre og egne modeller.', up: AI_UP, down: AI_DOWN },
+  amzn: { n: 'Amazon', s: 'netbutik og sky · USA', d: 2, src: STK,
+    what: 'Netbutik og AWS, verdens største leverandør af cloud.',
+    why: 'Bygger AI-datacentre og egne AI-chips til AWS.', up: AI_UP, down: AI_DOWN },
+  aapl: { n: 'Apple', s: 'iPhone · USA', d: 2, src: STK,
+    what: 'iPhone, Mac og tjenester.',
+    why: 'Produktionen afhænger af Kina, Indien og TSMC’s chips; handelskrig og told rammer Apple direkte.', up: AI_UP, down: AI_DOWN },
+  tsm: { n: 'TSMC', s: 'chipfabrik · Taiwan', d: 2, src: 'ADR i New York via Yahoo Finance, ca. 15 min. forsinket',
+    what: 'Verdens største chipfabrik; laver langt de fleste af de mest avancerede chips, også Nvidias. Ikke med i S&P 500.',
+    why: 'Spændingen mellem Kina og Taiwan gør selskabet til et geopolitisk nøglepunkt: uden TSMC går AI-byggeriet i stå.', up: AI_UP, down: AI_DOWN },
+  avgo: { n: 'Broadcom', s: 'chips og netværk · USA', d: 2, src: STK,
+    what: 'Designer specialchips til bl.a. Google og Meta og netværk til datacentre.',
+    why: 'Tjener på, at de store selskaber vil have deres egne AI-chips i stedet for Nvidias.', up: AI_UP, down: AI_DOWN },
 };
-const BLOCKS = [
-  { h: 'Råolie', keys: ['brent', 'wti', 'brent_spot', 'wti_spot'] },
-  { h: 'Det fysiske marked', hint: 'Rigtige laster mod papirkontrakter – her ses knaphed først.', keys: ['phys_prem', 'curve', 'brent_wti'] },
-  { h: 'Raffinørmargin', hint: 'Crack spreads: hvad raffinaderierne tjener på at lave brændstof af råolie.', keys: ['crack321', 'crack_diesel', 'crack_gas'] },
-  { h: 'Benzin, diesel og jet', keys: ['rbob', 'ulsd', 'gas_nyh', 'ulsd_nyh', 'jet_gulf'] },
-  { h: 'Danmark', pumps: true, keys: ['rbob_kr', 'ulsd_kr', 'brent_kr', 'usddkk'] },
-  { h: 'Gas', keys: ['ttf', 'hh', 'hh_spot'] },
-];
+const AI = ['nvda', 'msft', 'aapl', 'googl', 'amzn', 'avgo', 'meta', 'tsm'];
 const PUMP = { benzin: 'Benzin 95', diesel: 'Diesel', benzin_plus: 'Benzin', diesel_plus: 'Diesel', hvo: 'HVO100' };
+const EU_NAME = { EU: 'EU-snit', DE: 'Tyskland', SE: 'Sverige', FR: 'Frankrig', NL: 'Holland', DK: 'Danmark', IT: 'Italien', PL: 'Polen', ES: 'Spanien' };
+// the debt bars: names in our own voice (Israel's in the house style), a short neutral note for each
+const LAND = {
+  USA: ['USA', 'Store underskud hvert år; renteudgifterne vokser.'],
+  JPN: ['Japan', 'Højest blandt de rige lande; det meste ejes af japanske investorer og centralbanken.'],
+  GBR: ['Storbritannien', 'Omkring hele BNP siden corona.'],
+  FRA: ['Frankrig', 'Store underskud og politisk uro om budgettet.'],
+  ITA: ['Italien', 'Blandt de højeste i eurozonen i årtier.'],
+  DEU: ['Tyskland', 'Lav efter en gældsbremse i grundloven, lempet i 2025 til forsvar og infrastruktur.'],
+  CHN: ['Kina', 'Lokalregeringernes lån gennem deres selskaber kommer oveni ifølge IMF.'],
+  DNK: ['Danmark', 'Blandt de laveste i EU.'],
+  TUR: ['Tyrkiet', 'Lav gæld, men høj inflation og en svag lira; inflationen udhuler gælden.'],
+  EGY: ['Egypten', 'Store lån fra IMF og Golfstaterne; renterne tager en stor del af statens indtægter.'],
+  SAU: ['Saudi-Arabien', 'Lav takket være olieindtægterne, men staten låner mere til sine store projekter.'],
+  ISR: ['“israel”', 'Gælden steg med krigsudgifterne efter oktober 2023.'],
+  PAK: ['Pakistan', 'Afhængig af lån fra IMF, Kina og Golfstaterne.'],
+  RUS: ['Rusland', 'Lav gæld; sanktionerne lukker for lån i Vesten.'],
+  IRN: ['Iran', 'Lav officiel gæld; sanktioner og høj inflation.'],
+  GRC: ['Grækenland', 'Højest i EU efter gældskrisen, men faldende.'],
+};
+const DEBT_TXT = {
+  what: 'Den amerikanske stats samlede gæld (Total Public Debt Outstanding) ifølge det amerikanske finansministerium, opgjort hver bankdag.',
+  why: 'Renteudgifterne er blandt de største poster på det amerikanske budget. Gælden gør USA afhængig af, at verden bliver ved med at købe statsobligationer – og hænger sammen med den 10-årige rente og dollarens rolle som reservevaluta.',
+  up: 'Underskuddet bliver finansieret med nye lån; jo højere renten er, jo dyrere bliver det.', down: 'Sker sjældent og kort, fx når gældsloftet er nået, og staten midlertidigt ikke må låne mere.' };
+const IMF_TXT = {
+  what: 'Den offentlige bruttogæld i procent af landets årlige økonomi (BNP) ifølge IMF.',
+  why: 'Viser, hvor sårbar en stat er over for højere renter og kapitalflugt. Mindst lige så vigtigt er, hvem der ejer gælden og i hvilken valuta: Japan skylder mest til sine egne, mens Egypten og Pakistan skylder meget i dollar.',
+  up: 'Mindre råderum og større renteudgifter – og større afhængighed af långivere som IMF, Golfstaterne eller Kina.', down: 'Mere råderum; men et fald kan også skyldes høj inflation, der udhuler gælden.' };
 
-let D = null;
+// ---- the sections and their choices ---------------------------------------------------------------------------------
+const SECTIONS = [
+  { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', groups: [['dk', 'Danmark'], ['us', 'USA'], ['eu', 'Europa']] },
+  { id: 'oil', tab: 'Olie', fly: 'Olie og gas', groups: [
+    ['crude', 'Råolie', ['brent', 'wti', 'brent_spot', 'wti_spot', 'brent_kr']],
+    ['phys', 'Fysisk', ['phys_prem', 'curve', 'brent_wti'], 'Rigtige laster mod papirkontrakter – her ses knaphed først.'],
+    ['ref', 'Raffinering', ['crack321', 'crack_diesel', 'crack_gas'], 'Crack spreads: hvad raffinaderierne tjener på at lave brændstof af råolie.'],
+    ['prod', 'Produkter', ['rbob', 'ulsd', 'gas_nyh', 'ulsd_nyh', 'jet_gulf']],
+    ['gas', 'Gas', ['ttf', 'hh', 'hh_spot']],
+    ['news', 'Nyheder']] },
+  { id: 'mkt', tab: 'Markeder', fly: 'Markeder', groups: [
+    ['stocks', 'Aktier', ['spx', 'ndx', 'sx5e', 'c25', 'n225', 'sse']],
+    ['risk', 'Risiko', ['vix', 'tnx', 'dxy', 'usddkk', 'eurdkk'], 'Frygt, renter og dollaren – de tal, der flytter alt det andet.']] },
+  { id: 'ai', tab: 'AI', fly: 'AI-boblen' },
+  { id: 'debt', tab: 'Gæld', fly: 'Gæld', groups: [['us', 'USA'], ['land', 'Lande']] },
+  { id: 'raw', tab: 'Råvarer', fly: 'Råvarer', keys: ['gold', 'copper', 'wheat', 'btc'] },
+];
+const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
+const HASH = { braendstof: 'fuel', olie: 'oil', markeder: 'mkt', ai: 'ai', gaeld: 'debt', raavarer: 'raw' };
+const UNHASH = Object.fromEntries(Object.entries(HASH).map(([a, b]) => [b, a]));
+
+let D = null, lastUpdated = null;
+let sec = HASH[location.hash.slice(1)] || store.get('ecSec', 'fuel');
+if (!SEC[sec]) sec = 'fuel';
+const group = store.get('ecGroup', {});
 const open = new Set(store.get('enOpen', []));
 const range = store.get('enRange', {});
 let curveOf = 'brent', pumpPlus = false, newsAll = false;
 
 // ---- numbers and time ----------------------------------------------------------------------------------------------
 const nf = (v, d = 2) => Number(v).toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
+const whole = v => Math.round(v).toLocaleString('da-DK');
 const signed = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), d);
 const isDay = t => /^\d{4}-\d{2}-\d{2}$/.test(t);
 const asDate = t => isDay(t) ? new Date(t + 'T12:00:00') : new Date(t);
+const dm = t => { const d = asDate(t); return `${d.getDate()}/${d.getMonth() + 1}`; };
 const dayLabel = (t, opts = { day: 'numeric', month: 'short' }) => asDate(t).toLocaleDateString('da-DK', opts);
-const clock = t => new Date(t).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+const clock = t => new Date(t).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
 const sameDay = (a, b) => a.toDateString() === b.toDateString();
+const weekday = d => d.toLocaleDateString('da-DK', { weekday: 'long' });
+const yesterday = () => { const y = new Date(); y.setDate(y.getDate() - 1); return y; };
 function when(t) {
   if (!t) return '';
   const d = asDate(t), now = new Date();
-  if (isDay(t)) return sameDay(d, now) ? 'i dag' : dayLabel(t);
+  if (isDay(t)) return sameDay(d, now) ? 'i dag' : dm(t);
   if (sameDay(d, now)) return 'kl. ' + clock(t);
-  const y = new Date(now); y.setDate(now.getDate() - 1);
-  if (sameDay(d, y)) return 'i går ' + clock(t);
-  if (now - d < 6 * 864e5) return d.toLocaleDateString('da-DK', { weekday: 'long' }) + ' ' + clock(t);
-  return dayLabel(t);
+  if (sameDay(d, yesterday())) return 'i går kl. ' + clock(t);
+  if (now - d < 6 * 864e5) return weekday(d) + ' kl. ' + clock(t);
+  return dm(t);
 }
 const monthName = ym => new Date(ym + '-15T12:00:00').toLocaleDateString('da-DK', { month: 'short', year: '2-digit' }).replace('.', '');
+// the exchanges close from Friday night to Sunday night
+const closedNow = () => { const wd = new Date().getDay(); return wd === 6 || wd === 0; };
+// each figure's own time: 'kl. 15.59' while its market trades, 'fredag lukkekurs' after, 'ugentlig · 13/10', 'dagligt · 14/10'
+function stamp(k, x) {
+  if (!x || !x.t) return '';
+  if (C[k] && C[k].w) return 'ugentlig · ' + dm(x.t);
+  if (isDay(x.t)) return 'dagligt · ' + dm(x.t);
+  const d = new Date(x.t), now = new Date(), s = Date.now() / 1000;
+  const shut = x.o ? (s < x.o[0] || s > x.o[1] + 120) : (closedNow() && !sameDay(d, now));
+  if (shut) {
+    if (sameDay(d, now)) return 'lukkekurs i dag';
+    if (sameDay(d, yesterday())) return 'lukkekurs i går';
+    if (now - d < 6 * 864e5) return weekday(d) + ' lukkekurs';
+    return 'lukkekurs ' + dm(x.t);
+  }
+  return when(x.t);
+}
+const pct = x => x && x.p ? (x.v - x.p) / x.p * 100 : null;
 
-// the day's move: % for prices, $ for spreads; an arrow, so colour is never the only sign
+// the day's move: % for prices, $ for spreads, points for a rate; an arrow, so colour is never the only sign
 function move(k, x) {
-  if (x.p == null || x.v == null) return { cls: '', text: '' };
-  const diff = x.v - x.p;
+  if (!x || x.p == null || x.v == null) return { cls: '', text: '' };
+  const diff = x.v - x.p, c = C[k] || {};
   if (Math.abs(diff) < 1e-9) return { cls: '', text: 'uændret' };
   const cls = diff > 0 ? 'up' : 'down', arrow = diff > 0 ? '▲' : '▼';
-  if (C[k] && C[k].spread) return { cls, text: `${arrow} ${nf(Math.abs(diff), C[k].d)}` };
-  const pc = Math.abs(diff / x.p * 100);
-  return { cls, text: `${arrow} ${nf(pc, pc < .1 ? 2 : 1)} %` };
+  if (c.kind === 'spread') return { cls, text: `${arrow} ${nf(Math.abs(diff), c.d)}` };
+  if (c.kind === 'pp') return { cls, text: `${arrow} ${nf(Math.abs(diff), 2)} pt.` };
+  const p = Math.abs(diff / x.p * 100);
+  return { cls, text: `${arrow} ${nf(p, p < .1 ? 2 : 1)} %` };
 }
+const fmtv = (k, v) => C[k] && C[k].kind === 'spread' ? signed(v, C[k].d) : C[k] && C[k].kind === 'pp' ? nf(v, 2) + ' %' : nf(v, C[k] ? C[k].d : 2);
 
 // ---- small and large charts ----------------------------------------------------------------------------------------
 function sparkPath(vals, w, h) {
@@ -280,9 +577,10 @@ function ticks(lo, hi, n = 4) {
   for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-6; v += step) out.push(+v.toFixed(10));
   return { out, step };
 }
-// a line chart you can touch: series = [{ pts: [[label, value], ...], cls }]; x is the point's place in the list
+// a line chart you can touch: series = [{ pts: [[key, value, label, long label], ...], cls, name }]
 function chart(box, series, { d = 2, fmt, dots = false, tags = [] } = {}) {
   const W = box.clientWidth || 320, H = box.clientHeight || 172, R = 46, T = 10, B = 22;
+  series = series.filter(s => s.pts.length);
   const all = series.flatMap(s => s.pts.map(p => p[1]));
   if (!all.length) { box.innerHTML = ''; return; }
   let lo = Math.min(...all), hi = Math.max(...all);
@@ -304,9 +602,9 @@ function chart(box, series, { d = 2, fmt, dots = false, tags = [] } = {}) {
     if (dots || s.pts.length === 1) svg += s.pts.map((p, i) => `<circle class="pt" cx="${X(i).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="3.5"/>`).join('');
   }
   for (const t of tags) svg += `<text class="tag" x="${X(t.i).toFixed(1)}" y="${(Y(t.v) + t.dy).toFixed(1)}" text-anchor="${t.anchor || 'end'}">${esc(t.text)}</text>`;
-  svg += `<line class="cross" id="x" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"/>` + series.map((s, j) => `<circle class="pt" data-j="${j}" r="4" visibility="hidden"/>`).join('') + '</svg>';
+  svg += `<line class="cross" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"/>` + series.map((s, j) => `<circle class="pt" data-j="${j}" r="4" visibility="hidden"/>`).join('') + '</svg>';
   box.innerHTML = svg + '<div class="en-tip" hidden></div>';
-  const tip = box.querySelector('.en-tip'), cross = box.querySelector('#x'), marks = box.querySelectorAll('circle[data-j]');
+  const tip = box.querySelector('.en-tip'), cross = box.querySelector('.cross'), marks = box.querySelectorAll('circle[data-j]');
   const at = ev => {
     const r = box.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
     const i = Math.max(0, Math.min(n - 1, Math.round(n < 2 ? 0 : (x - 2) / (W - R - 4) * (n - 1))));
@@ -328,28 +626,43 @@ function chart(box, series, { d = 2, fmt, dots = false, tags = [] } = {}) {
   box.onpointerleave = ev => { if (ev.pointerType === 'mouse') { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); marks.forEach(m => m.setAttribute('visibility', 'hidden')); } };
 }
 const dated = h => h.map(([t, v]) => [t, v, dayLabel(t), dayLabel(t, { day: 'numeric', month: 'short', year: 'numeric' })]);
+// the ranges a series can show: trading days, weeks or calendar days; only those its history fills
+const RANGES = {
+  d: [['1m', '1 md.', 22], ['3m', '3 mdr.', 66], ['6m', '6 mdr.', 130], ['1y', '1 år', 260]],
+  w: [['3m', '3 mdr.', 13], ['6m', '6 mdr.', 26], ['1y', '1 år', 52], ['2y', '2 år', 105]],
+  c: [['1m', '1 md.', 31], ['3m', '3 mdr.', 92], ['6m', '6 mdr.', 183], ['1y', '1 år', 366]],
+};
+function ranges(kind, len) {
+  const all = RANGES[kind], out = [];
+  for (const r of all) { out.push(r); if (r[2] >= len) break; }
+  return out;
+}
+function cut(key, kind, h) {
+  const rs = ranges(kind, h.length), want = range[key] || (kind === 'w' ? '1y' : '3m');
+  const r = rs.find(q => q[0] === want) || rs[Math.min(1, rs.length - 1)];
+  return { rs, r, pts: h.slice(-r[2]) };
+}
+const rangeRow = (key, rs, r) => rs.length < 2 ? '' : `<div class="en-range" data-for="${esc(key)}">${rs.map(([id, label]) => `<button data-range="${id}" aria-pressed="${id === r[0]}"><span>${label}</span></button>`).join('')}</div>`;
+const explain = t => `<dl class="ec-ex"><dt>Hvad er det</dt><dd>${esc(t.what)}</dd>${t.why ? `<dt>Hvorfor holde øje med det nu</dt><dd>${esc(t.why)}</dd>` : ''}`
+  + (t.up ? `<div class="ec-ud"><div class="up"><dt><span class="a">▲</span>Stiger det</dt><dd>${esc(t.up)}</dd></div><div class="down"><dt><span class="a">▼</span>Falder det</dt><dd>${esc(t.down)}</dd></div></div>` : '') + '</dl>';
 
-// ---- the page ------------------------------------------------------------------------------------------------------
+// ---- one figure ----------------------------------------------------------------------------------------------------
 function curveSpread(c) {
   if (!c || c.length < 2) return null;
   const a = c[0], z = c[Math.min(6, c.length - 1)];
   return { a, z, v: a[1] - z[1] };
 }
-function rowFor(k) {
+function rowFor(k, sub) {
   const c = C[k];
-  let x = D.s[k];
   if (k === 'curve') {
     const cs = curveSpread(D.curve && D.curve.brent);
     if (!cs) return '';
-    x = { v: cs.v, p: null, h: [], t: D.ok && D.ok.curve };
-    const m = cs.v > 0 ? 'backwardation' : 'contango';
-    return item(k, `Brent ${monthName(cs.a[0])} − ${monthName(cs.z[0])}`, spark(D.curve.brent.map(p => p[1])), signed(cs.v, 2), { cls: '', text: m });
+    return item(k, `Brent ${monthName(cs.a[0])} − ${monthName(cs.z[0])}`, spark(D.curve.brent.map(p => p[1])), signed(cs.v, 2), { cls: '', text: cs.v > 0 ? 'backwardation' : 'contango' });
   }
-  if (!x || x.v == null) return '';
-  const h = (x.h || []).slice(-66).map(p => p[1]);
-  const mv = move(k, x);
-  const old = x.t && ((Date.now() - asDate(x.t)) > 4 * 864e5 || (!isDay(x.t) && newest() - asDate(x.t) > 30 * 36e5));
-  return item(k, c.s, spark(h), c.spread ? signed(x.v, c.d) : nf(x.v, c.d), old ? { cls: 'old', text: when(x.t) } : mv);
+  const x = D.s[k];
+  if (!c || !x || x.v == null) return '';
+  const h = (x.h || []).slice(c.w ? -26 : -66).map(p => p[1]);
+  return item(k, [stamp(k, x), sub || c.s].filter(Boolean).join(' · '), spark(h), fmtv(k, x.v), move(k, x));
 }
 function item(k, sub, sp, val, mv) {
   const isOpen = open.has(k);
@@ -358,74 +671,132 @@ function item(k, sub, sp, val, mv) {
     <span class="en-val"><span class="en-v">${esc(val)}</span><span class="en-c ${mv.cls}">${esc(mv.text)}</span></span></button>
     ${isOpen ? `<div class="en-more">${more(k)}</div>` : ''}</div>`;
 }
-const RANGES = [['1m', '1 md.', 22], ['3m', '3 mdr.', 66], ['6m', '6 mdr.', 999]];
 function more(k) {
   const c = C[k];
   if (k === 'curve') {
     const segs = ['brent', 'wti'].filter(q => D.curve && D.curve[q]).map(q => `<button data-curve="${q}" aria-pressed="${q === curveOf}"><span>${q === 'brent' ? 'Brent' : 'WTI'}</span></button>`).join('');
     const cs = curveSpread(D.curve[curveOf]);
     const hl = cs ? `${monthName(cs.a[0])}: <b>${nf(cs.a[1], 2)} $</b> · ${monthName(cs.z[0])}: <b>${nf(cs.z[1], 2)} $</b> · ${cs.v > 0 ? 'backwardation' : 'contango'} ${nf(Math.abs(cs.v), 2)} $` : '';
-    return `<div class="en-range en-seg">${segs}</div><div class="en-chart" data-chart="curve"></div><p class="en-hl">${hl}</p><p class="en-what">${esc(c.what)}</p><p class="en-src">${esc(c.src)} · ${esc(when(D.ok && D.ok.curve))}</p>`;
+    return `<div class="en-range en-seg">${segs}</div><div class="en-chart" data-chart="curve"></div><p class="en-hl">${hl}</p>${explain(c)}<p class="en-src">${esc(c.src)} · ${esc(when(D.ok && D.ok.curve))}</p>`;
   }
-  const x = D.s[k], r = range[k] || '3m';
-  const pts = (x.h || []).slice(-(RANGES.find(q => q[0] === r) || RANGES[1])[2]);
+  const x = D.s[k], { rs, r, pts } = cut(k, c.w ? 'w' : 'd', x.h || []);
   const vals = pts.map(p => p[1]);
-  const f = v => c.spread ? signed(v, c.d) : nf(v, c.d);
+  const f = v => fmtv(k, v);
   const hl = vals.length ? `Høj ${f(Math.max(...vals))} · lav ${f(Math.min(...vals))} · snit ${f(vals.reduce((a, b) => a + b, 0) / vals.length)}` : '';
-  const btns = RANGES.map(([id, label]) => `<button data-range="${id}" aria-pressed="${id === r}"><span>${label}</span></button>`).join('');
-  return `<div class="en-range">${btns}</div><div class="en-chart" data-chart="${k}"></div><p class="en-hl">${hl}</p><p class="en-what">${esc(c.what)}</p><p class="en-src">${esc(c.src)} · seneste ${esc(when(x.t))}</p>`;
+  let extra = '';
+  if (k in (D.spy && D.spy.w || {})) extra = D.spy.w[k] ? `<p class="en-hl">Vægt i S&amp;P 500: <b>${nf(D.spy.w[k], 1)} %</b> (${esc(dm(D.spy.t))})</p>` : '<p class="en-hl">Ikke med i S&amp;P 500.</p>';
+  return `${rangeRow(k, rs, r)}<div class="en-chart" data-chart="${k}"></div><p class="en-hl">${hl}</p>${extra}${explain(c)}<p class="en-src">${esc(c.src)} · seneste ${esc(stamp(k, x))}</p>`;
 }
 function drawCharts(root = document) {
   root.querySelectorAll('.en-chart[data-chart]').forEach(box => {
     const k = box.dataset.chart;
     if (k === 'curve') {
       const c = D.curve[curveOf] || [];
-      const cs = curveSpread(c);
-      const pts = c.map(([m, v]) => [m, v, monthName(m), monthName(m)]);
-      return chart(box, [{ pts }], { d: 2, dots: true, fmt: v => nf(v, 2) + ' $' });
+      return chart(box, [{ pts: c.map(([m, v]) => [m, v, monthName(m), monthName(m)]) }], { d: 2, dots: true, fmt: v => nf(v, 2) + ' $' });
     }
     if (k === 'pumps') return pumpChart(box);
-    const x = D.s[k], r = range[k] || '3m';
-    const pts = dated((x.h || []).slice(-(RANGES.find(q => q[0] === r) || RANGES[1])[2]));
-    chart(box, [{ pts }], { d: C[k].d, fmt: v => C[k].spread ? signed(v, C[k].d) : nf(v, C[k].d) });
+    if (k === 'aiidx') return aiChart(box);
+    if (k === 'aiw') return chart(box, [{ pts: dated(D.spy.h) }], { d: 1, dots: D.spy.h.length < 8, fmt: v => nf(v, 1) + ' %' });
+    if (k === 'debt') {
+      const { pts } = cut('debt', 'd', D.debt.h);
+      return chart(box, [{ pts: dated(pts) }], { d: 0, fmt: v => whole(v) + ' mia. $' });
+    }
+    if (k.startsWith('imf:')) {
+      const h = (D.imf.c[k.slice(4)] || []).map(([y, v]) => [y, v, String(y), String(y)]);
+      return chart(box, [{ pts: h }], { d: 1, fmt: v => nf(v, 1) + ' %' });
+    }
+    const x = D.s[k];
+    if (!x) return;
+    const { pts } = cut(k, C[k].w ? 'w' : 'd', x.h || []);
+    chart(box, [{ pts: dated(pts) }], { d: C[k].d, fmt: v => fmtv(k, v) });
   });
 }
 
-// the newest price time among the futures: what 'now' is for the markets (a price a trading day older is shown as old)
-const newest = () => Math.max(0, ...['brent', 'wti', 'rbob', 'ulsd'].map(k => D.s[k] && D.s[k].t ? +asDate(D.s[k].t) : 0));
-// the exchanges close from Friday night to Sunday night (ICE and NYMEX: Saturday 00 to Monday 00 Danish time)
-function closedNow() {
-  const n = new Date(), wd = n.getDay(), last = newest();
-  return (wd === 6 || wd === 0) && last && Date.now() - last > 2 * 36e5;
+// ---- Lige nu: what moved most today, from the numbers ----------------------------------------------------------------
+const MOVERS = ['spx', 'ndx', 'sx5e', 'c25', 'n225', 'sse', 'vix', 'tnx', 'dxy', 'gold', 'copper', 'wheat', 'btc', 'brent', 'ttf', 'ulsd', ...AI];
+const median = a => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+function movers() {
+  const out = [];
+  for (const k of MOVERS) {
+    const x = D.s[k];
+    if (!x || x.p == null || !x.h || x.h.length < 30 || Date.now() - asDate(x.t) > 4 * 864e5) continue;
+    const rate = C[k].kind === 'pp';
+    const ch = rate ? x.v - x.p : pct(x);
+    const days = [];
+    for (let i = Math.max(1, x.h.length - 66); i < x.h.length; i++) days.push(Math.abs(rate ? x.h[i][1] - x.h[i - 1][1] : (x.h[i][1] - x.h[i - 1][1]) / x.h[i - 1][1] * 100));
+    const typ = median(days);
+    if (ch == null || !typ) continue;
+    out.push({ k, ch, typ, z: Math.abs(ch) / typ });
+  }
+  return out.sort((a, b) => b.z - a.z);
 }
-// Lige nu: the few lines that say where the market stands
+function moverLine(m) {
+  const c = C[m.k], x = D.s[m.k], rate = c.kind === 'pp';
+  const verb = m.ch > 0 ? 'steg' : 'faldt';
+  const amount = rate ? `${nf(Math.abs(m.ch), 2)} point til ${nf(x.v, 2)} %` : `${nf(Math.abs(m.ch), 1)} %`;
+  const note = m.z >= 2.5 ? ` – usædvanligt meget (typisk ${rate ? nf(m.typ, 2) + ' point' : nf(m.typ, 1) + ' %'})` : '';
+  return `<b>${esc(c.n)}</b> ${verb} ${amount}${note} <span class="q">${esc(stamp(m.k, x))}</span>`;
+}
 function signals() {
   const s = D.s, out = [];
-  if (closedNow()) out.push(`<b>Børserne holder weekend:</b> olie og gas står med fredagens lukkekurser <span class="q">åbner igen natten til mandag</span>`);
-  const pct = x => x && x.p ? (x.v - x.p) / x.p * 100 : null;
+  if (closedNow()) out.push('<b>Børserne holder weekend:</b> kurserne er fredagens lukkekurser <span class="q">Bitcoin handles hele døgnet</span>');
+  const top = movers().filter(m => m.z >= 1.2).slice(0, 3);
+  for (const m of top) out.push(moverLine(m));
   const b = s.brent;
-  if (b) {
-    const p = pct(b);
-    const mv = p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), 1)} %`;
-    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv + (closedNow() ? ' fredag' : '') : ''} <span class="q">${esc(closedNow() ? 'lukkekurs' : when(b.t))}</span>`);
+  if (b && !top.some(m => m.k === 'brent')) {
+    const p = pct(b), mv = p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), 1)} %`;
+    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv : ''} <span class="q">${esc(stamp('brent', b))}</span>`);
   }
-  const pp = s.phys_prem;
-  if (pp && Math.abs(pp.v) >= .5) {
-    const what = pp.v > 3 ? 'rigtige laster er knappe' : pp.v < -3 ? 'rigeligt med olie på vandet' : 'tæt på normalt';
-    out.push(`<b>Fysisk olie:</b> ${nf(Math.abs(pp.v), 2)} $ ${pp.v > 0 ? 'over' : 'under'} papirprisen – ${what} <span class="q">${esc(when(pp.t))}</span>`);
-  }
-  const cs = curveSpread(D.curve && D.curve.brent);
-  if (cs) out.push(`<b>Terminskurven:</b> ${esc(monthName(cs.a[0]))} koster ${nf(Math.abs(cs.v), 2)} $ ${cs.v > 0 ? 'mere' : 'mindre'} end ${esc(monthName(cs.z[0]))} – ${cs.v > 0 ? 'markedet betaler for olie nu' : 'der er olie nok nu'}`);
-  const dc = s.crack_diesel;
-  if (dc && dc.h && dc.h.length > 20) {
-    const vals = dc.h.map(p => p[1]), avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-    const rel = dc.v >= Math.max(...vals) ? 'højeste i et halvt år' : dc.v <= Math.min(...vals) ? 'laveste i et halvt år' : `${dc.v > avg ? 'over' : 'under'} halvårets snit på ${nf(avg, 0)} $`;
-    out.push(`<b>Diesel-margin:</b> ${nf(dc.v, 2)} $ pr. tønde over Brent – ${rel}`);
+  const v = s.vix;
+  if (v && !top.some(m => m.k === 'vix')) {
+    const mood = v.v < 15 ? 'roligt marked' : v.v < 20 ? 'normalt' : v.v < 30 ? 'nervøst marked' : 'frygt i markedet';
+    out.push(`<b>Frygtindekset VIX:</b> ${nf(v.v, 1)} – ${mood} <span class="q">${esc(stamp('vix', v))}</span>`);
   }
   const low = lowest();
   if (low.benzin) out.push(`<b>Pumpen:</b> benzin ${nf(low.benzin.v, 2)} kr.${low.diesel ? ` · diesel ${nf(low.diesel.v, 2)} kr.` : ''} pr. liter <span class="q">billigste kæde</span>`);
-  return out;
+  return out.slice(0, 6);
 }
+
+// ---- the sections' heads: a fly title and a headline line from the numbers -------------------------------------------
+const dir = (p, d = 1) => p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), d)} %`;
+function head(id) {
+  const s = D.s, low = lowest();
+  try {
+    if (id === 'fuel' && low.benzin && low.diesel) {
+      const us = s.us_gas && s.usddkk ? s.us_gas.v * s.usddkk.v / 3.78541 : null;
+      return [`Benzin ${nf(low.benzin.v, 2)} kr. og diesel ${nf(low.diesel.v, 2)} kr. literen`,
+        `Den billigste kædes listepris i dag${us ? `. I USA koster benzin i snit ${nf(us, 2)} kr. literen` : ''}.`];
+    }
+    if (id === 'oil' && s.brent) {
+      const cs = curveSpread(D.curve && D.curve.brent);
+      return [`Brent ${nf(s.brent.v, 2)} dollar tønden${pct(s.brent) != null ? ', ' + dir(pct(s.brent)) : ''}`,
+        cs ? (cs.v > 0 ? 'Terminskurven falder: markedet betaler ekstra for olie nu.' : 'Terminskurven stiger: markedet venter olie nok.') : 'Råolie, det fysiske marked, raffinering og gas.'];
+    }
+    if (id === 'mkt' && s.spx) {
+      const p = pct(s.spx);
+      return [`S&P 500 ${p == null ? nf(s.spx.v, 0) : p > 0 ? 'steg ' + nf(p, 1) + ' %' : p < 0 ? 'faldt ' + nf(-p, 1) + ' %' : 'uændret'}${s.vix ? ` · VIX ${nf(s.vix.v, 1)}` : ''}`,
+        'Aktier, frygt, renter og dollaren – hvad investorerne tror om verden.'];
+    }
+    if (id === 'ai') {
+      const n = AI.filter(k => D.spy && D.spy.w && D.spy.w[k]).length;
+      if (D.spy && D.spy.ai) return [`${n === 7 ? 'Syv' : n} AI-giganter er ${nf(D.spy.ai, 1)} % af S&P 500`, 'Hvor meget af verdens største aktieindeks hviler på de selskaber, der bygger AI.'];
+      return ['AI-giganterne mod resten af markedet', 'Hvor meget af aktiemarkedet hviler på de selskaber, der bygger AI.'];
+    }
+    if (id === 'debt' && group.debt === 'land' && D.imf && D.imf.c) {
+      const top = Object.entries(D.imf.c).filter(([c]) => LAND[c]).map(([c, h]) => [c, h[h.length - 1][1]]).sort((a, b) => b[1] - a[1]);
+      const dk = D.imf.c.DNK;
+      return [`${LAND[top[0][0]][0]} skylder mest: ${nf(top[0][1], 0)} % af BNP`,
+        `Statsgælden i ${top.length} lande i forhold til deres økonomi${dk ? ` – Danmark ${nf(dk[dk.length - 1][1], 0)} %` : ''}.`];
+    }
+    if (id === 'debt' && D.debt) return [`USA skylder ${nf(D.debt.v / 1e12, 2)} billioner dollar`,
+      D.debt.g ? `Gælden er vokset med ${nf(D.debt.g / 1e9, 1)} mia. dollar om dagen i snit det seneste år.` : 'Statsgæld i USA og i resten af verden.'];
+    if (id === 'raw' && s.gold) return [`Guld ${whole(s.gold.v)} dollar pr. ounce${pct(s.gold) != null ? ', ' + dir(pct(s.gold)) : ''}`,
+      'Guld, kobber, hvede og bitcoin – den sikre havn, industrien, brødet og spekulationen.'];
+  } catch (e) { /* a missing number: the plain head */ }
+  return [{ fuel: 'Benzin og diesel nu', oil: 'Olie og gas nu', mkt: 'Markederne nu', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne nu' }[id], ''];
+}
+
+// ---- Brændstof -----------------------------------------------------------------------------------------------------
 function lowest() {
   const out = {};
   for (const c of (D.pumps && D.pumps.chains) || []) for (const [k, x] of Object.entries(c.p)) {
@@ -433,6 +804,20 @@ function lowest() {
     else if (x.v === out[k].v) out[k].who.push(c.c);
   }
   return out;
+}
+const perL = (usdGal) => D.s.usddkk ? usdGal * D.s.usddkk.v / 3.78541 : null;
+const euL = eur => D.s.eurdkk ? eur * D.s.eurdkk.v / 1000 : null;
+function fuelTiles() {
+  const low = lowest(), us = { benzin: D.s.us_gas, diesel: D.s.us_diesel }, eu = D.eu && D.eu.c && D.eu.c.EU;
+  const tile = (k, i) => {
+    const x = low[k];
+    if (!x) return '';
+    const cmp = [us[k] && perL(us[k].v) ? `USA <b>${nf(perL(us[k].v), 2)}</b>` : '', eu && euL(eu[i]) ? `EU-snit <b>${nf(euL(eu[i]), 2)}</b>` : ''].filter(Boolean).join(' · ');
+    return `<div class="ec-tile"><span class="ec-k">${k === 'benzin' ? 'Benzin 95' : 'Diesel'} · billigst</span><span class="ec-v">${nf(x.v, 2)}<small>kr./l</small></span>
+      <span class="ec-l">${esc(x.who.join(', '))}${cmp ? `<br>${cmp} kr.` : ''}</span></div>`;
+  };
+  const t = tile('benzin', 0) + tile('diesel', 1);
+  return t ? `<div class="ec-tiles">${t}</div>` : '';
 }
 function pumps() {
   const P = D.pumps;
@@ -457,36 +842,147 @@ function pumps() {
   };
   let t = table(['benzin', 'diesel'], 'Kæde');
   if (pumpPlus) t += '<div style="height:14px"></div>' + table(['benzin_plus', 'diesel_plus', 'hvo'], 'Premium');
-  const rb = D.s.rbob_kr, ul = D.s.ulsd_kr;
-  const raw = rb && ul && low.benzin && low.diesel
-    ? `<p class="en-note">Af en liter er <b>${nf(rb.v, 2)} kr.</b> selve benzinen og <b>${nf(ul.v, 2)} kr.</b> selve dieselen på råvaremarkedet – resten er afgifter, moms, transport og avance.</p>` : '';
   const cheap = [];
   for (const c of P.chains) for (const k of ['benzin', 'diesel']) {
     const x = c.p[k];
     if (x && x.min < x.v - 1e-9 && x.at && x.at.length) cheap.push(`${esc(c.c)} ${esc(x.at.join(', '))}: ${PUMP[k].toLowerCase()} ${nf(x.min, 2)}`);
   }
   const listNote = `<p class="en-note">Kædernes listepris i kr. pr. liter (den pris de fleste stationer har)${cheap.length ? '. Billigere enkeltstationer: ' + cheap.slice(0, 4).join(' · ') : ''}.</p>`;
-  const hist = (P.h || []).length >= 2
-    ? '<div class="en-pchart"><div class="en-chart" data-chart="pumps"></div></div>'
-    : `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((P.h && P.h[0] && P.h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
   const plus = `<button class="en-plus" id="pumpPlus" aria-expanded="${pumpPlus}">${pumpPlus ? 'Kun benzin og diesel' : 'Premium og HVO'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  return t + listNote + plus + raw + hist;
+  return t + listNote + plus;
+}
+function pumpHistory() {
+  const P = D.pumps, h = (P && P.h) || [];
+  if (h.length < 2) return `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((h[0] && h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
+  const { rs, r } = cut('pumps', 'c', h);
+  return `<section class="block"><div class="block-h"><h2>Prisen over tid</h2></div><p class="en-hint">Den billigste kædes listepris, ét punkt om dagen.</p>${rangeRow('pumps', rs, r)}<div class="en-pchart"><div class="en-chart" data-chart="pumps"></div></div><div class="ec-legend" style="margin-left:16px"><span><i></i>Diesel</span><span><i class="two"></i>Benzin</span></div></section>`;
 }
 function pumpChart(box) {
-  const h = D.pumps.h || [];
-  const line = k => h.map(([day, chains]) => {
+  const { pts } = cut('pumps', 'c', D.pumps.h || []);
+  const line = k => pts.map(([day, chains]) => {
     const vals = Object.values(chains).map(c => c[k]).filter(v => v != null);
     return vals.length ? [day, Math.min(...vals), dayLabel(day), dayLabel(day)] : null;
   }).filter(Boolean);
-  const b = line('benzin'), d = line('diesel');
-  const tags = [];
-  if (d.length) tags.push({ i: d.length - 1, v: d[d.length - 1][1], dy: -8, text: 'Diesel' });
-  if (b.length) tags.push({ i: b.length - 1, v: b[b.length - 1][1], dy: 16, text: 'Benzin' });
-  chart(box, [{ pts: d, name: 'Diesel' }, { pts: b, name: 'Benzin', cls: 'two' }], { d: 2, tags });
+  chart(box, [{ pts: line('diesel'), name: 'Diesel' }, { pts: line('benzin'), name: 'Benzin', cls: 'two' }], { d: 2 });
 }
+// the part of the price that is the raw product: a bar and its share
+function rawShare(label, raw, price, rest) {
+  if (!raw || !price) return '';
+  const p = Math.max(0, Math.min(100, raw / price * 100));
+  return `<div class="ec-tile ec-span"><span class="ec-k">${esc(label)}</span><span class="ec-v">${nf(p, 0)}<small>% er selve råvaren</small></span><span class="ec-share"><i style="width:${p.toFixed(1)}%"></i></span><span class="ec-l">${esc(rest)}</span></div>`;
+}
+function fuelDk() {
+  const low = lowest(), rb = D.s.rbob_kr;
+  let h = `<section class="block"><div class="block-h"><h2>Kæderne i dag</h2></div>${pumps()}</section>`;
+  h += `<div class="ec-tiles">${rawShare('Benzin i Danmark', rb && rb.v, low.benzin && low.benzin.v, `Af ${nf(low.benzin ? low.benzin.v : 0, 2)} kr. er ca. ${nf(rb ? rb.v : 0, 2)} kr. selve benzinen på verdensmarkedet; resten er afgifter, moms, transport og avance.`)}</div>`;
+  h += pumpHistory();
+  h += `<section class="block"><div class="block-h"><h2>Råvaren i kroner</h2></div><div class="en-rows">${['rbob_kr', 'ulsd_kr', 'brent_kr', 'usddkk'].map(k => rowFor(k)).join('')}</div></section>`;
+  return h;
+}
+function fuelUs() {
+  const g = D.s.us_gas, d = D.s.us_diesel;
+  if (!g && !d) return '<p class="en-note">De amerikanske pumpepriser kunne ikke hentes lige nu.</p>';
+  const tile = (x, name) => x ? `<div class="ec-tile"><span class="ec-k">${name} · snit</span><span class="ec-v">${nf(x.v, 2)}<small>$/gal.</small></span><span class="ec-l">= <b>${perL(x.v) ? nf(perL(x.v), 2) : '–'} kr.</b> pr. liter<br>ugentlig · ${esc(dm(x.t))}</span></div>` : '';
+  let h = `<div class="ec-tiles">${tile(g, 'Benzin')}${tile(d, 'Diesel')}</div>`;
+  h += `<p class="en-note">Gennemsnit for hele USA ved pumpen, med skatter. 1 gallon = 3,785 liter; omregnet med dollarkursen${D.s.usddkk ? ' (' + nf(D.s.usddkk.v, 2) + ' kr.)' : ''}. Skatten på brændstof er langt lavere i USA end i Danmark.</p>`;
+  h += `<div class="ec-tiles">${rawShare('Benzin i USA', D.s.rbob && D.s.rbob.v, g && g.v, 'Benzin-futures i New York mod prisen ved pumpen; resten er skatter, transport og avance.')}${rawShare('Diesel i USA', D.s.ulsd && D.s.ulsd.v, d && d.v, 'Diesel-futures i New York mod prisen ved pumpen.')}</div>`;
+  h += `<section class="block"><div class="block-h"><h2>Udviklingen</h2></div><div class="en-rows">${['us_gas', 'us_diesel', 'rbob', 'ulsd'].map(k => rowFor(k)).join('')}</div></section>`;
+  return h;
+}
+function fuelEu() {
+  const E = D.eu;
+  if (!E || !E.c || !D.s.eurdkk) return '<p class="en-note">EU’s ugentlige priser kunne ikke hentes lige nu.</p>';
+  const rows = Object.entries(E.c).map(([c, [b, d]]) => [c, euL(b), euL(d)]).sort((a, b) => b[1] - a[1]);
+  const low = lowest();
+  let t = '<table class="en-pump"><thead><tr><th>Land</th><th>Benzin</th><th>Diesel</th></tr></thead><tbody>';
+  for (const [c, b, d] of rows) t += `<tr class="${c === 'DK' ? 'me' : c === 'EU' ? 'avg' : ''}"><td>${esc(EU_NAME[c] || c)}</td><td>${nf(b, 2)}</td><td>${nf(d, 2)}</td></tr>`;
+  t += '</tbody></table>';
+  return `<section class="block"><div class="block-h"><h2>Pumpepriser i Europa</h2></div><p class="en-hint">Kr. pr. liter med afgifter og moms · ugentlig · ${esc(dm(E.t))}</p>${t}
+    <p class="en-note">EU-Kommissionens Weekly Oil Bulletin, omregnet med euroens kurs (${nf(D.s.eurdkk.v, 2)} kr.). EU’s tal for Danmark er de vejledende listepriser${low.benzin ? `; kæderne sælger i dag benzin fra <b>${nf(low.benzin.v, 2)} kr.</b>` : '.'}</p></section>`;
+}
+
+// ---- AI ------------------------------------------------------------------------------------------------------------
+// the eight companies as one basket, each counting the same, against the S&P 500, both from 100 at the range's start
+function aiSeries() {
+  const maps = AI.map(k => D.s[k] && new Map(D.s[k].h)), spx = D.s.spx && new Map(D.s.spx.h);
+  if (!spx || maps.some(m => !m)) return null;
+  const days = D.s.spx.h.map(p => p[0]).filter(d => maps.every(m => m.has(d)));
+  const { rs, r, pts } = cut('aiidx', 'd', days.map(d => [d, 0]));
+  const sel = pts.map(p => p[0]);
+  if (sel.length < 2) return null;
+  const base = maps.map(m => m.get(sel[0])), b0 = spx.get(sel[0]);
+  const ai = sel.map(d => [d, maps.reduce((a, m, i) => a + m.get(d) / base[i], 0) / maps.length * 100]);
+  const sp = sel.map(d => [d, spx.get(d) / b0 * 100]);
+  return { rs, r, ai, sp };
+}
+function aiChart(box) {
+  const s = aiSeries();
+  if (!s) { box.innerHTML = ''; return; }
+  chart(box, [{ pts: dated(s.ai), name: 'AI', cls: 'red' }, { pts: dated(s.sp), name: 'S&P 500', cls: 'two' }], { d: 0, fmt: v => nf(v, 1) });
+}
+function aiPage() {
+  const W = D.spy, s = aiSeries();
+  let h = '';
+  if (W && W.ai) {
+    const names = AI.filter(k => W.w && W.w[k]).sort((a, b) => W.w[b] - W.w[a]).map(k => C[k].n);
+    h += `<div class="ec-tiles"><div class="ec-tile ec-span"><span class="ec-k">AI-giganternes vægt i S&amp;P 500</span><span class="ec-v">${nf(W.ai, 1)}<small>%</small></span>
+      <span class="ec-share"><i style="width:${Math.min(100, W.ai).toFixed(1)}%"></i></span>
+      <span class="ec-l">${esc(names.join(', '))}.<br>Indeksets ti største aktier i alt: <b>${nf(W.top10, 1)} %</b> · SPY-fondens beholdning ${esc(dm(W.t))}</span></div></div>`;
+    if (W.h && W.h.length >= 3) h += `<div class="ec-pad" style="margin-top:12px"><div class="en-chart" data-chart="aiw" style="height:120px"></div></div>`;
+  }
+  if (s) {
+    const ch = a => a[a.length - 1][1] - 100;
+    h += `<section class="block"><div class="block-h"><h2>Kurven mod markedet</h2></div><p class="en-hint">De otte selskaber lige vægtet mod S&amp;P 500, begge sat til 100 ved periodens start.</p>
+      ${rangeRow('aiidx', s.rs, s.r)}<div class="ec-pad"><div class="en-chart" data-chart="aiidx"></div>
+      <div class="ec-legend"><span><i class="red"></i>AI-kurven ${esc(signed(ch(s.ai), 1))} %</span><span><i class="two"></i>S&amp;P 500 ${esc(signed(ch(s.sp), 1))} %</span></div></div></section>`;
+  }
+  const rows = AI.map(k => rowFor(k, W && W.w && k in W.w ? (W.w[k] ? `${nf(W.w[k], 1)} % af S&P 500` : 'ikke i S&P 500') : '')).join('');
+  h += `<section class="block"><div class="block-h"><h2>Selskaberne i dag</h2></div><div class="en-rows">${rows || WAIT}</div></section>`;
+  const conc = W && W.ai ? `Syv selskaber udgør ${nf(W.ai, 1)} % af S&P 500. Den, der sparer op i et bredt indeks – også mange danske pensioner – har i høj grad satset på dem.` : 'Få selskaber udgør en meget stor del af S&P 500, så et bredt indeks i høj grad er et væddemål på dem.';
+  h += `<section class="block"><div class="block-h"><h2>Hvorfor taler man om en boble?</h2></div><ul class="ec-pts">
+    <li><b>Prisen.</b> Aktierne handles til mange gange selskabernes årlige overskud. Prisen bygger på den indtjening, investorerne venter fra AI i fremtiden.</li>
+    <li><b>Investeringerne.</b> De store tech-selskaber bruger tilsammen hundredvis af milliarder dollar om året på datacentre, chips og strøm – mere, end AI indtil videre tjener ind.</li>
+    <li><b>Koncentrationen.</b> ${esc(conc)}</li>
+    <li><b>Kredsløbet.</b> Chipleverandører investerer i deres egne kunder, som så køber deres chips, og meget af væksten hviler på få kunder.</li>
+    <li><b>Modargumentet.</b> I modsætning til dotcom-boblen i 2000 tjener selskaberne store penge i dag. Om der er en boble, ved man først bagefter – ingen kan sige, om eller hvornår kurserne vender.</li></ul></section>`;
+  return h;
+}
+
+// ---- Gæld ----------------------------------------------------------------------------------------------------------
+// the counter: the latest official figure plus the last year's average growth, second by second – an estimate
+const debtStart = () => new Date(D.debt.t + 'T16:00:00-04:00').getTime();
+const debtNow = () => D.debt.v + (D.debt.g || 0) * Math.max(0, Date.now() - debtStart()) / 864e5;
+function debtUs() {
+  const X = D.debt;
+  if (!X) return '<p class="en-note">Gældstallet kunne ikke hentes lige nu.</p>';
+  const ps = X.g ? X.g / 86400 : 0;
+  let h = `<div class="ec-debt" role="group" aria-label="USA’s statsgæld, skøn"><span class="ec-k"><span>USA’s statsgæld lige nu</span><span class="ec-est">Skøn</span></span>
+    <span class="ec-count" id="debtNow">${whole(debtNow())} $</span>
+    <span class="ec-l">Skøn mellem de daglige tal: det seneste officielle tal (<b>${esc(dm(X.t))}: ${whole(X.v)} $</b>) plus gældens gennemsnitlige vækst det seneste år, <b>${nf((X.g || 0) / 1e9, 1)} mia. $ om dagen</b> – ${whole(ps)} $ i sekundet.</span></div>`;
+  const { rs, r } = cut('debt', 'd', X.h || []);
+  h += `<section class="block"><div class="block-h"><h2>Gælden over tid</h2></div><p class="en-hint">Mia. dollar, hver bankdag · dagligt · ${esc(dm(X.t))}</p>${rangeRow('debt', rs, r)}<div class="ec-pad"><div class="en-chart" data-chart="debt"></div>${explain(DEBT_TXT)}<p class="en-src">Det amerikanske finansministerium: Debt to the Penny (fiscaldata.treasury.gov)</p></div></section>`;
+  const usa = D.imf && D.imf.c && D.imf.c.USA;
+  h += `<section class="block"><div class="block-h"><h2>Hvad gælden koster</h2></div>${usa ? `<p class="en-hint">Gælden svarer til ${nf(usa[usa.length - 1][1], 0)} % af USA’s årlige økonomi (IMF, ${usa[usa.length - 1][0]}).</p>` : ''}<div class="en-rows">${['tnx', 'dxy'].map(k => rowFor(k)).join('')}</div></section>`;
+  return h;
+}
+function debtLands() {
+  const I = D.imf;
+  if (!I || !I.c) return '<p class="en-note">IMF’s tal kunne ikke hentes lige nu.</p>';
+  const rows = Object.entries(I.c).map(([c, h]) => [c, h[h.length - 1]]).filter(([c]) => LAND[c]).sort((a, b) => b[1][1] - a[1][1]);
+  const max = Math.max(...rows.map(r => r[1][1]));
+  const bars = rows.map(([c, [y, v]]) => {
+    const k = 'imf:' + c, isOpen = open.has(k);
+    return `<div class="en-item bar-item${isOpen ? ' open' : ''}" data-k="${k}"><button class="en-row ec-bar${c === 'DNK' ? ' me' : ''}" aria-expanded="${isOpen}"><b>${esc(LAND[c][0])}</b><span class="tr"><i style="width:${(v / max * 100).toFixed(1)}%"></i></span><span class="n">${nf(v, 0)} %</span></button>
+      ${isOpen ? `<div class="en-more"><div class="en-chart" data-chart="${k}" style="height:140px"></div><p class="en-hl">${esc(LAND[c][1])}</p><p class="en-src">IMF · årlig · ${y}</p></div>` : ''}</div>`;
+  }).join('');
+  return `<section class="block"><div class="block-h"><h2>Gæld i procent af BNP</h2></div><p class="en-hint">Offentlig bruttogæld · IMF · årlig · ${I.y} · tryk på et land for årene siden 2000</p>${bars}
+    <div class="ec-pad">${explain(IMF_TXT)}<p class="en-src">IMF World Economic Outlook (DataMapper); de nyeste år er for nogle lande et skøn.</p></div></section>`;
+}
+
+// ---- news (Olie) ---------------------------------------------------------------------------------------------------
 function news() {
   const list = D.news || [];
-  if (!list.length) return '';
+  if (!list.length) return '<p class="en-note">Ingen nyheder om olie og brændstof de seneste tre døgn.</p>';
   // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
   const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
   // Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
@@ -501,41 +997,88 @@ function news() {
     for (const w of k || []) if (w && w.length > 1) out = out.replace(esc(w), `<b>${esc(w)}</b>`);
     return out;
   };
-  const shown = newsAll ? list : list.slice(0, 6);
+  const shown = newsAll ? list : list.slice(0, 8);
   const rows = shown.map(n => {
     const [t, k] = pick(n);
     return `<div class="story"><a class="row" href="${esc(n.u)}" target="_blank" rel="noopener"><span class="tx"><span class="h">${words(tidy(t), k)}</span><span class="m"><span class="src">${esc(n.s)}</span><span>${esc(when(n.p))}</span>${n.n > 1 ? `<span>${n.n} medier</span>` : ''}</span></span></a></div>`;
   }).join('');
-  const moreBtn = !newsAll && list.length > 6 ? `<button class="en-showmore" id="newsMore">${list.length - 6} mere<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
+  const moreBtn = !newsAll && list.length > 8 ? `<button class="en-showmore" id="newsMore">${list.length - 8} mere<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
   return `<section class="block en-news"><div class="block-h"><h2>Energinyheder</h2></div>${rows}${moreBtn}</section>`;
 }
-function render() {
-  const y = scrollY;
-  let html = '';
-  const sig = signals();
-  if (sig.length) html += `<section class="block"><div class="block-h"><h2>Lige nu</h2></div><ul class="en-sig">${sig.map(s => `<li>${s}</li>`).join('')}</ul></section>`;
-  for (const b of BLOCKS) {
-    const rows = b.keys.map(rowFor).join('');
-    if (!rows && !b.pumps) continue;
-    html += `<section class="block"><div class="block-h"><h2>${esc(b.h)}</h2></div>${b.hint ? `<p class="en-hint">${esc(b.hint)}</p>` : ''}`;
-    if (b.pumps) html += pumps();
-    html += `<div class="en-rows">${rows}</div></section>`;
-    if (b.h === 'Danmark') html += news();
+
+// ---- the page ------------------------------------------------------------------------------------------------------
+const WAIT = '<p class="en-note">Tallene er ikke hentet endnu – de kommer ved en af de næste opdateringer.</p>';
+function chips(S, g) {
+  return `<div class="ec-chips" role="group" aria-label="Vis">${S.groups.map(([id, label]) => `<button class="chip${id === g ? ' on' : ''}" data-group="${id}" aria-pressed="${id === g}">${esc(label)}</button>`).join('')}</div>`;
+}
+function body(S) {
+  const g = S.groups ? (S.groups.some(q => q[0] === group[S.id]) ? group[S.id] : S.groups[0][0]) : null;
+  const [h, stand] = head(S.id);
+  let out = `<header class="ec-top"><span class="ec-fly">${esc(S.fly)}</span><h2 class="ec-head">${esc(h)}</h2>${stand ? `<p class="ec-stand">${esc(stand)}</p>` : ''}</header>`;
+  if (S.id === 'fuel') {
+    const sig = signals();
+    if (sig.length) out += `<section class="block"><div class="block-h"><h2>Lige nu</h2></div><ul class="en-sig">${sig.map(s => `<li>${s}</li>`).join('')}</ul></section>`;
+    out += fuelTiles();
   }
-  html += `<p class="foot">Futures fra ICE og NYMEX (ca. 10 min. forsinket) · fysiske priser fra det amerikanske energiministerium (EIA), et par dage bagud · pumpepriser fra Circle K og Q8's egne prislister · nyheder fra Khabar.<br>Opdateres hvert 5. minut.</p>`;
-  $("#en").innerHTML = html;
-  drawCharts();
-  scrollTo(0, y);
+  if (S.groups) out += chips(S, g);
+  if (S.id === 'fuel') out += g === 'us' ? fuelUs() : g === 'eu' ? fuelEu() : fuelDk();
+  else if (S.id === 'debt') out += g === 'land' ? debtLands() : debtUs();
+  else if (S.id === 'ai') out += aiPage();
+  else if (S.groups) {
+    const G = S.groups.find(q => q[0] === g);
+    if (g === 'news') out += news();
+    else out += `${G[3] ? `<p class="en-hint">${esc(G[3])}</p>` : ''}<div class="en-rows">${G[2].map(k => rowFor(k)).join('') || WAIT}</div>`;
+  } else out += `<div class="en-rows" style="margin-top:14px">${S.keys.map(k => rowFor(k)).join('') || WAIT}</div>`;
+  return out;
+}
+function tabs() {
+  $('#tabs').innerHTML = SECTIONS.map(S => `<button role="tab" data-sec="${S.id}" aria-selected="${S.id === sec}" aria-controls="sec">${esc(S.tab)}</button>`).join('');
+}
+function render(fade) {
+  if (!D) return;
+  const y = scrollY, box = $('#sec');
+  box.innerHTML = body(SEC[sec]);
+  box.setAttribute('aria-label', SEC[sec].fly);
+  if (fade) { box.classList.remove('in'); void box.offsetWidth; box.classList.add('in'); }
+  drawCharts(box);
+  if (!fade) scrollTo(0, y);
+  tick();
+}
+function foot() {
+  $('#foot').innerHTML = 'Futures, indeks og aktier via Yahoo Finance (ca. 10–15 min. forsinket) · fysiske priser og amerikanske pumpepriser fra det amerikanske energiministerium (EIA) · europæiske pumpepriser fra EU-Kommissionen · vægte fra SPY-fondens beholdning (State Street) · USA’s gæld fra det amerikanske finansministerium · gæld i % af BNP fra IMF · danske pumpepriser fra Circle K og Q8 · nyheder fra Khabar. Opdateres hvert 5. minut.'
+    + '<span class="ec-advice" style="display:block">Siden er information, ikke investeringsrådgivning. Den anbefaler hverken at købe eller sælge noget.</span>';
+}
+function go(id) {
+  if (!SEC[id]) return;
+  sec = id; store.set('ecSec', id);
+  try { history.replaceState(null, '', '#' + UNHASH[id]); } catch (e) { /* a sandboxed frame */ }
+  tabs();
+  scrollTo(0, 0);
+  render(true);
+}
+
+// the debt counter ticks only while it is on screen and the page is in view
+let ticker = null;
+function tick() {
+  clearInterval(ticker); ticker = null;
+  const el = $('#debtNow');
+  if (!el || !D || !D.debt || !D.debt.g) return;
+  ticker = setInterval(() => { if (!document.hidden && el.isConnected) el.textContent = whole(debtNow()) + ' $'; else if (!el.isConnected) clearInterval(ticker); },
+    matchMedia('(prefers-reduced-motion: reduce)').matches ? 1000 : 250);
 }
 
 // ---- touch -----------------------------------------------------------------------------------------------------------
-$("#en").addEventListener('click', e => {
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if (b) go(b.dataset.sec); });
+$('#sec').addEventListener('click', e => {
   const t = e.target;
-  const rng = t.closest('[data-range]'), cur = t.closest('[data-curve]');
+  const gr = t.closest('[data-group]'), rng = t.closest('[data-range]'), cur = t.closest('[data-curve]');
+  if (gr) { group[sec] = gr.dataset.group; store.set('ecGroup', group); render(); return; }
   if (rng) {
-    const k = rng.closest('.en-item').dataset.k;
+    const holder = rng.closest('[data-for]'), it = rng.closest('.en-item');
+    const k = holder && holder.dataset.for || (it && it.dataset.k);
     range[k] = rng.dataset.range; store.set('enRange', range);
-    const box = rng.closest('.en-more'); box.innerHTML = more(k); drawCharts(box);
+    if (it && it.dataset.k === k) { const box = rng.closest('.en-more'); box.innerHTML = more(k); drawCharts(box); }
+    else render();
     return;
   }
   if (cur) {
@@ -547,14 +1090,14 @@ $("#en").addEventListener('click', e => {
   if (t.closest('#newsMore')) { newsAll = true; render(); return; }
   const row = t.closest('.en-row');
   if (!row) return;
-  const it = row.closest('.en-item'), k = it.dataset.k;
+  const k = row.closest('.en-item').dataset.k;
   if (open.has(k)) open.delete(k); else open.add(k);
-  store.set('enOpen', [...open]);
-  it.outerHTML = (BLOCKS.some(b => b.keys.includes(k)) ? rowFor(k) : '');
-  drawCharts($(`.en-item[data-k="${k}"]`) || document);
+  store.set('enOpen', [...open].slice(-40));
+  render();
 });
 let resizeT;
-addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => D && drawCharts(), 150); });
+addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => D && drawCharts($('#sec')), 150); });
+addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== sec) go(id); });
 
 // ---- data ------------------------------------------------------------------------------------------------------------
 async function load() {
@@ -562,10 +1105,10 @@ async function load() {
   try {
     const r = await fetch(SRC, { cache: 'no-cache' });
     if (!r.ok) throw new Error(r.status);
-    D = await r.json();
-    render();
+    const next = await r.json();
+    if (!D || next.updated !== lastUpdated) { D = next; lastUpdated = next.updated; render(); }
   } catch (e) {
-    if (!D) $("#en").innerHTML = '<p class="empty">Priserne kunne ikke hentes lige nu. Prøv igen om lidt.</p>';
+    if (!D) $('#sec').innerHTML = '<p class="empty">Tallene kunne ikke hentes lige nu. Prøv igen om lidt.</p>';
   }
   if (D && D.updated) {
     const age = Date.now() - new Date(D.updated);
@@ -579,6 +1122,8 @@ addEventListener('scroll', () => $('#bar').classList.toggle('scrolled', scrollY 
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 setInterval(() => { if (!document.hidden) load(); }, 5 * 60e3);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
+tabs();
+foot();
 load();
 </script>
 </body>

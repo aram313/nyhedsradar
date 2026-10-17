@@ -9,6 +9,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The economy page** (2026-10-17, the owner: 'lav det til en femte fane med olie, diesel og benzinpriser … generelle
+  geopolitiske tal man skal holde øje med og hvorfor … s&p 500 … landes gæld … AI boblen … interaktiv … live'): the
+  energy page (khabar.nu/energi, `energi/?embed=1` in the app's Økonomi tab) became Økonomi with six sections in a
+  dock at the bottom – Brændstof (Danish pump prices large, the US weekly average per gallon and in kr. per litre, the
+  EU's Weekly Oil Bulletin, the share that is the raw product), Olie og gas, Markeder (S&P 500, Nasdaq 100, Euro Stoxx
+  50, C25, Nikkei, Shanghai, the VIX, the US 10-year yield, the dollar), AI (the giants' weight in the S&P 500 from
+  SPY's holdings, the basket against the index, why people speak of a bubble), Gæld (the US debt ticking as a labelled
+  estimate between the Treasury's daily figures, 16 lands' debt in % of GDP from the IMF) and Råvarer (gold, copper,
+  wheat, Bitcoin). Every figure opens a chart and says what it is, why to watch it now and what a rise or a fall
+  means; a red fly title and a serif headline line in the manner of The Economist; 'information, ikke
+  investeringsrådgivning'. `energy.py` reads the new keyless sources on their own clocks (the slow ones side by
+  side) and Henry Hub's physical price works again (EIA's static page).
+
 - **Fresh first, Live's filters, the day under Vigtigste** (2026-10-17, the owner: 'Hvordan kan en frisk historie blive
   gemt under vis flere ift en der er over 24 timer gammel?', '3 nemme filtre … verden mellemøsten og danmark', 'under
   vigtigste skal man også kunne se dato og tid'; `?v=20261018p`): a front-page list keeps the editor's order but puts
