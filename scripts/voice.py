@@ -9,6 +9,11 @@ scripts/build_movement.py on the khabar2 branch). editor.py publish runs them on
                                            movement's reading words (standing, rank, serving) and never Hizb
                                            ut-Tahrir's reading – the brain weighs the news, the app shows no analysis
                                            (card H2; the owner's decision of 2026-10-17)
+    check_headline(text, where, problems)  the editor's headlines, block titles and front-page lines: informative, never a
+                                           curiosity headline (a question, 'Derfor …', 'Se …', 'Her er …', 'Sådan …',
+                                           'Det skal du vide', a cliff-hanger colon or '…'; English equivalents – the
+                                           owner's rule of 2026-10-17), and the voice and reality checks (the source's
+                                           own words inside »…« are its framing); curiosity(text) says which words
     check_movement(text, where, problems)  a reading of one of Hizb ut-Tahrir's answers (the answer object): no agent
                                            words (the layer says 'underordnet'); no attack with dead said to be staged
                                            or sponsored unless deeds are said to be missing; no claim that a mosque, an
@@ -68,6 +73,53 @@ GOVERNMENT = re.compile(r'\b(?:[Ss]tyret|[Rr]egeringen|[Rr]egering) under [\w\-]
 NOT_RULING = ('Compaoré', 'Kaboré', 'Tandja', 'Hasina', 'Kongrespart', 'Kongres-part', 'BJP', 'Ruto', 'Hamzah', 'Sonia Gandhi',
               'Beidh', 'Folkepartiet', 'PPP', 'Republikan', 'Demokraterne', 'Trumps kreds', 'Trump-fløj', 'Bhutto', 'Imran Khan',
               'Hamdok', 'Issoufou', 'Odinga', 'Bilawal', 'Gülen')
+# a curiosity headline withholds the news to make the reader click (the owner 2026-10-17, notes-owner-headlines.md): a
+# question, a teaser opening ('Derfor …', 'Se …', 'Her er …', 'Sådan …', 'Det skal du vide') at the start or after a
+# colon or dash, a cliff-hanger colon or '…' at the end, and the click phrases; English equivalents for the same. 'Who:
+# what' ('Kreml: Samtalerne fortsætter', 'Ekspert: Putin holder magten, fordi han …') is the wire's style and stays.
+CURIOUS_DA = re.compile(r'(?:^|[:–—]\s*|\s-\s+)[»«"„“\']?(derfor|se|her er|her får du|her kan du|her ser du|sådan|'
+                        r'det skal du vide|dét skal du vide|hvorfor|hvordan)\b', re.I)
+# at the start only: after a colon these open a quoted statement as often as a teaser ('Kreml: Dette er en provokation')
+CURIOUS_OPEN = re.compile(r'^[»«"„“\']?(det ved vi|det betyder|dette er|det her er|det sker der|hvad|hvem|hvornår|'
+                          r'hvilke[nt]?|hvor (?:meget|mange|langt|stor)|så (?:meget|mange)|nu sker det|forklaring|læs)\b', re.I)
+CURIOUS_EN = re.compile(r"(?:^|[:–—]\s*|\s-\s+)[»«\"'“]?(Why|How|What|Who|When|Where|Which|Here's|Here’s|Here is|This is|"
+                        r"These are|Watch|See|Explained|Everything you need|The reason|You won't believe|Inside)\b")
+CURIOUS_ANY = re.compile(r'og det er ikke godt|eksperter? undrer sig|eksperter? er forbløffe\w*|du skal vide|du ikke vidste|'
+                         r'du vil ikke tro|ikke hvad du tror|det skal du vide|det vil overraske|'
+                         r"you need to know|you won.t believe|what we know|what to know|what you need", re.I)
+CURIOUS_END = re.compile(r'(?:…|\.\.\.|:)\s*[»«"”]?\s*$')
+EDGES = ' :–—-»«"„“\''
+CURIOUS_LABEL = re.compile(r'^\s*(?:video|billeder|fotos?|chok|afsløring|afsløret|watch|photos|revealed|shock)\s*:', re.I)
+
+
+def curiosity(text):
+    """The words that make a headline a curiosity headline, or None for an informative one."""
+    t = ' '.join(str(text or '').split())
+    if not t:
+        return None
+    if '?' in t:
+        return 'a question'
+    for rx in (CURIOUS_LABEL, CURIOUS_DA, CURIOUS_OPEN, CURIOUS_EN, CURIOUS_ANY):
+        hit = rx.search(t)
+        if hit:
+            words = hit.group(0).strip(EDGES)
+            return f"'{words}'"
+    if CURIOUS_END.search(t):
+        return "a cliff-hanger at the end ('…' or ':')"
+    return None
+
+
+def check_headline(text, where, problems):
+    """The editor's headline is informative: who did or said what, where – a statement, never a teaser (the owner's
+    rule of 2026-10-17); and it keeps the content rules."""
+    why = curiosity(text)
+    if why:
+        problems.append(f'{where}: {why} makes it a curiosity headline – state the news: who did or said what, where '
+                        "(a statement, as a news wire writes it; 'Who: what' is fine)")
+    check_voice(text, where, problems)
+    check_reality(QUOTE.sub('', text or ''), where, problems)   # the source's own words inside »…« are its framing
+
+
 LOCAL = re.compile(r'\b[A-Za-z]:[\\/]|[\\/]Alpha[\\/]|pCloud|[\\/]Users[\\/]', re.I)
 QUOTE = re.compile(r'»([^«»]*)«|«([^«»]*)»|"([^"]*)"|“([^”]*)”')
 QUOTE_MAX = 60

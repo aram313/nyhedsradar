@@ -51,6 +51,14 @@ The verdict itself (`editor.verdict`, also what `check` prints) was tightened at
 - the two-hour reason holds only when something changed: a story of weight or at least three new wire lines;
 - a stopped radar (no pass for 30 minutes) is a reason of its own: `radaren står stille`, and the check's first line
   says when the radar last ran.
+- **round 2 (2026-10-17): the headlines.** Every story Live shows carries the editor's informative headline
+  (docs/hjerne/notes-owner-headlines.md). Once the radar draws Live's line (app.json), the look says OPDATÉR when **8
+  admitted stories wait** for the editor's headline (`8 historier i Live venter på redaktørens overskrift`), or when
+  **one has waited more than 45 minutes** between 06 and 24 (`en historie i Live har ventet … på redaktørens
+  overskrift`); the wait counts from when the radar first admitted the story (its `admitted.json`). The first reason
+  fires once per update (key `heads:<the last update>`), the second once per story (key `late:<its first article>`).
+  Both are ordinary reasons under the day's ceiling and its spread; at night they wait for the morning. Before the
+  radar draws the line, the headlines call for nothing (the app's whole pool is not the editor's queue).
 
 ## Measured: 16 October replayed every quarter of an hour
 
@@ -66,6 +74,16 @@ look followed: every fire becomes a full update at that moment), with the new ve
 With the ceiling of 12 the gate held back 13 looks of the afternoon and evening ("fordeles over dagen") and all 11
 looks after 21.00 (the evening's update used the last fire): what happens after 21 waits for the morning. The check: 2,252 characters on average (at most 3,596, never more than 33
 lines). A full input: 35,112 characters on average (27,756-46,891).
+
+## Round 2: what the headlines, the level and the front page add to a run
+
+Measured on the data of 17 October (the radar before its line, so the day's 30 strongest stories without a headline):
+the input grew from about 37,000 to about 53,000 characters – the headlines to write are about 13,000 of it (30
+stories with the outlet's headline, its teaser and three other outlets' headlines; a story listed above shows only its
+headline), Live's level and line about 800, the front page's composition and palette about 1,800, the format about
+1,000. That is about 4,800 tokens more a run, and about 1,500 more written (30 headlines, a level, a composition). With the radar's line in
+place a quarter-hour's update has 5-15 new stories to head, not 30; the 12-a-day estimate below becomes about 535,000
+tokens a day (about 1.2 of today's).
 
 ## Tokens a day, against today's twelve updates
 

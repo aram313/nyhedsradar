@@ -137,7 +137,7 @@ def test_publish_adds_lines_and_the_editors_notes(folder, tmp_path):
     assert digest['editor'] == {'created': '2026-10-10T20:01:00+00:00', 'lede': 'Dagen kort.', 'lede_at': '2026-10-10T20:01:00+00:00',
                                 'picks': [{'id': 's3', 'why': 'Stormagter'}], 'moves': [{'id': 's4', 'sec': 'world'}],
                                 'quotes': [{'who': 'Kreml', 'text': 'Samtalerne fortsætter.', 'sec': 'world',
-                                            'link': 'https://t.me/ajanews/w3'}]}
+                                            'link': 'https://t.me/ajanews/w3', 'id': 'q1'}]}
     assert digest['push']['title'] == 'Khabar · dagens resumé, 10. oktober'   # the evening update tells the phones
     assert moves['days'][0]['date'] == '2026-10-10' and 'editor' not in moves['days'][0]
     assert json.loads((tmp_path / 'out' / 'answers.json').read_text(encoding='utf-8')) == {'items': {}}
@@ -221,9 +221,14 @@ def test_a_summary_must_fit(folder, tmp_path, capsys):
     assert "unknown story id 'nope'" in out and 'at most 420' in out and 'paywall must be true or false' in out
 
 
-def test_machine_headlines_are_asked_for_checked_and_kept(folder, tmp_path):
+def test_every_story_shown_is_asked_for_an_informative_headline_danish_ones_too(folder, tmp_path):
     data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
-    data['items'][2].update(lang='en', title_da='Allerede set kl. 13.35')   # s3, gone over this morning
+    data['items'][2].update(lang='en', title_da='Allerede set kl. 13.35')   # s3, headed this morning
+    data['items'][0].update(lang='da')
+    data['items'].append({**story('p1', 'Derfor strammer regeringen', '2026-10-10T10:00:00+00:00', rank=92, sec='dk', lang='da',
+                                  source='DR'),
+                          'summary': 'Regeringen vil stramme reglerne for statsborgerskab. Forslaget kommer i næste uge.',
+                          'also': [{'id': 'p1b', 'source': 'TV 2', 'title': 'Stramning af statsborgerskab på vej'}]})
     data['items'].append({'id': 's5', 'title': 'نص', 'title_tr': 'Text', 'title_da': 'Tekst', 'lang': 'ar', 'summary': '',
                           'link': 'https://aj.test/5', 'source': 'Al Jazeera', 'sec': 'me', 'rank': 60,
                           'published': '2026-10-10T18:00:00+00:00', 'found': '2026-10-10T18:01:00+00:00'})
@@ -233,13 +238,56 @@ def test_machine_headlines_are_asked_for_checked_and_kept(folder, tmp_path):
         'old': {'title': 'Gammel', 'at': '2026-10-01T10:00:00+00:00'}}}), encoding='utf-8')
     editor.main(['input', '--dir', str(folder), '--now', NOW])
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
-    asked = text.split('## Danish headlines to check')[1].split('## Al Jazeera')[0]
-    assert '[s5] ar · نص (English: Text) → Tekst' in asked
-    assert '[s3]' not in asked and '[s1]' not in asked   # gone over already; Danish to begin with
-    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 's5', 'title': 'Teksten  på dansk'}]})
+    asked = text.split('## Headlines to write')[1].split('## Live')[0]
+    assert '[s5] me · Al Jazeera (ar) · 1 outlets' in asked and '  نص (English: Text) → Tekst' in asked
+    assert '[p1] dk · DR (da)' in asked and '[s1] dk · DR (da)' in asked   # a Danish outlet's story gets one too
+    assert '  Teaser: Regeringen vil stramme' in asked and '  Others: TV 2: Stramning af statsborgerskab på vej' in asked
+    assert asked.split('[s1]')[1].splitlines()[2] == '  (teaser and other outlets: listed above)'   # a new story: listed above
+    assert '[s3]' not in asked and '[s2]' not in asked                    # headed already; older than the day
+    assert asked.index('[p1]') < asked.index('[s1]') < asked.index('[s5]')   # the strongest first
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 's5', 'title': 'Teksten  på dansk'},
+                                                                 {'id': 's1', 'title': 'Regeringen strammer reglerne for statsborgerskab'}]})
     out = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))
-    assert set(out['titles']) == {'s3', 's5'} and out['titles']['s5']['title'] == 'Teksten på dansk'   # older than four days: dropped
+    assert set(out['titles']) == {'s1', 's3', 's5'} and out['titles']['s5']['title'] == 'Teksten på dansk'   # older than four days: dropped
     assert 'titles' not in json.loads((tmp_path / 'out' / 'digest.json').read_text(encoding='utf-8'))['editor']
+
+
+def test_a_headline_is_filed_under_the_card_with_its_members_and_matches_after_the_lead_changed(folder, tmp_path):
+    add_items(folder, story('c1', 'Kort med mange', '2026-10-10T19:00:00+00:00', members=['c0', 'c1', 'c2']))
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 'c2', 'title': 'Hamas og Israel mødes i Kairo'}]})
+    titles = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['titles']
+    assert titles['c1']['title'] == 'Hamas og Israel mødes i Kairo' and titles['c1']['members'] == ['c0', 'c2']
+    later = story('c0', 'Ny lead', '2026-10-10T19:00:00+00:00', members=['c0', 'c1', 'c2'])   # the card's lead changed
+    assert editor.to_head([later], titles, editor.ts(NOW)) == []
+    (folder / 'summaries.json').write_text(json.dumps({'items': {}, 'titles': titles}), encoding='utf-8')
+    data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
+    data['items'] = [i for i in data['items'] if i['id'] != 'c1'] + [later]
+    (folder / 'data.json').write_text(json.dumps(data), encoding='utf-8')
+    publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 'c0', 'title': 'Hamas og Israel mødes igen i Kairo'}]})
+    titles = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))['titles']
+    assert 'c1' not in titles and titles['c0']['title'] == 'Hamas og Israel mødes igen i Kairo'   # one headline a story
+
+
+@pytest.mark.parametrize('title', [
+    'Førende ekspert har teori om Putin: Derfor er han stadig præsident i dag', 'Se billederne: Kaos i lufthavnen',
+    'Hvad betyder det for Danmark?', 'Her er de nye regler for statsborgerskab', 'Sådan stemte partierne om finansloven',
+    'Det skal du vide om valget', 'Ministeren svarer – og det er ikke godt', 'Ministeren har et budskab:',
+    'Eksperter undrer sig over Kremls nye linje', 'Why Iran matters now', "Here's what we know about the strike",
+    'Video: Israel bomber Gaza', 'Regeringen strammer reglerne – se dem her'])
+def test_publish_refuses_a_curiosity_headline(folder, tmp_path, capsys, title):
+    with pytest.raises(SystemExit):
+        publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 's1', 'title': title}]})
+    assert 'curiosity headline' in capsys.readouterr().out
+
+
+@pytest.mark.parametrize('title', [
+    'Houthi-angreb lukker King Khalid-lufthavnen i Riyadh; 12 dræbt', 'Ekspert: Putin holder magten, fordi Kreml styrer valget',
+    'Kreml: Samtalerne fortsætter', 'Det Hvide Hus: Trump mødes med Xi i Seoul', 'Seks dræbt i israelsk angreb på Gaza',
+    'Kreml: Dette er en provokation', 'WHO advarer mod mæslinger i Sudan', 'Selenskyj: Vi har brug for flere våben'])
+def test_an_informative_headline_passes(title):
+    problems = []
+    voice.check_headline(title, 'titles: x', problems)
+    assert problems == []
 
 
 def test_a_headline_must_fit(folder, tmp_path, capsys):
@@ -284,8 +332,9 @@ def test_check_says_what_is_new_and_when_to_update(folder, capsys):
         'created': '2026-10-10T11:35:00+00:00', 'lede': 'Formiddagens lede.', 'picks': [{'id': 's3', 'why': 'x'}]}}), encoding='utf-8')
     out = check(folder, capsys)
     assert len(out) <= 40 and out[1].startswith('Last full update: 10.10 13.35 (8 t 26 min ago)')
-    assert 'tier 2 · 6 outlets · big · me · 21.50 · Trump truer Iran' in out[3]       # the heaviest first
-    assert 'tier 3 · 2 outlets · world' in out[4] and not any('Olieprisen' in x for x in out)   # tier 9, one outlet: no weight
+    assert out[3].startswith('Live: level normal (default) · the radar draws no line yet')
+    assert 'tier 2 · 6 outlets · big · me · 21.50 · Trump truer Iran' in out[4]       # the heaviest first
+    assert 'tier 3 · 2 outlets · world' in out[5] and not any('Olieprisen' in x for x in out)   # tier 9, one outlet: no weight
     assert '  Lede (10.10 13.35): Formiddagens lede.' in out and '  Pick 1: Already looked at at 13.35' in out
     assert out[-1].startswith('OPDATÉR: stor historie siden sidst: Trump truer Iran; tier 3 med 2 medier: Kina sender flåde')
     assert '8 t 26 min siden sidste opdatering' in out[-1] and 'dagens resumé til telefonerne' in out[-1]
@@ -412,7 +461,7 @@ def test_a_small_update_keeps_the_lede_picks_quotes_and_moves(folder, tmp_path):
     e = digest['editor']
     assert e['lede'] == 'Formiddagens lede.' and e['lede_at'] == '2026-10-10T11:35:00+00:00' and e['created'] == NOW
     assert e['picks'] == [{'id': 's3', 'why': 'x'}]                       # a pick the radar dropped goes
-    assert e['moves'] == [{'id': 's4', 'sec': 'world'}] and e['quotes'] == FRONT['quotes']
+    assert e['moves'] == [{'id': 's4', 'sec': 'world'}] and e['quotes'] == [{**FRONT['quotes'][0], 'id': 'q1'}]
     (folder / 'digest.json').write_text(json.dumps({**TODAY, 'editor': e}), encoding='utf-8')
     digest, _ = publish(folder, tmp_path, {'lede': 'keep', 'picks': 'keep', 'moves': [{'id': 's4', 'sec': 'me'}],
                                            'quotes': []}, now='2026-10-10T20:16:00+00:00')
@@ -579,7 +628,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     git(tmp_path, 'init', '-q', str(clone))
     git(clone, 'remote', 'add', 'origin', str(remote))
     blobs = {n: git(clone, 'hash-object', '-w', '--stdin', data=body.encode()) for n, body in
-             (('live.json', '{"days": {}}'), ('digest.json', '{"old": true}'))}
+             (('other.json', '{"days": {}}'), ('digest.json', '{"old": true}'))}
     tree = git(clone, 'mktree', data=''.join(f'100644 blob {b}\t{n}\n' for n, b in sorted(blobs.items())).encode())
     git(clone, 'push', '-q', 'origin', f"{git(clone, 'commit-tree', tree, '-m', 'x')}:refs/heads/digest")
     git(clone, 'fetch', '-q', 'origin', '+refs/heads/digest:refs/remotes/origin/digest')
@@ -589,10 +638,11 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
         (out / n).write_text(json.dumps({'new': n}), encoding='utf-8')
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
-    assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'live.json',
-                                                                              'moves.json', 'summaries.json'])
+    assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'front.json',
+                                                                              'live.json', 'moves.json', 'other.json',
+                                                                              'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
-    assert git(remote, 'show', 'digest:live.json') == '{"days": {}}'
+    assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'
 
 
 # ------------------------------------------------------------------ the review of 2026-10-17: the look and the gate

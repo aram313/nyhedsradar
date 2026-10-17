@@ -10,32 +10,41 @@ editor's Claude routine through its API trigger, at most EDITOR_FIRES (config/se
     python3 scripts/editor.py check              -> at most about 40 lines: the radar's health, the last full update,
                                                     what is new since (the stories of weight with their tier and
                                                     outlets, marked when already a pick or in the recap, the wire lines,
-                                                    a new answer of Hizb ut-Tahrir), the front page now and a verdict,
-                                                    INTET NYT AF VÆGT or OPDATÉR: why. The routine stops there or
-                                                    updates.
+                                                    a new answer of Hizb ut-Tahrir), Live (the day's level, how many
+                                                    stories are in, how many wait for the editor's headline), the front
+                                                    page now and a verdict, INTET NYT AF VÆGT or OPDATÉR: why. The
+                                                    routine stops there or updates.
     python3 scripts/editor.py input              -> /tmp/editor/input.md: the brain (scripts/brain.py), the front page
                                                     now, the recap so far, the top stories, the new stories and wire
-                                                    lines since the last update, a new answer to note, and the format
+                                                    lines since the last update, the stories to summarise, the stories
+                                                    in Live without the editor's headline, the day's level with the
+                                                    candidates at the radar's line, the front page's composition with
+                                                    its palette, a new answer to note, and the format
     python3 scripts/editor.py publish FILE       -> checks the update, fills in links, sources and times, and writes
             [--push] [--out DIR]                    digest.json (the day shown, with the editor's picks, moves and
                                                     quotes), moves.json (the last 30 days), summaries.json (the story
-                                                    summaries and checked Danish headlines of the last 4 days) and
+                                                    summaries and the editor's headlines of the last 4 days),
                                                     answers.json (Hizb ut-Tahrir's answers noted after the static
-                                                    layer, kept forever); --push commits them to the digest branch
+                                                    layer, kept forever), live.json (the day's level, take and drop,
+                                                    two Danish days) and front.json (the front page's blocks); --push
+                                                    commits them to the digest branch, keeping its other files
 
 Each update weighs the news by the brain – the books' order of weight and Hizb ut-Tahrir's newest answers, used only to
-choose and order: the lede, the picks, Dagens historie and the order of the recap's topics. The app shows no analysis;
-the editor's own text (lede, recap lines, summaries, headlines) stays reality. An update writes the lede, picks,
-quotes, short summaries of the stories readers open, the Danish of the strongest foreign headlines, and 'Who: what'
-lines for the day's recap in the style of Al Jazeera's wire and the group's own 'Politiske nyheder' posts, grouped by
-topic; a line goes into the day it happened (Danish date), so after midnight what came before completes yesterday's
-recap. It may keep the lede, the picks and the quotes (leave them out, or write "keep"), add only recap lines, or give
-only a new lede. Moves (a story in a clearly wrong section) are rare and stay until undone. Only the first update at
-or after 21 Danish time notifies the phones.
+choose and order: the lede, the picks, the front page, how much Live holds, Dagens historie and the order of the
+recap's topics. The app shows no analysis; the editor's own text (lede, recap lines, summaries, headlines, block
+titles, a front page's line) stays reality. An update writes the lede, picks, quotes, short summaries of the stories
+readers open, an informative headline for every story Live shows (who did or said what, where – never a curiosity
+headline; the owner's rule of 2026-10-17), the day's level (få, normal, mange) with single stories taken in or out,
+the front page as blocks of its palette (top, liste, udvikling, citat, svar, live, linje), and 'Who: what' lines for
+the day's recap in the style of Al Jazeera's wire and the group's own 'Politiske nyheder' posts, grouped by topic; a
+line goes into the day it happened (Danish date), so after midnight what came before completes yesterday's recap. It
+may keep the lede, the picks, the quotes, the level and the front page (leave them out, or write "keep"), add only
+recap lines, or give only a new lede. Moves (a story in a clearly wrong section) are rare and stay until undone. Only
+the first update at or after 21 Danish time notifies the phones.
 
-Reads data.json, lines.json, items.json and analyses.json from origin/data (or --data-dir, the radar's state folder
-in Actions) and digest.json, moves.json, summaries.json and answers.json from origin/digest, or all of them from --dir.
-Options for test runs: --now ISO."""
+Reads data.json, app.json, admitted.json, lines.json, items.json and analyses.json from origin/data (or --data-dir, the
+radar's state folder in Actions) and digest.json, moves.json, summaries.json, answers.json, live.json and front.json
+from origin/digest, or all of them from --dir. Options for test runs: --now ISO."""
 import argparse
 import json
 import os
@@ -61,8 +70,26 @@ MAX_TEXT = 220   # characters in a line: one short sentence
 MAX_SUM = 6      # stories one update summarises: the ones readers open, then the ones they are most likely to
 SUM_LEN = 420    # characters in a summary: two or three sentences
 SUM_DAYS = 4     # how long a summary (and a checked headline) is kept
-MAX_TITLES = 8   # foreign headlines one update goes over in Danish: the strongest the app shows
+MAX_TITLES = 30  # headlines one update writes: every admitted story the app shows without the editor's own, the
+                 # strongest first (the owner 2026-10-17: informative headlines, never the outlets' curiosity ones)
 TITLE_LEN = 140  # characters in a headline
+HEAD_WAIT = 8    # admitted stories waiting for the editor's headline that call for an update
+HEAD_LATE = timedelta(minutes=45)   # ... or one that has waited this long (06-24)
+TEASER = 200     # characters of an outlet's teaser in the input's headline list
+OTHERS = 3       # other outlets' headlines shown with each story to head
+LEVELS = ('få', 'normal', 'mange')   # how far down the ranking Live reaches today (docs/hjerne/notes-owner-volume.md)
+LEVEL_SIZE = {'få': 25, 'normal': 45, 'mange': 80}   # the owner's first guess of stories in 24 hours, for the input
+LIVE_NOTE = 160  # characters of the level's note
+LINE_SHOWN = 6   # candidates shown just above and just below the radar's line
+FRONT_KINDS = ('top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje')   # the front page's palette
+FRONT_BLOCKS = 8     # blocks on the front page
+FRONT_TOPS = 2       # 'top' blocks: one, two on a day with two main stories
+FRONT_LIST = 8       # stories in one 'liste'
+FRONT_TOPICS = 4     # developments in one 'udvikling'
+BLOCK_TITLE = 40     # characters of a block title
+FRONT_LINE = 120     # characters of a 'linje'
+LIST_STYLES = ('kompakt', 'billeder')
+FRONT_STALE = timedelta(hours=6)   # the app's fixed front page takes over from an older composition (06-24)
 TOP = 40         # top stories of the day listed for picks
 RECAP_SHOWN = 5  # newest lines of each of today's topics in the input (the rest are counted)
 OWNER_SHOWN = 15  # the owner's newest removals in the input
@@ -83,7 +110,7 @@ READING_LEN = 420
 NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
-DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json')
+DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json')
 MOVEMENT_GROUPS = ('bevægelsen', 'official')   # a line or quote from these sources gets the movement's checks too
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
@@ -342,13 +369,6 @@ def to_summarise(items, done, now, opened=()):
     return (read_ + rest)[:MAX_SUM]
 
 
-def to_check(items, done, now):
-    """The foreign headlines readers see in the machine's Danish: the strongest of each section in the last day,
-    then the rest by rank – those the editor has not gone over yet, at most MAX_TITLES."""
-    return strongest([i for i in items if day_old(i, now) and i.get('title_da') and i.get('lang') != 'da'
-                      and i['id'] not in done], 12, MAX_TITLES)
-
-
 def recent_days(moves, now):
     """Today's day and yesterday's, as far as they exist: the two an update may add to."""
     today = dk(now).date()
@@ -382,6 +402,126 @@ def headline(i):
     return clean(i.get('title_da') or i.get('title_tr') or i.get('title'))
 
 
+# ------------------------------------------------------------------ Live: the admitted stories, their headlines, the level
+
+def resolver(items):
+    """Story id or member id -> the story (clusters merge, a card's lead changes: an id matches a story when it is the
+    story's id or one of its members; a card's own id wins)."""
+    out = {}
+    for i in items:
+        for m in i.get('members') or []:
+            out.setdefault(m, i)
+    out.update({i['id']: i for i in items})
+    return out
+
+
+def app_of(args):
+    """The radar's slim app.json (the admitted stories the app shows), or None before the radar writes it."""
+    a = read(args, 'origin/data', 'app.json', None)
+    return a if isinstance(a, dict) and isinstance(a.get('items'), list) else None
+
+
+def admitted(data, app, now):
+    """(the admitted stories the app shows, known): the stories of app.json (as data.json holds them, when it does),
+    else data.json's stories the radar marks `live`; before the radar draws the line (known False) every story of the
+    last 48 hours, as the app shows today."""
+    items = data.get('items') or []
+    if app is not None:
+        find = resolver(items)
+        out, seen = [], set()
+        for a in app['items']:
+            i = find.get(a.get('id')) or next((find[m] for m in a.get('members') or [] if m in find), None) or a
+            if i.get('id') and (i.get('published') or i.get('found')) and i['id'] not in seen:
+                seen.add(i['id'])
+                out.append(i)
+        return out, True
+    if any('live' in i for i in items):
+        return [i for i in items if i.get('live')], True
+    return [i for i in items if now - ts(i.get('published') or i['found']) < timedelta(hours=48)], False
+
+
+def the_line(data, app):
+    """What the radar says of its line: {level, line (the rank threshold), count, …} from app.json or data.json's
+    'live' (each optional)."""
+    out = {}
+    for src in (data.get('live'), (app or {}).get('live'), {k: (app or {}).get(k) for k in ('level', 'line', 'count')}):
+        if isinstance(src, dict):
+            out.update({k: v for k, v in src.items() if v is not None and k not in out})
+    return out
+
+
+def headed_ids(titles):
+    """Every id the editor's headlines cover: the story ids they are filed under and the members filed with them."""
+    out = set()
+    for k, v in (titles or {}).items():
+        out.add(k)
+        out.update((v or {}).get('members') or [] if isinstance(v, dict) else [])
+    return out
+
+
+def has_head(i, done):
+    return i['id'] in done or any(m in done for m in i.get('members') or [])
+
+
+def waiting_since(i, record=None):
+    """Since when an admitted story has waited for the editor's headline: when the radar first admitted it (its
+    admitted.json on the data branch: member id -> when), else when its card was found."""
+    times = []
+    for x in {i['id'], *(i.get('members') or [])}:
+        try:
+            times.append(ts((record or {})[x]))
+        except (KeyError, TypeError, ValueError):
+            pass
+    if times:
+        return min(times)
+    for f in ('admitted', 'found', 'published'):
+        if i.get(f):
+            try:
+                return ts(i[f])
+            except ValueError:
+                continue
+    return None
+
+
+def to_head(pool, titles, now, record=None):
+    """The admitted stories the app shows without the editor's headline – big ones first, then by rank – with how long
+    each has waited (record: the radar's admitted.json)."""
+    done = headed_ids(titles)
+    out = [i for i in pool if not has_head(i, done)]
+    out.sort(key=lambda i: (not i.get('big'), -(i.get('rank') or 0)))
+    return [(i, now - (waiting_since(i, record) or now)) for i in out]
+
+
+def admitted_record(args):
+    """The radar's admitted.json: member id -> when its story was first admitted to Live ({} before it exists)."""
+    r = read(args, 'origin/data', 'admitted.json', {})
+    return r if isinstance(r, dict) else {}
+
+
+def day_level(live, now):
+    """Today's entry of live.json ({} when the editor has set nothing today)."""
+    return dict(((live or {}).get('days') or {}).get(dk(now).date().isoformat()) or {})
+
+
+def in_24h(i, now):
+    return now - ts(i.get('published') or i['found']) < timedelta(hours=24)
+
+
+def around_the_line(data, pool, known, now, level):
+    """(the weakest admitted stories of the last 24 hours, the strongest left out), LINE_SHOWN each – big stories and the
+    editor's takes are never at the line."""
+    if not known:
+        return [], []
+    inside = {i['id'] for i in pool}
+    taken = set(level.get('take') or [])
+    above = sorted((i for i in pool if in_24h(i, now) and not i.get('big') and i['id'] not in taken
+                    and i.get('live') not in ('take', 'big', 'dk')   # the radar's why: taken in or protected, not at it
+                    and not taken & set(i.get('members') or [])), key=lambda i: i.get('rank') or 0)[:LINE_SHOWN]
+    below = sorted((i for i in data.get('items') or [] if i['id'] not in inside and in_24h(i, now)),
+                   key=lambda i: -(i.get('rank') or 0))[:LINE_SHOWN]
+    return above, below
+
+
 # ------------------------------------------------------------------ check: is there anything to adjust?
 
 def ago(delta):
@@ -396,10 +536,24 @@ def weighty_big(r):
     return bool(i.get('big')) and (t is None or t <= 10 or i.get('sec') == 'dk')
 
 
-def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None):
+def head_reasons(now, heads):
+    """The headline reasons: HEAD_WAIT admitted stories waiting for the editor's headline, or one waiting longer than
+    HEAD_LATE between 06 and 24. heads: (story, waited) of the admitted stories without one."""
+    if not heads:
+        return []
+    if len(heads) >= HEAD_WAIT:
+        return [f'{len(heads)} historier i Live venter på redaktørens overskrift']
+    oldest = max(w for _, w in heads)
+    if oldest > HEAD_LATE and dk(now).hour >= QUIET_UNTIL:
+        return [f'en historie i Live har ventet {ago(oldest)} på redaktørens overskrift']
+    return []
+
+
+def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None, heads=()):
     """The reasons for a full update now, the most pressing first (empty: nothing of weight since the last). covered: the
     stories already a pick or in the recap – they call for no update of their own. still: how long the radar has not
-    run, when that is longer than RADAR_STILL."""
+    run, when that is longer than RADAR_STILL. heads: the admitted stories still without the editor's headline (with
+    how long each has waited), when the radar draws the line."""
     reasons = []
     if still is not None:
         reasons.append(f'radaren står stille (sidst kørt for {ago(still)} siden)')
@@ -415,6 +569,7 @@ def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None):
                        + (f' (+{len(sharp) - 1} mere)' if len(sharp) > 1 else ''))
     if answer:
         reasons.append(f"nyt svar fra Hizb ut-Tahrir ({str(answer.get('date') or '')[:10]}) skal noteres")
+    reasons += head_reasons(now, heads)
     d = dk(now)
     if d.hour >= QUIET_UNTIL:
         morning = d.replace(hour=QUIET_UNTIL, minute=0, second=0, microsecond=0)
@@ -448,12 +603,18 @@ def look(args, now):
     notes_ = digest.get('editor') or {}
     picked = {p.get('id'): k for k, p in enumerate(notes_.get('picks') or [], 1)}
     recapped = {x['id'] for d in recent_days(moves, now) for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
+    app = app_of(args)
+    pool, known = admitted(data, app, now)
+    heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args)) if known else []
+    level = day_level(read(args, 'origin/digest', 'live.json', {}), now)
+    line = the_line(data, app)
     out = [f'Khabar check · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time) · '
            + ((f'radar last ran {ago(now - radar_at)} ago' + (' – STOPPED' if still else '')) if radar_at else 'radar: no time'),
            f'Last full update: {dk(last):%d.%m %H.%M} ({ago(now - last)} ago)' if last else 'Last full update: none in the archive',
            f"New since {dk(since):%H.%M}: {sum(1 for r in news if r[3])} stories, {sum(1 for r in news if not r[3])} grew · "
            f"{len(rows)} of weight (tier 1-5, big or 3+ outlets) · {len(wire)} wire lines · "
-           f"{'a new answer of Hizb ut-Tahrir' if queue else 'no new answer'}"]
+           f"{'a new answer of Hizb ut-Tahrir' if queue else 'no new answer'}",
+           live_line(level, line, pool, known, heads, now)]
     for i, t, joined, new in rows[:CHECK_STORIES]:
         grew = '' if new else f' (+{joined} since)'
         mark = f' = pick {picked[i["id"]]}' if i['id'] in picked else ' = in the recap' if i['id'] in recapped else ''
@@ -471,6 +632,7 @@ def look(args, now):
     lede_at = notes.get('lede_at') or notes.get('created')
     out.append('Front page now:')
     out.append(f"  Lede ({dk(ts(lede_at)):%d.%m %H.%M}): {notes['lede']}" if notes.get('lede') and lede_at else '  Lede: none')
+    out.append('  ' + composition_line(read(args, 'origin/digest', 'front.json', {}), now))
     tp = main_topic(digest)
     out.append(f"  Dagens historie: {tp['name']} ({len(tp['lines'])} lines)" if tp else '  Dagens historie: none yet')
     picks = notes.get('picks') or []
@@ -483,7 +645,7 @@ def look(args, now):
     if filed:
         out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
-    reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still)
+    reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads)
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     keys = [f"big:{story_key(r[0], seen)}" for r in rows if weighty_big(r) and r[0]['id'] not in picked and r[0]['id'] not in recapped]
@@ -491,8 +653,35 @@ def look(args, now):
              and not r[0].get('big') and r[0]['id'] not in picked and r[0]['id'] not in recapped]
     if answer:
         keys.append(f"answer:{answer['id']}")
+    for r in head_reasons(now, heads):   # the headlines: once an update, or once for the story that waited longest
+        keys.append(f"heads:{last.isoformat() if last else ''}" if r[0].isdigit()
+                    else f"late:{story_key(max(heads, key=lambda h: h[1])[0], seen)}")
     facts = {'last': last, 'radar': radar_at, 'keys': keys, 'reasons': reasons}
     return out, reasons, facts
+
+
+def live_line(level, line, pool, known, heads, now):
+    """The check's line on Live: the day's level, how many stories are in, how many wait for the editor's headline."""
+    lvl = level.get('level') or 'normal'
+    told = f"level {lvl} ({'set by the editor' if level.get('level') else 'default'})"
+    if not known:
+        return f'Live: {told} · the radar draws no line yet ({sum(1 for i in pool if in_24h(i, now))} stories in 24 h)'
+    n = sum(1 for i in pool if in_24h(i, now))
+    at = f" · the radar's line: rank {line['line']}" if line.get('line') is not None else ''
+    wait = (f" · {len(heads)} wait for a headline (longest {ago(max(w for _, w in heads))})" if heads
+            else ' · every story has its headline')
+    return f'Live: {told} · {n} admitted in 24 h{at}{wait}'
+
+
+def composition_line(front, now):
+    """The front page's composition in one line (the check)."""
+    blocks = (front or {}).get('blocks') or []
+    if not blocks or not front.get('updated'):
+        return "Composition: none – the app's fixed front page"
+    kinds = ', '.join(b.get('kind', '?') + (f" '{b['title']}'" if b.get('kind') == 'liste' and b.get('title') else '')
+                      for b in blocks)
+    old = ' – OLDER THAN 6 HOURS: the app shows its fixed page' if now - ts(front['updated']) > FRONT_STALE else ''
+    return f"Composition ({dk(ts(front['updated'])):%d.%m %H.%M}): {kinds}{old}"
 
 
 def wiki_built():
@@ -626,11 +815,25 @@ TEMPLATE = {
     'moves': [{'id': '<only a story in a clearly wrong section – rare; usually leave "moves" out>', 'sec': 'dk | me | world'}],
     'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish, one or two sentences>', 'sec': 'dk | me | world',
                 'ids': ['<wire line id>'], 'story': '<or a story id>'}],
-    'titles': [{'id': '<story id from "Danish headlines to check">',
-                'title': '<the headline in correct, natural Danish – the machine\'s own when it is right>'}],
+    'titles': [{'id': '<story id from "Headlines to write">',
+                'title': '<an informative Danish headline: who did or said what, where – a statement, never a teaser>'}],
     'summaries': [{'id': '<story id from "Stories to summarise">',
                    'text': '<2-3 Danish sentences from the headline, the teaser and the other outlets: what happened, who, why it matters>',
                    'paywall': True}],
+    'level': 'få | normal | mange – how far down the ranking Live reaches today; leave out to keep',
+    'take': ['<a story id from "Just below the line" (or any story) to take into Live today>'],
+    'drop': ['<a story id in Live to take out today>'],
+    'note': "<one line of reality: why today's level, e.g. 'Mange angreb og to topmøder'>",
+    'front': {'lede': '<optional: the lede for the front page, when the update gives none above>',
+              'blocks': [{'kind': 'top', 'story': '<id>', 'title': '<informative headline, optional>', 'with': ['<id>'],
+                          'timeline': '<a recap topic name, optional>', 'picture': True},
+                         {'kind': 'liste', 'title': "<block title, e.g. 'Danmark' or 'Krigen i Sudan'>",
+                          'stories': ['<id>', '<id>'], 'style': 'kompakt | billeder'},
+                         {'kind': 'udvikling', 'topics': ['<recap topic name>']},
+                         {'kind': 'citat', 'quote': '<q1, q2 … – a quote of the front page, as listed>'},
+                         {'kind': 'svar', 'nr': "<an answer of Hizb ut-Tahrir's that bears on today>"},
+                         {'kind': 'live', 'n': 3},
+                         {'kind': 'linje', 'text': '<one short line of reality>'}]},
 }
 ANSWER_TEMPLATE = {'answer': {
     'nr': "<the answer's number, as given>", 'date': 'YYYY-MM-DD',
@@ -647,7 +850,9 @@ SMALL = [
     'Leave out "lede", "picks" or "quotes" (or write "keep") and they stay as they are on the front page. An update may',
     'add only recap lines, or give only a new lede. Write a new lede when the weight of the day has changed – a story of',
     'a heavier tier, a development that moved – never only to vary the words; new picks when a heavier story has come.',
-    '"moves" stay until undone (move the story back to its own section); "summaries" and "titles" are kept four days.', '',
+    '"moves" stay until undone (move the story back to its own section); "summaries" and "titles" are kept four days.',
+    'Leave out "level", "take", "drop" and "note" and today\'s Live stays as it is (take and drop add to today\'s). Leave',
+    'out "front" (or write "keep") and the composition stays as it is, its stories that left the radar dropped.', '',
 ]
 
 
@@ -684,6 +889,139 @@ def front_lines(notes, digest, by_id):
         out.append(f"Pick {k}: [{i['id']}]{f' tier {t} ·' if t is not None else ''} {clip(headline(i), 110)}")
     out.append(f"Quotes: {len(notes.get('quotes') or [])} · moves: {len(notes.get('moves') or [])}")
     return out + ['']
+
+
+def head_lines(heads, known, listed=()):
+    """The admitted stories still without the editor's headline, each with the outlet's headline and teaser and the
+    other outlets' headlines (a story the input listed above already: only its headline) – at most MAX_TITLES, the
+    strongest first."""
+    if not heads:
+        return []
+    shown = heads[:MAX_TITLES]
+    out = [f'## Headlines to write – {len(shown)}' + (f' of {len(heads)}' if len(heads) > len(shown) else '')
+           + (' (the stories in Live without your headline, the strongest first)' if known
+              else " (the day's strongest stories without your headline)"), '',
+           'The app shows your headline for every story – Danish outlets too – instead of the outlet\'s. Write each as a news',
+           'wire would: who did or said what, where (when, if it matters) – a statement that gives the news, never a teaser.',
+           "No question, no 'Derfor …', 'Se …', 'Her er …', 'Sådan …', 'Det skal du vide', no cliff-hanger colon or '…' at the",
+           "end ('Who: what' is fine: 'Kreml: Samtalerne fortsætter'). Only the facts the outlet's headline, its teaser and the",
+           "other outlets' headlines support; the source's own loaded words kept where they carry its framing; names in their",
+           'usual Danish spelling (Zelenskyj, Netanyahu, Hizbollah); at most about 110 characters. Example: "Se billederne: Kaos',
+           'i lufthavnen" → "Houthi-angreb lukker King Khalid-lufthavnen i Riyadh; 12 dræbt". An informative headline may stay',
+           'as it is (in Danish).', '',
+           'Fields: [id] section · outlet (language) · waited · headline (the machine\'s Danish) · teaser · other outlets', '']
+    for i, waited in shown:
+        t = brain.tier_of(i)
+        da = i.get('title_da') if i.get('lang') != 'da' and i.get('title_da') else ''
+        out.append(f"[{i['id']}] {i.get('sec')}{f' · tier {t}' if t is not None else ''}{' · big' if i.get('big') else ''} · "
+                   f"{i.get('source')} ({i.get('lang') or '?'}) · {i.get('outlets') or 1} outlets"
+                   + (f' · waited {ago(waited)}' if known and waited > timedelta(0) else ''))
+        out.append(f"  {clean(i.get('title'))}" + (f" (English: {clean(i['title_tr'])})" if i.get('title_tr') else '')
+                   + (f' → {clean(da)}' if da else ''))
+        if i['id'] in listed:
+            out.append('  (teaser and other outlets: listed above)')
+            continue
+        teaser = i.get('summary_tr') if i.get('title_tr') else i.get('summary')
+        if clean(teaser):
+            out.append(f'  Teaser: {clip(teaser, TEASER)}')
+        others = [f"{a.get('source')}: {clip(a.get('title_tr') or a.get('title'), 90)}" for a in (i.get('also') or [])[:OTHERS]]
+        if others:
+            out.append('  Others: ' + ' | '.join(others))
+    return out + ['']
+
+
+def story_row(i):
+    t = brain.tier_of(i)
+    return (f"[{i['id']}] {i.get('sec')}{f' · tier {t}' if t is not None else ''} · rank {i.get('rank')} · "
+            f"{i.get('outlets') or 1} outlets · {clip(headline(i), 110)}")
+
+
+def live_lines(level, line, above, below, pool, known, now):
+    """How much Live holds today, and the candidates at the radar's line: the editor's level, take and drop."""
+    lvl = level.get('level')
+    out = ['## Live – how much the app shows today (you decide)', '',
+           f"Today's level: {lvl or 'normal'}" + (f' (yours: {level["note"]})' if lvl and level.get('note') else
+                                                  ' (yours)' if lvl else ' (the default – not set today)')
+           + (f" · taken in: {', '.join(level['take'])}" if level.get('take') else '')
+           + (f" · taken out: {', '.join(level['drop'])}" if level.get('drop') else '')]
+    n = sum(1 for i in pool if in_24h(i, now))
+    if known:
+        bits = [f'{n} stories in Live from the last 24 hours']
+        if line.get('line') is not None:
+            bits.append(f"the radar's line at rank {line['line']}"
+                        + (f" (the level's floor {line['floor']})" if line.get('floor') not in (None, line['line']) else ''))
+        if line.get('count') is not None:
+            bits.append(f"the level's soft count {line['count']}")
+        if line.get('level') and line['level'] != (lvl or 'normal'):
+            bits.append(f"the radar applies {line['level']}" + (f" ({line['why']})" if line.get('why') else ''))
+        out.append(' · '.join(bits))
+    else:
+        out.append(f'The radar does not draw the line yet: the app shows all {n} stories of the last 24 hours.')
+    out += ['', 'The level sets how far down the brain\'s ranking Live reaches for the last 24 hours:',
+            f'"få" (a quiet day, only the sharpest – about {LEVEL_SIZE["få"]}), "normal" (the day\'s most important – about '
+            f'{LEVEL_SIZE["normal"]}),',
+            f'"mange" (a day of many strong stories – about {LEVEL_SIZE["mange"]}). A quiet day is never padded. The radar',
+            'applies it at once and holds it the rest of the Danish day; big stories and Danish politics on Islam, Muslims,',
+            'integration and foreign policy are never cut. "take" brings one story in, "drop" takes one out (today only).',
+            '"note": one line of reality, why the level. Give every story you take in a headline too.', '']
+    if above:
+        out += ['Just above the line (the weakest in Live – drop one that is no news):'] + [story_row(i) for i in above] + ['']
+    if below:
+        out += ['Just below the line (the strongest left out – take one that matters):'] + [story_row(i) for i in below] + ['']
+    return out
+
+
+def front_section(front, find, notes, now):
+    """The front page's composition now, the palette and a short guide to the owner's taste."""
+    out = ['## The front page – your composition ("front")', '']
+    blocks = (front or {}).get('blocks') or []
+    if blocks and front.get('updated'):
+        old = now - ts(front['updated']) > FRONT_STALE
+        out.append(f"Now (composed {dk(ts(front['updated'])):%d.%m %H.%M}"
+                   + (', older than 6 hours: the app shows its fixed page' if old else '') + '):')
+        name = lambda x: f"[{x}] {clip(headline(find[x]), 70)}" if x in find else f'[{x}] (no longer in the radar)'  # noqa: E731
+        for k, b in enumerate(blocks, 1):
+            kind = b.get('kind')
+            if kind == 'top':
+                desc = name(b.get('story')) + (f" · title: {b['title']}" if b.get('title') else '') \
+                    + (f" · with {', '.join(name(x) for x in b.get('with') or [])}" if b.get('with') else '') \
+                    + (f" · timeline: {b['timeline']}" if b.get('timeline') else '') + ('' if b.get('picture', True) else ' · text lead')
+            elif kind == 'liste':
+                desc = f"'{b.get('title')}' ({b.get('style') or 'kompakt'}): " + '; '.join(name(x) for x in b.get('stories') or [])
+            elif kind == 'udvikling':
+                desc = ', '.join(b.get('topics') or [])
+            elif kind == 'citat':
+                desc = f"{b.get('quote')}: {b.get('who')}: {clip(b.get('text'), 80)}"
+            elif kind == 'svar':
+                desc = f"nr {b.get('nr')}"
+            elif kind == 'live':
+                desc = f"the {b.get('n', 3)} newest"
+            else:
+                desc = clean(b.get('text'))
+            out.append(f'{k}. {kind}' + (f" '{b['title']}'" if b.get('title') and kind not in ('top', 'liste') else '') + f' · {desc}')
+    else:
+        out.append("Now: no composition – the app shows its fixed front page (lede, Dagens historie, Døgnets vigtigste, Følg "
+                   'udviklingen, Dagens citat, Live).')
+    quotes = notes.get('quotes') or []
+    if quotes:
+        out.append('Quotes for a "citat" block (the front page\'s now; when this update sends "quotes", q1, q2 … are its own): '
+                   + ' | '.join(f"q{k}: {q.get('who')}: {clip(q.get('text'), 60)}" for k, q in enumerate(quotes, 1)))
+    out += ['', 'The palette, in any order you choose (at most 8 blocks; a story in one block only; ids from this input):',
+            '- top: the day\'s main story – its title (your informative headline), up to three related stories in "with", the',
+            '  recap topic whose lines are its timeline, "picture": false for a text lead. Once, or twice on a day with two',
+            '  main stories.',
+            '- liste: a titled group of stories (2-8), "style" kompakt (rows with small pictures) or billeder.',
+            '- udvikling: recap topics (1-4) that moved – the developments to follow.',
+            '- citat: one quote of the front page (q1, q2 …).',
+            "- svar: an answer of Hizb ut-Tahrir's (its number) that bears on today – shown as theirs, attributed.",
+            '- live: the n newest stories in Live (1-10).',
+            "- linje: one short line of reality (at most 120 characters), e.g. '14 nye angreb på Riyadh i dag'.",
+            'The owner\'s taste: compact, overskuelighed før fuldstændighed, few kinds of information per row; block titles short',
+            'and concrete, never like a day marker (no "I dag", no dates); Danish politics never buried – a Danish block or',
+            'story high on the page whenever there is Danish news on Islam, Muslims, integration or foreign policy. The rest is',
+            'your own editorial taste and the brain: what leads, how many blocks, what each is called. Every word is reality.',
+            'Send "front" when the day\'s weight or its stories changed; leave it out to keep the composition (re-dated).', '']
+    return out
 
 
 def answer_lines(a, known):
@@ -779,15 +1117,15 @@ def cmd_input(args):
                 '(the app then says the summary rests on the headlines and the outlets\' introductions).', '']
         for i in todo:
             out += [f"[{i['id']}] – listed above", ''] if i['id'] in listed else story_lines(i)
-    heads = to_check(items, set((summaries_of(args).get('titles') or {})), now)
-    if heads:
-        out += [f'## Danish headlines to check – {len(heads)} (the app shows foreign headlines in Danish; these are machine translations)', '',
-                "For each: read the original and the machine's Danish, and write the headline as a Danish news desk would:",
-                'the same facts and the same weight, natural Danish word order, names in their usual Danish spelling',
-                '(Zelenskyj, Netanyahu, Hizbollah, Hamas), no additions and no opinion, at most about 110 characters. When the',
-                "machine's is right, give it unchanged. Fields: [id] language · original (English for Arabic and Turkish) → machine Danish", '']
-        out += [f"[{i['id']}] {i.get('lang')} · {i['title']}{' (English: ' + i['title_tr'] + ')' if i.get('title_tr') else ''} → {i['title_da']}"
-                for i in heads] + ['']
+    app = app_of(args)
+    pool, known = admitted(data, app, now)
+    if not known:   # before the radar draws the line: the strongest stories of the day the app shows
+        pool = [i for i in pool if in_24h(i, now)]
+    heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args))
+    out += head_lines(heads, known, listed)
+    level = day_level(read(args, 'origin/digest', 'live.json', {}), now)
+    out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level), pool, known, now)
+    out += front_section(read(args, 'origin/digest', 'front.json', {}), resolver(items), notes, now)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -833,10 +1171,220 @@ def push_text(day, now):
             'body': (f"{x['who']}: {x['text']}" if x['who'] else x['text']) + (f'  (+{len(lines) - 1} mere)' if len(lines) > 1 else '')}
 
 
-def build(draft, data, lines, moves, now, previous=None):
+def live_day(draft, current, find, now, problems):
+    """Today's Live as the editor sets it – level, take, drop, note – on top of what earlier updates set today; with
+    the whole live.json (today and yesterday, Danish dates) to write. {'day': today's entry, 'file': live.json}."""
+    stamp = now.isoformat(timespec='seconds')
+    today = dk(now).date()
+    wanted = {today.isoformat(), (today - timedelta(days=1)).isoformat()}
+    days = {d: dict(v) for d, v in ((current or {}).get('days') or {}).items() if d in wanted and isinstance(v, dict)}
+    day = days.get(today.isoformat(), {})
+    changed = False
+    if not kept(draft.get('level')):
+        level = clean(draft.get('level')).casefold()
+        if level not in LEVELS:
+            problems.append(f"level: få, normal or mange – not {draft.get('level')!r} (or leave it out to keep today's)")
+        else:
+            day['level'], changed = level, True
+    given = {}
+    for f in ('take', 'drop'):
+        v = draft.get(f)
+        if kept(v):
+            continue
+        if not isinstance(v, list):
+            problems.append(f'{f}: a list of story ids – or leave "{f}" out')
+            continue
+        given[f] = []
+        for x in v:
+            it = find.get(str(x))
+            if not it:
+                problems.append(f'{f}: unknown story id {x!r}')
+            elif it['id'] not in given[f]:
+                given[f].append(it['id'])
+    both = set(given.get('take') or []) & set(given.get('drop') or [])
+    if both:
+        problems.append(f"take and drop: {', '.join(sorted(both))} – a story is taken in or out, not both")
+    for f, other in (('take', 'drop'), ('drop', 'take')):
+        for x in given.get(f) or []:
+            day[other] = [y for y in day.get(other) or [] if find.get(y) is not find[x] and y != x]
+            if not any(y == x or find.get(y) is find[x] for y in day.get(f) or []):
+                day[f] = (day.get(f) or []) + [x]
+            changed = True
+    if not kept(draft.get('note')):
+        note = clean(draft.get('note'))
+        if len(note) > LIVE_NOTE:
+            problems.append(f'note: one line (at most {LIVE_NOTE} characters, not {len(note)})')
+        voice.check_voice(note, 'note', problems)
+        voice.check_reality(note, 'note', problems)
+        day['note'], changed = note, True
+    if day:
+        day = {'level': day.get('level') or 'normal', 'take': day.get('take') or [], 'drop': day.get('drop') or [],
+               'note': day.get('note') or '', 'at': stamp if changed else day.get('at') or stamp}
+        days[today.isoformat()] = day
+    return {'day': day, 'file': {'updated': stamp, 'days': dict(sorted(days.items(), reverse=True))}}
+
+
+DAY_MARK = re.compile(r'^\s*(?:i dag|i går|i morgen|i aften|i nat|i morges|i formiddag|i eftermiddag|mandag|tirsdag|onsdag|'
+                      r'torsdag|fredag|lørdag|søndag)\b|\b\d{1,2}\.\s*(?:jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)|'
+                      r'\b\d{1,2}/\d{1,2}\b', re.I)
+
+
+def refreshed(blocks, find):
+    """A kept composition's blocks with their stories as the radar has them now: a story that left the radar is
+    dropped, a block left empty with it."""
+    out, used = [], set()
+
+    def now_id(x):
+        it = find.get(x)
+        if it and it['id'] not in used:
+            used.add(it['id'])
+            return it['id']
+        return None
+    for b in blocks or []:
+        b = dict(b)
+        if b.get('kind') == 'top':
+            b['story'] = now_id(b.get('story'))
+            if not b['story']:
+                continue
+            b['with'] = [y for y in (now_id(x) for x in b.get('with') or []) if y]
+        elif b.get('kind') == 'liste':
+            b['stories'] = [y for y in (now_id(x) for x in b.get('stories') or []) if y]
+            if not b['stories']:
+                continue
+        out.append(b)
+    return out
+
+
+def compose(spec, current, find, pool, topics, quotes, answers, lede, now, problems):
+    """The front page as the editor composes it (front.json), or None when there is none to write. spec: the update's
+    'front' – left out (or "keep"): the composition now stays, re-dated, its stories as the radar has them (not one of
+    an earlier day after 06: the app's fixed page shows until a new one comes). pool: the ids in Live (None before the
+    radar draws the line); topics: the recap's topic names; quotes: the front page's quotes after this update;
+    answers: the answers' numbers a 'svar' may name (None: not checked)."""
+    stamp = now.isoformat(timespec='seconds')
+    if kept(spec) or (isinstance(spec, dict) and 'blocks' not in spec):
+        cur = current or {}
+        if not cur.get('blocks') or not cur.get('updated'):
+            return None
+        if dk(ts(cur['updated'])).date() < dk(now).date() and dk(now).hour >= QUIET_UNTIL:
+            return None
+        blocks = refreshed(cur['blocks'], find)
+        return {'updated': stamp, 'lede': lede, 'blocks': blocks} if blocks else None
+    if not isinstance(spec, dict) or not isinstance(spec.get('blocks'), list) or not spec['blocks']:
+        problems.append('front: an object with "blocks" (a list of at least one block) – or leave "front" out to keep the '
+                        'composition')
+        return None
+    blocks = spec['blocks']
+    if len(blocks) > FRONT_BLOCKS:
+        problems.append(f'front: {len(blocks)} blocks – at most {FRONT_BLOCKS}: overskuelighed før fuldstændighed')
+    used, out, tops = {}, [], 0
+    for k, b in enumerate(blocks[:FRONT_BLOCKS], 1):
+        if not isinstance(b, dict) or b.get('kind') not in FRONT_KINDS:
+            kind = b.get('kind') if isinstance(b, dict) else b
+            problems.append(f"front block {k}: kind {kind!r} – one of {', '.join(FRONT_KINDS)}")
+            continue
+        kind = b['kind']
+        where = f'front block {k} ({kind})'
+        row = {'kind': kind}
+
+        def story(x, label):
+            it = find.get(str(x)) if x else None
+            if not it:
+                problems.append(f'{where}: {label} – unknown story id {x!r}')
+                return None
+            if pool is not None and not ({it['id'], *(it.get('members') or [])} & pool) and not it.get('big'):
+                problems.append(f'{where}: {label} {x} is not in Live today – take it in ("take") or choose another')
+            if it['id'] in used:
+                problems.append(f'{where}: {label} {x} is in {used[it["id"]]} already – a story in one block only')
+            used[it['id']] = f'block {k}'
+            return it['id']
+
+        def topic(name):
+            got = topics.get(key(name)) if name else None
+            if not got:
+                problems.append(f'{where}: {name!r} is no topic of the recap – write its name exactly as listed')
+            return got
+
+        def ids(v, label, most, least=0):
+            if not isinstance(v, list) or not least <= len(v) <= most:
+                problems.append(f'{where}: {label} – a list of {least}-{most} story ids' if least else
+                                f'{where}: {label} – a list of at most {most} story ids')
+                return []
+            return [y for y in (story(x, label) for x in v) if y]
+
+        title = clean(b.get('title'))
+        if title and kind == 'top':
+            if len(title) > TITLE_LEN:
+                problems.append(f'{where}: title – one headline, at most {TITLE_LEN} characters')
+            voice.check_headline(title, f'{where} title', problems)
+        elif title and kind != 'linje':
+            if len(title) > BLOCK_TITLE:
+                problems.append(f'{where}: title – a short block title, at most {BLOCK_TITLE} characters')
+            if DAY_MARK.search(title):
+                problems.append(f"{where}: title {title!r} looks like a day marker – name what the block holds")
+            voice.check_headline(title, f'{where} title', problems)
+        if title and kind != 'linje':
+            row['title'] = title
+        if kind == 'top':
+            tops += 1
+            row['story'] = story(b.get('story'), 'story')
+            row['with'] = ids(b.get('with') or [], 'with', 3)
+            if b.get('timeline'):
+                row['timeline'] = topic(b['timeline'])
+            row['picture'] = b.get('picture', True) is not False
+        elif kind == 'liste':
+            if not title:
+                problems.append(f"{where}: needs a title (e.g. 'Danmark' or 'Krigen i Sudan')")
+            row['stories'] = ids(b.get('stories'), 'stories', FRONT_LIST, 1)
+            style = clean(b.get('style')) or 'kompakt'
+            if style not in LIST_STYLES:
+                problems.append(f"{where}: style kompakt or billeder, not {style!r}")
+            row['style'] = style
+        elif kind == 'udvikling':
+            v = b.get('topics')
+            if not isinstance(v, list) or not 1 <= len(v) <= FRONT_TOPICS:
+                problems.append(f'{where}: topics – a list of 1-{FRONT_TOPICS} recap topic names')
+                v = []
+            row['topics'] = [t for t in (topic(x) for x in v) if t]
+        elif kind == 'citat':
+            ref = clean(b.get('quote')).casefold().lstrip('q')
+            n = int(ref) if ref.isdigit() else 0
+            if not 1 <= n <= len(quotes):
+                problems.append(f"{where}: quote {b.get('quote')!r} – one of the front page's quotes, q1-q{len(quotes)}"
+                                if quotes else f'{where}: there are no quotes – send "quotes" or leave the block out')
+            else:
+                q = quotes[n - 1]
+                row.update({'quote': f'q{n}', 'who': q['who'], 'text': q['text'], 'link': q.get('link', ''),
+                            'sec': q.get('sec')})
+        elif kind == 'svar':
+            nr = clean(b.get('nr'))
+            if not nr or (answers is not None and nr not in answers):
+                problems.append(f"{where}: nr {b.get('nr')!r} is no answer of Hizb ut-Tahrir's the app knows")
+            row['nr'] = nr
+        elif kind == 'live':
+            n = b.get('n', 3)
+            if not isinstance(n, int) or isinstance(n, bool) or not 1 <= n <= 10:
+                problems.append(f'{where}: n – a number of stories, 1-10')
+                n = 3
+            row['n'] = n
+        elif kind == 'linje':
+            text = clean(b.get('text'))
+            if not text or len(text) > FRONT_LINE:
+                problems.append(f'{where}: text – one short line of reality, at most {FRONT_LINE} characters')
+            voice.check_headline(text, f'{where} text', problems)
+            row['text'] = text
+        out.append(row)
+    if tops > FRONT_TOPS:
+        problems.append(f"front: {tops} 'top' blocks – one, or two on a day with two main stories")
+    return {'updated': stamp, 'lede': lede, 'blocks': out}
+
+
+def build(draft, data, lines, moves, now, previous=None, extra=None):
     """The updated days and the editor's notes, or a list of problems to fix. A line goes into the day it happened
     (Danish date): after midnight what came before completes yesterday's recap. previous: the editor's notes on the
-    front page now – the lede, picks and quotes an update leaves out stay, and moves stay until undone."""
+    front page now – the lede, picks and quotes an update leaves out stay, and moves stay until undone. extra: live.json
+    and front.json as they are ('live', 'front'), the admitted stories when the radar draws the line ('pool') and the
+    answers' numbers a 'svar' block may name ('answers')."""
     problems = []
     prev = previous or {}
     stamp = now.isoformat(timespec='seconds')
@@ -963,16 +1511,23 @@ def build(draft, data, lines, moves, now, previous=None):
                 if src.get('group') in MOVEMENT_GROUPS:
                     voice.check_movement(text, f"quotes: '{who}: {text[:40]}'", problems)
                 quotes.append({'who': who, 'text': text, 'sec': q['sec'], 'link': src.get('link') or src.get('u', '')})
+    find = resolver(data.get('items', []))
     heads = []
     for x in (draft.get('titles') or [])[:MAX_TITLES + 10]:
+        x = x if isinstance(x, dict) else {'id': x}
         title = ' '.join(str(x.get('title', '')).split())
-        if x.get('id') not in by_id:
+        it = find.get(x.get('id'))
+        if not it:
             problems.append(f"titles: unknown story id {x.get('id')!r}")
         elif not title or len(title) > TITLE_LEN:
             problems.append(f"titles: {x['id']} needs one Danish headline (at most {TITLE_LEN} characters, not {len(title)})")
         else:
-            voice.check_voice(title, f"titles: {x['id']}", problems)
-            heads.append({'id': x['id'], 'title': title})
+            voice.check_headline(title, f"titles: {x['id']}", problems)
+            if it.get('group') in MOVEMENT_GROUPS:
+                voice.check_movement(title, f"titles: {x['id']}", problems)
+            heads.append({'id': it['id'], 'title': title, 'members': sorted(set(it.get('members') or []) - {it['id']})})
+    if len(draft.get('titles') or []) > MAX_TITLES + 10:
+        problems.append(f"titles: {len(draft['titles'])} – at most {MAX_TITLES} (the ones the input lists)")
     sums = []
     for x in (draft.get('summaries') or [])[:MAX_SUM + 5]:
         text = ' '.join(str(x.get('text', '')).split())
@@ -986,6 +1541,29 @@ def build(draft, data, lines, moves, now, previous=None):
             voice.check_voice(text, f"summaries: {x['id']}", problems)
             voice.check_reality(text, f"summaries: {x['id']}", problems)
             sums.append({'id': x['id'], 'text': text, 'paywall': bool(x.get('paywall'))})
+    quotes = [{**q, 'id': f'q{k}'} for k, q in enumerate(quotes, 1)]   # a front page's 'citat' names one by its id
+    extra = extra or {}
+    live = live_day(draft, extra.get('live'), find, now, problems)
+    topics = {key(tp['name']): tp['name'] for d in moves.get('days') or [] for tp in d.get('topics') or []}
+    topics.update({key(tp['name']): tp['name'] for d in days.values() for tp in d['topics']})
+    topics.update({key(n): n for n, _, _ in adds})
+    pool = extra.get('pool')
+    if pool is not None:   # the radar draws the line: a front page's stories are in Live, or taken in today
+        pool = {i['id'] for i in pool} | {m for i in pool for m in i.get('members') or []} | set(live['day'].get('take') or [])
+    front_lede = (draft.get('front') or {}).get('lede') if isinstance(draft.get('front'), dict) else None
+    if front_lede is not None and not kept(front_lede) and str(front_lede).strip():
+        front_lede = ' '.join(str(front_lede).split())
+        if not kept(draft.get('lede')) and front_lede != lede:
+            problems.append('front: lede – give the lede once (in "lede" or in "front"), not two different ones')
+        elif kept(draft.get('lede')):
+            lede, lede_at = front_lede, stamp
+            if len(lede) > 220:
+                problems.append('front: lede – one sentence of the day so far (at most about 25 words)')
+            voice.check_voice(lede, 'front: lede', problems)
+            voice.check_reality(lede, 'front: lede', problems)
+            problems[:] = [p for p in problems if not p.startswith('lede: ')]   # the front page's lede is the update's
+    front = compose(draft.get('front'), extra.get('front'), find, pool, topics, quotes, extra.get('answers'), lede, now,
+                    problems)
     if problems:
         return None, None, problems
     touched = set()
@@ -1004,7 +1582,7 @@ def build(draft, data, lines, moves, now, previous=None):
         days[date]['updates'] = days[date]['updates'] + [stamp]
         days[date]['created'] = stamp
     notes = {'created': stamp, 'lede': lede, 'lede_at': lede_at, 'picks': picks, 'moves': list(fixes.values()),
-             'quotes': quotes, 'summaries': sums, 'titles': heads}
+             'quotes': quotes, 'summaries': sums, 'titles': heads, 'live': live, 'front': front}
     return days, notes, []
 
 
@@ -1133,8 +1711,15 @@ def cmd_publish(args):
             sys.exit(1)
     data, lines, moves = material(args)
     current = read(args, 'origin/digest', 'digest.json', {})
-    days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {})
     noted = answers_of(args)
+    pool, known = admitted(data, app_of(args), now)
+    fetched = read(args, 'origin/data', 'analyses.json', {'items': []})
+    fetched = fetched.get('items') if isinstance(fetched, dict) else fetched
+    extra = {'live': read(args, 'origin/digest', 'live.json', {}), 'front': read(args, 'origin/digest', 'front.json', {}),
+             'pool': pool if known else None,
+             'answers': {str(k) for k in brain.static_answers()} | {str(k) for k in noted.get('items') or {}}
+             | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
+    days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {}, extra)
     answer = None
     if draft.get('answer'):
         answer, more = check_answer(draft['answer'], {str(a['id']): a for a in waiting(args, noted)},
@@ -1150,19 +1735,29 @@ def cmd_publish(args):
     today = days[dk(now).date().isoformat()]
     shown = today if today['topics'] else next((d for d in archive if d['topics']), today)   # early morning: yesterday
     sums, heads, before = notes.pop('summaries'), notes.pop('titles'), summaries_of(args)
+    live, front = notes.pop('live'), notes.pop('front')
     recent = lambda d: {k: v for k, v in (d or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}  # noqa: E731
     kept_sums, checked = recent(before.get('items')), recent(before.get('titles'))
     kept_sums.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
-    checked.update({x['id']: {'title': x['title'], 'at': notes['created']} for x in heads})
+    for x in heads:   # filed under the card's id, with its other articles: the card's lead may change
+        for k in [k for k, v in checked.items() if k in x['members'] or x['id'] in ((v or {}).get('members') or [])]:
+            checked.pop(k)   # the same story's earlier headline under another lead
+        checked[x['id']] = {'title': x['title'], 'at': notes['created'], **({'members': x['members']} if x['members'] else {})}
     if answer:
         noted['items'][answer['nr']] = answer
     digest = {**shown, 'period': period_of(now), 'whatsapp': day_text(shown), 'push': push_text(shown, now), 'editor': notes}
     files = {'digest.json': digest, 'moves.json': {'updated': notes['created'], 'days': archive},
              'summaries.json': {'updated': notes['created'], 'items': kept_sums, 'titles': checked},
              'answers.json': {'items': dict(sorted(noted['items'].items(), key=lambda kv: str(kv[1].get('date') or ''),
-                                                   reverse=True))}}
+                                                   reverse=True))},
+             'live.json': live['file']}
+    if front:
+        files['front.json'] = front
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
+    for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again
+        if name not in files and (out / name).exists():
+            (out / name).unlink()
     for name, obj in files.items():
         (out / name).write_text(json.dumps(obj, ensure_ascii=False, indent=1), encoding='utf-8')
     new = sum(x['added'] == notes['created'] for d in days.values() for tp in d['topics'] for x in tp['lines'])
@@ -1172,9 +1767,19 @@ def cmd_publish(args):
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
           f"lede {'new' if notes['lede_at'] == notes['created'] else 'kept'} · {len(notes['picks'])} picks · "
           f"{len(notes['moves'])} moves · {len(notes['quotes'])} quotes · {len(sums)} summaries · {len(heads)} headlines · "
+          f"Live {(live['day'] or {}).get('level') or 'normal'}"
+          f"{' +' + str(len(live['day'].get('take') or [])) if (live['day'] or {}).get('take') else ''}"
+          f"{' -' + str(len(live['day'].get('drop') or [])) if (live['day'] or {}).get('drop') else ''} · "
+          f"front {('new' if isinstance(draft.get('front'), dict) and 'blocks' in draft['front'] else 'kept') + ' (' + str(len(front['blocks'])) + ' blocks)' if front else 'none'} · "
           f"{'answer ' + answer['nr'] + ' noted · ' if answer else ''}days: {', '.join(sorted(days))}")
     if left:
         print(f"Note: Hizb ut-Tahrir's answer {left[0]['id']} is still waiting – note it in \"answer\" in the next update.")
+    if not front and dk(now).hour >= QUIET_UNTIL:
+        print('Note: the front page has no composition of today – the app shows its fixed page; compose one in "front" '
+              'in the next update.')
+    unheaded = to_head(pool, checked, now) if known else []
+    if unheaded:
+        print(f'Note: {len(unheaded)} stories in Live still wait for your headline – they come first in the next input.')
 
 
 def push(folder, message):
