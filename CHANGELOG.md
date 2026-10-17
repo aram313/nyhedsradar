@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Brændstof: USA in dollars a gallon, no chains' table** (2026-10-17, the owner: 'USA benzin og diesel pris skal stå
+  der og det skal angives i dollars pr gallon', 'flere tal med kæderne er ligegyldigt info'): the four tiles are petrol
+  and diesel in Denmark (the cheapest chain, kr. per litre) and petrol and diesel in the USA (the weekly average, $ per
+  gallon, the litre price in kroner on tap); the chains' table and the USA group left 'Flere tal', which keeps the raw
+  product's share and Europe.
+
 - **The economy page as one long page that changes topic as you scroll** (2026-10-17, the owner: 'økonomi siden kan
   virke lidt uoverskuelig … scroll ned og den skifter i mellem forskellige emner med tydeligt emneskift'):
   `public/energi/` is no longer six tab views with chips but seven topics in a fixed order – Lige nu, Brændstof, Olie

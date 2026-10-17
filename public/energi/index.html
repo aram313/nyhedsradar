@@ -516,7 +516,7 @@ const AIX_TXT = {
 const TOPICS = [
   { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
   { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
-    more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']], ['USA', ['us_diesel']]] },
+    more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']]] },
   { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
     tiles: [['brent', '$/tønde'], ['wti', '$/tønde'], ['ulsd', '$/gal.'], ['ttf', '€/MWh']],
     more: [['Fysisk marked', ['brent_spot', 'wti_spot', 'phys_prem', 'curve', 'brent_wti']], ['Raffinering', ['crack321', 'crack_diesel', 'crack_gas']],
@@ -851,9 +851,10 @@ function pumpTile(f) {
   return { k: 'dk:' + f, n: f === 'benzin' ? 'Benzin 95 · billigst' : 'Diesel · billigst', v: nf(x.v, 2), u: 'kr./l', mv: step(x.v, prev, 'kr.'),
     sp: h.slice(-31).map(p => p[1]), tc: 'pumps', ts: 'listepris i dag' };
 }
-function usTile() {
-  const x = D.s.us_gas;
-  return x && perL(x.v) ? sTile('us_gas', 'kr./l', { n: 'Benzin, USA · snit', v: nf(perL(x.v), 2) }) : null;
+// USA's pump prices as Americans read them: dollars a gallon (the owner, 17/10), the average of the week
+function usTile(k) {
+  const x = D.s[k];
+  return x && x.v != null ? sTile(k, '$/gal.', { n: k === 'us_gas' ? 'Benzin, USA · snit' : 'Diesel, USA · snit', v: nf(x.v, 2) }) : null;
 }
 function euTile() {
   const E = D.eu;
@@ -892,7 +893,7 @@ function tilesOf(t) {
   const T = TOPIC[t];
   let out = [];
   if (T.tiles) out = T.tiles.map(([k, u]) => sTile(k, u));
-  else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile(), euTile()];
+  else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile('us_gas'), usTile('us_diesel')];
   else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];
   else if (t === 'debt') out = [debtTile()];
   return out.filter(Boolean);
@@ -926,8 +927,8 @@ function panel(k) {
   if (k === 'ai:w') return aiwPanel();
   if (k === 'ai:idx') return aiIdxPanel();
   if (k === 'debt') return debtPanel();
-  if (k === 'us_gas') {
-    const x = D.s.us_gas;
+  if (k === 'us_gas' || k === 'us_diesel') {
+    const x = D.s[k];
     return more(k, `<p class="en-hl">${nf(x.v, 3)} $ pr. gallon = <b>${nf(perL(x.v), 2)} kr. pr. liter</b> med dollarkursen (${nf(D.s.usddkk.v, 2)} kr.); 1 gallon = 3,785 liter. Skatten på brændstof er langt lavere i USA end i Danmark.</p>`);
   }
   return C[k] ? more(k) : '';
@@ -1057,11 +1058,10 @@ function euTable(base) {
 }
 function fuelFold(T, base) {
   const low = lowest(), rb = D.s.rbob_kr;
-  let h = `<h3 class="ec-sub">Kæderne i dag</h3>${pumps()}`;
-  h += `<h3 class="ec-sub">${esc(T.more[0][0])}</h3>`;
+  // (the chains' table is gone: the owner found it 'ligegyldigt info'; the cheapest chain's price is the tile)
+  let h = `<h3 class="ec-sub">${esc(T.more[0][0])}</h3>`;
   h += rawShare('Benzin i Danmark', rb && rb.v, low.benzin && low.benzin.v, `Af ${nf(low.benzin ? low.benzin.v : 0, 2)} kr. er ca. ${nf(rb ? rb.v : 0, 2)} kr. selve benzinen på verdensmarkedet; resten er afgifter, moms, transport og avance.`);
   h += `<div class="en-rows" style="margin-top:6px">${rows(T.more[0][1], base)}</div>`;
-  h += `<h3 class="ec-sub">${esc(T.more[1][0])}</h3><div class="en-rows">${rows(T.more[1][1], base)}</div>`;
   h += `<h3 class="ec-sub">Europa</h3>${euTable(base)}`;
   return h;
 }

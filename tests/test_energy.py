@@ -307,7 +307,9 @@ def test_each_topic_shows_a_few_tiles_and_folds_the_rest_away():
     assert len(lists) == 3                                                              # oil, markets, commodities
     for tiles in lists:
         assert 3 <= tiles.count("['") <= 4, tiles
-    assert "else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile(), euTile()];" in PAGE
+    # Danish pump prices and the US average in dollars a gallon (the owner, 17/10); the chains' table is gone
+    assert "else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile('us_gas'), usTile('us_diesel')];" in PAGE
+    assert "'$/gal.'" in PAGE and 'Kæderne i dag' not in PAGE
     assert "else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];" in PAGE
     # one quiet 'Flere tal' row per topic, unfolded in place; its contents are made only when unfolded
     assert '<button class="ec-fold" data-fold aria-expanded="${on}" aria-controls="more-${T.id}">Flere tal${CHEV}</button>' in PAGE
