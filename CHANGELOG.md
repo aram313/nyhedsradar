@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A–Å's letters quieter, at the edge, and right going up** (2026-10-18, the owner: 'mere diskret … virker ikke når
+  man scroller op … ligger den midt på siden på desktop'; `?v=20261018ag`): the letters are small and grey at the
+  window's right edge (not the column's, which sat mid-screen on a desktop); a jump aims at a zero-height mark before
+  each letter band (`.az-at`) – a band that sticks under the bar reports where it sticks, so jumps upwards missed.
 - **'Høj betydning' weighs the editor and the books above the coverage** (2026-10-18, the owner approved the review
   and added: 'stor dækning burde vægte mindre end redaktørens valg eller bøgernes tungeste katagorier';
   `?v=20261018af`): at most five stories at a time by points – the editor's first three picks (or the owner's raise) 4,

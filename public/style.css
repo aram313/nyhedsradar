@@ -1034,12 +1034,13 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .wk-tl li > p.ht { margin: 0 0 10px; font-size: var(--fs-read); line-height: 1.5; color: var(--ht-text); }
 /* the wiki's index: the kinds, the most used pages, the letters that stay under the bar */
 .az-kinds { margin-top: 4px; }   /* the kinds: one sideways chip row, as Analyser's areas */
-/* A–Å's letters (18/10, the owner: as the iPhone's contacts): a thin still column at the column's right edge between the
-   bar and the dock, red like the letter bands; a finger slides through it (touch-action: none) */
-.az-idx { position: fixed; z-index: 7; top: calc(var(--barh) + 8px); bottom: calc(var(--dock) + 8px); right: max(0px, calc((100vw - 680px) / 2));
-  display: flex; flex-direction: column; justify-content: center; width: 28px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.az-idx button { flex: 0 1 auto; min-height: 0; padding: 0; line-height: 1.2; font-size: var(--fs-cap); font-weight: 750; color: var(--red); }
-.page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 40px; }
+/* A–Å's letters (18/10, the owner: as the iPhone's contacts; 'mere diskret' the same evening): a thin still column at the
+   window's right edge between the bar and the dock, small and grey; a finger slides through it (touch-action: none) */
+.az-idx { position: fixed; z-index: 7; top: calc(var(--barh) + 8px); bottom: calc(var(--dock) + 8px); right: 0;
+  display: flex; flex-direction: column; justify-content: center; width: 24px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.az-idx button { flex: 0 1 auto; min-height: 0; padding: 0; line-height: 1.15; font-size: var(--fs-cap); font-weight: 600; color: var(--text-3); }
+.az-at { display: block; height: 0; }
+.page[data-tab="begreber"] .az-row, .page[data-tab="begreber"] .az-sub { padding-right: 32px; }
 /* the letter bands stay under the bar while their letter lasts, in red */
 .page[data-tab="begreber"] .grp.az { position: sticky; top: var(--barh); z-index: 5; margin: 0; padding: 14px 40px 6px 16px; background: var(--bg); color: var(--red); }
 /* the large letter in the middle while one slides; it fades half a second after the last change */

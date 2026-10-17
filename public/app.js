@@ -2436,7 +2436,8 @@ function begreberPage() {
   let L = '';
   for (const e of items) {
     const l = e.name.charAt(0).toLocaleUpperCase('da');
-    if (l !== L) { L = l; h += `<h2 class="grp az" id="az-${esc(l)}">${esc(l)}</h2>`; }
+    // the jump's mark sits before its band: a band that sticks under the bar reports where it sticks, not where it lies
+    if (l !== L) { L = l; h += `<i class="az-at" id="az-${esc(l)}" aria-hidden="true"></i><h2 class="grp az">${esc(l)}</h2>`; }
     const sub = nested.has(e.id + '-sagen') ? ix.items[e.id + '-sagen'] : null;
     h += `<div class="az-item"><button class="az-row" data-begreb="${esc(e.id)}"><b>${esc(pageTitle(e))}</b><small>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</small></button>`
       + (sub ? `<button class="az-sub" data-begreb="${esc(e.id + '-sagen')}">– sagen · ${sub.n_answers} svar</button>` : '') + '</div>';
