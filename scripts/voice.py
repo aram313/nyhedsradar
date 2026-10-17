@@ -195,6 +195,21 @@ def check_voice(text, where, problems):
             break
 
 
+# a forecast of Khabar's own (the calendar's 'why', 2026-10-17): what may come of an event is never said – only what it
+# is and why it matters as a fact ('afgør', 'skal', 'første valg siden …'); a forecast inside a quotation is the speaker's
+FORECAST = re.compile(r'\b(sandsynligvis|formentlig|forventeligt|forventes|ventes|spås|prognose\w*|risikerer|'
+                      r'kan (?:føre|ende|udløse|vælte|koste|blive|betyde|ændre|afgøre)|vil (?:føre|ende|udløse|vælte|koste|'
+                      r'blive|betyde|ændre|afgøre|vinde|tabe)|ventet|tegner til|ligger an til|favorit\w*|'
+                      r'is expected|likely|will (?:lead|win|lose))\b', re.I)
+
+
+def check_forecast(text, where, problems):
+    hit = FORECAST.search(QUOTE.sub('', text or ''))
+    if hit:
+        problems.append(f"{where}: '{hit.group(0)}' is a forecast – say what the event is and why it matters as a fact, "
+                        'never what may come of it')
+
+
 def check_reality(text, where, problems):
     hit = REALITY_BANNED.search(text or '')
     if hit:

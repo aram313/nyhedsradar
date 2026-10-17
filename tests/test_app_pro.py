@@ -125,7 +125,7 @@ def test_one_time_format_and_one_word_set():
 
 
 def test_deep_links_skip_the_intro_and_name_the_page_in_view():
-    assert "['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt'].some(k => q.has(k))" in INDEX
+    assert "['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender'].some(k => q.has(k))" in INDEX
     assert "if (deep || (seen && away < 6 * 3600e3)) d.classList.add('intro-skip')" in INDEX
     assert "`forlob=${encodeURIComponent(arg)}`" in CODE and "openSide('threads', params.get('forlob'))" in CODE
 
@@ -317,6 +317,10 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
     for sel in ('.page[data-tab="home"] .lede-d > span', '.page[data-tab="home"] .block-h h2::before',
                 '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
         assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
-    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):   # the readable red only on the front page
-        if 'var(--red)' in m.group(2):   # the front page's accents, and the chosen tab's icon (17/10)
-            assert '.page[data-tab="home"]' in m.group(1) or '.tabs button[aria-selected="true"] > svg' in m.group(1), m.group(1)
+    # the readable red only on the front page, the chosen tab's icon (17/10) and the Kalender tab's Economist accents (its
+    # fly title, its block titles' rule and the dot of an event in the next 48 hours)
+    calendar = ('.page[data-tab="kalender"]', '.cal-fly', '.ck.near i')
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
+        if 'var(--red)' in m.group(2):
+            sel = m.group(1)
+            assert '.page[data-tab="home"]' in sel or '.tabs button[aria-selected="true"] > svg' in sel or any(c in sel for c in calendar), sel

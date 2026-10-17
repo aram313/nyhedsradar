@@ -1135,3 +1135,55 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* Dagens historie's headline on its picture in the same serif */
 .page[data-tab="home"] .story.lp .tx .h { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; font-variation-settings: "opsz" 48; }
 .page[data-tab="home"] .story.lp .tx .h b { font-weight: 700; }
+
+/* ------------------------------------------------------------ Kalender (17/10, the owner: "en kalender, som viser
+   fremtidige begivenheder … Og den skal have en fane for sig selv"): in the front page's Economist manner – a red fly
+   title, one serif line naming what comes next, a short red rule over the block titles – then the events as quiet rows:
+   the day large in tabular figures with its weekday small, the title, one line with the kind's calm dot, the place,
+   and 'forventet'. Red only for the next 48 hours (the dot of an event today or tomorrow) */
+:root { --c-valg: #3b6fc4; --c-top: #7a5aa6; --c-bank: #2f7a5a; --c-frist: #a06a10; --c-dansk: #5a6f86; --c-andet: #8a8a86; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --c-valg: #7aa7ff; --c-top: #b79bdf; --c-bank: #5cc79a; --c-frist: #e0ac55; --c-dansk: #9fb3c8; --c-andet: #8f8f8c; }
+}
+:root[data-theme="dark"] { --c-valg: #7aa7ff; --c-top: #b79bdf; --c-bank: #5cc79a; --c-frist: #e0ac55; --c-dansk: #9fb3c8; --c-andet: #8f8f8c; }
+[data-k] { --ck: var(--c-andet); }
+[data-k="valg"] { --ck: var(--c-valg); }
+[data-k="topmøde"] { --ck: var(--c-top); }
+[data-k="centralbank"] { --ck: var(--c-bank); }
+[data-k="frist"], [data-k="retssag"], [data-k="forhandling"] { --ck: var(--c-frist); }
+[data-k="dansk"] { --ck: var(--c-dansk); }
+.ck i, .ck-d { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--ck); vertical-align: 1px; }
+.ck { color: var(--text-2); font-weight: 600; }
+.ck.near i { background: var(--red); }
+.o-row .ck-d { margin-right: 2px; }
+.cal-top { padding: var(--s3) var(--s4) var(--s1); }
+.cal-fly { margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .04em; text-transform: uppercase; color: var(--red); }
+.cal-next { margin-top: 4px; font-family: var(--display); font-size: var(--fs-block); font-weight: 700; line-height: 1.2; letter-spacing: -.01em;
+  font-variation-settings: "opsz" 48; text-wrap: balance; }
+.page[data-tab="kalender"] .block-h h2 { position: relative; padding-top: 9px; }
+.page[data-tab="kalender"] .block-h h2::before { content: ""; position: absolute; top: 0; left: 0; width: 26px; height: 3px; background: var(--red); }
+.page[data-tab="kalender"] .block { margin-top: var(--s4); }
+.ce { position: relative; }
+.ce + .ce::before { content: ""; position: absolute; top: 0; left: 72px; right: 0; z-index: 2; border-top: 1px solid var(--line); }
+.ce.open { background-color: var(--fill); }
+.ce.open::before, .ce.open + .ce::before { opacity: 0; }
+.ce:not(.open) { content-visibility: auto; contain-intrinsic-size: auto calc(74px * var(--ts, 1)); }
+.cd { flex: none; width: 44px; display: flex; flex-direction: column; align-items: center; font-variant-numeric: tabular-nums; }
+.cd b { font-size: var(--fs-title); font-weight: 700; line-height: 1.05; letter-spacing: -.02em; }
+.cd b.mo { font-size: var(--fs-small); line-height: 1.7; }
+.cd small { margin-top: 2px; font-size: var(--fs-cap); font-weight: 650; letter-spacing: .03em; color: var(--text-3); }
+.ce .h { font-weight: 600; }
+.ce .m .cn { color: var(--text); font-weight: 650; }
+.ce-x { padding: 0 var(--s4) var(--s3) 72px; }
+.ce-why { margin: 0 0 var(--s2); font-size: var(--fs-read); line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
+.ce-st { list-style: none; margin: 0 0 var(--s2); padding: 0; }
+.ce-st li + li { border-top: 1px solid var(--line); }
+.ce-st button { display: block; width: 100%; min-height: 44px; padding: 8px 0; }
+.ce-st span { display: block; font-size: var(--fs-small); line-height: 1.35; color: var(--text); }
+.ce-st em { display: block; margin-top: 2px; font-style: normal; font-size: var(--fs-meta); color: var(--text-3); }
+.ce-x .know-acts { margin-top: var(--s1); }
+.cal-mh { position: sticky; z-index: 5; top: var(--barh); margin-top: var(--s5); padding: 10px 16px 8px; background: var(--bg);
+  font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text-2); box-shadow: inset 0 -1px var(--line); }
+.cal-none { margin: 2px 16px 0 72px; font-size: var(--fs-small); color: var(--text-3); }
+.cal-past { margin-top: var(--s5); }
+.cal-pb small { font-weight: 500; color: var(--text-3); }

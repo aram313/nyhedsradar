@@ -132,7 +132,12 @@ da'wah.
   wiki's); `publish` keeps what a small update leaves out (lede, picks, quotes), checks all of the editor's own text –
   lede, summaries, recap lines, topic names, picks' why – with `scripts/voice.py` (the content rules; reality only,
   never the movement's reading as fact; a line or quote from the movement's or a government's channel gets the
-  movement's checks too) and files a new answer in `answers.json`. **Round 2 (2026-10-17):** the input lists up to
+  movement's checks too) and files a new answer in `answers.json`. **The calendar (17/10):** an update's optional `calendar`
+  list (date YYYY-MM-DD, or YYYY-MM with `approx`; title, kind, place, why, link, ids) is checked like headlines
+  (`voice.check_headline`, `check_reality`, and `voice.check_forecast` – no forecast in the title or why) and kept in
+  `kalender.json` on the digest branch (in `DIGEST_FILES`; an entry stays until two days after its day, the same id
+  changes it, `{"id": …, "remove": true}` removes it); the input lists the calendar's next 30 days (calendar.json
+  and kalender.json) so the editor adds only what the news name and the calendar lacks. **Round 2 (2026-10-17):** the input lists up to
   `MAX_TITLES` (30) stories in Live still without the editor's headline ('Headlines to write': big first, then those the
   app shows worst, with the outlet's headline, teaser and three other outlets'), Live today (level, note, count, the
   radar's line, the six weakest in and strongest out, yesterday's take/drop still in force) and the front page's
@@ -154,16 +159,27 @@ da'wah.
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
-- `src/radar/osint.py` writes `map.json` for the Kort tab after every radar pass (stdlib, no network, from data.json and
-  the editor's headlines): a story is an event when its headline says something violent happened, placed at the most
-  specific place of `config/map-places.json` (towns of Palestine under their names from before the occupation; 653
-  places since 18/10 with Ukraine's front, Russia's targets, Sudan, the Sahel, Somalia, Syria, southern Lebanon, the
-  West Bank's villages and camps, Gaza's neighbourhoods, Myanmar, Pakistan, Afghanistan, Iraq and Yemen). Since 18/10
-  (the owner: "der er sket meget mere i ukraine", "flere forskellige lande, små hændelser") one established news
-  outlet's lone report is enough (its group is not `channel`, `official` or `bevægelsen`); among countries the one acted
-  on wins ('Russia attacks Ukraine's energy grid': an actor – an adjective or another country – before the attack, the
-  country after it; one after 'by/af' strikes); and the same place (or within 10 km), kind and three hours are one event
-  (`merge`: the newest headline, `n` the outlets summed, `also` the other stories).
+- `src/radar/osint.py` (**shelved since 17/10** at the owner's wish: "Du skal kassere kortvisningen, eller gemme den, i
+  hvert fald for nu, og ikke lave videre på den … den bidrager ikke til det store billede"): it wrote `map.json` for the
+  Kort tab from data.json and the editor's headlines, placing violent events at the places of `config/map-places.json`.
+  The code, the places and tests/test_osint.py stay; radar.yml's Map step is `if: false`, the app has no Kort tab and
+  its Kort section in app.js is never called (tests/test_app_kort.py checks that it is shelved and loads nothing). The
+  15 sources added for the map stay in feeds.json (they feed Live). To bring it back: the tab, its page, SWIPE_TABS,
+  the callers and listeners noted in the section, the step, and `mapUrl`/`cartoKey` in pages.yml.
+- `src/radar/calendar.py` (2026-10-17, the owner: "en kalender, som viser fremtidige begivenheder … ting, der har
+  geopolitisk betydning … hvad der skal til at ske snart, af planlagte begivenheder"; the Islamic dates left out at his
+  wish the same day) writes `calendar.json` for the Kalender tab after the energy step (stdlib, continue-on-error, 3
+  minutes). Sources, each on its own daily clock, a failed one resting three hours and keeping its last good items:
+  Wikipedia's "<year> national electoral calendar" for this year and the next two through the MediaWiki API
+  (action=parse, a descriptive User-Agent with no personal data; a page that does not exist yet is an empty answer),
+  kept to the countries of weight (`COUNTRIES`: every Muslim-majority state, the great powers, the EU states, Israel
+  as “israel”, Ukraine, Brazil), local elections left out, a month only or "by" marked `approx` ('forventet'); the
+  Fed's FOMC calendar and the ECB's meeting calendar as decision days (Danmarks Nationalbank follows the ECB); and
+  `config/calendar.json`, the curated summits and fixed dates, every one with its checked source (dates that could not
+  be checked are left out and named in its `_help`). A curated election wins over Wikipedia's on the same day and
+  place; past events are kept 30 days (the tab's 'Tidligere'). Item shape: id, date (YYYY-MM-DD or YYYY-MM), end,
+  approx, title, kind (valg | topmøde | centralbank | frist | retssag | forhandling | dansk | andet), place, why, link,
+  src. Reality only: what happens, where, one factual line on why it matters – never a forecast.
 - `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day;
   the same day made **the economy page**, the owner: "en femte fane med olie, diesel og benzinpriser … generelle
   geopolitiske tal man skal holde øje med og hvorfor … s&p 500 … landes gæld … AI boblen … interaktiv … live") writes
@@ -202,7 +218,7 @@ da'wah.
   and explanations; the file only numbers (tests/test_energy.py checks both).
 - `public/` is the PWA. `config.js`, `data.json` and `dev/` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses, energy
-  and map URLs, and the CARTO key from the repository variable `CARTO_KEY`). A local preview of round 2's data: `public/dev/r2/` with `?dev=r2` (`&front=0` the fixed front page, `&app=0`
+  and the calendar's two URLs: `calendarUrl` on the data branch, `kalenderUrl` on the digest branch). A local preview of round 2's data: `public/dev/r2/` with `?dev=r2` (`&front=0` the fixed front page, `&app=0`
   data.json instead of app.json) in the local config.js.
 - State lives on the force-pushed orphan branch `data` (no history), read back at the start of each run.
 - `config/profile.enc` = output of `scripts/build_profile.py` (shared links + statement lines from link-less briefings;
@@ -271,45 +287,37 @@ da'wah.
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
   and functional: no skeuomorphic paper/ink effects (the owner found the stamp and ink drop unserious).
-- **The app (2026-10-17, the owner's decision; the fifth tab 2026-10-18): five tabs, Forside · Live · Kort · Økonomi ·
-  Analyser** (Danmark, Mellemøsten and Verden are gone; Kort joined on 17/10, the owner: 'en slags live osint med kort og
-  seneste angreb lidt ligesom LiveUAmap'; on 18/10 'Kan du gøre kort separat fra priser, lav det til en femte fane').
+- **The app (2026-10-17, the owner's decision; the fifth tab 2026-10-18; the map shelved for the calendar 17/10): five
+  tabs, Forside · Live · Kalender · Økonomi · Analyser** (Danmark, Mellemøsten and Verden are gone; Kort was a tab from
+  17/10 until the owner shelved it the same day: "meget mere taktisk, end det er strategisk … Så synes jeg godt, vi kunne
+  have en kalender i stedet for den … Og den skal have en fane for sig selv"; `?tab=kort` opens Forside).
   **The options dock (18/10, the owner: 'man skal let med tommelfingeren kunne trykke frem og tilbage på de der
   forskellige knapper eller valgmuligheder, der er under hver side'):** a page's own options sit right above the tab bar,
   never as a strip under the top bar – the top bar keeps only the logo and title, Gemt, search and settings. One shared
-  component, `#opts` inside the fixed `.dock` (`paintOpts(t)`, `dockTab`; Live `liveOpts`, Kort `kortOpts`, Analyser
+  component, `#opts` inside the fixed `.dock` (`paintOpts(t)`, `dockTab`; Live `liveOpts`, Kalender `calOpts`, Analyser
   `anOpts`; none on the front page, side pages and search): one or two `.o-row` rows of chips and segments that slide
   sideways when they overflow (`touch-action: pan-x`), patched with `morph` so a row keeps its place, solid like the bar
   (no blur), gone while the keyboard is up (`.keyboard .opts`); it follows the page in view during a swipe; its
-  buttons go through the same handlers as the pages' (`onTap`, `kortTap`). Its height is part of `--dock` (the
+  buttons go through the same handlers as the pages' (`onTap`). Its height is part of `--dock` (the
   ResizeObserver on `#dock`), so the pages' foot room, the toast and `keepInView` (an opened story's buttons come up
   above it) count it. Analyser's search field stays under the bar (the dock goes with the keyboard; the field must
-  not). **Kort** (`kortPage` and its section in app.js, its own section in style.css, tests/test_app_kort.py): map.json's
-  events (`src/radar/osint.py`, `CFG.mapUrl`; fetched first when the tab is in view or a swipe heads for it, then with
-  the news's reload cycle, `VFRESH.map`; an unchanged file draws nothing) on a Leaflet 1.9.4 map from cdnjs with
-  Leaflet.markercluster 1.5.3 (both with SRI; loaded the first time the map is needed, never at the start –
-  `loadLeaflet`, not `leaflet`: Leaflet's file takes that global name; `loadCluster` after it, the plugin extends L;
-  without it the markers stand alone). The map is a panel 12 from the edge filling 56 % of the room between the bar and
-  the dock, sticky under the bar: the list scrolls under it, the map stays in view (`touch-action: none`: a drag pans
-  the map, never the tabs; no pull to refresh there); the tiles light or dark with the app (`kortLook`, called from
-  `applyLook`): CARTO's `light_all`/`dark_all` with `?key=` from `CFG.cartoKey` (pages.yml, repository variable
-  `CARTO_KEY` – CARTO needs a free non-commercial key since September 2026, requested by a person at
-  carto.com/basemaps/apikey), without a key OpenStreetMap's own tiles greyed (`.k-osm`); Leaflet's small attribution
-  ('© OpenStreetMap contributors, © CARTO'). The default view holds the window's events, the ones near their middle
-  when those are most (`kFit`, max zoom 6). The dock's two rows: the zones Gaza · Vestbredden · Libanon/Syrien ·
-  Irak/Iran · Jemen/Rødehavet · Ukraine/Rusland · Afrika · Hele kortet, each with its count in the window (`KZONES`,
-  bounding boxes, an event in the first zone that holds it; a tap flies to the zone's boxes – Reduce Motion: straight
-  there – and keeps the list to the zone, for the visit; Hele kortet the default view), then the window chips 6 timer ·
-  24 timer · 3 døgn (24, remembered: `kortWin`) and the kinds (for the visit, shown with two kinds or more). Under the
-  map the count ('26 hændelser i Gaza · seneste kl. 14.24') and the rows (the marker's badge, the place in bold, the
-  headline, the meta line with `stamp()`, 'N medier' from three, 'omtrentlig placering'; `.hit` under the row).
-  Markers: the kind's glyph (`#k-<kind>` in index.html) in its quiet colour on the panel colour, a dashed hollow ring for
-  `ca`, a red ring (`.km .live-dot`) for the last hour; events close together are one bubble (`kClusterIcon`: a quiet
-  circle in the page colour with the count, 32–50 px by the count, a red ring only when one is of the last hour;
-  a wide reach zoomed out, so the world view shows a handful of bubbles); a tap on a bubble zooms in, at the closest zoom
-  it fans its events out. A row flies the map to its event and opens its bubble (`zoomToShowLayer`; Reduce Motion: no
-  flight); a marker marks its row and shows one card over the map's foot ('Læs', 'Åbn historien' – `openFocus` as a
-  `?item=` link). **Økonomi** (`okPage`): `energi/?embed=1` in a same-origin frame filling the page between the bar and
+  not). **Kalender** (`kalenderPage` and its section in app.js, its section in style.css, tests/test_calendar.py): the
+  radar's calendar.json (`CFG.calendarUrl`) and the editor's kalender.json (`CFG.kalenderUrl`; a 404 until the first
+  entry) merged by `calItems` – the editor's entry wins on the same date and title, or its id – fetched with the news's
+  reload (`VFRESH` cal 30 min, kal 10 min; an unchanged file draws nothing; the page's `SIG` holds its choices). In the
+  front page's Economist manner: a red fly title 'Kalender' and one Source Serif 4 line naming what comes next ('Næste:
+  Midtvejsvalg i USA om 17 dage'), then 'Det sker snart' (the next seven days with 'i dag', 'i morgen', 'om 5 dage',
+  'i gang'), then month by month under sticky month headers, and 'Tidligere' (the last 30 days) folded at the foot. A row:
+  the day large in tabular figures and the weekday small (a month only: its name), the title, one quiet line – the
+  kind with its calm dot (`--c-valg` … each light and dark; red only for an event today or tomorrow, `.ck.near`), the
+  place, 'til …', 'forventet' –; a tap opens it in place (one at a time): the why, 'Kilde ›', Del · Kopiér and up to three
+  stories in Live that name it (the editor's ids, else the place and a title word, or two title words). The dock: Alle ·
+  Valg · Topmøder · Centralbanker · Frister · Danmark (for the visit) and 3 mdr · 12 mdr · Alt (remembered, `calWin`).
+  The front page: 'Det sker snart' – the next three or four events of the coming 14 days – after the second block drawn
+  (`calBlock`; composed and fixed page alike; none in the fortnight: no block), 'Alle ›' to the tab, a row opening the tab
+  at its event. A share: '17/10 · Midtvejsvalg i USA – <why> – via khabar.nu/?kalender=<id>'; `?kalender=<id>` opens the
+  tab at that event (opened, the filter and window widened to hold it, aimed below the bar and its month – again after the
+  late rows and the serif settle, `calAimAt`). **Økonomi** (`okPage`): `energi/?embed=1` in a same-origin frame filling the page between the bar and
   the dock, made when the tab is first shown or a swipe heads for it: the economy page hides its bar and back link and
   follows the app's look and text size live (it watches the app's `<html>`; the page itself is another agent's work –
   `public/energi/`). The oil row of an opened story and Indstillinger's 'Mere' open Økonomi (`data-okonomi`,
@@ -411,7 +419,7 @@ da'wah.
   the wiki's pages): Israel in our own voice (the movement's term only inside a quotation) – in the editor's text in the
   owner's house style (2026-10-17): lower case inside curly quotes, every form (“israel”, “israels”, “israelske”),
   written so by `voice.quote_israel`, which `editor.py publish` applies to every file it writes (`quoted`), and in the
-  app by `quoteIsrael` (keep the two alike) for every Danish headline and teaser it shows, the map's and the energy page's
+  app by `quoteIsrael` (keep the two alike) for every Danish headline and teaser it shows, the calendar's and the energy page's
   too – never the outlet's original in the credit line or Hizb ut-Tahrir's texts; no praise of or call to
   violence; judge states, rulers, policies and ideas – never peoples or religions; no claim that a non-ruling person, a
   Danish person or organisation, a mosque, a scholar or a media outlet serves a power; no conspiracy myths; the
@@ -466,7 +474,7 @@ da'wah.
     label – the editor's timeline or the story's own development (`threadFor`) only when the development's name shares a
     specific subject with the headline (a wiki page or a word, never only Trump, Putin or the USA) or the editor filed
     the story in it (`topicFits`, `topicOf`), else none, and only such a development's name helps find the answer line, the Live block without commentary (the prices' link at the
-    foot went to the Kort tab on 17/10, the Økonomi tab since 18/10), the fixed page's 'Danmark' block, the iPhone install hint once. An opened
+    foot went to the Økonomi tab since 18/10), the fixed page's 'Danmark' block, the iPhone install hint once. An opened
     story: up to three ochre wiki chips, 'Udvikling: <name> ›', the bookmark, an oil row when the text names oil or fuel (it opens the Økonomi tab).
     Udvikling: its own address (`?forlob=<key>`), Del/Kopiér per card, a long course three days at a time, its name
     sticky inside it. Analyser: one title line, a strip under the bar with the field, and one chip row in the dock (A–Å, the areas as

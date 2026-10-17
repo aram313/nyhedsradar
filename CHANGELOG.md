@@ -9,6 +9,30 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Kalender instead of the map** (2026-10-17, the owner: "Du skal kassere kortvisningen, eller gemme den … Så synes jeg
+  godt, vi kunne have en kalender i stedet for den … Og den skal have en fane for sig selv"; the Islamic dates left out at
+  his wish the same day; `?v=20261018r`).
+  - The tabs are Forside · Live · Kalender · Økonomi · Analyser. The map is shelved, not deleted: its tab and page are
+    gone, its code in app.js, `src/radar/osint.py`, `config/map-places.json` and their tests stay but nothing reaches
+    them, so no request goes to Leaflet, MapLibre or the tile servers; radar.yml's Map step is switched off
+    (`if: false`); `?tab=kort` opens Forside. The 15 sources added for the map stay (they feed Live).
+  - New `src/radar/calendar.py` (stdlib, a radar.yml step after the energy step) writes `calendar.json` on the data
+    branch: elections from Wikipedia's national electoral calendars (this year and the next two, the countries of weight
+    to the group), the Fed's and the ECB's rate decisions, and the curated summits and fixed dates of
+    `config/calendar.json`, each with its checked source. Each source has its own daily clock and keeps its last good
+    items when it fails.
+  - The editor's own planned events from the news: `editor.py publish` takes an optional `calendar` list (checked like
+    headlines, never a forecast – `voice.check_forecast`), kept in `kalender.json` on the digest branch until two days
+    after the day; the input lists the calendar's next 30 days; the routine prompt has a `calendar` bullet.
+  - The Kalender tab: a red fly title and a serif line naming what comes next, 'Det sker snart' (seven days with their
+    countdown), month by month, 'Tidligere' (30 days); rows with the day large, the kind's calm dot (red only for the
+    next 48 hours), the place and 'forventet'; a tap shows why it matters, the source, Del · Kopiér and the stories in
+    Live that name it. The dock: Alle · Valg · Topmøder · Centralbanker · Frister · Danmark and 3 mdr · 12 mdr · Alt.
+    The front page shows 'Det sker snart' (the next three or four events of 14 days) after its second block. An event
+    is shared as '17/10 · Midtvejsvalg i USA – … – via khabar.nu/?kalender=<id>', and `?kalender=<id>` opens it.
+  - Tests: tests/test_calendar.py (parsing on excerpts of the real pages, the run's clocks, the editor's entries, the tab,
+    the dock, the front page block, the share); tests/test_app_kort.py now checks that the map is shelved and loads nothing.
+
 - **A map of more countries, clean when zoomed out, zones to fly to; Økonomi as the fifth tab; the options at the
   thumb** (2026-10-18, the owner: 'der er sket meget mere i ukraine', 'flere forskellige lande, små hændelser', 'når man
   zoomer ud … alt bliver til en stor cirkelring', 'hvis man trykker på de forskellige zoner, så … flyver til forskellige

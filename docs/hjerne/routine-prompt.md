@@ -47,8 +47,8 @@ plain Danish without "Ifølge …".
    concepts in today's top stories, from Hizb ut-Tahrir's newest answers), the front page now, the recap so far, the
    top stories with their tier, the new stories since the last update, the stories to summarise, the headlines to
    write (the stories in Live without your headline), Live today (the level and the candidates just above and below
-   the radar's line), the front page's composition with its palette, the Al Jazeera wire lines – and, when one is
-   waiting, Hizb ut-Tahrir's new answer with its text.
+   the radar's line), the front page's composition with its palette, the calendar's next 30 days, the Al Jazeera wire
+   lines – and, when one is waiting, Hizb ut-Tahrir's new answer with its text.
 
 [WEIGHING-GUIDE]
 
@@ -103,6 +103,14 @@ plain Danish without "Ifølge …".
      its stories change; leave it out to keep the composition (its stories that left the radar are dropped).
      `front.lede` may carry the lede when the update gives none in `lede`.
    - `moves`: only a story in a clearly wrong section (rare); a move stays until the story is moved back.
+   - `calendar`: planned events the news name that the calendar's next 30 days (in the input) lack – a ceasefire's end,
+     talks, a Security Council vote, a court's ruling, a tariff deadline, a Danish vote or a called election. Each:
+     `date` (YYYY-MM-DD, or YYYY-MM with `"approx": true` when only the month is known), `title` (Danish, what happens –
+     a statement like a headline), `kind` (valg | topmøde | centralbank | frist | retssag | forhandling | dansk |
+     andet), `place`, `why` (one factual line on why it matters – never a forecast: no 'forventes',
+     'sandsynligvis', 'kan føre til'), `link` and `ids` (the stories it comes from). Only a date the stories state;
+     change one of yours by its `id`, remove one with `{"id": …, "remove": true}`; leave `calendar` out to keep the
+     calendar as it is. Entries stay until two days after their day.
    - `answer`: when the input shows a new answer of Hizb ut-Tahrir – its Danish title and question, a note of 2-4
      sentences and one reading per subject it reads, each saying what the answer reads in plain Danish without
      "Ifølge Hizb ut-Tahrirs svar …" or "Ifølge svaret …" ("Saudi-Arabien er underordnet USA"; the app labels them
@@ -113,12 +121,12 @@ plain Danish without "Ifølge …".
    Run `python3 scripts/editor.py publish /tmp/editor/update.json --push`. If it lists problems, fix the file and run it
    again until it reports 'Published'. If it says another update was published after your input, run step 3 again and
    write the update on top of the new front page. It commits digest.json, moves.json, summaries.json, answers.json,
-   live.json and front.json to the digest branch; do not touch any other branch or file. Only the first update at or after 21 Danish time
+   live.json, front.json and kalender.json to the digest branch; do not touch any other branch or file. Only the first update at or after 21 Danish time
    notifies the phones – the tool decides that.
 
 5. Finish with one line: the time, the lede (new or kept), the picks (changed or kept), the recap lines, the
-   summaries, the headlines written, the level (and stories taken in or out), the front page (new or kept), and the
-   answer noted, if any.
+   summaries, the headlines written, the level (and stories taken in or out), the front page (new or kept), the
+   calendar entries added or removed, and the answer noted, if any.
 
 The rules for everything you write: Israel's name always in lower case inside curly quotes, every form – “israel”, “israels”,
 “israelske”, “israel”-Hamas-krigen (the owner's house style; the tool writes it so too) – in your own voice (the movement's

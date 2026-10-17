@@ -18,16 +18,16 @@ story). Names of people, parties and places are in bold. Five tabs:
   is no fresh composition).
 - **Live** – the stories of the day as the editor weighs them – fewer on a quiet day, more on a heavy one – the newest or
   the most important first.
-- **Kort** – the attacks and fighting in the news of the last hours on a map (a little like LiveUAmap), in many
-  countries: zones to fly to (Gaza, Vestbredden, Libanon/Syrien, Irak/Iran, Jemen/Rødehavet, Ukraine/Rusland, Afrika),
-  6 hours, 24 hours or 3 days, the kinds as a quiet filter, events close together as one numbered bubble when zoomed
-  out, the events as rows scrolling under the map; a tap on a row flies the map there, a tap on a marker shows a small
-  card with the outlet's link and the story in Live.
+- **Kalender** – the planned events ahead that matter to the big picture: elections in the countries of weight,
+  the big summits (the UN, the G20, the EU, APEC, COP, OPEC), the Fed's and the ECB's rate decisions, Danish dates and
+  the deadlines the editor adds from the news (a ceasefire's end, talks, a vote, a ruling) – what comes next, the next
+  seven days with their countdown, then month by month; each event with why it matters, its source and the stories
+  in Live that name it, and shareable. The map (Kort) is shelved since 17/10.
 - **Økonomi** – the economy page (khabar.nu/energi: oil, fuel and the markets) inside the app.
 - **Analyser** – Hizb ut-Tahrir's answers to political questions, the newest first (321 from 2004 to 2026 and every new
   one), with a search field and the reader: the question, the answer in short, what it reads, the original.
 
-A page's own options (Live's sort and filters, the map's zones, window and kinds, Analyser's chips) sit in one dock
+A page's own options (Live's sort and filters, the calendar's kinds and window, Analyser's chips) sit in one dock
 right above the tab bar, within the thumb's reach; the top bar keeps only Gemt, search and settings.
 
 Concepts named in the news (states, powers, groups, issues, agreements, places, ideas) open a **wiki page** compiled only

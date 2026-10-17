@@ -4,9 +4,10 @@
 // style of Al Jazeera's breaking wire), summaries.json (the editor's summaries and its informative headline for every
 // story) and front.json (the front page the editor composed).
 // Five tabs: Forside (the editor's front page), Live (every story of all sections, the newest or the most important
-// first), Kort (the attacks and fighting in the news on a map, map.json), Økonomi (the economy page, energi/, in a frame)
-// and Analyser (Hizb ut-Tahrir's answers to political questions, newest first). A page's own options (sort, filters,
-// time, zones) sit in one dock above the tabs, within the thumb's reach; the top bar keeps only Gemt, search and settings. Concepts named in the news open
+// first), Kalender (the planned events ahead – elections, summits, rate meetings, deadlines and Danish dates:
+// calendar.json from the radar, kalender.json from the editor), Økonomi (the economy page, energi/, in a frame) and
+// Analyser (Hizb ut-Tahrir's answers to political questions, newest first). The map (Kort) is shelved since 17/10. A
+// page's own options (sort, filters, kinds, window) sit in one dock above the tabs, within the thumb's reach; the top bar keeps only Gemt, search and settings. Concepts named in the news open
 // a wiki page compiled only from those answers (public/viden). The app shows no analysis of its own: the movement's
 // text is always attributed and set in its own face. Search over everything the radar has read. Plain JS.
 const CFG = window.RADAR_CONFIG || {};
@@ -35,7 +36,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
   'bevægelsen': ['fra bevægelsen', 'fra bevægelsen'] };
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
-const TITLES = { home: 'Khabar.nu', latest: 'Live', kort: 'Kort', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
+const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
   begreb: 'Begreber', begreber: 'Begreber', gemt: 'Gemt' };
 // the tab whose options the dock above the tabs shows (paintOpts)
 let dockTab = '';
@@ -136,6 +137,8 @@ const FMT = {
   dm: new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }),
   wdl: new Intl.DateTimeFormat('da-DK', { weekday: 'long' }),
   ymd: new Intl.DateTimeFormat('sv-SE'),
+  my: new Intl.DateTimeFormat('da-DK', { month: 'long', year: 'numeric' }),   // the calendar's months
+  mon: new Intl.DateTimeFormat('da-DK', { month: 'short' }),
   dk: (() => { try { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Copenhagen' }); } catch { return new Intl.DateTimeFormat('sv-SE'); } })(),
   num: new Intl.NumberFormat('da-DK'),
 };
@@ -245,7 +248,9 @@ async function load(manual) {
   }
   if (--busy === 0) document.body.classList.remove('loading');
   need('ans');   // the editor's filed answers: looked for again after a quarter of an hour
-  if (kSeen) { if (manual && vd.map && vd.map.state === 'ok') vd.map.at = 0; need('map'); }   // the map, once the Kort tab was seen
+  // the calendar (the front page's 'Det sker snart' and the Kalender tab): asked again at its own pace, at once by hand
+  if (manual) for (const k of ['cal', 'kal']) if (vd[k] && vd[k].state !== 'loading') vd[k].at = 0;
+  need('cal'); need('kal');
   if (changed || manual || offline !== wasOffline || redrawAfterLoad) { redrawAfterLoad = false; renderSoon({ fresh: true, keep: true }); } else renderHeader();
 }
 // a reload's drawing waits while a finger is on the screen or the page still moves, so a scroll is never interrupted
@@ -466,10 +471,13 @@ const VFILES = {
   mix: () => VIDEN + 'movement-index.json', mfull: () => VIDEN + 'movement.json',
   ans: () => CFG.answersUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'answers.json'),
   txt: () => CFG.analysesUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'analyses.json'),
-  map: () => CFG.mapUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'map.json'),   // the Kort tab's events
+  map: () => CFG.mapUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'map.json'),   // the shelved Kort tab's events
+  // the Kalender tab: the radar's planned events (data branch) and the editor's own from the news (digest branch)
+  cal: () => CFG.calendarUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'calendar.json'),
+  kal: () => CFG.kalenderUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'kalender.json'),
 };
-// the map's events follow the news's reload cycle (every two minutes) once the Kort tab has been in view
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3 };
+// the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
@@ -494,7 +502,8 @@ function vLoaded(k) {
   // (search and Gemt too: a search's answers found through the wiki come with its whole file, a saved answer with the index)
   const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['analyses', 'svar', 'begreb', 'search', 'gemt'],
     ans: ['analyses', 'svar', 'begreb', 'search', 'gemt'], txt: ['analyses', 'svar'], mfull: ['svar'],
-    bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'] }[k] || [];
+    bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'] }[k] || [];
+  if (k === 'cal' || k === 'kal') calGen++;   // the merged calendar is worked out again
   if (k === 'bix' && busy) { redrawAfterLoad = true; return; }   // the news are on their way: their drawing takes the links along
   if (pages.length) redrawPages(pages);
   if (data && (k === 'mix' || k === 'ans')) renderDots(stories());
@@ -1284,7 +1293,7 @@ function composedHome(all, opts, f) {
   const take = id => { const i = findStory(String(id || '')); if (!i || used.has(i.id)) return null; used.add(i.id); return i; };
   // the owner's own choice of the main story (held on the front page) leads the first main block
   const pin = owner().lead && findStory(owner().lead);
-  let html = '', n = 0, filled = 0, tops = 0, drawn = 0;
+  let html = '', n = 0, filled = 0, tops = 0, drawn = 0, calPut = false;
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
@@ -1357,7 +1366,9 @@ function composedHome(all, opts, f) {
       html += `<p class="f-line">${esc(String(b.text))}</p>`;   // the front page's texts without the wiki's underlines
     }
     if (html.length > before) drawn++;
+    if (drawn === 2 && !calPut) { calPut = true; html += calBlock(); }   // 'Det sker snart' after the second block drawn
   }
+  if (!calPut && html) html += calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
     if (m) {
@@ -1562,6 +1573,7 @@ function fixedHome(all, opts) {
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
+  html += calBlock();   // 'Det sker snart' after the second block
   // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
   // strongest), and then its two strongest such stories not shown above
   const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
@@ -2442,7 +2454,7 @@ function renderHeader(busyText = '') {
 }
 // the movement's pages (Analyser, an answer, the wiki) need no news: they are drawn before the news have come, and
 // say nothing about the news being old
-const OWN = { analyses: analysesPage, svar: svarPage, begreb: begrebPage, begreber: begreberPage, gemt: gemtPage };
+const OWN = { analyses: analysesPage, svar: svarPage, begreb: begrebPage, begreber: begreberPage, gemt: gemtPage, kalender: kalenderPage };
 // the news pages before any news is on the phone: skeleton rows for at most four seconds, then a message and a way on
 const bootAt = Date.now();
 function noNews() {
@@ -2463,7 +2475,10 @@ let ver = 0;
 // Analyser and the wiki's index show no news: drawn again only when what they show has changed (not at every reload)
 const vstate = k => (vd[k] || {}).state || '';
 const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, anArea, saved.length, unfolded.has('an|areas'), ansRead.size, vstate('bfull'), vstate('mix'), vstate('ans')].join('|'),
-  begreber: () => [!!V('bix'), vstate('bix'), azKind].join('|') };
+  begreber: () => [!!V('bix'), vstate('bix'), azKind].join('|'),
+  // the calendar: its files, the reader's choices, the day – and, with an event open, the news that name it
+  kalender: () => [calGen, vstate('cal'), vstate('kal'), calF, calWin, calPast, [...calOpen].join(','), calFocus, calGone, dkYmd(new Date()),
+    calOpen.size ? `${titlesVer}|${data && data.updated}` : ''].join('|') };
 // The pages are patched, not rebuilt: the new page is laid out as a fragment and set against what stands. A row that
 // has not changed keeps its very elements – its picture, its place, nothing to lay out again –, a changed one gets only
 // its changed words and attributes, a new one is put in. A reload that brings two stories touches two rows.
@@ -2507,8 +2522,7 @@ function draw(t, opts = {}) {
   const pg = pageEl(t);
   if (!pg) return;
   pg.dataset.ver = ver;
-  if (t === dockTab && t !== 'kort') paintOpts(t);   // the page's options in the dock above the tabs
-  if (t === 'kort') { kortPage(pg); return; }   // the map keeps its own elements: drawn in parts, never patched as a whole
+  if (t === dockTab) paintOpts(t);   // the page's options in the dock above the tabs
   if (t === 'okonomi') { okPage(pg); return; }   // the economy page in its frame, made when first shown
   const sig = SIG[t] ? SIG[t]() : '';
   if (sig && pg.dataset.sig === sig) return;
@@ -2543,6 +2557,9 @@ function draw(t, opts = {}) {
   }
   pictures(pg);
   if (t === 'analyses') watchStrip(pg);
+  // a calendar event a link or the front page named: brought just below the bar once drawn (the tab in view)
+  // (and again while the files and the news that follow redraw it for two seconds, until the reader's finger takes over)
+  if (t === 'kalender' && t === tab) calAimAt(pg);
   if (t === 'threads' && pendingThr) { const card = pg.querySelector('#' + CSS.escape('thr-' + pendingThr)); if (card) { pendingThr = ''; requestAnimationFrame(() => scrollToEl(card, 12)); } }
 }
 // Analyser's strip stays under the bar; its year bands stick under the strip (its height measured when it changes)
@@ -2587,7 +2604,7 @@ function redrawPages(tabs) {
   clearTimeout(redrawT);
   (function now() {   // never under a finger or a scroll that still moves
     if (handBusy()) { redrawT = setTimeout(now, 250); return; }
-    if (redrawFor.has(tab) && (data || OWN[tab] || tab === 'kort' || tab === 'okonomi')) draw(tab, { keep: true });
+    if (redrawFor.has(tab) && (data || OWN[tab] || tab === 'okonomi')) draw(tab, { keep: true });
     redrawFor.clear();
     drawSoon();
   })();
@@ -2934,6 +2951,7 @@ async function onTap(e) {
   const ls = t.closest('[data-live-sort]');
   if (ls) { liveSort = ls.dataset.liveSort; store.set('liveSort', liveSort); expanded.clear(); render(); cur().scrollTop = 0; return; }
   if (t.closest('[data-live-top-all]')) { liveTopAll = true; render(); return; }
+  if (t.closest('[data-cal-f], [data-cal-win], [data-cal-past], [data-cal], [data-cal-go], [data-cal-share], [data-cal-copy]') && await calTap(t)) return;
   const lsec = t.closest('[data-live-sec]');
   if (lsec) { liveSec = liveSec === lsec.dataset.liveSec ? '' : lsec.dataset.liveSec; expanded.clear(); render(); cur().scrollTop = 0; return; }
   if (!el) return;
@@ -3016,11 +3034,11 @@ addEventListener('touchend', async () => {
 // bar (no blur), gone while the keyboard is up (the tabs go too) and on side pages, search and the front page. The
 // pages' bottom room is --dock, measured from the whole dock, so nothing hides under it, and an opened story's buttons
 // come up above it (keepInView measures the dock). The top bar keeps only the logo and title, Gemt, search and settings.
-// Live: the sort and the three filters; Kort: the zones, the window and the kinds; Analyser: its chip row.
+// Live: the sort and the three filters; Kalender: the kinds and the window; Analyser: its chip row.
 function paintOpts(t = tab) {
   const box = $('opts');
   if (!box) return;
-  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kort' ? kortOpts() : t === 'analyses' ? anOpts() : '';
+  const html = ASIDE.has(t) ? '' : t === 'latest' ? liveOpts() : t === 'kalender' ? calOpts() : t === 'analyses' ? anOpts() : '';
   const was = dockTab;
   dockTab = t;
   if (box.hidden !== !html) box.hidden = !html;
@@ -3048,7 +3066,211 @@ function openOkonomi() {
   setTab('okonomi', { top: true });
 }
 
+// ---------------------------------------------------------------- Kalender: the planned events ahead (the owner, 17/10:
+// "en kalender, som viser fremtidige begivenheder … man kan se i kalenderen, hvad der skal til at ske snart, af planlagte
+// begivenheder", "den skal have en fane for sig selv"; the Islamic dates left out at his wish the same day). Two files merged:
+// calendar.json (the radar's, data branch: elections, summits, the Fed's and the ECB's rate meetings, Danish dates and
+// the fixed dates of config/calendar.json – src/radar/calendar.py) and kalender.json (the editor's own entries from the news, digest
+// branch: deadlines, talks, votes, rulings). The editor's entry wins on the same date and title. Reality only: a date,
+// what happens, where, one factual line on why it matters and the source – never a forecast. The top: a red fly title
+// and one serif line naming what comes next; 'Det sker snart' (the next seven days with their countdown); then month by
+// month; 'Tidligere' (the last 30 days) folded at the foot. The dock holds the kinds and the window.
+const CAL_KINDS = { valg: 'Valg', 'topmøde': 'Topmøde', centralbank: 'Centralbank', frist: 'Frist', retssag: 'Retssag',
+  forhandling: 'Forhandling', dansk: 'Danmark', andet: 'Andet' };
+const CAL_FILTERS = [['', 'Alle'], ['valg', 'Valg'], ['top', 'Topmøder'], ['bank', 'Centralbanker'], ['frist', 'Frister'],
+  ['dk', 'Danmark']];
+const CAL_DOT = { valg: 'valg', top: 'topmøde', bank: 'centralbank', frist: 'frist', dk: 'dansk' };
+const calIn = (f, e) => !f || (f === 'valg' ? e.kind === 'valg' : f === 'top' ? e.kind === 'topmøde' : f === 'bank' ? e.kind === 'centralbank'
+  : f === 'frist' ? ['frist', 'retssag', 'forhandling', 'andet'].includes(e.kind)
+    : f === 'dk' ? e.kind === 'dansk' || fold(e.place) === 'danmark' : true);
+const CAL_WINS = [[3, '3 mdr'], [12, '12 mdr'], [0, 'Alt']];
+let calF = '', calPast = false, calGen = 0, calMemo = null, calPend = '', calGone = '';
+let calWin = (v => (CAL_WINS.some(w => w[0] === v) ? v : 12))(store.get('calWin', 12));   // the window, remembered
+const calOpen = new Set();                         // events opened (their why, source and stories)
+let calFocus = params.get('kalender') || '';       // ?kalender=<id>: the tab opens at that event
+// a day as a number (days since 1970), from 'YYYY-MM-DD' or 'YYYY-MM' (its first day); the Danish today
+const calDay = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, s.length > 7 ? +s.slice(8, 10) : 1) / 864e5;
+const calToday = () => calDay(dkYmd(new Date()));
+const calExact = e => e.date.length > 7;
+// the last day an event lasts: its end, its day, or – a month only – the month's last day
+const calEnd = e => (calExact(e) ? calDay(e.end && e.end.length > 7 ? e.end : e.date) : Date.UTC(+e.date.slice(0, 4), +e.date.slice(5, 7), 0) / 864e5);
+// a month-only date sorts after the month's exact days
+const calKey = e => (calExact(e) ? calDay(e.date) : calEnd(e) + 0.5);
+const calOk = e => !!e && typeof e.id === 'string' && /^\d{4}-\d{2}(?:-\d{2})?$/.test(String(e.date || '')) && !!e.title;
+const calNorm = s => fold(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+// the two files as one list, worked out once per file and day; the editor's entry wins on the same date and title
+function calItems() {
+  const day = calToday();
+  if (calMemo && calMemo.gen === calGen && calMemo.day === day) return calMemo.list;
+  const ed = ((V('kal') || {}).items || []).filter(calOk).map(e => ({ ...e, ed: true }));
+  const mine = new Set(ed.map(e => e.date + '|' + calNorm(e.title))), ids = new Set(ed.map(e => e.id));
+  const src = ((V('cal') || {}).items || []).filter(e => calOk(e) && !ids.has(e.id) && !mine.has(e.date + '|' + calNorm(e.title)));
+  const list = [...src, ...ed].map(e => ({ ...e, kind: CAL_KINDS[e.kind] ? e.kind : 'andet', title: quoteIsrael(String(e.title)),
+    why: quoteIsrael(String(e.why || '')), place: quoteIsrael(String(e.place || '')) })).sort((a, b) => calKey(a) - calKey(b));
+  calMemo = { gen: calGen, day, list };
+  return list;
+}
+const calFind = id => calItems().find(e => e.id === id);
+// 'i dag', 'i morgen', 'om 5 dage' – or 'i gang' for a summit already under way
+const calCount = (e, today) => { const n = calDay(e.date) - today; return n < 0 ? 'i gang' : n === 0 ? 'i dag' : n === 1 ? 'i morgen' : `om ${n} dage`; };
+const calDate = s => new Date((s.length > 7 ? s : s + '-01') + 'T12:00:00');
+// the day as a share and a meta line say it: '17/10' (a month only: 'november 2026')
+const calDm = e => (calExact(e) ? `${+e.date.slice(8, 10)}/${+e.date.slice(5, 7)}` : FMT.my.format(calDate(e.date)));
+const calUntil = e => (e.end && e.end.length > 7 && e.end !== e.date ? `til ${FMT.dm.format(calDate(e.end))}` : '');
+// the next 48 hours are the one red: the kind's dot of an event today or tomorrow
+const calNear = (e, today) => calExact(e) && calEnd(e) >= today && calDay(e.date) - today <= 1;
+// one event as a row: the day large in tabular figures and its weekday small, the title, one quiet line – the kind with
+// its calm dot, the place, 'til …', 'forventet' – and, opened, the why, the source and the stories
+function calRow(e, today, o = {}) {
+  const d = calDate(e.date), open = !o.front && calOpen.has(e.id), near = calNear(e, today);
+  const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>` : `<b class="mo">${esc(FMT.mon.format(d))}</b><small>måned</small>`;
+  const parts = [...(o.count ? [`<span class="cn">${calCount(e, today)}</span>`] : []),
+    `<span class="ck${near ? ' near' : ''}" data-k="${esc(e.kind)}"><i></i>${esc(CAL_KINDS[e.kind])}</span>`,
+    ...(e.place ? [`<span>${esc(e.place)}</span>`] : []), ...(calUntil(e) ? [`<span>${calUntil(e)}</span>`] : []),
+    ...(e.approx ? ['<span>forventet</span>'] : [])];
+  const label = `${calExact(e) ? FMT.full.format(d) : FMT.my.format(d)}: ${e.title}${e.place ? ', ' + e.place : ''}${e.approx ? ', forventet' : ''}${o.count ? ', ' + calCount(e, today) : ''}`;
+  const hit = o.front ? `<button class="hit" data-cal-go="${esc(e.id)}" aria-label="${esc(label)}"></button>`
+    : `<button class="hit" data-cal="${esc(e.id)}" aria-expanded="${open}" aria-label="${esc(label)}"></button>`;
+  return `<div class="ce${open ? ' open' : ''}" id="${o.front ? 'cf-' : 'ce-'}${esc(e.id)}"><div class="row">${hit}<span class="cd" aria-hidden="true">${day}</span>`
+    + `<span class="tx" aria-hidden="true"><span class="h">${esc(e.title)}</span><span class="m">${parts.join('')}</span></span></div>`
+    + (open ? calDetail(e) : '') + '</div>';
+}
+// an opened event: one factual line on why it matters, the source, Del · Kopiér and the stories in Live that name it
+function calDetail(e) {
+  const st = calStories(e);
+  return `<div class="ce-x">${e.why ? `<p class="ce-why">${esc(e.why)}</p>` : ''}`
+    + (st.length ? `<ul class="ce-st" aria-label="I nyhederne">${st.map(i => `<li><button data-live="${esc(i.id)}"><span dir="auto">${bold(i.title, i.kw)}</span><em>${esc(i.source)} · ${stamp(i.published || i.found)}</em></button></li>`).join('')}</ul>` : '')
+    + `<div class="acts know-acts">${e.link ? `<a class="act" href="${esc(e.link)}" target="_blank" rel="noopener">Kilde<svg aria-hidden="true"><use href="#i-chev"/></svg></a>` : ''}`
+    + `<button class="act" data-cal-share="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button>`
+    + `<button class="act" data-cal-copy="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-copy"/></svg>Kopiér</button></div></div>`;
+}
+// the stories in Live that name an event: the editor's own ids first, then those whose headline shares its subject – the
+// place and a word of the title, or two words of the title
+const calStems = t => new Set((String(t || '').toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) || []).map(w => w.slice(0, 6)));
+function calStories(e) {
+  const out = [], seen = new Set();
+  for (const id of e.ids || []) { const i = findStory(id); if (i && !seen.has(i.id)) { seen.add(i.id); out.push(i); } }
+  const ts = calStems(e.title), place = calNorm(e.place.replace(/[“”]/g, ''));
+  for (const i of stories()) {
+    if (out.length >= 3) break;
+    if (seen.has(i.id) || !ts.size) continue;
+    const text = [i.title, i.origTitle, i.title_da].join(' '), n = overlap(calStems(text), ts);
+    const at = place && place.length >= 3 && (' ' + calNorm(text) + ' ').includes(' ' + place);
+    if (n >= 2 || (n >= 1 && at)) { seen.add(i.id); out.push(i); }
+  }
+  return out;
+}
+// the share: '17/10 · Midtvejsvalg i USA – <why> – via khabar.nu/?kalender=<id>'
+const calText = e => `${calDm(e)} · ${e.title}${e.place && !e.title.includes(e.place) ? ` (${e.place})` : ''}${e.why ? ' – ' + e.why : ''} – via khabar.nu/?kalender=${encodeURIComponent(e.id)}`;
+// the window's last day: three or twelve months ahead, or everything
+function calLimit(today) {
+  if (!calWin) return Infinity;
+  const d = new Date(today * 864e5);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + calWin, d.getUTCDate()) / 864e5;
+}
+function kalenderPage() {
+  need('cal'); need('kal');
+  const today = calToday(), all = calItems();
+  if (!all.length) {
+    if (waiting('cal')) return loadingBlock('Henter kalenderen …');
+    if (failed('cal')) return retry('kalenderen', 'cal', 'kal');
+  }
+  // ?kalender=<id>: that event opened, in the list whatever the filter and window, and brought into view once drawn
+  if (calFocus && (V('cal') || failed('cal')) && !waiting('kal')) {
+    const e = calFind(calFocus);
+    if (e) { calOpen.add(e.id); calF = calIn(calF, e) ? calF : ''; if (calEnd(e) < today) calPast = true; else if (calDay(e.date) > calLimit(today)) calWin = 0; calPend = e.id; }
+    else calGone = calFocus;
+    calFocus = '';
+  }
+  const shown = all.filter(e => calIn(calF, e)), up = shown.filter(e => calEnd(e) >= today);
+  const soon = up.filter(e => calExact(e) && calDay(e.date) - today <= 7), soonIds = new Set(soon.map(e => e.id));
+  const limit = calLimit(today), later = up.filter(e => !soonIds.has(e.id) && calDay(e.date) <= limit);
+  const past = shown.filter(e => calEnd(e) < today && calEnd(e) >= today - 30).reverse();
+  const next = up.find(e => calExact(e) && calDay(e.date) >= today) || up.find(e => calExact(e));   // not one under way
+  const name = (CAL_FILTERS.find(f => f[0] === calF) || CAL_FILTERS[0])[1];
+  let h = `<header class="cal-top" id="cal-top"><p class="cal-fly">Kalender${calF ? ' · ' + esc(name) : ''}</p>`
+    + `<h2 class="cal-next">${next ? `Næste: ${esc(next.title)} ${calCount(next, today)}` : 'Intet planlagt foreløbig'}</h2></header>`;
+  if (calGone) h += `<p class="notice" id="cal-gone"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Begivenheden er ikke længere i kalenderen.</span></p>`;
+  h += `<section class="block cal-soon" id="cal-soon">${blockHead('Det sker snart')}`
+    + (soon.length ? soon.map(e => calRow(e, today, { count: true })).join('') : '<p class="cal-none">Intet planlagt de næste syv dage.</p>') + '</section>';
+  let month = '';
+  for (const e of later) {
+    const m = e.date.slice(0, 7);
+    if (m !== month) { h += `${month ? '</section>' : ''}<section class="cal-mo" id="cal-m-${m}"><h3 class="cal-mh">${esc(cap(FMT.my.format(calDate(m))))}</h3>`; month = m; }
+    h += calRow(e, today);
+  }
+  if (month) h += '</section>';
+  else if (!soon.length) h += stateBlock('empty', `Intet planlagt${calF ? ' af den slags' : ''} i den valgte periode.`, calWin && calWin < 12 ? [['Se 12 mdr', 'data-cal-win="12"']] : []);
+  if (past.length) {
+    h += `<section class="cal-past" id="cal-past"><button class="qbtn cal-pb" data-cal-past aria-expanded="${calPast}">Tidligere<small> · de seneste 30 dage</small></button>`
+      + (calPast ? past.map(e => calRow(e, today)).join('') : '') + '</section>';
+  }
+  return h + '<p class="foot">Datoerne er planlagte og kan blive flyttet.</p>';
+}
+// an event a link or the front page named, brought just below the bar and its month (drawn: its rows out of sight are
+// laid out late – content-visibility –, so it is aimed at again a moment later, and at every redraw for two seconds)
+let calAim = null;
+function calAimAt(pg) {
+  if (calPend && pg.querySelector('#' + CSS.escape('ce-' + calPend))) { calAim = { id: calPend, until: performance.now() + 2000 }; calPend = ''; }
+  if (!calAim || performance.now() > calAim.until) { calAim = null; return; }
+  const ev = pg.querySelector('#' + CSS.escape('ce-' + calAim.id));
+  if (!ev) return;
+  const go = () => {
+    if (touching || !ev.isConnected || !calAim) { calAim = null; return; }
+    const mh = ev.closest('.cal-mo') && ev.closest('.cal-mo').querySelector('.cal-mh');
+    scrollToEl(ev, 8 + (mh ? mh.offsetHeight : 0));
+  };
+  requestAnimationFrame(go); setTimeout(go, 320);
+  // the headline's serif comes beside the page and reflows the top when it lands: aimed at once more then
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { if (calAim && performance.now() < calAim.until + 4000) go(); }, { once: true });
+}
+list.addEventListener('touchstart', () => { calAim = null; }, { passive: true });   // the reader's own hand wins
+// the tab came into view: a link's event is looked for as soon as the files are there
+function calShown() { if (calFocus || calPend) redrawPages(['kalender']); }
+// 'Det sker snart' on the front page: the next three or four events of the coming fourteen days, after the second block
+// the page draws, 'Alle ›' to the tab; none in the fortnight: no block
+function calBlock() {
+  need('cal'); need('kal');
+  const today = calToday(), list = calItems().filter(e => calExact(e) && calEnd(e) >= today && calDay(e.date) - today <= 14).slice(0, 4);
+  if (!list.length) return '';
+  return `<section class="block cal-b" id="cal-front">${blockHead('Det sker snart', moreLink('Alle', 'kalender'))}`
+    + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
+}
+// the dock: the kinds (Alle, then each with its calm dot), then the window
+function calOpts() {
+  return `<div class="o-row" id="o-cal-k" role="radiogroup" aria-label="Vis">${CAL_FILTERS.map(([f, l]) =>
+    `<button class="chip${f === calF ? ' on' : ''}" role="radio" aria-checked="${f === calF}" data-cal-f="${f}">${f ? `<i class="ck-d" data-k="${CAL_DOT[f]}" aria-hidden="true"></i>` : ''}${l}</button>`).join('')}</div>`
+    + `<div class="o-row" id="o-cal-w"><div class="seg" role="radiogroup" aria-label="Tidsrum">${CAL_WINS.map(([m, l]) =>
+      `<button role="radio" data-cal-win="${m}" aria-checked="${m === calWin}">${l}</button>`).join('')}</div></div>`;
+}
+// the calendar's own taps, in the page, on the front page and in the dock (onTap sends them here)
+async function calTap(t) {
+  const f = t.closest('[data-cal-f]'), w = t.closest('[data-cal-win]'), r = t.closest('[data-cal]'), go = t.closest('[data-cal-go]');
+  const sh = t.closest('[data-cal-share]') || t.closest('[data-cal-copy]');
+  if (f) { calF = f.dataset.calF; calGone = ''; render(); cur().scrollTop = 0; return true; }
+  if (w) { calWin = +w.dataset.calWin; store.set('calWin', calWin); calGone = ''; render(); return true; }
+  if (t.closest('[data-cal-past]')) { calPast = !calPast; render(); return true; }
+  if (go) { calOpen.add(go.dataset.calGo); calPend = go.dataset.calGo; calF = ''; ver++; if (tab === 'kalender') render(); else setTab('kalender', { top: true }); return true; }
+  if (r) {   // an event opens in place, one at a time; the row stays under the finger
+    const id = r.dataset.cal, was = calOpen.has(id), row = r.closest('.ce'), top = row ? row.getBoundingClientRect().top : 0;
+    calOpen.clear();
+    if (!was) calOpen.add(id);
+    render();
+    const el = pg$('ce-' + id);
+    if (el && row) cur().scrollTop += el.getBoundingClientRect().top - top;
+    if (!was && el) keepInView(el);
+    return true;
+  }
+  if (sh) {
+    const e = calFind(sh.dataset.calShare || sh.dataset.calCopy);
+    if (e) { if (sh.dataset.calShare) share(calText(e)); else if (await copyText(calText(e))) toast('Kopieret'); }
+    return true;
+  }
+  return false;
+}
+
 // ---------------------------------------------------------------- Kort: the attacks and fighting in the news, on a map
+// SHELVED since 17/10 at the owner's wish ("kassere kortvisningen, eller gemme den"): kept here, but nothing calls it.
 // The owner's wish (17/10): a tab of its own, 'a kind of live OSINT with a map and the latest attacks, a little like
 // LiveUAmap'. map.json (src/radar/osint.py, on the data branch) holds the radar's stories that say something violent
 // happened, placed where their headline says, newest first, 72 hours, one event per place, kind and three hours. The
@@ -3250,7 +3472,7 @@ function kortLook() {
     put(Lf.maplibreGL({ style, attribution: OFM, interactive: false }));
   }).catch(() => put(raster()));
 }
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', kortLook);
+// (when the map returns: matchMedia('(prefers-color-scheme: dark)').addEventListener('change', kortLook) – the tiles' look)
 // a marker and a row's glyph: the kind in a small circle; an approximate place a dashed ring, the last hour a red one
 const kBadge = (e, live) => `<span class="km${e.ca ? ' ca' : ''}" data-k="${kGlyph(e.k).slice(2)}"><svg aria-hidden="true"><use href="#${kGlyph(e.k)}"/></svg>${live ? '<i class="live-dot"></i>' : ''}</span>`;
 function kRow(e) {
@@ -3416,13 +3638,11 @@ list.addEventListener('click', e => {
   const t = e.target, ok = t.closest('[data-okonomi]');
   if (ok) { e.preventDefault(); openOkonomi(); return; }
   if (t.closest('[data-okframe]')) { pageEl('okonomi').innerHTML = ''; okPage(pageEl('okonomi')); return; }
-  if (t.closest('.page[data-tab="kort"]')) kortTap(t);
 });
-$('opts').addEventListener('click', e => { if ($('opts').dataset.for === 'kort') kortTap(e.target); });
+// (when the map returns, its taps: the page's '.page[data-tab="kort"]' and the dock's (dataset.for 'kort') go to
+// kortTap, Escape lets go of a chosen event (kPick('')), and 'online' tries Leaflet again (kMapUp))
 $('sheet').addEventListener('click', e => { if (e.target.closest('[data-okonomi]')) { e.preventDefault(); openOkonomi(); } });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && tab === 'kort' && kSel) kPick(''); });
 addEventListener('online', () => {
-  if (tab === 'kort' && kLeaf === 'error') { kLeaf = 'idle'; kMapUp(pageEl('kort')); }
   const ok = pageEl('okonomi');
   if (ok && !ok.querySelector('iframe') && ok.firstElementChild) { ok.innerHTML = ''; if (tab === 'okonomi') okPage(ok); }
 });
@@ -3433,9 +3653,8 @@ addEventListener('online', () => {
 // and last tab it gives a little and springs back, and a swipe up or down stays a scroll of the page. Nothing is drawn
 // or swapped while it moves (the neighbours are drawn beforehand), so nothing can hop. The pill in the tab bar and the
 // title follow along; once the pages stand still, the page in view is the tab.
-// Forside · Live · Kort · Økonomi · Analyser (the pages lie in this order in #list; a drag on the map pans the map,
-// never the pages)
-const SWIPE_TABS = ['home', 'latest', 'kort', 'okonomi', 'analyses'];
+// Forside · Live · Kalender · Økonomi · Analyser (the pages lie in this order in #list; the map's Kort is shelved)
+const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
 const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt']);
@@ -3516,7 +3735,7 @@ list.addEventListener('scroll', () => {
     pillBetween(SWIPE_TABS[i], SWIPE_TABS[i + 1], k - i);
     showTitle(SWIPE_TABS[Math.round(k)]);
     paintOpts(SWIPE_TABS[Math.round(k)]);   // the dock's options follow the page that fills most of the screen
-    if (!kSeen && Math.abs(k - SWIPE_TABS.indexOf('kort')) < 1) kortWarm();   // on its way to the map: its file and Leaflet start
+    if (Math.abs(k - SWIPE_TABS.indexOf('kalender')) < 1) { need('cal'); need('kal'); }   // on its way: the calendar's files
     if (Math.abs(k - SWIPE_TABS.indexOf('okonomi')) < 1) okPage(pageEl('okonomi'));   // on its way: the frame starts
   }
   clearTimeout(settleT); settleT = setTimeout(settle, 140);
@@ -3573,7 +3792,7 @@ function setTab(next, opts = {}) {
   hidePages();
   $('freshPill').hidden = true;
   paintOpts(tab);
-  if (tab === 'kort') kortShown();
+  if (tab === 'kalender') { need('cal'); need('kal'); calShown(); }
   if (tab === 'okonomi') okPage(pageEl('okonomi'));
   if (opts.swipe) {   // the page is in view already, drawn beforehand: only what is around it follows
     if (!cur().dataset.ver) draw(tab);
@@ -4188,7 +4407,6 @@ function applyLook() {
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
   const cs = document.querySelector('meta[name="color-scheme"]');
   if (cs) cs.content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
-  kortLook();   // the map's tiles: light or dark with the app
 }
 $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { mode = b.dataset.v; store.set('mode', mode); applyLook(); } });
 if (!params.get('tone')) applyLook();
@@ -4295,21 +4513,22 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rese
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 // links into the app: the old section tabs (?tab=dk|me|world, from notifications and shortcuts) open Live; a wiki page or
 // an answer opens over the front page
-const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kort: 'kort', okonomi: 'okonomi', priser: 'okonomi', search: 'search', analyses: 'analyses' };
-const startTab = START[params.get('tab')];
+// the shelved map's ?tab=kort opens the front page; ?kalender=<id> opens the Kalender tab at that event
+const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kalender: 'kalender', kort: 'home', okonomi: 'okonomi', priser: 'okonomi', search: 'search', analyses: 'analyses' };
+const startTab = params.get('kalender') ? 'kalender' : START[params.get('tab')];
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (params.get('forlob')) { goOverview = false; openSide('threads', params.get('forlob')); }   // a shared development
 else if (params.has('gemt')) openSide('gemt');
-else if (startTab) setTab(startTab, { top: true });
+else if (startTab && startTab !== 'home') setTab(startTab, { top: true });
 else render();
 hidePages();
 load();
 setTimeout(() => need('ans'), 700);   // the editor's filed answers
 // a link into the app (a shared story, answer, page or development, a notification) skips the intro (index.html); a
 // first visitor who came that way has seen the app when they leave it, and is counted at once
-const DEEP = ['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt'].some(k => params.has(k));
+const DEEP = ['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender'].some(k => params.has(k));
 if (store.get('introSeen', false)) setTimeout(() => countVisit(cameVia()), 1500);   // a first visit counts at 'Kom i gang'
 else if (DEEP) {
   setTimeout(() => countVisit(cameVia(), true), 1500);

@@ -106,7 +106,21 @@ jobs:
           RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the energy news
         run: python -m radar.energy
 
+      # the Kalender tab's planned events (src/radar/calendar.py, stdlib only): Wikipedia's electoral calendars, the Fed's
+      # and the ECB's rate meetings and config/calendar.json – each source on its own daily
+      # clock, the last good items kept when one fails; a failure here never stops the state from being saved
+      - name: Calendar
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          PYTHONPATH: src
+          RADAR_STATE: state
+        run: python -m radar.calendar
+
+      # the map (src/radar/osint.py) is shelved since 17/10 at the owner's wish (the Kort tab is gone from the app):
+      # the step stays, switched off, for when it returns
       - name: Map
+        if: false
         continue-on-error: true
         timeout-minutes: 2
         env:

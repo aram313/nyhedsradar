@@ -645,7 +645,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
     assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'front.json',
-                                                                              'live.json', 'moves.json', 'other.json',
+                                                                              'kalender.json', 'live.json', 'moves.json', 'other.json',
                                                                               'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'

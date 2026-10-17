@@ -37,8 +37,8 @@ jobs:
             answersUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/answers.json",
             analysesUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/analyses.json",
             energyUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/energy.json",
-            mapUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/map.json",
-            cartoKey: "${{ vars.CARTO_KEY }}",
+            calendarUrl: "https://raw.githubusercontent.com/${{ github.repository }}/data/calendar.json",
+            kalenderUrl: "https://raw.githubusercontent.com/${{ github.repository }}/digest/kalender.json",
             vapidPublicKey: "${{ vars.VAPID_PUBLIC }}",
             feedbackTopic: "${{ vars.FEEDBACK_TOPIC }}"
           };

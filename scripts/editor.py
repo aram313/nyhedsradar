@@ -26,8 +26,10 @@ editor's Claude routine through its API trigger, at most EDITOR_FIRES (config/se
                                                     summaries and the editor's headlines of the last 4 days),
                                                     answers.json (Hizb ut-Tahrir's answers noted after the static
                                                     layer, kept forever), live.json (the day's level, take and drop,
-                                                    two Danish days) and front.json (the front page's blocks); --push
-                                                    commits them to the digest branch, keeping its other files
+                                                    two Danish days), front.json (the front page's blocks) and
+                                                    kalender.json (the editor's planned events from the news, kept
+                                                    until two days after their day); --push commits them to the
+                                                    digest branch, keeping its other files
 
 Each update weighs the news by the brain – the books' order of weight and Hizb ut-Tahrir's newest answers, used only to
 choose and order: the lede, the picks, the front page, how much Live holds, Dagens historie and the order of the
@@ -114,7 +116,13 @@ READING_LEN = 420
 NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
-DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json')
+DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json')
+CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
+CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
+CAL_AHEAD = 30      # days of the calendar the input lists
+CAL_MAX = 12        # entries one update may add or change
+CAL_TITLE = 100     # characters of an entry's title
+CAL_WHY = 200       # characters of its 'why'
 MOVEMENT_GROUPS = ('bevægelsen', 'official')   # a line or quote from these sources gets the movement's checks too
 WORK = Path(tempfile.gettempdir()) / 'editor'
 
@@ -932,6 +940,10 @@ TEMPLATE = {
                          {'kind': 'svar', 'nr': "<an answer of Hizb ut-Tahrir's that bears on today>"},
                          {'kind': 'live', 'n': 3},
                          {'kind': 'linje', 'text': '<one short line of reality>'}]},
+    'calendar': [{'date': 'YYYY-MM-DD (or YYYY-MM with "approx": true)', 'title': '<what happens, in Danish: reality only>',
+                  'kind': ' | '.join(CAL_KINDS), 'place': '<the country or city, optional>',
+                  'why': '<one factual line: why it matters – never a forecast>', 'link': '<the source, optional with ids>',
+                  'ids': ['<the story ids it comes from>']}],
 }
 ANSWER_TEMPLATE = {'answer': {
     'nr': "<the answer's number, as given>", 'date': 'YYYY-MM-DD',
@@ -950,7 +962,9 @@ SMALL = [
     'a heavier tier, a development that moved – never only to vary the words; new picks when a heavier story has come.',
     '"moves" stay until undone (move the story back to its own section); "summaries" and "titles" are kept four days.',
     'Leave out "level", "take", "drop" and "note" and today\'s Live stays as it is (take and drop add to today\'s). Leave',
-    'out "front" (or write "keep") and the composition stays as it is, its stories that left the radar dropped.', '',
+    'out "front" (or write "keep") and the composition stays as it is, its stories that left the radar dropped.',
+    'Leave out "calendar" and the calendar stays; an entry stays until two days after its day (change it by its id,',
+    'remove it with {"id": …, "remove": true}).', '',
 ]
 
 
@@ -1246,6 +1260,7 @@ def cmd_input(args):
     out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,
                       now, the_plan)
     out += front_section(read(args, 'origin/digest', 'front.json', {}), resolver(items), notes, now)
+    out += calendar_lines(read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {}), now)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -1866,6 +1881,129 @@ def check_answer(obj, queue, known):
             'url': src.get('url') or clean(obj.get('url')), 'readings': readings, 'begreber': begreber}, []
 
 
+# ------------------------------------------------------------------ the calendar's planned events from the news
+
+CAL_DATE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+CAL_MONTH = re.compile(r'^\d{4}-\d{2}$')
+
+
+def cal_last_day(e):
+    """The last day an entry lasts (a month only: its last day), as a date; None when it cannot be read."""
+    d = str(e.get('end') or e.get('date') or '')
+    try:
+        if CAL_MONTH.match(d):
+            y, m = int(d[:4]), int(d[5:7])
+            return datetime(y + m // 12, m % 12 + 1, 1).date() - timedelta(days=1)
+        return datetime.fromisoformat(d).date()
+    except ValueError:
+        return None
+
+
+def cal_slug(text):
+    t = str(text or '').lower().translate(str.maketrans({'æ': 'ae', 'ø': 'oe', 'å': 'aa', '“': '', '”': ''}))
+    return re.sub(r'[^a-z0-9]+', '-', t).strip('-')[:40].strip('-')
+
+
+def calendar_file(entries, current, find, now, problems):
+    """kalender.json as this update leaves it: the earlier entries still ahead (or at most CAL_KEEP days past), with the
+    update's own added, changed (the same id) or removed ({"id": …, "remove": true}). An entry is a planned event the news
+    name – date (YYYY-MM-DD, or YYYY-MM with "approx": true), title, kind, why (one factual line on why it matters, never
+    a forecast), link and ids (the stories it comes from); every word of it is checked like a headline."""
+    today = dk(now).date()
+    stamp = now.isoformat(timespec='seconds')
+    items = {e['id']: e for e in (current or {}).get('items') or [] if isinstance(e, dict) and e.get('id')}
+    if entries is not None and not isinstance(entries, list):
+        problems.append('calendar: a list of planned events – or leave "calendar" out to keep the calendar as it is')
+        entries = []
+    entries = entries or []
+    if len(entries) > CAL_MAX:
+        problems.append(f'calendar: {len(entries)} entries – at most {CAL_MAX} in one update')
+    for k, x in enumerate(entries[:CAL_MAX], 1):
+        where = f'calendar {k}'
+        if not isinstance(x, dict):
+            problems.append(f'{where}: an object with date, title, kind, why, link and ids')
+            continue
+        if x.get('remove'):
+            if x.get('id') not in items:
+                problems.append(f"{where}: {x.get('id')!r} is no entry of the calendar to remove")
+            else:
+                items.pop(x['id'])
+            continue
+        date, approx = str(x.get('date') or '').strip(), bool(x.get('approx'))
+        title, why = clean(x.get('title')), clean(x.get('why'))
+        kind, place, link = str(x.get('kind') or '').strip(), clean(x.get('place')), str(x.get('link') or '').strip()
+        where = f"{where} ({title[:40] or '?'})"
+        last = cal_last_day({'date': date, 'end': x.get('end')})
+        if not (CAL_DATE.match(date) or (CAL_MONTH.match(date) and approx)) or last is None:
+            problems.append(f"{where}: date must be YYYY-MM-DD, or YYYY-MM with \"approx\": true – not {date or '?'!r}")
+        elif last < today:
+            problems.append(f'{where}: {date} has passed – the calendar holds what is ahead')
+        end = str(x.get('end') or '').strip()
+        if end and (not CAL_DATE.match(end) or end < date):
+            problems.append(f'{where}: end must be YYYY-MM-DD on or after the date')
+        if not title or len(title) > CAL_TITLE:
+            problems.append(f'{where}: title – what happens, in Danish (at most {CAL_TITLE} characters)')
+        else:
+            voice.check_headline(title, f'{where} title', problems)
+            voice.check_forecast(title, f'{where} title', problems)
+        if kind not in CAL_KINDS:
+            problems.append(f"{where}: kind must be one of {' | '.join(CAL_KINDS)}")
+        if not why or len(why) > CAL_WHY:
+            problems.append(f'{where}: why – one factual line on why it matters (at most {CAL_WHY} characters)')
+        else:
+            voice.check_voice(why, f'{where} why', problems)
+            voice.check_reality(why, f'{where} why', problems)
+            voice.check_forecast(why, f'{where} why', problems)
+        if place:
+            voice.check_voice(place, f'{where} place', problems)
+        if link and not re.match(r'^https?://\S+$', link):
+            problems.append(f'{where}: link must be the source\'s address (http…)')
+        ids, stories = [], []
+        for sid in x.get('ids') or []:
+            it = find.get(sid)
+            if not it:
+                problems.append(f'{where}: unknown story id {sid!r}')
+            else:
+                ids.append(it['id'])
+                stories.append(it)
+        if not ids and not link:
+            problems.append(f'{where}: name the stories it comes from (ids) or its source (link)')
+        ident = str(x.get('id') or '').strip() or f'ed-{date}-{cal_slug(title)}'
+        if not re.match(r'^[a-z0-9][a-z0-9-]{2,80}$', ident):
+            problems.append(f'{where}: id must be lowercase letters, digits and hyphens')
+        item = {'id': ident, 'date': date, **({'end': end} if end else {}), **({'approx': True} if approx else {}),
+                'title': title, 'kind': kind, **({'place': place} if place else {}), 'why': why,
+                'link': link or (stories[0].get('link') if stories else ''), **({'ids': ids} if ids else {}),
+                'at': stamp, 'src': 'ed'}
+        items[ident] = item
+    keep = [e for e in items.values() if (cal_last_day(e) or today) >= today - timedelta(days=CAL_KEEP)]
+    keep.sort(key=lambda e: (str(e.get('date')), e['id']))
+    return {'updated': stamp, 'items': keep}
+
+
+def calendar_lines(cal, kal, now):
+    """The input's view of the calendar: what the next CAL_AHEAD days hold, the radar's and the editor's, so an update
+    adds only what the news name and the calendar lacks."""
+    today = dk(now).date()
+    until = today + timedelta(days=CAL_AHEAD)
+    ed = [e for e in (kal or {}).get('items') or [] if isinstance(e, dict)]
+    src = [e for e in (cal or {}).get('items') or [] if isinstance(e, dict)]
+    rows = []
+    for e, who in [(e, 'editor') for e in ed] + [(e, 'radar') for e in src]:
+        last = cal_last_day(e)
+        if last is None or last < today or str(e.get('date'))[:10] > until.isoformat():
+            continue
+        rows.append((str(e.get('date')), who, e))
+    rows.sort(key=lambda r: (r[0], r[1]))
+    out = [f'## The calendar – the next {CAL_AHEAD} days ({len(rows)} planned events)', '',
+           'The Kalender tab shows these. Add with "calendar" the planned events the news name and the calendar lacks (a',
+           "ceasefire's end, talks, a Security Council vote, a court's ruling, a deadline, a Danish vote); change one of yours",
+           'by giving its id, remove one with {"id": …, "remove": true}. Fields: [id] date · kind · title (place) – whose', '']
+    out += [f"[{e.get('id')}] {d}{' (forventet)' if e.get('approx') else ''} · {e.get('kind')} · {e.get('title')}"
+            f"{' (' + e['place'] + ')' if e.get('place') else ''} – {who}" for d, who, e in rows] or ['(nothing planned)']
+    return out + ['']
+
+
 def digest_head():
     """The digest branch's commit as this checkout knows it ('' when there is none)."""
     try:
@@ -1926,6 +2064,8 @@ def cmd_publish(args):
         answer, more = check_answer(draft['answer'], {str(a['id']): a for a in waiting(args, noted)},
                                     brain.known_ids() | used_ids(noted))
         problems += more
+    kal = calendar_file(draft.get('calendar'), quoted(read(args, 'origin/digest', 'kalender.json', {'items': []})),
+                        resolver(data.get('items', [])), now, problems)
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))
@@ -1956,7 +2096,7 @@ def cmd_publish(args):
              'summaries.json': {'updated': notes['created'], 'items': kept_sums, 'titles': checked},
              'answers.json': {'items': dict(sorted(noted['items'].items(), key=lambda kv: str(kv[1].get('date') or ''),
                                                    reverse=True))},
-             'live.json': live['file']}
+             'live.json': live['file'], 'kalender.json': kal}
     if front:
         files['front.json'] = front
     out = Path(args.out) if args.out else WORK / 'out'
@@ -1977,7 +2117,9 @@ def cmd_publish(args):
           f"{' +' + str(len(live['day'].get('take') or [])) if (live['day'] or {}).get('take') else ''}"
           f"{' -' + str(len(live['day'].get('drop') or [])) if (live['day'] or {}).get('drop') else ''} · "
           f"front {('new' if isinstance(draft.get('front'), dict) and 'blocks' in draft['front'] else 'kept') + ' (' + str(len(front['blocks'])) + ' blocks)' if front else 'none'} · "
-          f"{'answer ' + answer['nr'] + ' noted · ' if answer else ''}days: {', '.join(sorted(days))}")
+          f"{'answer ' + answer['nr'] + ' noted · ' if answer else ''}"
+          f"calendar {len(kal['items'])}{' (' + str(len(draft['calendar'])) + ' in this update)' if draft.get('calendar') else ''} · "
+          f"days: {', '.join(sorted(days))}")
     if dropped_titles:
         print(f"Note: {len(dropped_titles)} earlier headline(s) broke today's rules and were removed – they come back to "
               'be written anew.')

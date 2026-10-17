@@ -11,11 +11,11 @@ APP = (PUBLIC / 'app.js').read_text(encoding='utf-8')
 CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
 
 
-def test_five_tabs_forside_live_kort_okonomi_analyser_in_that_order():
+def test_five_tabs_forside_live_kalender_okonomi_analyser_in_that_order():
     nav = INDEX[INDEX.index('<nav class="tabs"'):INDEX.index('</nav>')]
-    assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'kort', 'okonomi', 'analyses']
-    assert [s for s in re.findall(r'<span>([^<]+)</span>', nav)] == ['Forside', 'Live', 'Kort', 'Økonomi', 'Analyser']
-    assert "const SWIPE_TABS = ['home', 'latest', 'kort', 'okonomi', 'analyses'];" in APP
+    assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'kalender', 'okonomi', 'analyses']
+    assert [s for s in re.findall(r'<span>([^<]+)</span>', nav)] == ['Forside', 'Live', 'Kalender', 'Økonomi', 'Analyser']
+    assert "const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];" in APP
     # Økonomi's icon: a chart in the same line style as the others (no fill, the same stroke)
     sym = INDEX[INDEX.index('<symbol id="i-chart"'):]
     sym = sym[:sym.index('</symbol>')]
@@ -26,7 +26,7 @@ def test_five_tabs_forside_live_kort_okonomi_analyser_in_that_order():
 
 def test_every_page_the_app_draws_has_its_section():
     pages = re.findall(r'<section class="page[^"]*" data-tab="(\w+)"', INDEX)
-    assert pages == ['home', 'latest', 'kort', 'okonomi', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'search']
+    assert pages == ['home', 'latest', 'kalender', 'okonomi', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'search']
     for side in ('threads', 'begreb', 'begreber', 'svar', 'gemt'):
         assert f'<section class="page side" data-tab="{side}"' in INDEX
 
