@@ -27,3 +27,12 @@ def test_publish_quotes_text_but_never_ids_or_links():
     assert x['lede'] == '“israel” og Iran' and x['picks'][0] == {'id': 'israel1', 'why': '“israel” handler'}
     assert x['link'] == 'https://t.me/israel' and x['topics'][0]['name'] == '“israel” og Libanon'
     assert x['topics'][0]['lines'][0]['text'] == '“israelsk” angreb'
+
+
+def test_the_app_writes_the_outlets_danish_headlines_the_same_way():
+    app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
+    assert 'const quoteIsrael = t =>' in app
+    assert "if (d.how === 'ed' || (d.to || i.lang) === 'da') {" in app and 'title: quoteIsrael(d.title)' in app
+    assert 'esc(quoteIsrael(e.t))' in app                                         # the map's events
+    energi = (Path(__file__).resolve().parents[1] / 'public' / 'energi' / 'index.html').read_text(encoding='utf-8')
+    assert 'n.ed ? [qi(n.ed), n.kd]' in energi

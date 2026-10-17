@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **“israel” in every Danish headline the app shows** (2026-10-17, the owner: 'må gerne rette de resterende'):
+  `quoteIsrael` in app.js (= `voice.quote_israel`) writes the outlets' Danish headlines and teasers and the machine's
+  translations in the house style, the map's events and the energy page's news too; the outlet's original headline in
+  the credit line and Hizb ut-Tahrir's texts are quoted as they are.
+
 - **“israel” in the editor's text, and the towns of Palestine under their old names on the map** (2026-10-17, the
   owner: 'israel altid skal skrives med anførselstegn “israel”', also 'israelsk'; 'Til byerne skal du bruge de originale
   navne før besættelsen'). `voice.quote_israel` writes every form of the name in lower case inside curly quotes, and

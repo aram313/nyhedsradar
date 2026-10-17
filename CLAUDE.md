@@ -352,7 +352,9 @@ da'wah.
 - **Content rules for every Danish text Khabar writes** (the editor's lede, lines, summaries, titles; the app's words;
   the wiki's pages): Israel in our own voice (the movement's term only inside a quotation) – in the editor's text in the
   owner's house style (2026-10-17): lower case inside curly quotes, every form (“israel”, “israels”, “israelske”),
-  written so by `voice.quote_israel`, which `editor.py publish` applies to every file it writes (`quoted`); no praise of or call to
+  written so by `voice.quote_israel`, which `editor.py publish` applies to every file it writes (`quoted`), and in the
+  app by `quoteIsrael` (keep the two alike) for every Danish headline and teaser it shows, the map's and the energy page's
+  too – never the outlet's original in the credit line or Hizb ut-Tahrir's texts; no praise of or call to
   violence; judge states, rulers, policies and ideas – never peoples or religions; no claim that a non-ruling person, a
   Danish person or organisation, a mosque, a scholar or a media outlet serves a power; no conspiracy myths; the
   answers' claims that deadly attacks were staged are not repeated as such. `scripts/voice.py` checks the editor's:

@@ -331,6 +331,13 @@ function teaserHead(text) {
   const at = plain.lastIndexOf(' ', HEAD_MAX - 2);
   return { title: plain.slice(0, at > 60 ? at : HEAD_MAX - 2).replace(/[\s,;:–-]+$/, '') + ' …', rest: '', cut: true };
 }
+// The owner's house style (17/10): Israel's name in lower case inside curly quotes, every form – “israel”, “israels”,
+// “israelske”. The editor's text comes so from his tool (voice.quote_israel in scripts/voice.py – keep the two alike);
+// the app writes the Danish headlines and teasers of the outlets and the machine the same way. The outlet's original
+// headline in the credit line and Hizb ut-Tahrir's texts are quoted as they are.
+const ISR_Q = /[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, ISR_B = /(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu;
+const quoteIsrael = t => (!t || typeof t !== 'string' || !/israel/i.test(t) || /^https?:\/\//.test(t) ? t
+  : t.replace(ISR_Q, (_, w) => `“${w.toLowerCase()}”`).replace(ISR_B, (_, w) => `“${w.toLowerCase()}”`));
 // the editor's headline for a story: filed under any of its articles (its id, its members, its other outlets'); one of an
 // earlier round that is a curiosity headline itself ('Hvorfor …?', 'Analyse: …') gives way, until the editor writes it anew
 const edOk = t => (t && !curious(t) ? t : '');
@@ -361,7 +368,10 @@ function display(i) {
     // no teaser to stand in: another outlet's plain headline (Danish first, else English), with that outlet and its link
     const alt = !th && ['da', 'en'].map(l => (i.also || []).find(a => a.lang === l && a.title && !curious(tidy(a.title)))).find(Boolean);
     if (th) d = { ...d, title: th.title, summary: th.cut ? d.summary || own || '' : th.rest, teased: true };
-    else if (alt) d = { ...d, title: tidy(alt.title), origTitle: alt.title, source: alt.source || d.source, link: alt.link || d.link, kw: [], teased: true, how: '' };
+    else if (alt) d = { ...d, title: tidy(alt.title), origTitle: alt.title, source: alt.source || d.source, link: alt.link || d.link, kw: [], teased: true, how: '', to: alt.lang };
+  }
+  if (d.how === 'ed' || (d.to || i.lang) === 'da') {   // a Danish headline: the house style for Israel's name
+    d = { ...d, title: quoteIsrael(d.title), summary: quoteIsrael(d.summary), kw: (d.kw || []).map(quoteIsrael) };
   }
   if (d.how === 'ed') {   // 'Reuters: …' – the outlet is said once, in the meta line under the headline (never twice in a row)
     const m = d.title.match(/^([^:»«"]{2,40}):\s+(\S.*)$/u), x = m && outletKey(m[1]);
@@ -3178,8 +3188,8 @@ function kRow(e) {
   const live = kLive(e), n = e.n || 1;
   const meta = `<span class="src">${esc(e.s)}</span><span>${live ? '<i class="nd"></i>' : ''}${stamp(e.p)}</span>${n >= 3 ? `<span>${n} medier</span>` : ''}`
     + (e.ca ? '<span>omtrentlig placering</span>' : '');
-  return `<div class="ke${e.i === kSel ? ' on' : ''}" id="ke-${esc(e.i)}"><div class="row"><button class="hit" data-kev="${esc(e.i)}" aria-label="${esc(`${kWhere(e)}: ${e.t} – ${e.s}, ${stamp(e.p)}`)}"></button>`
-    + `${kBadge(e, live)}<span class="tx" aria-hidden="true"><b class="k-pl">${esc(e.pl)}</b><span class="h" dir="auto">${esc(e.t)}</span><span class="m">${meta}</span></span></div></div>`;
+  return `<div class="ke${e.i === kSel ? ' on' : ''}" id="ke-${esc(e.i)}"><div class="row"><button class="hit" data-kev="${esc(e.i)}" aria-label="${esc(`${kWhere(e)}: ${quoteIsrael(e.t)} – ${e.s}, ${stamp(e.p)}`)}"></button>`
+    + `${kBadge(e, live)}<span class="tx" aria-hidden="true"><b class="k-pl">${esc(e.pl)}</b><span class="h" dir="auto">${esc(quoteIsrael(e.t))}</span><span class="m">${meta}</span></span></div></div>`;
 }
 // the Kort view's parts: the window's chips, the count, the kinds, the rows and the markers
 function kortFill(pg) {
@@ -3222,7 +3232,7 @@ function kMarkers(shown) {
     m.on('click', () => kPick(e.i, 'map'));
     m.addTo(kLayer);
     const el = m.getElement();
-    if (el) { el.setAttribute('aria-label', `${kWhere(e)}: ${e.t}`); if (e.i === kSel) el.firstElementChild.classList.add('on'); }
+    if (el) { el.setAttribute('aria-label', `${kWhere(e)}: ${quoteIsrael(e.t)}`); if (e.i === kSel) el.firstElementChild.classList.add('on'); }
     kMarks.push({ e, m });
   }
   kSpread();
@@ -3297,7 +3307,7 @@ function kCard(e) {
   if (!c) return;
   c.hidden = !e;
   c.innerHTML = !e ? '' : '<button class="k-x" data-kclose aria-label="Luk"><svg aria-hidden="true"><use href="#i-x"/></svg></button>'
-    + `<p class="k-ct" dir="auto">${esc(e.t)}</p><div class="m"><span><b>${esc(e.pl)}</b></span><span>${kLive(e) ? '<i class="nd"></i>' : ''}${stamp(e.p)}</span>`
+    + `<p class="k-ct" dir="auto">${esc(quoteIsrael(e.t))}</p><div class="m"><span><b>${esc(e.pl)}</b></span><span>${kLive(e) ? '<i class="nd"></i>' : ''}${stamp(e.p)}</span>`
     + `<span class="src">${esc(e.s)}</span>${e.ca ? '<span>omtrentlig placering</span>' : ''}</div><div class="acts">`
     + (e.u ? `<a class="act" href="${esc(e.u)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-open"/></svg>Læs</a>` : '')
     + `<button class="act" data-kopen="${esc(e.i)}">Åbn historien</button></div>`;

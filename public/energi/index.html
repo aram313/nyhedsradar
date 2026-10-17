@@ -489,7 +489,10 @@ function news() {
   if (!list.length) return '';
   // the app's language setting: Danish where there is a Danish version, else the original if readable, else English
   const danish = store.get('danish', true), readable = t => !/[؀-ۿ]/.test(t || '');
-  const pick = n => n.ed ? [n.ed, n.kd] : danish && n.da ? [n.da, n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
+  // Israel's name in the app's house style in a Danish headline (as quoteIsrael in app.js): “israel”, “israelske”
+  const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, (_, w) => `“${w.toLowerCase()}”`)
+    .replace(/(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu, (_, w) => `“${w.toLowerCase()}”`);
+  const pick = n => n.ed ? [qi(n.ed), n.kd] : danish && n.da ? [qi(n.da), n.kd] : readable(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd];
   const tidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
     .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
   const words = (t, k) => {   // the app's bold: who and where
