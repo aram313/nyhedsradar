@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Læs hele svaret (engelsk)' clearer, still quiet** (2026-10-18, the owner: 'mere tydelig, dog … ikke stor og
+  klodset'; `?v=20261018aj`): one hairline-framed row (radius 12, 44 px) with a small book, the words in the text's
+  colour and a chevron that points down while folded and up when open.
 - **The ochre tint dimmed again** (2026-10-18, the owner: 'må stadig gerne dæmpes lidt mere'; `?v=20261018ai`): light
   #f0ebe1 → #f0ede6, dark #24211c → #22201c (its hairline with it); the movement's text keeps its contrast.
 - **Side pages keep the column on a desktop** (2026-10-18, the owner: A–Å, a wiki page and an answer ran 'fra border til

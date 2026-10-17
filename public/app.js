@@ -2272,8 +2272,8 @@ function svarPage() {
     }
     // folded behind one quiet row (the byline's 'Originalen' is the way to the source)
     const tk = `svar|${a.nr}|text`, open = unfolded.has(tk);
-    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret'}</span>`
-      + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><svg class="rd-ic" aria-hidden="true"><use href="#i-book"/></svg><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret'}</span>`
+      + `<svg class="rd-chev" aria-hidden="true"><use href="#i-chev"/></svg></button>`;
     if (open) h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk</h2><div class="ht" lang="en">${paras(text)}</div></section>`;
   } else if (a.fresh && waiting('txt')) h += loadingBlock('Henter svarets tekst …');
   else if (enHas(a.nr)) {
@@ -2282,8 +2282,8 @@ function svarPage() {
     const tk = `svar|${a.nr}|en`, open = unfolded.has(tk);
     if (!open && enTexts[a.nr] === false) delete enTexts[a.nr];   // folded after a failure: asked again when unfolded
     const en = open ? enText(a.nr) : null;
-    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret (engelsk)'}</span>`
-      + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><svg class="rd-ic" aria-hidden="true"><use href="#i-book"/></svg><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret (engelsk)'}</span>`
+      + `<svg class="rd-chev" aria-hidden="true"><use href="#i-chev"/></svg></button>`;
     if (open && en) h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk${en.translated ? ' · oversat fra arabisk' : ''}</h2><div class="ht" lang="en">${paras(en.text)}</div></section>`;
     else if (open && en === null) h += loadingBlock('Henter svarets tekst …');
     else if (open) h += stateBlock('error', 'Teksten kunne ikke hentes. Fold den sammen og åbn den igen for at prøve igen.', []);
