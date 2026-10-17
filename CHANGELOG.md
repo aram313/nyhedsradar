@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Gem on the answers' list** (2026-10-17, the owner: 'tilføj en "gem" knap til højre på listen over analyser, så man
+  ikke skal trykke sig ind på dem og så man kan se hvilke man har gemt'; `?v=20261018w`): every answer row has a
+  bookmark at its right, beside the link (never inside it), filled when the answer is saved; it changes at once.
+
 - **The front page in a fixed order, Denmark only when very big, the economy's crises** (2026-10-17, the owner: 'hvorfor
   er citat i bunden på forside, synes godt tingene kunne sorteres bedre', 'kun kæmpe nyheder skal ramme forsiden for
   danmark', 'der skal også være økonomi nyheder, primært kriser … er den stor nok må den gerne tages med på

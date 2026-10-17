@@ -937,6 +937,15 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .an-list .day.an-y { top: calc(var(--barh) + var(--strip, 112px)); margin-top: 10px; }
 .an-row { position: relative; display: block; width: 100%; padding: 10px 16px 11px; text-align: left; }
 .an-row + .an-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+.an-item { position: relative; }
+.an-item > .an-row { padding-right: 56px; }
+.an-item + .an-item > .an-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
+/* the bookmark beside the row (17/10): 44 px to hit, filled when the answer is saved */
+.an-save { position: absolute; top: 50%; right: 6px; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px;
+  margin-top: -22px; border-radius: 50%; color: var(--text-3); }
+.an-save svg { width: 20px; height: 20px; }
+.an-save.on { color: var(--text); }
+.an-save:active { background: var(--fill); }
 .an-row b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--fs-body);
   line-height: 1.32; font-weight: 500; color: var(--text); text-wrap: pretty; }
 .an-row.read b { color: var(--text-2); font-weight: 450; }   /* an answer one opened */

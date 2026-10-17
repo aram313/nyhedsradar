@@ -330,3 +330,10 @@ def test_the_whole_english_text_is_one_tap_away():
     page = fn('svarPage')
     assert "Læs hele svaret (engelsk)" in page and "oversat fra arabisk" in page
     assert "fetch(VIDEN + 'svar-en/index.json')" in CODE and 'svar-en/${encodeURIComponent(k)}.json' in CODE
+
+
+def test_an_answer_can_be_saved_from_its_row():
+    row = CODE.split('const anRow = ')[1].split('
+};')[0] if 'const anRow = ' in CODE else ''
+    assert 'class="an-save' in CODE and 'data-ksave="a:${esc(a.nr)}"' in CODE and '</a>`' in CODE
+    assert re.search(r'\.an-save \{[^}]*width: 44px; height: 44px', RULES)

@@ -2003,10 +2003,13 @@ function markRead(nr) {
   ansRead.add(nr);
   idle(() => store.set('ansRead', [...ansRead].slice(-400)));
 }
-const anRow = (a, terms) => { const area = areaOf(a), m = terms && terms.length ? anMatch(a, terms) : null;
-  return `<a class="an-row${ansRead.has(a.nr) ? ' read' : ''}" href="?svar=${encodeURIComponent(a.nr)}" data-svar="${esc(a.nr)}"><b class="ht">${terms && terms.length ? mark(a.title, terms) : esc(a.title)}</b>`
+// a row of the answers: the link to the answer, and beside it – never inside it – the bookmark (the owner, 17/10: "en
+// 'gem' knap til højre på listen over analyser, så man ikke skal trykke sig ind på dem og så man kan se hvilke man har gemt")
+const anRow = (a, terms) => { const area = areaOf(a), m = terms && terms.length ? anMatch(a, terms) : null, on = isSaved('a', a.nr);
+  return `<div class="an-item"><a class="an-row${ansRead.has(a.nr) ? ' read' : ''}" href="?svar=${encodeURIComponent(a.nr)}" data-svar="${esc(a.nr)}"><b class="ht">${terms && terms.length ? mark(a.title, terms) : esc(a.title)}</b>`
     + (terms && terms.length ? qSnippet(a, terms) : '')
-    + `<span>${esc(dSlash(a.date))}${area ? ' · ' + esc(area) : ''}${m && m.via ? ` · via ${esc(m.via)}` : ''}${a.fresh && !a.da ? ' · endnu kun på engelsk' : ''}</span></a>`; };
+    + `<span>${esc(dSlash(a.date))}${area ? ' · ' + esc(area) : ''}${m && m.via ? ` · via ${esc(m.via)}` : ''}${a.fresh && !a.da ? ' · endnu kun på engelsk' : ''}</span></a>`
+    + `<button class="an-save${on ? ' on' : ''}" data-ksave="a:${esc(a.nr)}" aria-pressed="${on}" aria-label="${on ? 'Gemt' : 'Gem'}: ${esc(a.title)}"><svg aria-hidden="true"><use href="#i-${on ? 'saved' : 'save'}"/></svg></button></div>`; };
 // the areas the answers belong to, by number of answers (worked out once per list)
 let areaMemo = null;
 function anAreas() {
@@ -2939,7 +2942,16 @@ async function onTap(e) {
     return;
   }
   const kv = t.closest('[data-ksave]') || t.closest('[data-unsave]');   // Gem for an answer or a page; Fjern on Gemt
-  if (kv) { const [k, id] = (kv.dataset.ksave || kv.dataset.unsave).split(':'); toggleSave(k, id, findStory(id)); render(); return; }
+  if (kv) {
+    const [k, id] = (kv.dataset.ksave || kv.dataset.unsave).split(':'), on = toggleSave(k, id, findStory(id));
+    // the rows' bookmarks change at once (a list that keeps its search field is not drawn again)
+    document.querySelectorAll(`.an-save[data-ksave="${CSS.escape(k + ':' + id)}"]`).forEach(b => {
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+      b.setAttribute('aria-label', (on ? 'Gemt' : 'Gem') + b.getAttribute('aria-label').replace(/^Gemt?/, ''));
+      b.querySelector('use').setAttribute('href', on ? '#i-saved' : '#i-save');
+    });
+    render(); return;
+  }
   const ssh = t.closest('[data-sshare]');   // a saved story, shared from its snapshot
   if (ssh) {
     const x = saved.find(y => y.k === 's' && y.id === ssh.dataset.sshare), f = x && firstSentence(x.summary);
