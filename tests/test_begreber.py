@@ -1,6 +1,7 @@
 """The wiki of concepts (public/viden/begreber.json and the linker's begreber-index.json) keeps the shared schema and
-Khabar's rules: every text is Hizb ut-Tahrir's reading, attributed and dated, from an answer the movement index holds;
-the newest answer governs the lead; an alias names one page and is never an ordinary Danish word, an adjective or a
+Khabar's rules: every text is Hizb ut-Tahrir's reading under a dated answer the movement index holds, said without
+'Ifølge Hizb ut-Tahrirs svar …' (the app's label says whose and when; the owner, 2026-10-17); the newest answer governs
+the lead; an alias names one page and is never an ordinary Danish word, an adjective or a
 word for a people; the movement layer's voice rules hold; and the concept pages merge with their own entry winning a
 clash."""
 import json
@@ -37,7 +38,7 @@ def texts(e):
 
 def page(**over):
     p = {'id': 'testland', 'name': 'Testland', 'kind': 'stat', 'aliases': ['Testland'], 'case_sensitive': True,
-         'lead_da': 'Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er Testland en stat.', 'lead_nr': '30420',
+         'lead_da': 'Testland er en stat.', 'lead_nr': '30420',
          'lead_date': '2026-09-27', 'timeline': [], 'relations': [], 'answers': ['30420'], 'related': []}
     p.update(over)
     return p
@@ -70,11 +71,14 @@ def test_the_shared_schema_exactly():
         assert set(v) == {'name', 'kind', 'aliases', 'case_sensitive', 'n_answers'} and v['n_answers'] == len(ITEMS[k]['answers'])
 
 
-def test_every_text_is_hizb_ut_tahrirs_and_dated():
+def test_no_text_names_the_movement_and_every_one_sits_under_a_dated_answer():
+    plain = bb.bm.load_plain()
+    assert len(plain) > 2000
     for k, e in ITEMS.items():
         for where, t in texts(e):
-            assert 'Hizb ut-Tahrir' in t, (k, where, t[:80])
-            assert bb.names_a_time(t), (k, where, t[:80])
+            assert t.strip() and not bb.bm.NAMES_MOVEMENT.search(t), (k, where, t[:80])
+            assert t not in plain, (k, where, t[:80])       # the plain form, never the working form
+        assert not bb.bm.NAMES_MOVEMENT.search(e.get('history_da') or ''), k
         assert len(bb.sentences(e['lead_da'])) <= bb.LEAD_SENTENCES, k
         assert e['lead_date'] == ANSWERS[e['lead_nr']]['date'], k
         for r in e['timeline'] + e['relations']:
@@ -133,19 +137,20 @@ def test_a_link_names_a_state_power_group_or_issue_never_a_people():
 def test_the_voice_rules_hold_and_the_check_catches_what_it_must():
     assert problems_of(page()) == ''
     bad = {
-        "not attributed": page(lead_da='Testland er en stat (27/9/2026).'),
-        'names no date': page(lead_da='Ifølge Hizb ut-Tahrirs svar er Testland en stat.'),
-        "Khabar says 'Israel'": page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er den jødiske entitet her.'),
-        "'agentstat'": page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er Testland en agentstat.'),
-        'staged or sponsored (G13)': page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 var angrebet i byen iscenesat.'),
-        'Kongrespart, H3': page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er Kongrespartiet loyalt over for Storbritannien.'),
-        'a quotation over': page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er det »' + 'ord ' * 20 + '«.'),
+        "names the movement ('Hizb ut-Tahrir')": page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er Testland en stat.'),
+        "names the movement ('Ifølge svaret')": page(timeline=[{'date': '2026-09-27', 'nr': '30420', 'text_da': 'Ifølge svaret er det x.'}]),
+        'lead_nr must be a non-empty text': page(lead_nr=''),
+        "Khabar says 'Israel'": page(lead_da='Den jødiske entitet er her.'),
+        "'agentstat'": page(lead_da='Testland er en agentstat.'),
+        'staged or sponsored (G13)': page(lead_da='Angrebet i byen var iscenesat.'),
+        'Kongrespart, H3': page(lead_da='Kongrespartiet er loyalt over for Storbritannien.'),
+        'a quotation over': page(lead_da='Det er »' + 'ord ' * 20 + '«.'),
         'unknown answer': page(lead_nr='999999'),
         'dated 2026-09-26': page(lead_date='2026-09-26'),
-        'never peoples': page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er jøderne skyld.'),
-        'not newest first': page(timeline=[{'date': '2026-08-18', 'nr': '30170', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 18/8/2026 x.'},
-                                           {'date': '2026-09-27', 'nr': '30420', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 27/9/2026 y.'}]),
-        'at most 4': page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 er det sådan. A. B. C. D.'),
+        'never peoples': page(lead_da='Jøderne er skyld.'),
+        'not newest first': page(timeline=[{'date': '2026-08-18', 'nr': '30170', 'text_da': 'X.'},
+                                           {'date': '2026-09-27', 'nr': '30420', 'text_da': 'Y.'}]),
+        'at most 4': page(lead_da='Det er sådan. A. B. C. D.'),
         'lower-case alias on a case-sensitive page': page(aliases=['testlandet']),
         'is no other page': page(related=['findes-ikke']),
     }
@@ -153,7 +158,7 @@ def test_the_voice_rules_hold_and_the_check_catches_what_it_must():
         assert why in problems_of(p), why
     assert 'also an alias of' in problems_of(page(), page(id='andetland', name='Andetland', aliases=['testland'], case_sensitive=False))
     # a government or rule may be read; a non-ruling person may not be said to serve (card H3)
-    assert problems_of(page(lead_da='Ifølge Hizb ut-Tahrirs svar af 27/9/2026 var styret under Hasina knyttet til Storbritannien.')) == ''
+    assert problems_of(page(lead_da='Styret under Hasina var knyttet til Storbritannien.')) == ''
 
 
 def test_the_newest_answer_governs_the_lead():
@@ -170,21 +175,22 @@ def test_the_newest_answer_governs_the_lead():
             continue
         e = ITEMS[k]
         if e['lead_da'] == c['text_da']:     # the current reading leads (a lead without a day rests on the answer it cites)
-            assert e['lead_date'] >= c['date'] and bb.cited(e['lead_da'], e['lead_date']), k
+            assert e['lead_date'] >= c['date'], k
         else:                                # a newer reading leads, the current one after it (never a power's)
-            assert e['kind'] != 'magt' and e['lead_date'] > c['date'] and e['lead_da'].startswith(e['timeline'][0]['text_da']), k
+            assert e['kind'] != 'magt' and e['lead_date'] > c['date'] and e['lead_nr'] == e['timeline'][0]['nr'], k
     # the review of 2026-10-17: the newest reading leads, also where the layer's current reading is older
     assert ITEMS['bahrain']['lead_date'] == ITEMS['qatar']['lead_date'] == ITEMS['oman']['lead_date'] == '2026-08-05'
     assert ITEMS['yemen']['lead_date'] == '2026-09-27' and ITEMS['frankrig']['lead_nr'] == '28073'
     assert ITEMS['usa']['lead_nr'] == '28942'        # the power's standing leads, its newer acts in one arena follow
     for k, e in ITEMS.items():
-        assert bb.cited(bb.sentences(e['lead_da'])[0], e['lead_date']), k
+        assert e['lead_date'] == ANSWERS[e['lead_nr']]['date'], k      # the label's date is the lead's answer's
         assert not any(w in e['lead_da'] for w in ('Ingen nyere', 'intet nyere', 'ikke gengivet', 'nævnes ikke')), k
     # an issue's lead opens on its newest answers (Iran-sagen: 18/8 and 27/9/2026, then the revision of 28/6/2026); the
     # history behind it stays whole on the page
     sag = ITEMS['iran-sagen']
     assert sag['kind'] == 'sag' and sag['subject'] == 'iran' and sag['lead_date'] == '2026-09-27' and '28/6/2026' in sag['lead_da']
-    assert sag['lead_da'].startswith('Ifølge Hizb ut-Tahrirs svar af 18/8/2026 og 27/9/2026') and sag['history_da'].startswith('Fra 2009 til 2025 læser Hizb ut-Tahrirs svar Iran')
+    assert sag['lead_da'].startswith('Forhandlingerne er fastlåst, og USA presser Iran') and '(svarene af 18/8/2026 og 27/9/2026)' in sag['lead_da']
+    assert sag['history_da'].startswith('Fra 2009 til 2025 er Iran en satellitstat')
     assert '28942' not in {r['nr'] for r in ITEMS['palaestina']['timeline']}
     assert 'Kina' in ITEMS['den-internationale-tilstand']['lead_da'] and 'mellemmagt' in ITEMS['den-internationale-tilstand']['lead_da']
 
@@ -218,11 +224,18 @@ def test_a_relation_is_on_both_parties_pages():
 
 
 def test_a_timeline_reading_says_when_read_alone():
-    """A reading spanning several answers names its span ('fra 12/3/2016 til 29/7/2018'); one reading two syntheses gave
-    from one answer is shown once."""
+    """A reading spanning several answers names its span ('fra 12/3/2016 til 29/7/2018'): in the working form inside the
+    attribution, in the plain form at its end; a reading of one answer is dated by its row (the app's label). One
+    reading two syntheses gave from one answer is shown once."""
     assert bb.with_date('Ifølge Hizb ut-Tahrirs svar samlede Saudi-Arabien oppositionen.', '2016-03-12', '2018-07-29') == \
         'Ifølge Hizb ut-Tahrirs svar fra 12/3/2016 til 29/7/2018 samlede Saudi-Arabien oppositionen.'
     assert bb.with_date('Ifølge Hizb ut-Tahrirs svar er det sådan.', '2016-03-12') == 'Ifølge Hizb ut-Tahrirs svar af 12/3/2016 er det sådan.'
+    assert bb.with_date('Saudi-Arabien samlede oppositionen.', '2016-03-12', '2018-07-29') == \
+        'Saudi-Arabien samlede oppositionen (svarene fra 12/3/2016 til 29/7/2018).'
+    assert bb.with_date('Det er sådan.', '2016-03-12') == 'Det er sådan.'
+    # what the build itself put in front goes in the plain form; a span stays at the end
+    assert bb.bm.plain('Ifølge Hizb ut-Tahrirs svar fra 12/3/2016 til 29/7/2018: samlede x.', {}) == \
+        'Samlede x (svarene fra 12/3/2016 til 29/7/2018).'
     rows = [{'date': '2022-03-04', 'nr': '1', 'kind': 'motiv', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 4/3/2022 tror Putin, at Rusland kan '
              'genvinde status som supermagt ved siden af USA, og ser sig som USA\'s ligemand.'},
             {'date': '2022-03-04', 'nr': '1', 'kind': 'tilstand', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 4/3/2022: Putin tror, at Rusland '
@@ -232,7 +245,7 @@ def test_a_timeline_reading_says_when_read_alone():
 
 @needs_seed
 def test_the_concepts_merge_with_their_own_entry_winning_a_clash():
-    lead = 'Ifølge Hizb ut-Tahrirs svar af 18/8/2026 er det et begreb.'
+    lead = 'Ifølge Hizb ut-Tahrirs svar af 18/8/2026: det er et begreb.'      # what a working form puts in front goes
     ideas = {'version': 1, 'items': {
         'golfen': {'id': 'golfen', 'name': 'Golfen (begreb)', 'kind': 'begreb', 'aliases': ['Golfen'], 'case_sensitive': True,
                    'lead_da': lead, 'lead_nr': '30170', 'lead_date': '2026-08-18', 'timeline': [], 'relations': [],
@@ -241,14 +254,15 @@ def test_the_concepts_merge_with_their_own_entry_winning_a_clash():
                          'case_sensitive': False, 'lead_da': lead, 'lead_nr': '30170', 'lead_date': '2026-08-18', 'timeline': [],
                          'relations': [], 'answers': ['30170'], 'related': ['saudi-arabien']},
         'uden-kilde': {'id': 'uden-kilde', 'name': 'Uden kilde', 'kind': 'begreb', 'aliases': ['kildeløs'], 'case_sensitive': False,
-                       'lead_da': 'Et begreb uden nogen tilskrivning.', 'lead_nr': '30170', 'lead_date': '2026-08-18',
+                       'lead_da': 'Hizb ut-Tahrir mener, at det er et begreb.', 'lead_nr': '30170', 'lead_date': '2026-08-18',
                        'timeline': [], 'relations': [], 'answers': [], 'related': []}}}
     doc, report = bb.build(now=datetime(2026, 10, 17, tzinfo=timezone.utc), ideas=ideas)
     text = '\n'.join(report)
     assert "id clash: the concept 'golfen'" in text and "alias clash: 'Iran' of the page iran" in text
-    assert 'uden-kilde lead: not attributed' in text and "alias 'amerikanske'" in text and "'findes-ikke' is no page" in text
+    assert "uden-kilde lead: names the movement" in text and "alias 'amerikanske'" in text and "'findes-ikke' is no page" in text
     items = doc['items']
     assert items['golfen']['kind'] == 'begreb' and items['golfen']['answers'] == ['30170'] and 'uden-kilde' not in items
+    assert items['golfen']['lead_da'] == 'Det er et begreb.'
     assert 'Iran' not in items['iran']['aliases'] and items['satellitstat']['aliases'] == ['satellitstat', 'Iran']
     assert 'satellitstat' in items['saudi-arabien']['related'] and 'golfen' in items['iran']['related']
     assert bb.check(doc, ANSWERS) == []

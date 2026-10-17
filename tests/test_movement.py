@@ -1,8 +1,10 @@
 """The movement layer (public/viden/movement.json, scripts/build_movement.py) keeps the card's hard rules: the committed
 layer passes its own check, the check catches what the Khabar 2 critics found (staging claims about attacks, serving
-claims about non-ruling persons and parties, agent words, readings without the movement's name, dates that are not
-their answer's), the newest answer governs the current readings, and a rebuild from the local extracts gives the
-committed layer (ported from the khabar2 branch, 2026-10-17)."""
+claims about non-ruling persons and parties, agent words, readings that still name the movement in Khabar's voice,
+dates that are not their answer's), every reading is said without 'Ifølge Hizb ut-Tahrirs svar …' and sits under its
+dated answer (the owner, 2026-10-17: the app's label says whose and when), the newest answer governs the current
+readings, and a rebuild from the local extracts gives the committed layer (ported from the khabar2 branch,
+2026-10-17)."""
 import json
 import re
 import sys
@@ -22,7 +24,7 @@ LAYER = json.loads((VIDEN / 'movement.json').read_text(encoding='utf-8'))
 
 def tiny(**over):
     layer = {'answers': {'1': {'date': '2025-05-15', 'title_da': 't', 'question_da': 'q', 'url': 'https://x.test/1',
-                               'note_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 er det en note.'}},
+                               'note_da': 'Det er en note.'}},
              'readings': {}, 'current': {}, 'issues': {}, 'expectations': []}
     layer.update(over)
     return layer
@@ -42,20 +44,25 @@ def test_the_public_files_hold_no_private_paths_long_quotes_or_banned_voice():
         assert problems == [], problems
 
 
-def test_every_reading_names_the_movement_and_carries_its_answers_date():
+def test_no_reading_names_the_movement_and_each_sits_under_its_dated_answer():
     answers = LAYER['answers']
+    named = build_movement.NAMES_MOVEMENT.search
     for k, a in answers.items():
-        assert a['url'] and 'Hizb ut-Tahrir' in a['note_da'], k
+        assert a['url'] and a['date'] and not named(a['note_da']), k
     for k, rows in LAYER['readings'].items():
         for r in rows:
-            assert 'Hizb ut-Tahrir' in r['text_da'] and r['date'] == answers[r['nr']]['date'], (k, r['nr'])
+            assert not named(r['text_da']) and r['date'] == answers[r['nr']]['date'], (k, r['nr'])
     for k, c in LAYER['current'].items():
-        assert 'Hizb ut-Tahrir' in c['text_da'] and c['date'] == answers[c['nr']]['date'], k
-        assert 'Hizb ut-Tahrir' in (c.get('changed_from') or 'Hizb ut-Tahrir'), k
+        assert not named(c['text_da']) and c['date'] == answers[c['nr']]['date'], k
+        assert not named(c.get('changed_from') or '') and not named(c.get('earlier_da') or ''), k
         if c.get('latest_nr'):
             assert c['latest'] == answers[c['latest_nr']]['date'] and c['latest'] > c['date'], k
-    assert all('Hizb ut-Tahrir' in v['history_da'] for v in LAYER['issues'].values())
-    assert all('Hizb ut-Tahrir' in e['text_da'] for e in LAYER['expectations'])
+    assert all(not named(v['history_da']) and v['nrs'] and set(v['nrs']) <= set(answers) for v in LAYER['issues'].values())
+    assert all(not named(e['text_da']) for e in LAYER['expectations'])
+    # the owner's own examples read as plain Danish
+    assert LAYER['current']['saudi-arabien']['text_da'].startswith('Saudi-Arabien er ')
+    assert any(r['text_da'].startswith('Houthierne gik med viden med på en amerikansk plan')
+               for r in LAYER['readings']['houthierne'])
     # one answer, one date: 366 (Centralasien) is of 19/9/2009 only
     assert '20/10/2010' not in json.dumps(LAYER, ensure_ascii=False)
     assert LAYER['current']['tadsjikistan']['date'] == answers['366']['date'] == '2009-09-19'
@@ -74,31 +81,62 @@ def test_the_newest_answer_governs_the_current_readings():
 
 def test_the_check_catches_what_the_critics_found():
     bad = tiny(readings={'indien': [
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 var angrebet i Pahalgam iscenesat.'},
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 er Kongrespartiet loyalt over for Storbritannien.'},
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 er Pakistan USA\'s agentstat.'},
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Svaret læser Indien som underordnet.'},
-        {'date': '2025-05-16', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 noget.'}]})
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Angrebet i Pahalgam var iscenesat.'},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Kongrespartiet er loyalt over for Storbritannien.'},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': "Pakistan er USA's agentstat."},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 er Indien underordnet.'},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge svaret er Indien underordnet.'},
+        {'date': '2025-05-16', 'nr': '1', 'kind': 'k', 'text_da': 'Noget.'}]},
+                issues={'y': {'history_da': 'Noget.', 'nrs': ['2']}})
     problems = '\n'.join(build_movement.check(bad))
-    assert 'staged or sponsored (G13)' in problems and 'Kongrespart, H3' in problems
-    assert "'agentstat'" in problems and 'the movement is not named' in problems and 'dated 2025-05-16' in problems
+    assert 'staged or sponsored (G13)' in problems and 'Kongrespart, H3' in problems and 'dated 2025-05-16' in problems
+    assert "'agentstat'" in problems and "names the movement ('Hizb ut-Tahrir')" in problems
+    assert "names the movement ('Ifølge svaret')" in problems and 'issue y: its answers' in problems
     ok = tiny(readings={'indien': [
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 gav angrebet i Pahalgam Indien '
-         'påskud (svarets påstand om iscenesættelse er ikke gengivet; gerningsbelæg mangler).'},
-        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 læses Kongres-regeringen som '
-         'britisk-loyal, og styret under Hasina var knyttet til Storbritannien.'}]})
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Angrebet i Pahalgam gav Indien påskud (svarets påstand om '
+         'iscenesættelse er ikke gengivet; gerningsbelæg mangler).'},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Kongres-regeringen er britisk-loyal, og styret under Hasina var '
+         'knyttet til Storbritannien.'},
+        {'date': '2025-05-15', 'nr': '1', 'kind': 'k', 'text_da': 'Svaret læser Indien som underordnet.'}]})
     assert build_movement.check(ok) == []
-    voice = tiny(issues={'x': {'history_da': 'Ifølge Hizb ut-Tahrirs svar af 15/5/2025 er den jødiske entitet og jøderne skyld.', 'nrs': ['1']}})
+    voice = tiny(issues={'x': {'history_da': 'Den jødiske entitet og jøderne er skyld.', 'nrs': ['1']}})
     problems = '\n'.join(build_movement.check(voice))
     assert "Khabar says 'Israel'" in problems and 'never peoples' in problems
 
 
-def test_a_bare_reading_gets_the_movements_name_and_date():
-    assert build_movement.owned('Svarene læser Yemen som en kampplads.', '2009-11-28', 'fra') == \
-        'Hizb ut-Tahrirs svar læser Yemen som en kampplads.'
-    assert build_movement.owned('Hæren i Tyrkiet vil ikke opgive magten.', '2004-01-24') == \
+def test_the_build_works_on_the_attributed_form_and_writes_the_plain_one():
+    """The extracts' readings are dated by their attribution while the build works (keyed); its last step writes each in
+    its plain form from docs/hjerne/uden-ifolge.json, and a text it has none of loses only what the build put in front."""
+    keyed = build_movement.keyed
+    assert keyed('Svarene læser Yemen som en kampplads.', '2009-11-28', 'fra') == 'Hizb ut-Tahrirs svar læser Yemen som en kampplads.'
+    assert keyed('Hæren i Tyrkiet vil ikke opgive magten.', '2004-01-24') == \
         'Ifølge Hizb ut-Tahrirs svar af 24/1/2004: Hæren i Tyrkiet vil ikke opgive magten.'
-    assert build_movement.owned('Ifølge svaret er det sådan.', '2004-01-24').startswith('Ifølge Hizb ut-Tahrirs svar af 24/1/2004 ')
+    assert keyed('Ifølge svaret er det sådan.', '2004-01-24').startswith('Ifølge Hizb ut-Tahrirs svar af 24/1/2004 ')
+    table = {'Ifølge Hizb ut-Tahrirs svar af 27/9/2026 gik houthierne med viden med på en amerikansk plan.':
+             'Houthierne gik med viden med på en amerikansk plan.'}
+    plain = build_movement.plain
+    assert plain('Ifølge Hizb ut-Tahrirs svar af 27/9/2026 gik houthierne med viden med på en amerikansk plan.', table) == \
+        'Houthierne gik med viden med på en amerikansk plan.'
+    assert plain(keyed('hæren i Tyrkiet vil ikke opgive magten.', '2004-01-24'), {}) == 'Hæren i Tyrkiet vil ikke opgive magten.'
+    assert plain('Ifølge Hizb ut-Tahrirs svar er det sådan.', {}) == 'Ifølge Hizb ut-Tahrirs svar er det sådan.'   # the check refuses it
+    # the working form read back from the plain layer is the key of every plain text
+    layer = build_movement.working(json.loads(json.dumps(LAYER)), build_movement.load_plain())
+    assert 'Hizb ut-Tahrir' in layer['current']['saudi-arabien']['text_da']
+    assert build_movement.unattributed(layer, build_movement.load_plain()) == LAYER
+
+
+def test_the_plain_forms_are_the_movements_summaries_only():
+    """docs/hjerne/uden-ifolge.json holds the movement's Danish readings – never an answer's text: short, the voice rules
+    kept, no long quotation, no local path."""
+    table = build_movement.load_plain()
+    assert len(table) > 2000
+    for old, new in table.items():
+        assert 'Hizb ut-Tahrir' in old and not build_movement.NAMES_MOVEMENT.search(new), old[:80]
+        assert len(new) < 2500 and not build_movement.LOCAL.search(new), old[:80]
+        assert all(len(a or b) <= build_movement.QUOTE_MAX for a, b in build_movement.QUOTE.findall(new)), old[:80]
+        problems = []
+        build_movement.check_voice(new, old[:40], problems)
+        assert problems == [], problems
 
 
 def test_the_apps_index_is_the_layer_slimmed():

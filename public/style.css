@@ -803,6 +803,12 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .ht-box p.ht { margin: 0; font-size: var(--fs-read); line-height: 1.5; text-wrap: pretty; }
 .ht-l { display: block; margin: 0 0 5px; font-family: var(--sans); font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
   text-transform: uppercase; color: var(--ht-text-3); }
+/* whose and when, once per block of the movement's: 'Hizb ut-Tahrirs svar · d/m/åååå' (the answer line's look); a
+   block of several answers' texts gives each row its small date (.ht-d) */
+.ht-who { margin: 0 0 6px; font-family: var(--sans); font-size: var(--fs-meta); line-height: 1.35; color: var(--ht-text-2);
+  font-variant-numeric: tabular-nums; }
+.ht-who b { font-weight: 650; color: var(--ht-text); }
+.ht-d { font-family: var(--sans); font-size: var(--fs-cap); font-weight: 600; color: var(--ht-text-3); font-variant-numeric: tabular-nums; }
 .ht-more { display: block; min-height: 44px; margin: 4px 0 -8px; font-size: var(--fs-meta); font-weight: 650; color: var(--ht-text-2); }
 .ht-more:active, .ht-go:active { opacity: .55; }
 .ht-go { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ht-line);
@@ -898,10 +904,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .wk-lead p.ht { font-size: var(--fs-read); }
 .wk-y { margin: 0 0 2px; font-family: var(--sans); font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; color: var(--ht-text-3); }
 .wk-y:not(:first-child) { margin-top: 14px; }
-/* 'Gennem årene': the date of each reading's answer is its way there, the reading plain text under it */
+/* 'Gennem årene': the date of each reading's answer (small, .ht-d) is its way there, the reading plain text under it */
 .wk-tl li:not(.wk-y) + li:not(.wk-y) { border-top: 1px solid var(--ht-line); }
 .wk-r { display: flex; align-items: center; gap: 4px; min-height: 40px; font-family: var(--sans); font-size: var(--fs-meta); text-align: left; color: var(--ht-text); }
-.wk-r b { font-weight: 700; }
+.wk-r .ht-d { color: var(--ht-text-2); }
 .wk-r svg { width: 13px; height: 13px; color: var(--ht-text-3); }
 .wk-r:active { opacity: .6; }
 .wk-tl li > p.ht { margin: 0 0 10px; font-size: var(--fs-read); line-height: 1.5; color: var(--ht-text); }

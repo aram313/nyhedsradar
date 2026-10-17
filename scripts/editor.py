@@ -911,11 +911,11 @@ ANSWER_TEMPLATE = {'answer': {
     'nr': "<the answer's number, as given>", 'date': 'YYYY-MM-DD',
     'title_da': '<the title in Danish, as the movement titles it: "Svar på spørgsmål: …">',
     'question_da': '<the question in one or two Danish sentences>',
-    'note_da': '<2-4 Danish sentences beginning "Ifølge Hizb ut-Tahrirs svar af d/m/åååå …": what it reads and expects>',
+    'note_da': '<2-4 plain Danish sentences, no "Ifølge …": what the answer reads and expects>',
     'readings': [{'subject': '<a subject id from the list, or a new lowercase-with-hyphens id; a relation: a--b>',
                   'kind': ' | '.join(ANSWER_KINDS), 'object': '<the other subject, e.g. the patron – optional>',
                   'value': '<a short label, e.g. underordnet – optional>',
-                  'text_da': '<one sentence beginning "Ifølge Hizb ut-Tahrirs svar af d/m/åååå …">'}],
+                  'text_da': '<one plain Danish sentence of what it reads, no "Ifølge …">'}],
     'begreber': ['<the ids of the concepts, states and groups it treats>']}}
 SMALL = [
     '## How small an update can be', '',
@@ -1109,13 +1109,14 @@ def front_section(front, find, notes, now):
 def answer_lines(a, known):
     """Hizb ut-Tahrir's new answer, with its text and how to note it."""
     date = str(a.get('date') or '')[:10]
-    said = f'Ifølge Hizb ut-Tahrirs svar af {brain.d_slash(date)}' if date else 'Ifølge Hizb ut-Tahrirs svar af d/m/åååå'
     return [
         '## Hizb ut-Tahrir\'s new answer – note it in "answer" (once: it is kept for the concept pages)', '',
         f"nr {a['id']} · {date} · {clean(a.get('title'))} · {a.get('url') or ''}", '',
-        'Write the "answer" object (shape below) from this text. Everything in it is the movement\'s reading, attributed: '
-        f'note_da (2-4 sentences: what the answer reads and expects) and every reading begin "{said} …". The newest '
-        'answer governs: where it reads a state, a power or a relation differently from its current reading in the brain, '
+        'Write the "answer" object (shape below) from this text. Everything in it is what the answer says, its reading as '
+        'it says it – never your own: note_da (2-4 sentences: what the answer reads and expects) and every reading in '
+        'plain Danish without "Ifølge Hizb ut-Tahrirs svar …" or "Ifølge svaret …" (the app shows them under the label '
+        '"Hizb ut-Tahrirs svar · d/m/åååå"): "Saudi-Arabien er underordnet USA", not "Ifølge svaret er Saudi-Arabien '
+        'underordnet USA". The newest answer governs: where it reads a state, a power or a relation differently from its current reading in the brain, '
         'the reading says so plainly ("… vender tilbage til …", "… er faldet fra …"). One reading per subject the answer '
         'reads – kind stilling (a standing: value underordnet, satellit, uafhængig …, object the patron), forhold (a '
         'relation: subject a pair a--b), plan, fremgangsmåde (a means), rolle, tilstand (a power\'s condition or the '
@@ -1716,8 +1717,9 @@ def id_problem(sid, known):
 
 def check_answer(obj, queue, known):
     """The update's 'answer': Hizb ut-Tahrir's new answer as the shared schema's answers.json item, or the problems.
-    Everything in it is the movement's reading, attributed – note_da and every reading say 'Ifølge Hizb ut-Tahrirs svar
-    af d/m/åååå' with the answer's own date – and the content rules hold (voice.py)."""
+    Everything in it is the movement's reading, said in plain Danish without its attribution – the app shows note_da and
+    every reading under the label 'Hizb ut-Tahrirs svar · d/m/åååå' (voice.check_plain) – and the content rules hold
+    (voice.py)."""
     if not isinstance(obj, dict):
         return None, ['answer: one object in the shape shown – or leave "answer" out']
     nr = str(obj.get('nr') or '').strip()
@@ -1728,7 +1730,6 @@ def check_answer(obj, queue, known):
     date = str(src.get('date') or '')[:10]
     if str(obj.get('date') or date)[:10] != date:
         problems.append(f"{where}: date must be the answer's own, {date}")
-    said = f'Ifølge Hizb ut-Tahrirs svar af {brain.d_slash(date)}'
     title, question, note = (clean(obj.get(f)) for f in ('title_da', 'question_da', 'note_da'))
     if not title or len(title) > 200:
         problems.append(f'{where}: title_da – the title in Danish, at most 200 characters')
@@ -1736,8 +1737,8 @@ def check_answer(obj, queue, known):
         problems.append(f'{where}: question_da – the question in one or two Danish sentences, at most 600 characters')
     if not note or len(note) > NOTE_LEN:
         problems.append(f'{where}: note_da – 2-4 Danish sentences, at most {NOTE_LEN} characters')
-    elif said not in note:
-        problems.append(f"{where}: note_da must say '{said} …' – the movement's reading, attributed")
+    else:
+        voice.check_plain(note, f'{where} note_da', problems)
     rows = obj.get('readings') or []
     if not isinstance(rows, list):
         problems.append(f'{where}: readings – a list')
@@ -1758,8 +1759,8 @@ def check_answer(obj, queue, known):
             problems.append(f"{at}: kind must be one of {', '.join(ANSWER_KINDS)}")
         if not text or len(text) > READING_LEN:
             problems.append(f'{at}: text_da – one sentence, at most {READING_LEN} characters')
-        elif said not in text:
-            problems.append(f"{at}: text_da must say '{said} …'")
+        else:
+            voice.check_plain(text, f'{at} text_da', problems)
         row = {'subject': subject, 'kind': kind}
         if r.get('object'):
             other = str(r['object']).strip()

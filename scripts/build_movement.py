@@ -1,8 +1,17 @@
 """Build the movement layer (public/viden/movement.json): Hizb ut-Tahrir's political answers 2003-2026 as Khabar
 read them – one entry per answer (a Danish title, question and short note, never the answer's text), the readings
 of each state, power and relation over time, the current reading of each, the history of each issue, and the
-answers' expectations. Everything in the layer is the movement's reading: attributed ('Ifølge Hizb ut-Tahrirs svar
-af d/m/åååå …'), never a confirmed fact and never Khabar's own judgement.
+answers' expectations. Everything in the layer is the movement's reading, never a confirmed fact and never Khabar's
+own judgement – said in plain Danish without 'Ifølge Hizb ut-Tahrirs svar …' (the owner, 2026-10-17: "Kan vi godt
+fjerne 'ifølge Hizb ut-Tahrir' – det står over det hele"): every text sits under its dated answer (date and nr on each
+row), and the app says whose and when once per block, in its label ('Hizb ut-Tahrirs svar · d/m/åååå').
+
+The extracts and syntheses write the readings with the attribution ('Ifølge svaret af …'); the build works on that form
+(keyed(): it dates a current reading by the answer it opens with and an earlier reading by its own dates) and, as its
+last step, writes each text in its plain form from docs/hjerne/uden-ifolge.json ({the text as the build gave it until
+2026-10-17: the plain text}). A text it has no plain form of loses only what the build itself put in front
+('Ifølge Hizb ut-Tahrirs svar af d/m/åååå: '); one that still names the movement fails the check – write its plain
+form into uden-ifolge.json.
 
 Input (local, not in the repo): .cache/movement/extract/*.json (one file per answer, read by the extract agents),
 .cache/movement/synth/<group>.json (8 regional syntheses: timelines, current, issues, expectations); in the repo:
@@ -32,6 +41,7 @@ SRC = ROOT / '.cache' / 'movement'
 OUT = ROOT / 'public' / 'viden' / 'movement.json'
 INDEX = ROOT / 'public' / 'viden' / 'movement-index.json'
 QA = ROOT / 'docs' / 'hjerne' / 'qa-index.json'
+PLAIN = ROOT / 'docs' / 'hjerne' / 'uden-ifolge.json'
 SEED = ROOT / 'docs' / 'hjerne' / 'knowledge-v0.json'
 
 # Khabar's voice (the Khabar 2 rules, kept here since its editor and model are not on this branch): no praise of or call
@@ -70,7 +80,7 @@ ALIASES = {
     '3642': '366',       # Centralasien: Arabic 19/9/2009, English edition 366 (dated 20/10/2010)
     '72990': '2450',     # Sri Lanka 23/5/2009: two Arabic uploads; 2450 is the original number
 }
-ATTRIB = [   # the movement's readings name the movement: 'Ifølge Hizb ut-Tahrirs svar af …' (card M1)
+ATTRIB = [   # the working form names the movement: 'Ifølge Hizb ut-Tahrirs svar af …' (the key of the plain text)
     (re.compile(r'^Ifølge svaret af '), 'Ifølge Hizb ut-Tahrirs svar af '),
     (re.compile(r'^Ifølge svarene '), 'Ifølge Hizb ut-Tahrirs svar '),
     (re.compile(r'^Ifølge (?:bevægelsens|Hizb ut-Tahrirs) svar(ene)? '), 'Ifølge Hizb ut-Tahrirs svar '),
@@ -215,9 +225,11 @@ def unlabel(s):
     return LABEL.sub(lambda m: m.group(1).upper(), s) if s else s
 
 
-def owned(s, when, lead='af'):
-    """Every text of the layer names the movement (card M1), also where the app shows it outside its answer: a text that
-    does not start with an attribution gets 'Ifølge Hizb ut-Tahrirs svar af d/m/åååå: '."""
+def keyed(s, when, lead='af'):
+    """The build's working form of a text: without its working labels (unlabel), the movement named and dated ('Ifølge
+    Hizb ut-Tahrirs svar af d/m/åååå: ' in front of a text that does not open on an attribution). It is never shown: it
+    dates a reading (lead_answer, changed_before) and is the key of its plain form in docs/hjerne/uden-ifolge.json
+    (plain(); load_plain() reads that map without labels too, so its keys are these forms)."""
     s = unlabel(s)
     s = attributed(s, when)
     for rx, to in OPENINGS:
@@ -229,6 +241,74 @@ def owned(s, when, lead='af'):
     return s
 
 
+# what keyed() put in front of a text (and the span the wiki's build gives a reading over several answers): the only
+# part a text without a plain form loses – a span stays, in brackets at the end
+ADDED = re.compile(r'^Ifølge Hizb ut-Tahrirs svar (?:af|fra|til og med) (?P<first>\d{1,2}/\d{1,2}/\d{4})'
+                   r'(?: til (?P<last>\d{1,2}/\d{1,2}/\d{4}))?: ')
+# a text that names the movement as its own subject in Khabar's voice: the attribution the app's label now carries
+NAMES_MOVEMENT = re.compile(r'Hizb ut-Tahrir|^Ifølge (?:svaret|svarene|bevægelsen|en række)\b|\b[Bb]evægelsens svar')
+
+
+def load_plain(path=None):
+    """{the working form: the plain text} (docs/hjerne/uden-ifolge.json; empty when it is not there), both sides without
+    the syntheses' working labels ('ÆNDRING: …', unlabel) – the map was written from texts that still had them."""
+    try:
+        table = json.loads(Path(path or PLAIN).read_text(encoding='utf-8'))
+    except FileNotFoundError:
+        return {}
+    return {unlabel(k): unlabel(v) for k, v in table.items()}
+
+
+def at_end(text, note):
+    """'… (note).': a short note in brackets before the text's last full stop."""
+    t = text.rstrip()
+    return f'{t[:-1]} {note}{t[-1]}' if t[-1:] in '.!?' else f'{t} {note}'
+
+
+def plain(s, table):
+    """A text as the app shows it: its plain form from the table, else without what the build put in front."""
+    if not s:
+        return s
+    if s in table:
+        return table[s]
+    m = ADDED.match(s)
+    if not m:
+        return s
+    rest = s[m.end():]
+    rest = rest[:1].upper() + rest[1:]
+    return at_end(rest, f"(svarene fra {m['first']} til {m['last']})") if m['last'] else rest
+
+
+def layer_texts(layer):
+    """(object, field) of every reading text of the layer: the answers' notes, the readings, the current readings and
+    what they were before, the issues' histories, the expectations."""
+    out = [(a, 'note_da') for a in layer['answers'].values()]
+    out += [(r, 'text_da') for rows in layer['readings'].values() for r in rows]
+    out += [(c, f) for c in layer['current'].values() for f in ('text_da', 'changed_from', 'earlier_da') if c.get(f)]
+    out += [(v, 'history_da') for v in layer['issues'].values()]
+    out += [(e, 'text_da') for e in layer['expectations']]
+    return out
+
+
+def unattributed(layer, table):
+    """The build's last step: every reading of the layer in its plain form."""
+    for o, f in layer_texts(layer):
+        o[f] = plain(o[f], table)
+    return layer
+
+
+def working(layer, table):
+    """The layer read back into the working form (each plain text's key in the table; a text with none – written plain
+    – stays as it is), for a build that dates readings by their words (scripts/build_begreber.py). Two keys with one
+    plain form: the first in sorted order (they differ only in word order)."""
+    back = {}
+    for k in sorted(table):
+        back.setdefault(table[k], k)
+    for o, f in layer_texts(layer):
+        o[f] = back.get(o[f], o[f])
+    return layer
+
+
 def stand_class(value):
     v = str(value or '').lower()
     return next((c for c, rx in STAND_CLASSES if rx.search(v)), 'andet') if v else None
@@ -237,7 +317,7 @@ def stand_class(value):
 def dates_in(text):
     """Every day, month or year a text names ('4/10/2023', '2/2009', 'januar 2015', '2013'), as the first day it can mean,
     without the attribution's own date."""
-    t = re.sub(r'^Ifølge Hizb ut-Tahrirs svar (?:til og med|fra|af) [\d/]+:\s*', '', text or '')
+    t = ADDED.sub('', text or '')
     out = []
     for rx, make in ((r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b', lambda m: (int(m[3]), int(m[2]), int(m[1]))),
                      (r'\b(\d{1,2})/((?:19|20)\d\d)\b', lambda m: (int(m[2]), int(m[1]), 1)),
@@ -311,7 +391,7 @@ def build(now=None):
             a['cites_nrs'] = c
     answers = dict(sorted(answers.items(), key=lambda kv: (kv[1]['date'], kv[0])))
     for a in answers.values():
-        a['note_da'] = owned(a['note_da'], a['date'])
+        a['note_da'] = keyed(a['note_da'], a['date'])
 
     def answer_date(nr, fallback):
         return answers[nr]['date'] if nr in answers else fallback
@@ -351,7 +431,7 @@ def build(now=None):
                         row[k] = r[k]
                 if row['kind'] == 'stilling' and row.get('value'):
                     row['class'] = stand_class(row['value'])
-                row['text_da'] = owned(nums.text(r['text_da']), row['date'])
+                row['text_da'] = keyed(nums.text(r['text_da']), row['date'])
                 if HISTORICAL.search(row['text_da']):
                     row['historical'] = True
                 also = [nums.of(n, None, subj) for n in r.get('also') or []]
@@ -396,7 +476,7 @@ def build(now=None):
         for subj, c in s['current'].items():
             nr = nums.of(c['nr'], c.get('date'), subj)
             touched = answer_date(nr, c['date'])
-            text = owned(nums.text(c['text_da']), touched)
+            text = keyed(nums.text(c['text_da']), touched)
             lead = lead_answer(text, nr, subj)
             row = {'text_da': text, 'date': answer_date(lead, touched), 'nr': lead, 'since': c.get('since') or c['date']}
             if lead != nr:      # the reading leads with an older answer; a newer one has touched the subject since
@@ -404,7 +484,7 @@ def build(now=None):
             if c.get('changed_from'):
                 # what the reading was before 'since' – or, where the text spans the years after it too, the reading's
                 # course ('earlier_da', shown without a date)
-                before = owned(nums.text(c['changed_from']), touched, 'til og med')
+                before = keyed(nums.text(c['changed_from']), touched, 'til og med')
                 row['changed_from' if changed_before(row['since'], before) else 'earlier_da'] = before
             old = current.get(subj)
             weight = (CURRENT_FROM.get(subj) == g, touched, home.get(subj, {}).get(g, 0), len(row['text_da']))
@@ -423,7 +503,7 @@ def build(now=None):
         for iid, v in s['issues'].items():
             nrs = list(dict.fromkeys(nums.of(n) for n in v.get('nrs') or []))
             first = min((answers[n]['date'] for n in nrs if n in answers), default=None)
-            text = owned(nums.text(v['history_da']), first, 'fra')
+            text = keyed(nums.text(v['history_da']), first, 'fra')
             if iid in issues:   # one group per issue so far; keep the longer history if that changes
                 if len(text) <= len(issues[iid]['history_da']):
                     issues[iid]['nrs'] = list(dict.fromkeys(issues[iid]['nrs'] + nrs))
@@ -437,7 +517,7 @@ def build(now=None):
             nr = nums.of(e['nr'], e.get('date'), e.get('subject'))
             when = answer_date(nr, e['date'])
             text = nums.text(e['text_da'])
-            row = {'date': when, 'nr': nr, 'subject': e.get('subject'), 'text_da': owned(text, when)}
+            row = {'date': when, 'nr': nr, 'subject': e.get('subject'), 'text_da': keyed(text, when)}
             text = re.sub(r'^Ifølge [^:]{0,60}?svar\w*(?: af [\d/]+)?(?: forventedes)?:? ', '', text)
             if e.get('outcome'):
                 row['outcome'] = e['outcome']
@@ -449,7 +529,7 @@ def build(now=None):
 
     layer = {'version': 1, 'built': (now or datetime.now(timezone.utc)).isoformat(timespec='seconds'),
              'answers': answers, 'readings': readings, 'current': current, 'issues': issues, 'expectations': expectations}
-    return layer, reconciled, stale
+    return unattributed(layer, load_plain()), reconciled, stale
 
 
 # the layer's own vocabulary for 'serves' (card H1): the agent words plus the softer ones the answers use
@@ -473,7 +553,7 @@ QUOTE_MAX = 60
 
 
 def texts_of(layer):
-    """Every text of the layer, with where it is and whether it must name the movement."""
+    """Every text of the layer, with where it is and whether it is the movement's reading."""
     out = []
     for k, a in layer['answers'].items():
         out += [(f'answer {k} title', a['title_da'], False), (f'answer {k} question', a['question_da'], False),
@@ -522,8 +602,9 @@ def serving_problems(where, t, names, problems):
 
 
 def check(layer):
-    """Khabar's hard rules hold in the movement's layer too (card G13, H1-H5, M1): the movement named in every reading;
-    no forgeries or verdicts on peoples; no agent words (the layer says 'underordnet'); no claim that an attack with dead
+    """Khabar's hard rules hold in the movement's layer too (card G13, H1-H5, M1): no reading names the movement as its
+    own subject in Khabar's voice ('Ifølge Hizb ut-Tahrirs svar …' – the app's label says whose and when) and every
+    reading sits under a dated answer; no forgeries or verdicts on peoples; no agent words (the layer says 'underordnet'); no claim that an attack with dead
     was staged or sponsored unless it says that deeds are missing; no serving claim about a protected person the model
     knows, a non-ruling person or a party; no local paths and no long quotations (the repo is public); every date is its
     answer's date."""
@@ -531,8 +612,10 @@ def check(layer):
     problems = []
     for where, t, own in texts_of(layer):
         check_voice(t, where, problems)
-        if own and 'Hizb ut-Tahrir' not in t:
-            problems.append(f"{where}: the movement is not named ('Ifølge Hizb ut-Tahrirs svar af …', M1): {t[:80]}")
+        hit = NAMES_MOVEMENT.search(t) if own else None
+        if hit:
+            problems.append(f"{where}: names the movement ('{hit.group(0)}') – the app's label says whose and when; write the "
+                            f"text's plain form into docs/hjerne/uden-ifolge.json: {t[:80]}")
         hit = re.search(r'\bagent\w*', t, re.I)
         if hit:
             problems.append(f"{where}: '{hit.group(0)}' – the layer says 'underordnet' (H1): {t[max(0, hit.start() - 60):hit.end() + 40]}")
@@ -546,6 +629,11 @@ def check(layer):
     for k, a in answers.items():
         if not a.get('url'):
             problems.append(f'answer {k}: no source url')
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', str(a.get('date') or '')):
+            problems.append(f'answer {k}: no date – every reading sits under a dated answer')
+    for k, v in layer['issues'].items():
+        if not v.get('nrs') or any(n not in answers for n in v['nrs']):
+            problems.append(f"issue {k}: its answers {v.get('nrs')} are not all in the layer – a history sits under dated answers")
 
     def dated(where, nr, when):
         if nr not in answers:

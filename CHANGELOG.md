@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Merge: the plain texts of main into the professional build** (2026-10-17; `?v=20261017v`). The professional build
+  keeps its structure (the reader's byline and headings, the wiki's contents row, 'Gennem årene' as dated rows under
+  their year headings, without the lead's own); main's rule holds everywhere in it: the texts never say 'Ifølge …',
+  each Hizb ut-Tahrir block carries one label ('Hizb ut-Tahrirs svar · d/m/åååå' in the reader's byline, on a wiki
+  lead, the course, the timeline and the relations), the timeline's rows their small date as the way to the answer, the
+  relations a date on each row. The reader's 'Ifølge svaret' / 'Ifølge dette svar og svaret af …' shortening is gone
+  (nothing left to shorten). A shared answer or wiki page now carries the label too, since its text no longer says whose.
+
 - **Khabar made professional – the review's fixes** (2026-10-17, the reviewers of the professional build; `?v=20261017pro2`).
   - **Fixed – trust:** the editor's lede is shown whole (it was cut at three lines and hid the Gaza clause; no paragraph
     is a hidden button any more). Dagens historie no longer wears another development: its timeline, and the
@@ -96,6 +104,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
     is another development; the movement build drops working labels ('ÆNDRING:'), with a test.
   - Tests: tests/test_app_pro.py, test_app_contrast.py, test_pro.py; the speed tests follow the new type scale and
     rows. Speed measured before and after (docs/hjerne/notes-r2-speed.md, 'Professional build').
+
+- **'Ifølge Hizb ut-Tahrir' is gone from the texts** (the owner, 2026-10-17: "Kan vi godt fjerne 'ifølge Hizb
+  ut-Tahrir' – det står over det hele"). The 2,615 readings, notes, leads and histories of the movement layer and the
+  wiki are written in plain Danish without their attribution ('Ifølge svaret er Saudi-Arabien underordnet USA' →
+  'Saudi-Arabien er underordnet USA'); the meaning, hedges and dates are kept, a span of answers stays in brackets
+  ('(svarene 2013–2015)', '(svaret af 1/7/2004)' where a lead gathers several answers). `docs/hjerne/uden-ifolge.json`
+  holds every plain form; `build_movement.py` and `build_begreber.py` apply it as their last step, and their checks now
+  say that no shown text names the movement and that every text sits under a dated answer. The app says whose and when
+  once per block: 'Hizb ut-Tahrirs svar · d/m/åååå' on a wiki lead (the lead's answer opens from its title), on the
+  timeline and the relations a date on every row (the year bands are gone), and the reader's header in the same form;
+  the reader's 'Ifølge svaret' shortening is removed. The editor writes a new answer's note and readings plain
+  (`voice.check_plain`, the routine prompt's 'answer' bullet; the live routine's prompt needs the same change –
+  docs/hjerne/launch-done.md). App v20261017u.
 
 - **The brain weighs the news; the app shows no analysis** (the owner's decision of 2026-10-17, replacing the Khabar 2
   app): the books' order of importance and Hizb ut-Tahrir's newest answers are used only to select and order the news –

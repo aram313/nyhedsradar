@@ -23,7 +23,11 @@ scripts/build_movement.py on the khabar2 branch). editor.py publish runs them on
                                            imam or scholar, a media outlet, a Danish person or organisation or a
                                            non-ruling person serves anyone; quotations of at most QUOTE_MAX characters
                                            and no local paths (the repo and the digest branch are public) (card G13, H1,
-                                           H3)"""
+                                           H3)
+    check_plain(text, where, problems)     a note or reading of an answer is said in plain Danish without its attribution
+                                           ('Ifølge Hizb ut-Tahrirs svar af …', 'Ifølge svaret …', 'Hizb ut-Tahrirs svar
+                                           læser …'): the app shows it under the label 'Hizb ut-Tahrirs svar ·
+                                           d/m/åååå' (the owner, 2026-10-17: "det står over det hele")"""
 import re
 
 VOICE_BANNED = [   # a call to arms ('Til våben!', 'grib til våben'), not a thing 'gjort til våben' (weaponised)
@@ -183,6 +187,19 @@ def check_reality(text, where, problems):
     if hit:
         problems.append(f"{where}: '{hit.group(0)}' is a reading or judgement word – Khabar's own text is reality only "
                         "(who did or said what, where, when); the movement's readings only weigh the news")
+
+
+# a reading's own attribution: the app's label says whose and when ('Hizb ut-Tahrirs svar · d/m/åååå')
+ATTRIBUTION = re.compile(r'\b[Ii]følge (?:Hizb ut-Tahrir\w*|svar(?:et|ene)?\b|bevægelsen\w*|en række svar)|'
+                         r'\bHizb ut-Tahrirs (?:svar|læsning)\w*|\bHizb ut-Tahrir (?:læser|mener|ser|skriver|siger|forventer)\b|'
+                         r'\b[Bb]evægelsens svar\w*')
+
+
+def check_plain(text, where, problems):
+    hit = ATTRIBUTION.search(text or '')
+    if hit:
+        problems.append(f"{where}: '{hit.group(0)}' – write it without the attribution, in plain Danish ('Saudi-Arabien er "
+                        "underordnet USA'): the app shows it under 'Hizb ut-Tahrirs svar · d/m/åååå'")
 
 
 def check_movement(text, where, problems):

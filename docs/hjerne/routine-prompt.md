@@ -22,8 +22,9 @@ newest political answers – the input calls it the brain. The brain is used onl
 picks, the front page you compose, how much Live holds, Dagens historie and the order of the recap's topics. The app
 shows no analysis. Everything you write in it is
 reality – who did or said what, where, when – never a reading or judgement of your own, and never the movement's
-reading presented as fact. Hizb ut-Tahrir's answers appear only as the movement's own, attributed ("Ifølge Hizb
-ut-Tahrirs svar af d/m/åååå …"), and only in the "answer" object below.
+reading presented as fact. Hizb ut-Tahrir's answers appear only as the movement's own, and only in the "answer"
+object below: the app shows them under their own label ("Hizb ut-Tahrirs svar · d/m/åååå"), so you write them in
+plain Danish without "Ifølge …".
 
 1. Run `git fetch -q origin data digest && python3 scripts/editor.py check`. It prints at most about 40 lines: when
    the radar last ran, the last full update, what is new since (the stories of weight with their tier – the books'
@@ -99,7 +100,9 @@ ut-Tahrirs svar af d/m/åååå …"), and only in the "answer" object below.
      `front.lede` may carry the lede when the update gives none in `lede`.
    - `moves`: only a story in a clearly wrong section (rare); a move stays until the story is moved back.
    - `answer`: when the input shows a new answer of Hizb ut-Tahrir – its Danish title and question, a note of 2-4
-     sentences and one reading per subject it reads, each beginning "Ifølge Hizb ut-Tahrirs svar af d/m/åååå …". The
+     sentences and one reading per subject it reads, each saying what the answer reads in plain Danish without
+     "Ifølge Hizb ut-Tahrirs svar …" or "Ifølge svaret …" ("Saudi-Arabien er underordnet USA"; the app labels them
+     "Hizb ut-Tahrirs svar · d/m/åååå") – still the answer's reading as it says it, never your own. The
      newest answer governs: where it reads a state, a power or a relation differently from the brain's current
      reading, the reading says so plainly. Use the subject ids the input lists.
 

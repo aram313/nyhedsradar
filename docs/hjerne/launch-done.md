@@ -16,3 +16,23 @@ The owner said "Jeg må udgive og sætte kaldet op". Done the same day:
   normal with two stories dropped, and a front page of 7 blocks (top, Danmark, Houthierne og Saudi-Arabien,
   Vestbredden og Gaza, udvikling, citat, live). The publish checks refused one judgement word ('aftalt spil') and a
   front-page story outside Live; the editor fixed both and published.
+
+## Still to do in the live routine (2026-10-17, after launch): no 'Ifølge …' in a new answer
+
+The app now labels every block of Hizb ut-Tahrir's text itself ('Hizb ut-Tahrirs svar · d/m/åååå'), and `editor.py
+publish` refuses a new answer whose note or readings say 'Ifølge Hizb ut-Tahrirs svar …' or 'Ifølge svaret …'. The
+prompt in the editor's routine `trig_01B5p6DmEx8pz9cDLZzwxbHj` still asks for that opening, so until it is changed an
+update that notes a new answer is refused once and must be rewritten (the refusal says how). Change two places in the
+routine's prompt (docs/hjerne/routine-prompt.md holds the new text):
+
+1. In the opening paragraph, replace
+   > Hizb ut-Tahrir's answers appear only as the movement's own, attributed ("Ifølge Hizb ut-Tahrirs svar af d/m/åååå …"), and only in the "answer" object below.
+
+   with
+   > Hizb ut-Tahrir's answers appear only as the movement's own, and only in the "answer" object below: the app shows them under their own label ("Hizb ut-Tahrirs svar · d/m/åååå"), so you write them in plain Danish without "Ifølge …".
+
+2. In step 4, the `answer` bullet: replace
+   > a note of 2-4 sentences and one reading per subject it reads, each beginning "Ifølge Hizb ut-Tahrirs svar af d/m/åååå …".
+
+   with
+   > a note of 2-4 sentences and one reading per subject it reads, each saying what the answer reads in plain Danish without "Ifølge Hizb ut-Tahrirs svar …" or "Ifølge svaret …" ("Saudi-Arabien er underordnet USA"; the app labels them "Hizb ut-Tahrirs svar · d/m/åååå") – still the answer's reading as it says it, never your own.
