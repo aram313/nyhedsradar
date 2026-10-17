@@ -511,8 +511,12 @@ da'wah.
     `aria-hidden`, a row's label read once, headings for days, years, letters and sections.
   - **New functions:** Gem (`localStorage 'saved'`, ≤ 200, written in idle time, nothing sent anywhere: a story's
     snapshot – so it opens offline and after it left Live –, an answer's number, a page's id; the side page 'Gemt',
-    opened by the bookmark in the top bar – filled once something is saved – and the save toast's 'Se Gemt', each kind
-    with its own removal; the library – movement.json and begreber.json – fetched once per build of the wiki (`libFor`),
+    opened by the bookmark in the top bar – filled once something is saved – and the save toast's 'Se Gemt' (since
+    18/10: Analyser, then Nyheder, then Begreber, each a quiet row with ONE filled bookmark at the right that takes it
+    out; the list read leniently with a second copy `saved-bak` and `storage.persist` asked for, so no update loses it;
+    'Del eller flyt dine gemte' at the foot makes a link with the saves in its #fragment – never sent to a server –
+    which, opened on another phone or by someone else, asks 'Tilføj til mine gemte' or 'Erstat mine N gemte':
+    `moveLink`, `takeMove`, `useMove`); the library – movement.json and begreber.json – fetched once per build of the wiki (`libFor`),
     in idle time after a visit to Analyser, not parsed until a page needs it, not on save-data or 2g); one search with
     scopes Alle · Nyheder · Svar · Begreber – the news first, five stories under Alle, the answers named in their title
     first, words matched where they start (the last five searches on the phone); Mens du var væk; Del dagens overblik

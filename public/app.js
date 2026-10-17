@@ -2475,6 +2475,55 @@ const savedStory = x => {
   return `<div class="an-item sv-item" data-sec="${esc(x.sec || '')}" data-saved="${esc(x.id)}"><a class="an-row sv-s" ${open}><b>${esc(title)}</b>`
     + (x.summary ? `<span class="sv-sum">${esc(x.summary)}</span>` : '') + `<span>${meta}</span></a>${svBtn('s', x.id, title)}</div>`;
 };
+// Flyt til en anden telefon (the owner, 18/10: the saves go along to a new phone – no account, no id): the list goes as a
+// link the reader sends to themself and opens on the other phone (or in the home screen's app after Safari: on an
+// iPhone the two keep apart). The saves ride in the link's #fragment, which a browser never sends to a server, packed
+// with deflate where the browser has it ('z'), else plain ('j'); a story keeps its headline, outlet, time, link and
+// section – its summary stays behind, so the link stays short. Opened, the saves are added to the phone's own.
+const b64u = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const viaStream = async (bytes, S) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new S('deflate-raw'))).arrayBuffer());
+async function moveLink() {
+  const list = saved.map(x => x.k === 's' ? { k: 's', id: x.id, at: x.at, title: x.title, source: x.source, time: x.time, link: x.link, sec: x.sec } : { k: x.k, id: x.id, at: x.at });
+  const raw = new TextEncoder().encode(JSON.stringify(list));
+  let tag = 'j', bytes = raw;
+  if (window.CompressionStream) try { bytes = await viaStream(raw, CompressionStream); tag = 'z'; } catch { bytes = raw; tag = 'j'; }
+  return `${location.origin}${location.pathname}?gemt=1#flyt=${tag}${b64u(bytes)}`;
+}
+// made while Gemt is drawn, so a tap shares at once (a phone lets a share sheet open only straight from the tap)
+let moveUrl = '', moveKey = '';
+function readyMove() {
+  const k = saved.map(x => x.k + ':' + x.id).join('|');
+  if (k === moveKey) return;
+  moveKey = k; moveUrl = '';
+  moveLink().then(u => { if (moveKey === k) moveUrl = u; }).catch(() => {});
+}
+async function takeMove() {
+  const m = /^#flyt=([jz])([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (!m) return;
+  history.replaceState(history.state, '', location.pathname + location.search);   // the saves leave the address at once
+  try {
+    let bytes = unb64u(m[2]);
+    if (m[1] === 'z') bytes = await viaStream(bytes, DecompressionStream);
+    moveGot = JSON.parse(new TextDecoder().decode(bytes)).filter(okSave).map(x => ({ ...x, id: String(x.id) }));
+  } catch { toast('Linket kunne ikke læses', false); return; }
+  // the owner, 18/10: 'tilføj til eksisterende' or 'erstat eksisterende' when the link is opened – it may come from
+  // oneself or from someone else; a phone with nothing saved takes them at once
+  if (!saved.length) { useMove('add'); return; }
+  const n = moveGot.length;
+  showOwnerSheet(`${n} ${n === 1 ? 'gemt' : 'gemte'} i linket`, `<button class="wide primary" data-a="flyt:add">Tilføj til mine gemte</button>`
+    + `<button class="wide" data-a="flyt:replace">Erstat mine ${saved.length} gemte</button>`, null, 'Gemte fra et link');
+}
+let moveGot = null;
+function useMove(how) {
+  const got = moveGot || [];
+  moveGot = null;
+  const fresh = how === 'replace' ? got : got.filter(x => !isSaved(x.k, x.id));
+  saved = (how === 'replace' ? [...got] : [...saved, ...fresh]).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, SAVE_MAX);
+  storeSaved(); paintSaved(); render();
+  toast(how === 'replace' ? `Dine gemte er nu linkets ${saved.length}` : fresh.length ? `${fresh.length} lagt ind i dine gemte` : 'Alt i linket var allerede gemt');
+}
 function gemtPage() {
   const s = saved.filter(x => x.k === 's'), an = saved.filter(x => x.k === 'a'), bg = saved.filter(x => x.k === 'b');
   // the bar says 'Gemt'; the page only how much, on this phone. The answers first, then the news, then the wiki's pages
@@ -2495,7 +2544,9 @@ function gemtPage() {
       return `<div class="an-item"><a class="an-row" href="?begreb=${encodeURIComponent(x.id)}" data-begreb="${esc(x.id)}"><b>${esc(pageTitle(e))}</b><span>${esc(KINDS[e.kind] || e.kind)} · ${e.n_answers} svar</span></a>${svBtn('b', x.id, pageTitle(e))}</div>`; }).join('')}</div>`
       : waiting('bix') ? loadingBlock('Henter …') : retry('begreberne', 'bix'));
   }
-  return h;
+  readyMove();
+  return h + `<div class="sv-move"><button class="qrow" data-move><span><b>Del eller flyt dine gemte</b></span><svg aria-hidden="true"><use href="#i-share"/></svg></button>`
+    + `<p class="sv-move-t">Send linket til dig selv på en ny telefon eller til en anden. Den, der åbner det, kan tilføje dem til sine gemte eller erstatte dem. De ligger kun i linket.</p></div>`;
 }
 const isStale = () => data && data.updated && (Date.now() - new Date(data.updated)) / 60000 > 60;
 // the bar's status: the time of the news with a small refresh mark (a tap reloads); 'offline · 10.53' while the phone's
@@ -2965,6 +3016,10 @@ async function onTap(e) {
       b.querySelector('use').setAttribute('href', on ? '#i-saved' : '#i-save');
     });
     render(); return;
+  }
+  if (t.closest('[data-move]')) {   // Gemt's 'Flyt til en anden telefon': the link with the saves, shared or copied
+    share(`${saved.length} gemte fra Khabar – åbn linket for at lægge dem ind:\n${moveUrl || await moveLink()}`);
+    return;
   }
   const fi = t.closest('[data-find-item]');   // a story that left Live: looked for among everything the radar read
   if (fi) { focusMissing = ''; findGone(fi.dataset.findItem); return; }
@@ -4338,8 +4393,8 @@ addEventListener('mouseup', e => { if (auto && e.button === 1 && auto.moved) sto
 addEventListener('keydown', e => { if (auto && e.key === 'Escape') stopAuto(); });
 addEventListener('blur', () => { if (auto) stopAuto(); });
 addEventListener('click', e => { if (swallow) { swallow = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-function showOwnerSheet(title, html, item = null) {
-  $('actTitle').textContent = title;
+function showOwnerSheet(title, html, item = null, label = 'Admin') {
+  $('actTitle').textContent = title; $('act').setAttribute('aria-label', label);
   $('actBtns').innerHTML = html + '<button class="wide soft" data-a="">Annuller</button>';
   actItem = item; $('act').hidden = false; $('act').scrollTop = 0;
   requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
@@ -4386,6 +4441,7 @@ $('act').addEventListener('click', async e => {
   closeAct();
   const kind = b.dataset.a.split(':')[0], val = b.dataset.a.slice(kind.length + 1);
   if (kind === 'story') { setTimeout(() => openAct(findStory(val)), 320); return; }
+  if (kind === 'flyt') { useMove(val); return; }   // a link's saves: added or in place of the phone's own
   if (kind === 'quote' || kind === 'lead') {
     ownerLocal[kind] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); render();
     const ok = await ownerAct(kind, { id: val });
@@ -4584,6 +4640,8 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kalender: 'kalender', kort: 'home', okonomi: 'okonomi', priser: 'okonomi', search: 'search', analyses: 'analyses' };
 const startTab = params.get('kalender') ? 'kalender' : START[params.get('tab')];
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
+takeMove();   // a 'Flyt til en anden telefon' link: its saves added to this phone's
+addEventListener('hashchange', () => { if (location.hash.startsWith('#flyt=')) { takeMove(); openSide('gemt'); } });   // one opened in a running app
 if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (params.get('forlob')) { goOverview = false; openSide('threads', params.get('forlob')); }   // a shared development

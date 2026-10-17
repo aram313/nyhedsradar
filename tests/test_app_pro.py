@@ -221,6 +221,19 @@ def test_saves_outlive_an_update():
     assert "for (const key of ['saved', 'saved-bak'])" in CODE and 'v.filter(okSave)' in CODE
     assert "store.set('saved', saved); store.set('saved-bak', saved)" in CODE
     assert 'idle(storeSaved)' in fn('toggleSave') and 'st.persist()' in CODE and 'Firefox' in CODE
+
+
+def test_saves_move_by_a_link_that_adds_or_replaces():
+    # 18/10, the owner: a new phone keeps the saves; 'tilføj til eksisterende' or 'erstat eksisterende' when it is opened
+    link = fn('moveLink')
+    assert '?gemt=1#flyt=' in link and 'summary' not in link   # in the fragment: never sent to a server
+    take = fn('takeMove')
+    assert 'history.replaceState' in take and 'data-a="flyt:add"' in take and 'data-a="flyt:replace"' in take
+    assert "if (!saved.length) { useMove('add'); return; }" in take
+    use = fn('useMove')
+    assert "how === 'replace' ? [...got]" in use and 'storeSaved()' in use and 'SAVE_MAX' in use
+    assert "if (kind === 'flyt') { useMove(val); return; }" in CODE and 'data-move' in fn('gemtPage')
+    assert 'fetch(' not in link + take + use and 'relay(' not in link + take + use
     assert 'data-go="gemt"' not in CODE   # no scattered ways in: the bar's bookmark is the one
 
 

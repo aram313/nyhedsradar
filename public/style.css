@@ -1039,6 +1039,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* ------------------------------------------------------------ Gemt: the saved answers, news and pages
    every row is the Analyser list's row (.an-item) with its one filled bookmark at the right */
 .sv-n { margin: 14px 16px 0; }
+/* 'Flyt til en anden telefon' at the foot: a quiet row under a separator, one line saying what the link does */
+.sv-move { margin-top: var(--s5); padding-top: var(--s2); border-top: 1px solid var(--line); margin-left: 16px; }
+.sv-move .qrow { margin-left: 0; width: calc(100% - 16px); }
+.sv-move-t { margin: 0 16px 16px 0; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
 .sv-s b { -webkit-line-clamp: 4; }
 .sv-s .sv-sum { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 3px;
   font-size: var(--fs-small); line-height: 1.4; color: var(--text-2); }

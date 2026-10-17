@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Gemt to another phone, or to someone else** (2026-10-18, the owner chose 'Flyt-link' and asked for 'tilføj til
+  eksisterende bogmærker' or 'erstat eksisterende bogmærker' when the link is opened; `?v=20261018z`): Gemt's foot has
+  'Del eller flyt dine gemte' – a link (`?gemt=1#flyt=…`) holding the saves, deflated, in its fragment, which never
+  reaches a server (a story keeps headline, outlet, time, link and section; its summary stays behind). Opened, the
+  address loses the fragment at once and a sheet asks 'Tilføj til mine gemte' or 'Erstat mine N gemte'; a phone with
+  nothing saved takes them at once. Also the way from Safari to the home screen's app on an iPhone (their storage is
+  apart). No account, no id, nothing sent.
 - **Gemt made calm, and saves that outlive updates** (2026-10-18, the owner: 'Ser lidt uprofessionelt ud, analyser bør
   også være over nyheder (kald det ikke historier)' and 'hvordan kan vi sørge for en bruger aldrig mister sine gemte
   bookmarks?'; `?v=20261018y`): the page lists Analyser first, then Nyheder, then Begreber; every row is the Analyser
