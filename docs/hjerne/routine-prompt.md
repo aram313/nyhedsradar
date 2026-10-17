@@ -47,7 +47,7 @@ plain Danish without "Ifølge …".
    concepts in today's top stories, from Hizb ut-Tahrir's newest answers), the front page now, the recap so far, the
    top stories with their tier, the new stories since the last update, the stories to summarise, the headlines to
    write (the stories in Live without your headline), Live today (the level and the candidates just above and below
-   the radar's line), the front page's composition with its palette, the calendar's next 30 days, the Al Jazeera wire
+   the radar's line), the front page's composition with its palette, the calendar's next 30 days, the dates the news name ('Dates in the news'), the Al Jazeera wire
    lines – and, when one is waiting, Hizb ut-Tahrir's new answer with its text.
 
 [WEIGHING-GUIDE]
@@ -113,7 +113,7 @@ plain Danish without "Ifølge …".
      `date` (YYYY-MM-DD, or YYYY-MM with `"approx": true` when only the month is known), `title` (Danish, what happens –
      a statement like a headline), `kind` (valg | topmøde | centralbank | frist | retssag | forhandling | dansk |
      andet), `place`, `why` (one factual line on why it matters – never a forecast: no 'forventes',
-     'sandsynligvis', 'kan føre til'), `link`, `ids` (the stories it comes from) and `weight`: 3 when it can move the balance of the powers or touches Denmark's government (it then stands out in red), 2 when it matters to the Muslim world or the dollar and oil, else leave it out. To raise an event the calendar holds already (an EU summit whose agenda holds the sanctions on Russia, Ukraine, the Middle East, migration or trade with “israel”), write it again with its date, its exact title and `weight` 3. Only a date the stories state;
+     'sandsynligvis', 'kan føre til'), `link`, `ids` (the stories it comes from) and `weight`: 3 when it can move the balance of the powers or touches Denmark's government (it then stands out in red), 2 when it matters to the Muslim world or the dollar and oil, else leave it out. To raise an event the calendar holds already (an EU summit whose agenda holds the sanctions on Russia, Ukraine, the Middle East, migration or trade with “israel”), write it again with its date, its exact title and `weight` 3. Decide on every line under 'Dates in the news' (the stories that name a coming day or a deadline, with what the calendar holds then): add what is a planned event of weight, skip the rest without a word. Only a date the stories state;
      change one of yours by its `id`, remove one with `{"id": …, "remove": true}`; leave `calendar` out to keep the
      calendar as it is. Entries stay until two days after their day.
    - `answer`: when the input shows a new answer of Hizb ut-Tahrir – its Danish title and question, a note of 2-4

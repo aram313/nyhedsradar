@@ -573,6 +573,10 @@ def in_24h(i, now):
     return now - ts(i.get('published') or i['found']) < timedelta(hours=24)
 
 
+def in_48h(i, now):
+    return now - ts(i.get('published') or i['found']) < timedelta(hours=48)
+
+
 def around_the_line(data, pool, known, now, level, the_plan=None):
     """(the weakest admitted stories of the last 24 hours, the strongest left out), LINE_SHOWN each – big stories and the
     editor's takes are never at the line, and a story the editor dropped (today or yesterday) is not 'left out'."""
@@ -1260,7 +1264,10 @@ def cmd_input(args):
     out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,
                       now, the_plan)
     out += front_section(read(args, 'origin/digest', 'front.json', {}), resolver(items), notes, now)
-    out += calendar_lines(read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {}), now)
+    cal_now, kal_now = read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {})
+    out += calendar_lines(cal_now, kal_now, now)
+    heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (summaries_of(args).get('titles') or {}).items()}
+    out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -1891,6 +1898,8 @@ def cal_last_day(e):
     """The last day an entry lasts (a month only: its last day), as a date; None when it cannot be read."""
     d = str(e.get('end') or e.get('date') or '')
     try:
+        if re.fullmatch(r'\d{4}', d):   # a year alone (the radar's annual meetings and undated elections): 31 December
+            return datetime(int(d), 12, 31).date()
         if CAL_MONTH.match(d):
             y, m = int(d[:4]), int(d[5:7])
             return datetime(y + m // 12, m % 12 + 1, 1).date() - timedelta(days=1)
@@ -2006,6 +2015,82 @@ def calendar_lines(cal, kal, now):
     out += [f"[{e.get('id')}] {d}{' (forventet)' if e.get('approx') else ''} · {e.get('kind')} · {e.get('title')}"
             f"{' (' + e['place'] + ')' if e.get('place') else ''} – {who}" for d, who, e in rows] or ['(nothing planned)']
     return out + ['']
+
+
+# ------------------------------------------------------------------ dates in the news (the owner, 18/10: the calendar
+# looked empty and the editor had added nothing – a ceasefire's end, a truce's expiry, a vote the news named): the
+# stories of the last two days whose headline, teaser or other outlets name a coming day or a deadline, each with what
+# the calendar holds on that day, so the editor decides on every one
+NEWS_DATES_MAX = 15
+MONTHS_DA = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december']
+MONTHS_EN = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+_MON = '|'.join(MONTHS_DA + MONTHS_EN + [m[:3] for m in MONTHS_EN if len(m) > 3])
+DAY_MONTH = re.compile(rf'\b(\d{{1,2}})\.?\s+({_MON})\b\.?|\b({_MON})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\b', re.I)
+# a deadline's own words name a coming event without a day; the weaker ones (a summit, a hearing) count only with one
+DEADLINE = re.compile(r'\b(?:frist(?:en)?|udløber|ultimatum|deadline|expire[sd]?|expiry|våbenhvile[n]? (?:slutter|udløber)|'
+                      r'ceasefire (?:ends|expires)|truce (?:ends|expires)|stemmer om|afstemning(?:en)? om|votes? on|'
+                      r'(?:will|to) vote|folkeafstemning|dom (?:ventes|afsiges)|ruling (?:due|expected)|'
+                      r'inden for \d+ (?:dage|timer)|within \d+ (?:days|hours)|senest (?:den|på)|no later than)\b', re.I)
+EVENTISH = re.compile(r'\b(?:høring(?:en)?|hearing|topmøde(?:t)?|summit|møde(?:t)?|meeting|talks|forhandling(?:er)?|'
+                      r'referendum|valg(?:et)?|election|retssag|trial|afstemning|truce|våbenhvile(?:n)?|ceasefire|'
+                      r'aftale(?:n)?|deal|agreement|sanktion(?:er)?|sanctions?|told(?:en)?|tariffs?)\b', re.I)
+
+
+def date_in(text, today):
+    """The first coming day a text names ('12. november', 'November 12', 'Jan 10'): a date, or None; a day already
+    passed this year is next year's."""
+    for m in DAY_MONTH.finditer(text or ''):
+        day, mon = (m.group(1), m.group(2)) if m.group(1) else (m.group(4), m.group(3))
+        name = mon.lower().rstrip('.')
+        k = next((n for n, full in enumerate(MONTHS_EN) if full.startswith(name) and len(name) >= 3), None)
+        k = MONTHS_DA.index(name) if name in MONTHS_DA else k
+        if k is None:
+            continue
+        try:
+            d = datetime(today.year, k + 1, int(day)).date()
+        except ValueError:
+            continue
+        if d < today:
+            if today - d < timedelta(days=120):
+                continue   # a day just passed ('the October 5 attack') is no coming event
+            d = d.replace(year=today.year + 1)   # 'January 10' said in October is next year's
+        if d - today <= timedelta(days=400):
+            return d
+    return None
+
+
+def news_dates(stories, cal, kal, now, titles=None):
+    """Lines for the input: stories naming a coming day or a deadline, the day if one is named, and what the calendar
+    holds then ('kalenderen har: …' or 'ikke i kalenderen')."""
+    today = dk(now).date()
+    entries = [e for e in ((kal or {}).get('items') or []) + ((cal or {}).get('items') or []) if isinstance(e, dict)]
+    rows, seen = [], set()
+    for i in stories:
+        if i['id'] in seen or not in_48h(i, now):
+            continue
+        texts = [(titles or {}).get(i['id']) or '', i.get('title_tr') or i.get('title') or '', i.get('summary_tr') or i.get('summary') or '',
+                 *[a.get('title_tr') or a.get('title') or '' for a in (i.get('also') or [])[:6]]]
+        text = ' · '.join(t for t in texts if t)
+        d = date_in(text, today)
+        if d == today:
+            d = None   # today's day is mostly the story's own dateline
+        cue = DEADLINE.search(text) or (EVENTISH.search(text) if d else None)
+        if not cue:
+            continue   # a day without a deadline's or an event's word is a figure or a dateline
+        seen.add(i['id'])
+        held = [e for e in entries if d and str(e.get('date'))[:10] in (d.isoformat(), d.isoformat()[:7])]
+        what = (f"{d:%d.%m.%Y} · " if d else '') + (f"«{cue.group(0)}» · " if cue else '')
+        has = ('kalenderen har: ' + '; '.join(str(e.get('title')) for e in held[:2])) if held else ('ikke i kalenderen' if d else 'ingen dato nævnt')
+        rows.append((0 if d and not held else 1 if d else 2, -(i.get('rank') or 0),
+                     f"[{i['id']}] {what}{(titles or {}).get(i['id']) or i.get('title_tr') or i['title']} – {has}"))
+    rows.sort()
+    if not rows:
+        return []
+    return [f'## Dates in the news – {min(len(rows), NEWS_DATES_MAX)} stories of the last two days that name a coming day or a deadline',
+            '', 'Decide on every line: a planned event of weight the calendar lacks goes into "calendar" (its date, a title that',
+            'says what happens, kind, place, a factual why, the story ids); a line that is no planned event (a day already',
+            'passed, an anniversary, a figure) is skipped without a word. The first lines name a day the calendar lacks.', '',
+            *[r[2] for r in rows[:NEWS_DATES_MAX]], '']
 
 
 def digest_head():

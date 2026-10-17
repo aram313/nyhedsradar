@@ -147,6 +147,8 @@ def wiki_date(prefix, month, year):
 def office_kind(office):
     """The Danish name of the election an entry's office names, or None for a local or regional one."""
     o = office or ''
+    if re.search(r'council of states|rajya sabha', o, re.I):
+        return None   # India's upper house is chosen by the state assemblies, not by the voters
     if REFERENDUM.search(o):
         return 'Folkeafstemning'
     if LOCAL.search(o) and not PARLIAMENT.search(o) and not PRESIDENT.search(o):
@@ -177,8 +179,12 @@ def parse_wiki(page_html, year):
     for k in range(1, len(parts), 2):
         section, body = parts[k], parts[k + 1]
         month = MONTHS.get(section)
-        if not month:
-            continue   # 'Unknown_date', 'Indirect_elections', 'See_also', 'References'
+        # 'Unknown_date': elections of the year whose day is not set yet – kept as the year alone, 'forventet' (18/10:
+        # the owner found the calendar empty; 11 states of weight stood there for 2027); 'Indirect_elections',
+        # 'See_also' and 'References' are not elections
+        unknown = section == 'Unknown_date'
+        if not month and not unknown:
+            continue
         prefix = None
         for li in re.finditer(r'<li>(.*?)(?=<li>|</ul>|<ul>)', body, re.S):
             raw = li.group(1)
@@ -201,7 +207,7 @@ def parse_wiki(page_html, year):
             kind = office_kind(office)
             if not kind:
                 continue
-            when = wiki_date(prefix or '', month, year)
+            when = wiki_date(prefix or '', month, year) if not unknown else (wiki_date(prefix or '', None, year) or (f'{year}', True, None))
             if not when:
                 continue
             day, approx, end = when
@@ -223,7 +229,10 @@ def parse_wiki(page_html, year):
             if approx:
                 item['approx'] = True
             out.append(item)
-    return out
+    # a year alone where the page also gives the same election a day ('Slovakia, Parliament' under 'Unknown date' and
+    # on 28 September) is the same election once
+    dated = {(e['place'], e['title'].split(' (')[0]) for e in out if len(e['date']) > 4}
+    return [e for e in out if len(e['date']) > 4 or (e['place'], e['title'].split(' (')[0]) not in dated]
 
 
 def fetch_wiki(year):
@@ -307,7 +316,7 @@ def curated(path=CONFIG):
     for e in cfg.get('events') or []:
         if not isinstance(e, dict) or not e.get('id') or not e.get('date') or not e.get('title') or not e.get('link'):
             continue
-        out.append({k: e[k] for k in ('id', 'date', 'end', 'approx', 'title', 'kind', 'place', 'why', 'link') if e.get(k)}
+        out.append({k: e[k] for k in ('id', 'date', 'end', 'approx', 'title', 'kind', 'place', 'why', 'link', 'w') if e.get(k)}
                    | {'src': 'fast'})
     return out
 
@@ -325,8 +334,10 @@ def due(prev, source, t, every):
 
 
 def last_day(item):
-    """The last day an event lasts (a month only: its last day)."""
+    """The last day an event lasts (a month only: its last day; a year only: 31 December)."""
     d = item.get('end') or item['date']
+    if len(d) == 4:
+        return date(int(d), 12, 31)
     if len(d) == 7:
         y, m = int(d[:4]), int(d[5:7])
         return date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)
@@ -346,7 +357,8 @@ def merge(groups, today):
                 continue
             seen.add(e['id'])
             out.append(e)
-    return sorted(out, key=lambda e: (e['date'] if len(e['date']) > 7 else e['date'] + '-32', e['id']))
+    # a month alone sorts after its days, a year alone after its December
+    return sorted(out, key=lambda e: (e['date'] if len(e['date']) > 7 else e['date'] + '-32' if len(e['date']) == 7 else e['date'] + '-13', e['id']))
 
 
 # How much an event weighs (the owner, 17/10: "vægte de begivenheder … der har højeste betydning med en indikator eller

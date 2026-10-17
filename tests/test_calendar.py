@@ -67,8 +67,10 @@ def test_wikipedias_calendar_gives_the_elections_of_weight():
     got = {e['title']: e for e in cal.parse_wiki(WIKI_2027, 2027)}
     assert set(got) == {'Præsident- og parlamentsvalg i Nigeria', 'Parlamentsvalg i Estland', 'Præsidentvalg i Frankrig',
                         'Parlamentsvalg i Finland', 'Parlamentsvalg i Irak (senest)', 'Senatsvalg i Tjekkiet (1. runde)',
-                        'Parlamentsvalg i “israel”'}
-    # Chile (no weight to the group), Somaliland (in italics), Turkey's municipal councils and the unknown date: out
+                        'Parlamentsvalg i “israel”', 'Præsidentvalg i Libyen'}
+    # Chile (no weight to the group), Somaliland (in italics) and Turkey's municipal councils: out; the unknown date's
+    # elections since 18/10 as the year alone, 'forventet' (the owner found the calendar empty)
+    assert got['Præsidentvalg i Libyen']['date'] == '2027' and got['Præsidentvalg i Libyen']['approx'] is True
     n = got['Præsident- og parlamentsvalg i Nigeria']
     assert n['date'] == '2027-01-16' and n['kind'] == 'valg' and n['place'] == 'Nigeria' and 'approx' not in n
     assert n['link'] == 'https://en.wikipedia.org/wiki/2027_Nigerian_general_election'
@@ -105,7 +107,7 @@ def test_the_curated_events_each_carry_their_source():
     for e in cfg['events']:
         assert e['link'].startswith('https://'), e['id']
         assert e['kind'] in editor.CAL_KINDS, e['id']
-        assert re.fullmatch(r'\d{4}-\d{2}-\d{2}', e['date']) or (re.fullmatch(r'\d{4}-\d{2}', e['date']) and e.get('approx')), e['id']
+        assert re.fullmatch(r'\d{4}-\d{2}-\d{2}', e['date']) or (re.fullmatch(r'\d{4}(?:-\d{2})?', e['date']) and e.get('approx')), e['id']
         problems = []
         import voice
         voice.check_headline(e['title'], e['id'], problems)
@@ -325,3 +327,24 @@ def test_events_of_weight_get_their_fuller_explanation_in_reality_only():
     assert c.deeper({'kind': 'frist', 'title': 'x', 'w': 3, 'why': 'eget', 'src': 'ed'}, rules)['why'] == 'eget'   # the editor's own
     for r in rules:   # the owner's house style, and no forecast
         assert 'Israel' not in r['why'] and not re.search(r'forventes|sandsynligvis|vil føre til|kan føre til', r['why']), r
+
+
+def test_the_editor_is_shown_the_dates_the_news_name():
+    # 18/10, the owner: the calendar looked empty – the editor had added nothing the news named
+    now = datetime(2026, 10, 18, 10, tzinfo=timezone.utc)
+    today = editor.dk(now).date()
+    assert editor.date_in('Truce extended to Jan. 10', today) == date(2027, 1, 10)   # said in October: next year
+    assert editor.date_in('Våbenhvilen udløber 12. november', today) == date(2026, 11, 12)
+    assert editor.date_in('the October 5 attack', today) is None   # a day just passed is no coming event
+    at = lambda h: (now.replace(hour=10 - h)).isoformat()  # noqa: E731
+    stories = [{'id': 'a', 'title': 'US and China extend trade truce to January 10', 'found': at(2), 'rank': 90},
+               {'id': 'b', 'title': 'UN Security Council to vote on Gaza resolution', 'found': at(3), 'rank': 80},
+               {'id': 'c', 'title': 'Leaders meet at the summit', 'found': at(1), 'rank': 70},          # no day, a weak word
+               {'id': 'd', 'title': 'Talks in Doha on 2 December', 'found': at(1), 'rank': 60}]
+    cal_items = {'items': [{'date': '2027-01-10', 'title': 'Handelsvåbenhvilen mellem USA og Kina udløber'}]}
+    out = '\n'.join(editor.news_dates(stories, cal_items, {}, now))
+    assert '[d] 02.12.2026' in out and 'ikke i kalenderen' in out.split('[d]')[1].split('\n')[0]
+    assert '[a] 10.01.2027' in out and 'kalenderen har: Handelsvåbenhvilen' in out
+    assert '[b]' in out and 'ingen dato nævnt' in out and '[c]' not in out
+    assert out.index('[d]') < out.index('[a]') < out.index('[b]')   # a day the calendar lacks first
+    assert editor.news_dates([stories[2]], {}, {}, now) == []         # nothing to show: no section

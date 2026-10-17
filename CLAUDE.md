@@ -177,9 +177,16 @@ da'wah.
   Fed's FOMC calendar and the ECB's meeting calendar as decision days (Danmarks Nationalbank follows the ECB); and
   `config/calendar.json`, the curated summits and fixed dates, every one with its checked source (dates that could not
   be checked are left out and named in its `_help`). A curated election wins over Wikipedia's on the same day and
-  place; past events are kept 30 days (the tab's 'Tidligere'). Item shape: id, date (YYYY-MM-DD or YYYY-MM), end,
-  approx, title, kind (valg | topmøde | centralbank | frist | retssag | forhandling | dansk | andet), place, why, link,
-  src. Reality only: what happens, where, one factual line on why it matters – never a forecast.
+  place; past events are kept 30 days (the tab's 'Tidligere'). Item shape: id, date (YYYY-MM-DD, YYYY-MM or – since
+  18/10 – YYYY: the year alone, 'i løbet af 2027', for Wikipedia's 'Unknown date' elections and the annual meetings
+  whose date is not announced; India's Council of States and an undated election the page also dates are left out),
+  end, approx, title, kind (valg | topmøde | centralbank | frist | retssag | forhandling | dansk | andet), place, why,
+  link, src, w (a curated event may set its weight). Wikipedia has no 2028 page yet: 2028's elections of weight
+  (Tyrkiet, Iran, Malaysia, USA) are curated. Every central bank's rate decision is of low weight (the owner, 18/10:
+  'abstrakt'). Reality only: what happens, where, one factual line on why it matters – never a forecast. **Dates in the
+  news (18/10):** `editor.py input` lists, under 'Dates in the news', the stories of the last two days that name a
+  coming day (`date_in`) with an event's word, or a deadline's own word without one (`DEADLINE`, `EVENTISH`), each with
+  what the calendar holds on that day; the editor decides on every line (the routine prompt says so).
 - `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day;
   the same day made **the economy page**, the owner: "en femte fane med olie, diesel og benzinpriser … generelle
   geopolitiske tal man skal holde øje med og hvorfor … s&p 500 … landes gæld … AI boblen … interaktiv … live") writes

@@ -3244,14 +3244,17 @@ let calImp = !!store.get('calImp', false);
 const calOpen = new Set();                         // events opened (their why, source and stories)
 let calFocus = params.get('kalender') || '';       // ?kalender=<id>: the tab opens at that event
 // a day as a number (days since 1970), from 'YYYY-MM-DD' or 'YYYY-MM' (its first day); the Danish today
-const calDay = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, s.length > 7 ? +s.slice(8, 10) : 1) / 864e5;
+const calDay = s => Date.UTC(+s.slice(0, 4), s.length > 4 ? +s.slice(5, 7) - 1 : 0, s.length > 7 ? +s.slice(8, 10) : 1) / 864e5;
 const calToday = () => calDay(dkYmd(new Date()));
 const calExact = e => e.date.length > 7;
+// a year alone (18/10): an annual meeting or an election whose day is not set – 'i løbet af 2027', after its December
+const calYear = e => e.date.length === 4;
 // the last day an event lasts: its end, its day, or – a month only – the month's last day
-const calEnd = e => (calExact(e) ? calDay(e.end && e.end.length > 7 ? e.end : e.date) : Date.UTC(+e.date.slice(0, 4), +e.date.slice(5, 7), 0) / 864e5);
+const calEnd = e => (calExact(e) ? calDay(e.end && e.end.length > 7 ? e.end : e.date) : calYear(e) ? Date.UTC(+e.date, 11, 31) / 864e5
+  : Date.UTC(+e.date.slice(0, 4), +e.date.slice(5, 7), 0) / 864e5);
 // a month-only date sorts after the month's exact days
-const calKey = e => (calExact(e) ? calDay(e.date) : calEnd(e) + 0.5);
-const calOk = e => !!e && typeof e.id === 'string' && /^\d{4}-\d{2}(?:-\d{2})?$/.test(String(e.date || '')) && !!e.title;
+const calKey = e => (calExact(e) ? calDay(e.date) : calEnd(e) + (calYear(e) ? 0.75 : 0.5));
+const calOk = e => !!e && typeof e.id === 'string' && /^\d{4}(?:-\d{2}(?:-\d{2})?)?$/.test(String(e.date || '')) && !!e.title;
 const calNorm = s => fold(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 // the two files as one list, worked out once per file and day; the editor's entry wins on the same date and title
 function calItems() {
@@ -3268,9 +3271,9 @@ function calItems() {
 const calFind = id => calItems().find(e => e.id === id);
 // 'i dag', 'i morgen', 'om 5 dage' – or 'i gang' for a summit already under way
 const calCount = (e, today) => { const n = calDay(e.date) - today; return n < 0 ? 'i gang' : n === 0 ? 'i dag' : n === 1 ? 'i morgen' : `om ${n} dage`; };
-const calDate = s => new Date((s.length > 7 ? s : s + '-01') + 'T12:00:00');
+const calDate = s => new Date((s.length > 7 ? s : s.length > 4 ? s + '-01' : s + '-01-01') + 'T12:00:00');
 // the day as a share and a meta line say it: '17/10' (a month only: 'november 2026')
-const calDm = e => (calExact(e) ? `${+e.date.slice(8, 10)}/${+e.date.slice(5, 7)}` : FMT.my.format(calDate(e.date)));
+const calDm = e => (calExact(e) ? `${+e.date.slice(8, 10)}/${+e.date.slice(5, 7)}` : calYear(e) ? `i løbet af ${e.date}` : FMT.my.format(calDate(e.date)));
 const calUntil = e => (e.end && e.end.length > 7 && e.end !== e.date ? `til ${FMT.dm.format(calDate(e.end))}` : '');
 // the next 48 hours are the one red: the kind's dot of an event today or tomorrow
 const calNear = (e, today) => calExact(e) && calEnd(e) >= today && calDay(e.date) - today <= 1;
@@ -3278,7 +3281,8 @@ const calNear = (e, today) => calExact(e) && calEnd(e) >= today && calDay(e.date
 // its calm dot, the place, 'til …', 'forventet' – and, opened, the why, the source and the stories
 function calRow(e, today, o = {}) {
   const d = calDate(e.date), open = !o.front && calOpen.has(e.id), near = calNear(e, today);
-  const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>` : `<b class="mo">${esc(FMT.mon.format(d))}</b><small>måned</small>`;
+  const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>`
+    : calYear(e) ? `<b class="mo">${esc(e.date)}</b><small>år</small>` : `<b class="mo">${esc(FMT.mon.format(d))}</b><small>måned</small>`;
   const parts = [...(o.count ? [`<span class="cn">${calCount(e, today)}</span>`] : []),
     `<span class="ck${near ? ' near' : ''}" data-k="${esc(e.kind)}"><i></i>${esc(CAL_KINDS[e.kind])}</span>`,
     ...(e.place ? [`<span>${esc(e.place)}</span>`] : []), ...(calUntil(e) ? [`<span>${calUntil(e)}</span>`] : []),
@@ -3348,8 +3352,8 @@ function kalenderPage() {
     + (soon.length ? soon.map(e => calRow(e, today, { count: true })).join('') : '<p class="cal-none">Intet planlagt de næste syv dage.</p>') + '</section>';
   let month = '';
   for (const e of later) {
-    const m = e.date.slice(0, 7);
-    if (m !== month) { h += `${month ? '</section>' : ''}<section class="cal-mo" id="cal-m-${m}"><h3 class="cal-mh">${esc(cap(FMT.my.format(calDate(m))))}</h3>`; month = m; }
+    const m = e.date.slice(0, 7);   // a year alone gets its own band after its December
+    if (m !== month) { h += `${month ? '</section>' : ''}<section class="cal-mo" id="cal-m-${m}"><h3 class="cal-mh">${esc(m.length === 4 ? `Senere i ${m} · dato ikke fastsat` : cap(FMT.my.format(calDate(m))))}</h3>`; month = m; }
     h += calRow(e, today);
   }
   if (month) h += '</section>';

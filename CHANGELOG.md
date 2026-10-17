@@ -9,6 +9,22 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A fuller calendar** (2026-10-18, the owner: 'kalenderen ser lidt tom ud, kunne der være noget vi har overset?'; he
+  chose all four proposals; `?v=20261018ap`): about twice as many events of high or middle weight (20 → 39).
+  - **Elections:** Wikipedia's 'Unknown date' elections of weight are kept as the year alone ('i løbet af 2027' –
+    Italien, Polen, Tunesien, Libyen, Bahrain, Emiraterne, Grækenland, Slovenien, Tadsjikistan); India's Council of
+    States and an undated election the page also dates are left out. Wikipedia has no 2028 page yet, so 2028's
+    elections of weight are curated: Tyrkiet (senest 14/5-2028), Iran (præsidentvalg, juni 2028, forventet), Malaysia
+    (senest februar 2028).
+  - **Fixed deadlines, each with its checked source:** the US–China trade truce ends 10/1-2027 (extended in September
+    from 10/11), UNIFIL ends 31/12-2026, a new UN Secretary-General takes office 1/1-2027, Denmark's seat in the
+    Security Council ends 31/12-2026.
+  - **Recurring meetings:** IAEA's Board of Governors (Iran's nuclear file; November 2026, March and June 2027), NATO
+    2027 in Tirana, and the annual BRICS, SCO and Arab League summits of 2027 (the year alone where no date is out).
+  - **The app** shows a year alone as 'i løbet af 2027' in a band after its December ('Senere i 2027 · dato ikke
+    fastsat'); a curated event may set its weight (`w`).
+  - **The editor** gets 'Dates in the news' in its input: the stories of the last two days that name a coming day or a
+    deadline, each with what the calendar holds then, to decide on every one (routine prompt updated).
 - **Middle weight in a darker red; rate decisions quiet** (2026-10-18, the owner: 'den røde streg ved middel betydning
   [lidt mørkere] … og den burde fjernes på kalenderens rentebeslutninger, da det er abstrakt'; `?v=20261018ao`): the
   middle weight's edge in Live and the Kalender takes `--red-deep` (#7e2a26 light, #a8403c dark), the high one keeps
