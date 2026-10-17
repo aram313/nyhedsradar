@@ -2934,6 +2934,7 @@ function focusSync(pg = cur()) {
   // where one opened it (the owner, 18/10: 'man ikke kan scrolle væk fra den, kun i dens område, og når man lukker den
   // igen er man tilbage til den position som da man åbnede den')
   pg.classList.toggle('locked', !!open);
+  if (open && !was) pg.holdFrom = performance.now() + 450;   // after the app's own move into view (keepInView)
   if (!open && was && pg.focusY != null) { cancelAnimationFrame(moveT); pg.scrollTop = pg.focusY; pg.focusY = null; }
   // the fade runs only as something opens: a row that scrolls into view later is dimmed already (a row out of sight is
   // drawn late – content-visibility – and a transition there showed it light for a moment, the owner 18/10)
@@ -3166,7 +3167,19 @@ $('list').addEventListener('click', onTap);
 $('opts').addEventListener('click', onTap);   // the page's options in the dock: the same buttons, the same ways
 $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });
 // the page in view scrolls (scroll events do not bubble: caught on their way down)
+// while a story is open the page scrolls only as far as keeps the whole story in view, between the bar and the dock
+// (18/10, the owner: first 'man ikke kan scrolle væk fra den', then 'I should at least be able to scroll a bit to
+// center the story'): scrolled past either edge, it is held at that edge; the app's own move into view goes first
+function holdOpen(p) {
+  if (!p.classList.contains('locked') || performance.now() < (p.holdFrom || 0)) return;
+  const o = p.querySelector('.lift');
+  if (!o) return;
+  const r = o.getBoundingClientRect(), top = $('bar').offsetHeight, bottom = innerHeight - $('dock').offsetHeight;
+  if (r.top < top - 1) p.scrollTop -= top - r.top;
+  else if (r.bottom > bottom + 1) p.scrollTop += r.bottom - bottom;
+}
 function onPageScroll() {
+  if (cur()) holdOpen(cur());
   const y = cur() ? cur().scrollTop : 0;
   if (y < 120 && !$('freshPill').hidden) $('freshPill').hidden = true;
   $('bar').classList.toggle('scrolled', y > 4);
@@ -4564,8 +4577,6 @@ addEventListener('wheel', e => {
   // Økonomi scrolls inside its frame: the wheel beside the column moves the frame's page (18/10, the owner)
   const fr = tab === 'okonomi' && pageEl('okonomi') && pageEl('okonomi').querySelector('iframe');
   if (fr) { try { fr.contentWindow.scrollBy(0, e.deltaY * k); } catch { /* not ready */ } return; }
-  const lockd = cur().classList.contains('locked') && cur().querySelector('.lift');   // a story open: only it scrolls
-  if (lockd) { lockd.scrollTop += e.deltaY * k; return; }
   cur().scrollTop += e.deltaY * k;
 }, { passive: true });
 function stopAuto() { auto = null; document.documentElement.classList.remove('autoscroll'); }

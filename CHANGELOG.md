@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An open story: the page scrolls a little, never away from it** (2026-10-18, the owner: 'now im not even able to
+  scroll i should at least be able to scroll a bit to center the story on the screen'; `?v=20261018bl`): the page is
+  no longer frozen while a story or an event is open; it scrolls as far as keeps the whole story between the bar and
+  the dock, and is held at that edge beyond it (`holdOpen`, from the page's scroll; it waits 450 ms for the app's own
+  move into view). Closing still returns to where one was.
 - **An open story holds the page still, and closing it returns to where one was** (2026-10-18, the owner: 'når man
   åbner en historie, at man ikke kan scrolle væk fra den, kun i dens område, og når man lukker den igen er man tilbage
   til den position som da man åbnede den'; `?v=20261018bk`): while a story or an event is open the page is locked
