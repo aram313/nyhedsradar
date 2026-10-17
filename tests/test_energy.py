@@ -257,7 +257,7 @@ def test_the_page_knows_every_series_the_file_carries():
         assert f'\n  {k}: [' in PAGE, k                     # every debt bar has its Danish name and note
 
 
-TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Kriser'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
+TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Uro'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
                ('raw', 'Råvarer'))
 
 
@@ -368,7 +368,7 @@ def test_economic_crises_are_news_of_their_own():
     assert energy.CRISIS.search('Egypt seeks IMF bailout as pound plunges') and energy.CRISIS.search('Ny straftold mod Kina')
     assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
     assert "'crisis': energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
-    assert "news(D.crisis || [], 'Ingen nyheder om økonomiske kriser de seneste fire døgn.'" in PAGE
+    assert "news(D.crisis || [], 'Ingen nyheder om uro i økonomien de seneste fire døgn.'" in PAGE
 
 
 def test_embedded_the_topics_are_the_apps_dock():

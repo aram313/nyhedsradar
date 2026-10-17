@@ -295,8 +295,9 @@ def test_the_dock_holds_the_kinds_and_only_important():
 
 def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_developments():
     block = fn('calBlock')
-    assert 'calDay(e.date) - today <= 14' in block and '.slice(0, 4)' in block and "if (!list.length) return '';" in block
-    assert 'calWOf(e) > 1' in block   # 18/10: only high and middle weight on the front page
+    # 18/10, the owner: three months of the events of high weight, in order, at most four, under 'Vigtige datoer'
+    assert 'calDay(e.date) - today <= 92' in block and '.slice(0, 4)' in block and "if (!list.length) return '';" in block
+    assert 'calWOf(e) === 3' in block and "blockHead('Vigtige datoer'" in block and '!calYear(e)' in block
     assert "moreLink('Alle', 'kalender')" in block and 'data-cal-go' in fn('calRow')
     assert "(FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }" in fn('composedHome')
     fixed = fn('fixedHome')

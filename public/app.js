@@ -3291,7 +3291,7 @@ function calRow(e, today, o = {}) {
   const d = calDate(e.date), open = !o.front && calOpen.has(e.id), near = calNear(e, today);
   const day = calExact(e) ? `<b>${d.getDate()}</b><small>${esc(FMT.wd.format(d))}</small>`
     : calYear(e) ? `<b class="mo">${esc(e.date)}</b><small>år</small>` : `<b class="mo">${esc(FMT.mon.format(d))}</b><small>måned</small>`;
-  const parts = [...(o.count ? [`<span class="cn">${calCount(e, today)}</span>`] : []),
+  const parts = [...(o.count && calExact(e) ? [`<span class="cn">${calCount(e, today)}</span>`] : []),   // a month alone has no countdown
     `<span class="ck${near ? ' near' : ''}" data-k="${esc(e.kind)}"><i></i>${esc(CAL_KINDS[e.kind])}</span>`,
     ...(e.place ? [`<span>${esc(e.place)}</span>`] : []), ...(calUntil(e) ? [`<span>${calUntil(e)}</span>`] : []),
     ...(e.approx ? ['<span>forventet</span>'] : [])];
@@ -3391,14 +3391,16 @@ function calAimAt(pg) {
 list.addEventListener('touchstart', () => { calAim = null; }, { passive: true });   // the reader's own hand wins
 // the tab came into view: a link's event is looked for as soon as the files are there
 function calShown() { if (calFocus || calPend) redrawPages(['kalender']); }
-// 'Det sker snart' on the front page: the next three or four events of the coming fourteen days, after the second block
+// 'Vigtige datoer' on the front page (until 18/10 'Det sker snart'): the events of high weight of the next three months, after the second block
 // the page draws, 'Alle ›' to the tab; none in the fortnight: no block
 function calBlock() {
   need('cal'); need('kal');
-  // only what is of high or middle weight (the owner, 18/10: 'forsidens "sker snart" burde kun have middel og høj betydning')
-  const today = calToday(), list = calItems().filter(e => calExact(e) && calWOf(e) > 1 && calEnd(e) >= today && calDay(e.date) - today <= 14).slice(0, 4);
+  // 'Vigtige datoer' (the owner, 18/10: 'burde tage 3 måneders højt vigtige begivenheder i rækkefølge, maks 4. glem middel
+  // vigtighed. og måske en anden titel end "sker snart"'): the events of high weight of the next three months, in their
+  // order (a month alone after its days; a year alone is no date), at most four
+  const today = calToday(), list = calItems().filter(e => !calYear(e) && calWOf(e) === 3 && calEnd(e) >= today && calDay(e.date) - today <= 92).slice(0, 4);
   if (!list.length) return '';
-  return `<section class="block cal-b" id="cal-front">${blockHead('Det sker snart', moreLink('Alle', 'kalender'))}`
+  return `<section class="block cal-b" id="cal-front">${blockHead('Vigtige datoer', moreLink('Alle', 'kalender'))}`
     + `<div class="cal-rows">${list.map(e => calRow(e, today, { front: true, count: true })).join('')}</div></section>`;
 }
 // the dock: one toggle, Vigtige · Alle (the owner, 18/10: 'filter kun være "Vigtige" og "alle" og det skal være en

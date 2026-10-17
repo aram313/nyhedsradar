@@ -528,7 +528,9 @@ const AIX_TXT = {
 const TOPICS = [
   { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
   // the economic crises in the news (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser")
-  { id: 'kris', tab: 'Kriser', fly: 'Økonomiske kriser', h: 'kriser', src: 'Khabars nyheder' },
+  // named 'Uro i økonomien' since 18/10 (the owner: 'Måske skal det ikke hedde "økonomiske kriser"'): it holds a state's
+  // borrowing stress, tariffs, sanctions and ratings as well as a crisis proper
+  { id: 'kris', tab: 'Uro', fly: 'Uro i økonomien', h: 'uro', src: 'Khabars nyheder' },
   { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
     more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']]] },
   { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
@@ -996,7 +998,7 @@ function head(id) {
   const s = D.s, low = lowest();
   try {
     if (id === 'nu') { const m = topMoves()[0]; if (m) return phrase(m.k); }
-    if (id === 'kris') { const n = (D.crisis || []).length; return n ? `${n} ${n === 1 ? 'nyhed' : 'nyheder'} om kriser, sanktioner og told` : 'Ingen nye kriser i nyhederne'; }
+    if (id === 'kris') { const n = (D.crisis || []).length; return n ? `${n} ${n === 1 ? 'nyhed' : 'nyheder'} om gæld, renter, told og sanktioner` : 'Ingen ny uro i nyhederne'; }
     if (id === 'fuel' && low.benzin && low.diesel) return `Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`;
     if (id === 'oil' && s.brent) return phrase('brent');
     if (id === 'mkt' && s.spx) return phrase('spx');
@@ -1004,7 +1006,7 @@ function head(id) {
     if (id === 'debt' && D.debt) return `USA’s gæld: ${nf(D.debt.v / 1e12, 1)} billioner $`;
     if (id === 'raw' && s.gold) return phrase('gold');
   } catch (e) { /* a missing number: the plain head */ }
-  return { nu: 'Tallene lige nu', kris: 'Økonomiske kriser', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
+  return { nu: 'Tallene lige nu', kris: 'Uro i økonomien', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
 }
 
 // ---- Brændstof -----------------------------------------------------------------------------------------------------
@@ -1204,7 +1206,7 @@ function topicHtml(T) {
     base = baseOf(list.map(moveFig));
     h += nowRows(list, base);
   } else if (T.id === 'kris') {
-    h += news(D.crisis || [], 'Ingen nyheder om økonomiske kriser de seneste fire døgn.', crisisAll, 'crisisMore');
+    h += news(D.crisis || [], 'Ingen nyheder om uro i økonomien de seneste fire døgn.', crisisAll, 'crisisMore');
   } else {
     const tiles = tilesOf(T.id);
     base = baseOf(tiles);

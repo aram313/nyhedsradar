@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **'Vigtige datoer' on the front page; 'Uro i økonomien'** (2026-10-18, the owner: 'sker snart har i dag kun 1
+  begivenhed … burde tage 3 måneders højt vigtige begivenheder i rækkefølge, maks 4. glem middel vigtighed. og måske en
+  anden titel' and 'Måske skal det ikke hedde "økonomiske kriser"'; `?v=20261018az`): the front page's calendar block
+  is called 'Vigtige datoer' and holds the events of high weight of the next three months (92 days), in their order,
+  at most four (a month alone after its days and without a countdown; a year alone is no date). The economy page's
+  topic 'Økonomiske kriser' is 'Uro i økonomien' ('Uro' in its dock, `#uro`): it holds borrowing stress, tariffs,
+  sanctions and ratings as well as a crisis proper.
 - **Scouts, a wider crisis topic and France's rating days** (2026-10-18, the owner: 'frankrig har spurgt om et
   massivt lån fra ECB, hvordan skal vi inkorporere sådan nogle informationer … og hvorfor er de ikke med i dag' – no
   formal request was found, but the French debt stress was real and none of the radar's 697 stories named it; he chose
