@@ -2999,11 +2999,12 @@ const kWhere = e => `${KKINDS[e.k] || 'Angreb'}, ${e.pl}${e.ca ? ' (omtrentlig p
 // Leaflet's two files, each asked for once (again only after it failed), the style before the app's own so ours wins
 const leafParts = {};
 function leafPart(tag, attrs) {
-  return leafParts[tag] ||= new Promise((res, rej) => {
+  const key = attrs.href || attrs.src;
+  return leafParts[key] ||= new Promise((res, rej) => {
     const el = Object.assign(document.createElement(tag), attrs);
     el.crossOrigin = 'anonymous';
     el.onload = res;
-    el.onerror = () => { el.remove(); delete leafParts[tag]; rej(new Error(tag)); };
+    el.onerror = () => { el.remove(); delete leafParts[key]; rej(new Error(tag)); };
     if (tag === 'link') document.head.insertBefore(el, document.querySelector('link[href^="style.css"]')); else document.head.appendChild(el);
   });
 }
@@ -3109,6 +3110,35 @@ function kInit(Lf, pg) {
   kBuilt = ''; kDrawn = '';
   kortFill(pg);
 }
+// The map's ground: OpenFreeMap's vector map (OpenStreetMap's data, free and without a key), drawn by MapLibre inside
+// Leaflet, so the app writes the names itself – in Danish where OpenStreetMap has a Danish name, else English – and
+// never names Israel (the owner, 17/10: "Kan du fjerne navnet israel på kortet"). Without WebGL, or when its files do
+// not come, the German OpenStreetMap server's pictures (with their own names) stand in.
+const MAPLIBRE = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/';
+const OFM = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · ' + OSM;
+const NO_NAME = ['Israel', 'ישראל', 'إسرائيل', 'State of Israel'];
+const kName = ['case', ['any', ...['name', 'name:en', 'name:da', 'name:latin'].map(k => ['in', ['coalesce', ['get', k], ''], ['literal', NO_NAME]])], '',
+  ['coalesce', ['get', 'name:da'], ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']]];
+let kVector = null;   // null: not tried; a promise while loading; false: not possible here
+function loadVector() {
+  if (kVector !== null) return kVector || Promise.reject(new Error('no vector'));
+  const gl = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();
+  if (!gl) { kVector = false; return Promise.reject(new Error('no webgl')); }
+  return kVector = Promise.all([
+    leafPart('link', { rel: 'stylesheet', href: MAPLIBRE + 'maplibre-gl.css', integrity: 'sha384-Nq6PQ+9vJPvw7U/VfDELyrWoGQMsy0gi6QShhaSrGzkpF5KkM40csg2leky+YMTd' }),
+    leafPart('script', { src: MAPLIBRE + 'maplibre-gl.js', async: true, integrity: 'sha384-GfxBM9x46BaAFxtCq39Fxir8fNZ4VDnwgfi6Kzi5/F1tAFsm0amuuV8kd+Pxzuf/' }),
+  ]).then(() => leafPart('script', { src: 'https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js', async: true,
+    integrity: 'sha384-LIxE/QjpJKC2A91yD40ZisdYtFbgAjl58jqpo9/MUZNgwhqsTfzwrTlqv6nDdzzB' }))
+    .catch(e => { kVector = false; throw e; });
+}
+const kStyles = {};
+function kStyle(dark) {   // OpenFreeMap's style with the app's names on every label
+  return kStyles[dark] ||= fetch(`https://tiles.openfreemap.org/styles/${dark ? 'dark' : 'positron'}`).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(st => {
+      for (const l of st.layers || []) if (l.type === 'symbol' && l.layout && l.layout['text-field'] && /name/.test(JSON.stringify(l.layout['text-field']))) l.layout['text-field'] = kName;
+      return st;
+    }, e => { delete kStyles[dark]; throw e; });
+}
 // light or dark tiles with the app's look (the setting, else the phone's)
 const kDarkNow = () => { const th = document.documentElement.dataset.theme; return th === 'dark' || (th !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); };
 function kortLook() {
@@ -3117,13 +3147,16 @@ function kortLook() {
   const dark = kDarkNow();
   if (kTiles && dark === kDark) return;
   kDark = dark;
-  if (kTiles) kTiles.remove();
-  kTiles = CFG.cartoKey
+  const put = layer => { if (kDark !== dark || !kMap) return; if (kTiles) kTiles.remove(); kTiles = layer; kTiles.addTo(kMap); };
+  const raster = () => CFG.cartoKey
     ? Lf.tileLayer(`https://basemaps.cartocdn.com/rastertiles/${dark ? 'dark_all' : 'light_all'}/{z}/{x}/{y}.png?key=${encodeURIComponent(CFG.cartoKey)}`,
       { maxZoom: 20, attribution: CARTO })
     // OpenStreetMap's German server: place names in Latin letters (Kairo, Damaskus, Teheran), close to Danish
     : Lf.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', { maxZoom: 18, attribution: OSM, className: dark ? 'k-osm dark' : 'k-osm' });
-  kTiles.addTo(kMap);
+  loadVector().then(() => kStyle(dark)).then(style => {
+    if (!Lf.maplibreGL) throw new Error('no plugin');
+    put(Lf.maplibreGL({ style, attribution: OFM, interactive: false }));
+  }).catch(() => put(raster()));
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', kortLook);
 // a marker and a row's glyph: the kind in a small circle; an approximate place a dashed ring, the last hour a red one

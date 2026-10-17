@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The map writes its own names** (2026-10-17, the owner: 'Kan du fjerne navnet israel på kortet'; `?v=20261018f`):
+  the ground is OpenFreeMap's vector map (OpenStreetMap's data, free, no key) drawn by MapLibre 5.6.0 inside Leaflet,
+  every label in Danish where OpenStreetMap has a Danish name, else English, and Israel's name never shown. Without WebGL
+  or when the files do not come, the German OpenStreetMap server's pictures stand in.
+
 - **Dagens historie's picture in the press style** (2026-10-17, the owner: 'på den stilede måde med tekst på og en
   mørkere fade i bunden … de 15-30 % med grain'; `?v=20261018e`): the headline and its line in white on a dark fade at
   the bottom of the picture, the app's press photo look (15 % colour, 30 % opened) with film grain; the map's tiles name
