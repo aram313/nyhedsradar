@@ -380,8 +380,10 @@ da'wah.
     editor's checked headlines or a Danish outlet's own plain headline – never a machine translation, a teaser standing in
     or a curiosity headline –, no commentary, links without tracking tails); notifications by choice (a choice that
     could not be sent is kept as `wantDirty` and sent when the phone is online, comes back or starts; a phone from before
-    the switches sends its choice once). Waiting (the owner's call): following
-    a topic, picture share cards, a Live section filter, text selection in reading text.
+    the switches sends its choice once). Text selection (the owner, 17/10): only
+    reading text – a summary, the lede, the movement's texts (`READING` in app.js = the rule in style.css) – never a row
+    or a button, and the owner's long press skips it. Waiting (the owner's call): following a topic, picture share cards,
+    a Live section filter.
 - Danish politics must never be buried: keep the Danish lift (`rank_core_dk`) and the dk-section rules when
   tuning the rank. Before changing thresholds or word lists, run `py scripts/rank_check.py` (one radar pass on a
   copy of the live state, no fetching or embedding) and compare what Live (one list, with the method's tiers) and each

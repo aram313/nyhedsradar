@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Text selection in reading text** (2026-10-17, the owner's yes; `?v=20261017w`): a summary, the lede and the
+  movement's texts can be selected and copied; rows, buttons and bars stay unselectable, and the owner's long press
+  skips reading text. The owner also said yes to the energy link at the front page's foot and in oil stories, and to
+  shared texts ending with 'via khabar.nu/?item=…' – both already in the professional build.
+
 - **Merge: the plain texts of main into the professional build** (2026-10-17; `?v=20261017v`). The professional build
   keeps its structure (the reader's byline and headings, the wiki's contents row, 'Gennem årene' as dated rows under
   their year headings, without the lead's own); main's rule holds everywhere in it: the texts never say 'Ifølge …',

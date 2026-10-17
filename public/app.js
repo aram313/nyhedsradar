@@ -3364,8 +3364,9 @@ function openCode() {
 
 let press = null, pressed = false, actItem = null;
 const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
+const READING = '.sum, .lede-t, .ht-box p.ht, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht';   // text one may select (style.css)
 $('list').addEventListener('pointerdown', e => {
-  const el = adminKey && (e.target.closest('[data-pick]') || e.target.closest('.story[data-id]'));
+  const el = adminKey && !e.target.closest(READING) && (e.target.closest('[data-pick]') || e.target.closest('.story[data-id]'));
   if (!el) return;
   press = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
     press = null; pressed = true; setTimeout(() => { pressed = false; }, 900);
@@ -3380,7 +3381,7 @@ for (const ev of ['pointerup', 'pointercancel']) $('list').addEventListener(ev, 
 document.addEventListener('scroll', cancelPress, { capture: true, passive: true });
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-$('list').addEventListener('contextmenu', e => { if (adminKey && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
+$('list').addEventListener('contextmenu', e => { if (adminKey && !e.target.closest(READING) && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
 
 // the middle mouse button on a PC scrolls the page, as browsers do on ordinary pages (they do not on our fixed pager):
 // hold it and move, or click it and move – the further from where it began, the faster; any click or Esc stops it.
