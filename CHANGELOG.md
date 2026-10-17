@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The whole answer in English** (2026-10-17, the owner: 'kan vi få hele teksten fra analyser ind på side? … på
+  engelsk', the texts published as they are; `?v=20261018t`): every answer the HT archive has in English (272 of 321)
+  has its whole text in `public/viden/svar-en/`, fetched when the reader unfolds 'Læs hele svaret (engelsk)'; the
+  answers only in Arabic follow, translated ('oversat fra arabisk').
+
 - **The calendar weighs its events** (2026-10-17, the owner: 'vægte de begivenheder på kalenderen der har højeste
   betydning med en indikator eller en baggrundsfarve'; `?v=20261018s`): `calendar.weight` gives every event 3, 2 or 1 –
   3 the elections in the great powers and the states at the centre of the Muslim world, Denmark's general election, the

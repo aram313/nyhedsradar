@@ -519,6 +519,12 @@ da'wah.
   copy of the live state, no fetching or embedding) and compare what Live (one list, with the method's tiers) and each
   section would show.
 - The profile contains no names or message authors. Keep it that way, and keep it encrypted. The repo is public.
+- **The answers' whole English text is published** (the owner's decision, 17/10: "hele teksten fra analyser … på
+  engelsk", asked whether the texts may lie in the public repo: "Offentligt, som de er"): `scripts/build_fulltext.py`
+  writes `public/viden/svar-en/<nr>.json` (and `index.json`) from the local HT archive's English texts (272 of 321);
+  the answers the archive has only in Arabic are translated into English, faithfully and whole, and marked
+  `translated: true` ('oversat fra arabisk' in the reader). The reader fetches a text only when 'Læs hele svaret
+  (engelsk)' is unfolded. This replaces the earlier rule 'no full answer texts in committed files' for these texts.
 - Facebook, Instagram, TikTok and X cannot be followed. Do not add scrapers for them without the owner's explicit decision (cost/ToS risk).
 - Tests use `tests/fake_embed.py` instead of the real model, so they run offline without fastembed.
 

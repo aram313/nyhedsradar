@@ -227,7 +227,7 @@ def test_the_answer_reader_is_one_panel_under_a_quiet_header():
     assert '<p class="ht rd-q">${esc(a.q)}</p>' in page and 'Spørgsmålet' not in page
     assert page.index('<h1 class="ht">') < page.index('rd-q') < page.index("knowActs('a', a.nr)")
     # one ochre panel: 'Svaret kort', then the readings under hairlines – no heading of their own, no box per reading
-    assert page.count('class="ht-box') == 2   # the panel, and the full text when unfolded
+    assert page.count('class="ht-box') == 3   # the panel, and the full text unfolded: held, or the English layer
     assert 'Hvad svaret læser' not in page and 'class="rd-r"' in page and 'htLabel(' not in page
     assert re.search(r'\.rd-ans \.rd-r \{[^}]*border-top: 1px solid var\(--ht-line\)', RULES)
     # the newer answer is a quiet row under the panel, not a box
@@ -324,3 +324,9 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
         if 'var(--red)' in m.group(2):
             sel = m.group(1)
             assert '.page[data-tab="home"]' in sel or '.tabs button[aria-selected="true"] > svg' in sel or any(c in sel for c in calendar), sel
+
+
+def test_the_whole_english_text_is_one_tap_away():
+    page = fn('svarPage')
+    assert "Læs hele svaret (engelsk)" in page and "oversat fra arabisk" in page
+    assert "fetch(VIDEN + 'svar-en/index.json')" in CODE and 'svar-en/${encodeURIComponent(k)}.json' in CODE

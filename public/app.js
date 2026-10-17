@@ -2245,7 +2245,37 @@ function svarPage() {
       + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
     if (open) h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk</h2><div class="ht" lang="en">${paras(text)}</div></section>`;
   } else if (a.fresh && waiting('txt')) h += loadingBlock('Henter svarets tekst …');
+  else if (enHas(a.nr)) {
+    // the whole answer in English from the static layer (the owner, 17/10: "hele teksten … på engelsk"): fetched only
+    // when the reader unfolds it; one the archive had only in Arabic is marked as translated
+    const tk = `svar|${a.nr}|en`, open = unfolded.has(tk);
+    if (!open && enTexts[a.nr] === false) delete enTexts[a.nr];   // folded after a failure: asked again when unfolded
+    const en = open ? enText(a.nr) : null;
+    h += `<button class="qrow rd-more" data-unfold="${esc(tk)}" aria-expanded="${open}"><span>${open ? 'Skjul hele svaret' : 'Læs hele svaret (engelsk)'}</span>`
+      + `<svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+    if (open && en) h += `<section class="ht-box rd-text"><h2 class="ht-l">Svaret på engelsk${en.translated ? ' · oversat fra arabisk' : ''}</h2><div class="ht" lang="en">${paras(en.text)}</div></section>`;
+    else if (open && en === null) h += loadingBlock('Henter svarets tekst …');
+    else if (open) h += stateBlock('error', 'Teksten kunne ikke hentes. Fold den sammen og åbn den igen for at prøve igen.', []);
+  }
   return h;
+}
+// the whole English texts: which answers have one (viden/svar-en/index.json, asked for once) and each text as it is opened
+let enIdx = null, enIdxAsked = false;
+const enTexts = {};
+function enHas(nr) {
+  if (!enIdxAsked) {
+    enIdxAsked = true;
+    fetch(VIDEN + 'svar-en/index.json').then(r => r.ok ? r.json() : null).then(j => { enIdx = new Set((j && j.nrs) || []); if (enIdx.size) render(); }, () => {});
+  }
+  return !!enIdx && enIdx.has(String(nr));
+}
+function enText(nr) {
+  const k = String(nr);
+  if (k in enTexts) return enTexts[k];   // the text, false for a failure, or null while it comes
+  enTexts[k] = null;
+  fetch(VIDEN + `svar-en/${encodeURIComponent(k)}.json`).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(j => { enTexts[k] = j && j.text ? j : false; render(); }, () => { enTexts[k] = false; render(); });
+  return null;
 }
 
 // ---------------------------------------------------------------- a wiki page: one state, power, group, issue or concept
