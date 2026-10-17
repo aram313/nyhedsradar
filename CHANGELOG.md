@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The dimming without a layer, and steady while one scrolls** (2026-10-18, the owner: 'når man folder en historie ud
+  nu er den dæmpet et kort sekund' and 'hvis man åbner en historie … og scroller op og ned, kan nogle af de historier der
+  er dæmpet blive lyse igen'; `?v=20261018bi`): in the app the rest of the page is no longer covered by a layer – every
+  box beside the open story or event takes `.dimmed` (opacity only, as on Økonomi), so nothing ever lies over what is
+  open, and the page still scrolls while it is open; a tap outside it is caught on its way down and only closes. The
+  fade runs only as something opens (`.fading`, 260 ms): a row drawn later – one that scrolls into view – is dim at
+  once instead of fading from light again.
 - **One thing open at a time, the rest of the page dimmed; a tap outside only closes** (2026-10-18, the owner: 'når
   noget er åbent på en side … bør resten af siden dæmpes til man lukker den igen … kunne lukkes hvis man trykker uden
   for zonen', 'der er en streng regel med kun én ting bør kunne være åbnet af gangen' and 'hvis man rammer en anden

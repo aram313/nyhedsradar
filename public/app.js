@@ -2917,24 +2917,24 @@ function toggle(el) {
   el.querySelector('[data-toggle]').setAttribute('aria-expanded', open);
   focusSync();
 }
-// What is open lifts above the rest of the page, which dims (the owner, 18/10: 'når noget er åbent … bør resten af siden
-// dæmpes til man lukker den igen … kunne lukkes hvis man trykker uden for zonen'): a layer over the page in view, under
-// the open story or event; a tap on it only closes – a story under the layer is not opened ('kun lukke den aktive');
-// with nothing open the page is free again. The bar and the dock stay as they are.
+// What is open stays clear and the rest of the page dims (the owner, 18/10: 'når noget er åbent … bør resten af siden
+// dæmpes til man lukker den igen … kunne lukkes hvis man trykker uden for zonen'): every box beside the open story or
+// event, on its way up to the page, takes .dimmed (opacity only) – nothing lies over what is open, so it never shows
+// dimmed for a moment (the owner, 18/10: 'er den dæmpet et kort sekund'), and the page still scrolls. A tap outside it
+// only closes ('kun lukke den aktive'): caught on the way down, before any row's own handler.
 const OPENED = 'article.story.open, .ce.open';
 function focusSync(pg = cur()) {
   if (!pg) return;
-  const open = pg.querySelector(OPENED);
-  for (const el of pg.querySelectorAll('.lift')) if (el !== open) el.classList.remove('lift');
-  let dim = pg.querySelector('.dim');
-  if (open) {
-    open.classList.add('lift');
-    // the layer goes right before what is open, in its own box: the two are then always in one stacking order, also
-    // while the page fades in (an ancestor with opacity would hold the open one under a layer outside it)
-    if (!dim) { dim = document.createElement('div'); dim.className = 'dim'; dim.setAttribute('aria-hidden', 'true'); }
-    if (dim.nextElementSibling !== open) { open.before(dim); void dim.offsetWidth; }   // laid out unlit first, so it fades in
-    dim.classList.add('on');
-  } else if (dim) dim.classList.remove('on');
+  for (const el of pg.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
+  const open = pg.querySelector(OPENED), was = pg.classList.contains('focus');
+  pg.classList.toggle('focus', !!open);
+  // the fade runs only as something opens: a row that scrolls into view later is dimmed already (a row out of sight is
+  // drawn late – content-visibility – and a transition there showed it light for a moment, the owner 18/10)
+  if (open && !was) { pg.classList.add('fading'); clearTimeout(pg.fadeT); pg.fadeT = setTimeout(() => pg.classList.remove('fading'), 260); }
+  if (!open) return;
+  open.classList.add('lift');
+  for (let e = open; e && e !== pg; e = e.parentElement)
+    for (const sib of e.parentElement.children) if (sib !== e && !sib.matches('.dim')) sib.classList.add('dimmed');
 }
 function closeOpen() {
   const pg = cur();
@@ -2990,7 +2990,6 @@ async function share(text, i) {
 
 async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
-  if (t.classList && t.classList.contains('dim')) { e.preventDefault(); closeOpen(); return; }   // the dimmed page: only closes
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
@@ -3149,6 +3148,13 @@ async function onTap(e) {
   else if (t.closest('[data-read]')) learnFrom(i, 'read');
   else if (t.closest('[data-toggle]')) toggle(el);
 }
+// a tap outside what is open only closes it (capture: before the row under it can open)
+$('list').addEventListener('click', e => {
+  const pg = cur();
+  if (!pg || !pg.classList.contains('focus') || e.target.closest('.lift')) return;
+  e.preventDefault(); e.stopPropagation();
+  closeOpen();
+}, true);
 $('list').addEventListener('click', onTap);
 $('opts').addEventListener('click', onTap);   // the page's options in the dock: the same buttons, the same ways
 $('freshPill').addEventListener('click', () => { $('freshPill').hidden = true; cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); });

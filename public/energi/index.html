@@ -87,8 +87,9 @@
   .ec-lead-m { margin: 6px 16px 4px; font-size: var(--fs-meta); color: var(--text-3); }
   .ec-lead-m a { color: inherit; text-decoration: none; font-weight: 600; }
   /* one thing open, the rest dimmed (18/10): only opacity moves */
-  .dimmed { opacity: .28; transition: opacity .2s ease-out; }
-  @media (prefers-reduced-motion: reduce) { .dimmed { transition: none; } }
+  .dimmed { opacity: .28; }
+  body.fading .dimmed { transition: opacity .2s ease-out; }   /* only as it opens: what is drawn later is dim at once */
+  @media (prefers-reduced-motion: reduce) { body.fading .dimmed { transition: none; } }
   /* a story unfolded here: its original headline and the way to the outlet */
   .en-x { padding: 0 16px 12px; }
   .en-x.lead { padding-top: 2px; }
@@ -1437,8 +1438,9 @@ function sole(keep) {
 const LIFT = '.ec-tile[aria-expanded="true"], .ec-open, .en-item.open, .en-news .story.open, .ec-lead-m + .en-x';
 function focusSync() {
   for (const el of document.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
-  const lifted = [...document.querySelectorAll(LIFT)];
+  const lifted = [...document.querySelectorAll(LIFT)], was = document.body.classList.contains('focus');
   document.body.classList.toggle('focus', lifted.length > 0);
+  if (lifted.length && !was) { document.body.classList.add('fading'); clearTimeout(focusSync.t); focusSync.t = setTimeout(() => document.body.classList.remove('fading'), 260); }
   if (!lifted.length) return;
   for (const el of lifted) el.classList.add('lift');
   // every block beside the open thing's line of boxes up to the page dims
