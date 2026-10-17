@@ -58,6 +58,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import brain  # noqa: E402 – the books' order of weight and Hizb ut-Tahrir's newest answers, for weighing
 import voice  # noqa: E402 – Khabar's content rules
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+from radar import level as radar_level  # noqa: E402 – how the radar reads live.json (stdlib only)
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTIONS = {'dk': 'Danmark', 'me': 'Mellemøsten', 'world': 'Verden'}
@@ -101,6 +103,7 @@ FIRE_GAP = timedelta(minutes=15)      # the look is every quarter of an hour: on
 UNDER_WAY = timedelta(minutes=30)     # a fire with no update since is an update under way for this long
 EDITOR_FIRES = 12                     # fires of the routine a Danish day (config/settings.json editor_fires_per_day)
 STALE_WIRE = 3                        # wire lines that make the two-hour reason hold without a story of weight
+LEVEL_LAPSE = radar_level.STALE - timedelta(minutes=45)   # today's få/mange is renewed before the radar lets it lapse
 CHECK_STORIES = 12   # stories of weight the check lists
 CHECK_WIRE = 4       # newest wire lines the check shows
 ANSWER_TEXT = 32000  # characters of a new answer's text in the input (the answers run to about 28,000)
@@ -421,10 +424,30 @@ def app_of(args):
     return a if isinstance(a, dict) and isinstance(a.get('items'), list) else None
 
 
-def admitted(data, app, now):
+def active_plan(live, now):
+    """live.json as the radar reads it now (src/radar/level.py): the level it applies, and every take and drop still in
+    force – the newest decision on a story wins, yesterday's too."""
+    d = dk(now)
+    return radar_level.plan(live or {}, d.date().isoformat(), d.hour, now)
+
+
+def ids_of(i):
+    return {i['id'], *(i.get('members') or [])}
+
+
+def admitted(data, app, now, live=None):
     """(the admitted stories the app shows, known): the stories of app.json (as data.json holds them, when it does),
     else data.json's stories the radar marks `live`; before the radar draws the line (known False) every story of the
-    last 48 hours, as the app shows today."""
+    last 48 hours, as the app shows today. live: live.json – a story the editor dropped is out at once, before the
+    radar's next pass has applied it."""
+    out, known = _admitted(data, app, now)
+    if live:
+        the_plan = active_plan(live, now)
+        out = [i for i in out if radar_level.decision(the_plan, ids_of(i)) != 'drop']
+    return out, known
+
+
+def _admitted(data, app, now):
     items = data.get('items') or []
     if app is not None:
         find = resolver(items)
@@ -450,10 +473,21 @@ def the_line(data, app):
     return out
 
 
+def good_title(title):
+    """True when a filed headline keeps today's rules (an earlier round's may not: a question, an analysis label, an
+    op-ed's thesis)."""
+    problems = []
+    voice.check_headline(clean(title), 'title', problems)
+    return bool(clean(title)) and not problems
+
+
 def headed_ids(titles):
-    """Every id the editor's headlines cover: the story ids they are filed under and the members filed with them."""
+    """Every id the editor's headlines cover: the story ids they are filed under and the members filed with them – a
+    headline that breaks the rules covers none (it is written again)."""
     out = set()
     for k, v in (titles or {}).items():
+        if isinstance(v, dict) and not good_title(v.get('title')):
+            continue
         out.add(k)
         out.update((v or {}).get('members') or [] if isinstance(v, dict) else [])
     return out
@@ -488,7 +522,9 @@ def to_head(pool, titles, now, record=None):
     each has waited (record: the radar's admitted.json)."""
     done = headed_ids(titles)
     out = [i for i in pool if not has_head(i, done)]
-    out.sort(key=lambda i: (not i.get('big'), -(i.get('rank') or 0)))
+    # big stories first, then the ones the app shows worst (a curiosity headline, or only the machine's Danish), by rank
+    poor = lambda i: bool(voice.curiosity(i.get('title'))) or i.get('lang') not in ('da', 'en')  # noqa: E731
+    out.sort(key=lambda i: (not i.get('big'), not poor(i), -(i.get('rank') or 0)))
     return [(i, now - (waiting_since(i, record) or now)) for i in out]
 
 
@@ -507,17 +543,18 @@ def in_24h(i, now):
     return now - ts(i.get('published') or i['found']) < timedelta(hours=24)
 
 
-def around_the_line(data, pool, known, now, level):
+def around_the_line(data, pool, known, now, level, the_plan=None):
     """(the weakest admitted stories of the last 24 hours, the strongest left out), LINE_SHOWN each – big stories and the
-    editor's takes are never at the line."""
+    editor's takes are never at the line, and a story the editor dropped (today or yesterday) is not 'left out'."""
     if not known:
         return [], []
     inside = {i['id'] for i in pool}
-    taken = set(level.get('take') or [])
+    taken = set(level.get('take') or []) | set((the_plan or {}).get('take') or [])
     above = sorted((i for i in pool if in_24h(i, now) and not i.get('big') and i['id'] not in taken
                     and i.get('live') not in ('take', 'big', 'dk')   # the radar's why: taken in or protected, not at it
                     and not taken & set(i.get('members') or [])), key=lambda i: i.get('rank') or 0)[:LINE_SHOWN]
-    below = sorted((i for i in data.get('items') or [] if i['id'] not in inside and in_24h(i, now)),
+    below = sorted((i for i in data.get('items') or [] if i['id'] not in inside and in_24h(i, now)
+                    and radar_level.decision(the_plan or {}, ids_of(i)) != 'drop'),
                    key=lambda i: -(i.get('rank') or 0))[:LINE_SHOWN]
     return above, below
 
@@ -549,7 +586,7 @@ def head_reasons(now, heads):
     return []
 
 
-def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None, heads=()):
+def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None, heads=(), lapse=None):
     """The reasons for a full update now, the most pressing first (empty: nothing of weight since the last). covered: the
     stories already a pick or in the recap – they call for no update of their own. still: how long the radar has not
     run, when that is longer than RADAR_STILL. heads: the admitted stories still without the editor's headline (with
@@ -570,6 +607,8 @@ def verdict(now, last, times, rows, answer, wire=(), covered=(), still=None, hea
     if answer:
         reasons.append(f"nyt svar fra Hizb ut-Tahrir ({str(answer.get('date') or '')[:10]}) skal noteres")
     reasons += head_reasons(now, heads)
+    if lapse:
+        reasons.append(f'dagens niveau ({lapse}) holder kun {radar_level.STALE.seconds // 3600} timer efter sidste opdatering')
     d = dk(now)
     if d.hour >= QUIET_UNTIL:
         morning = d.replace(hour=QUIET_UNTIL, minute=0, second=0, microsecond=0)
@@ -604,10 +643,18 @@ def look(args, now):
     picked = {p.get('id'): k for k, p in enumerate(notes_.get('picks') or [], 1)}
     recapped = {x['id'] for d in recent_days(moves, now) for tp in d['topics'] for x in tp['lines'] if x.get('kind') == 's'}
     app = app_of(args)
-    pool, known = admitted(data, app, now)
+    live = read(args, 'origin/digest', 'live.json', {})
+    pool, known = admitted(data, app, now, live)
     heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args)) if known else []
-    level = day_level(read(args, 'origin/digest', 'live.json', {}), now)
+    level = day_level(live, now)
     line = the_line(data, app)
+    lapse = None   # today's få or mange lapses to normal when live.json is not written for radar_level.STALE (06-24)
+    try:
+        if level.get('level') in ('få', 'mange') and dk(now).hour >= QUIET_UNTIL and \
+                now - ts(live.get('updated')) > LEVEL_LAPSE:
+            lapse = level['level']
+    except (TypeError, ValueError):
+        pass
     out = [f'Khabar check · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time) · '
            + ((f'radar last ran {ago(now - radar_at)} ago' + (' – STOPPED' if still else '')) if radar_at else 'radar: no time'),
            f'Last full update: {dk(last):%d.%m %H.%M} ({ago(now - last)} ago)' if last else 'Last full update: none in the archive',
@@ -645,7 +692,7 @@ def look(args, now):
     if filed:
         out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
-    reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads)
+    reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads, lapse)
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     keys = [f"big:{story_key(r[0], seen)}" for r in rows if weighty_big(r) and r[0]['id'] not in picked and r[0]['id'] not in recapped]
@@ -653,9 +700,13 @@ def look(args, now):
              and not r[0].get('big') and r[0]['id'] not in picked and r[0]['id'] not in recapped]
     if answer:
         keys.append(f"answer:{answer['id']}")
-    for r in head_reasons(now, heads):   # the headlines: once an update, or once for the story that waited longest
-        keys.append(f"heads:{last.isoformat() if last else ''}" if r[0].isdigit()
-                    else f"late:{story_key(max(heads, key=lambda h: h[1])[0], seen)}")
+    for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
+        if r[0].isdigit():
+            keys.append(f"heads:{last.isoformat() if last else ''}")
+        else:
+            keys += [f'late:{story_key(i, seen)}' for i, w in sorted(heads, key=lambda h: -h[1]) if w > HEAD_LATE]
+    if lapse:
+        keys.append(f"level:{live.get('updated')}")
     facts = {'last': last, 'radar': radar_at, 'keys': keys, 'reasons': reasons}
     return out, reasons, facts
 
@@ -908,7 +959,9 @@ def head_lines(heads, known, listed=()):
            "other outlets' headlines support; the source's own loaded words kept where they carry its framing; names in their",
            'usual Danish spelling (Zelenskyj, Netanyahu, Hizbollah); at most about 110 characters. Example: "Se billederne: Kaos',
            'i lufthavnen" → "Houthi-angreb lukker King Khalid-lufthavnen i Riyadh; 12 dræbt". An informative headline may stay',
-           'as it is (in Danish).', '',
+           "as it is (in Danish). The headline states the news of the outlet's article listed first – the one the app opens",
+           "under 'Læs' – not another outlet's angle. No judgement of your own ('egentlige', 'reelle', 'i virkeligheden') and no",
+           "'– video' at the end. A headline of yours that broke these rules is listed again: write it anew.", '',
            'Fields: [id] section · outlet (language) · waited · headline (the machine\'s Danish) · teaser · other outlets', '']
     for i, waited in shown:
         t = brain.tier_of(i)
@@ -936,7 +989,7 @@ def story_row(i):
             f"{i.get('outlets') or 1} outlets · {clip(headline(i), 110)}")
 
 
-def live_lines(level, line, above, below, pool, known, now):
+def live_lines(level, line, above, below, pool, known, now, the_plan=None):
     """How much Live holds today, and the candidates at the radar's line: the editor's level, take and drop."""
     lvl = level.get('level')
     out = ['## Live – how much the app shows today (you decide)', '',
@@ -944,6 +997,11 @@ def live_lines(level, line, above, below, pool, known, now):
                                                   ' (yours)' if lvl else ' (the default – not set today)')
            + (f" · taken in: {', '.join(level['take'])}" if level.get('take') else '')
            + (f" · taken out: {', '.join(level['drop'])}" if level.get('drop') else '')]
+    still = {f: sorted(set((the_plan or {}).get(f) or ()) - set(level.get(f) or [])) for f in ('take', 'drop')}
+    if still['take'] or still['drop']:   # yesterday's decisions still hold (a take or drop today undoes one)
+        out.append('Still in force from yesterday:' + (f" taken in {', '.join(still['take'])}" if still['take'] else '')
+                   + (';' if still['take'] and still['drop'] else '')
+                   + (f" taken out {', '.join(still['drop'])}" if still['drop'] else ''))
     n = sum(1 for i in pool if in_24h(i, now))
     if known:
         bits = [f'{n} stories in Live from the last 24 hours']
@@ -961,9 +1019,12 @@ def live_lines(level, line, above, below, pool, known, now):
             f'"få" (a quiet day, only the sharpest – about {LEVEL_SIZE["få"]}), "normal" (the day\'s most important – about '
             f'{LEVEL_SIZE["normal"]}),',
             f'"mange" (a day of many strong stories – about {LEVEL_SIZE["mange"]}). A quiet day is never padded. The radar',
-            'applies it at once and holds it the rest of the Danish day; big stories and Danish politics on Islam, Muslims,',
-            'integration and foreign policy are never cut. "take" brings one story in, "drop" takes one out (today only).',
-            '"note": one line of reality, why the level. Give every story you take in a headline too.', '']
+            'applies it at its next pass (within five minutes) and holds it for the Danish day – through the night until',
+            f'your first update of the next – as long as you update at least every {radar_level.STALE.seconds // 3600} hours '
+            '(else it falls back to "normal");',
+            'big stories and Danish politics on Islam, Muslims, integration and foreign policy are never cut. "take" brings',
+            'one story in, "drop" takes one out – even a big story – for today and tomorrow (your newest decision on a',
+            'story wins). "note": one line of reality, why the level. Give every story you take in a headline too.', '']
     if above:
         out += ['Just above the line (the weakest in Live – drop one that is no news):'] + [story_row(i) for i in above] + ['']
     if below:
@@ -1118,13 +1179,15 @@ def cmd_input(args):
         for i in todo:
             out += [f"[{i['id']}] – listed above", ''] if i['id'] in listed else story_lines(i)
     app = app_of(args)
-    pool, known = admitted(data, app, now)
+    live = read(args, 'origin/digest', 'live.json', {})
+    pool, known = admitted(data, app, now, live)
     if not known:   # before the radar draws the line: the strongest stories of the day the app shows
         pool = [i for i in pool if in_24h(i, now)]
     heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args))
     out += head_lines(heads, known, listed)
-    level = day_level(read(args, 'origin/digest', 'live.json', {}), now)
-    out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level), pool, known, now)
+    level, the_plan = day_level(live, now), active_plan(live, now)
+    out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,
+                      now, the_plan)
     out += front_section(read(args, 'origin/digest', 'front.json', {}), resolver(items), notes, now)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
@@ -1269,6 +1332,8 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
         if dk(ts(cur['updated'])).date() < dk(now).date() and dk(now).hour >= QUIET_UNTIL:
             return None
         blocks = refreshed(cur['blocks'], find)
+        if dk(ts(cur['updated'])).date() < dk(now).date():   # a line of yesterday ('… i dag') is not today's
+            blocks = [b for b in blocks if b.get('kind') != 'linje']
         return {'updated': stamp, 'lede': lede, 'blocks': blocks} if blocks else None
     if not isinstance(spec, dict) or not isinstance(spec.get('blocks'), list) or not spec['blocks']:
         problems.append('front: an object with "blocks" (a list of at least one block) – or leave "front" out to keep the '
@@ -1712,10 +1777,11 @@ def cmd_publish(args):
     data, lines, moves = material(args)
     current = read(args, 'origin/digest', 'digest.json', {})
     noted = answers_of(args)
-    pool, known = admitted(data, app_of(args), now)
+    live_now = read(args, 'origin/digest', 'live.json', {})
+    pool, known = admitted(data, app_of(args), now, live_now)
     fetched = read(args, 'origin/data', 'analyses.json', {'items': []})
     fetched = fetched.get('items') if isinstance(fetched, dict) else fetched
-    extra = {'live': read(args, 'origin/digest', 'live.json', {}), 'front': read(args, 'origin/digest', 'front.json', {}),
+    extra = {'live': live_now, 'front': read(args, 'origin/digest', 'front.json', {}),
              'pool': pool if known else None,
              'answers': {str(k) for k in brain.static_answers()} | {str(k) for k in noted.get('items') or {}}
              | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
@@ -1738,6 +1804,11 @@ def cmd_publish(args):
     live, front = notes.pop('live'), notes.pop('front')
     recent = lambda d: {k: v for k, v in (d or {}).items() if now - ts(v['at']) < timedelta(days=SUM_DAYS)}  # noqa: E731
     kept_sums, checked = recent(before.get('items')), recent(before.get('titles'))
+    # a stored headline that breaks today's rules (an earlier round's question or op-ed thesis) is dropped: the story
+    # comes back under 'Headlines to write'
+    dropped_titles = [k for k, v in checked.items() if not good_title((v or {}).get('title'))]
+    for k in dropped_titles:
+        checked.pop(k)
     kept_sums.update({x['id']: {'text': x['text'], 'paywall': x['paywall'], 'at': notes['created']} for x in sums})
     for x in heads:   # filed under the card's id, with its other articles: the card's lead may change
         for k in [k for k, v in checked.items() if k in x['members'] or x['id'] in ((v or {}).get('members') or [])]:
@@ -1772,6 +1843,9 @@ def cmd_publish(args):
           f"{' -' + str(len(live['day'].get('drop') or [])) if (live['day'] or {}).get('drop') else ''} · "
           f"front {('new' if isinstance(draft.get('front'), dict) and 'blocks' in draft['front'] else 'kept') + ' (' + str(len(front['blocks'])) + ' blocks)' if front else 'none'} · "
           f"{'answer ' + answer['nr'] + ' noted · ' if answer else ''}days: {', '.join(sorted(days))}")
+    if dropped_titles:
+        print(f"Note: {len(dropped_titles)} earlier headline(s) broke today's rules and were removed – they come back to "
+              'be written anew.')
     if left:
         print(f"Note: Hizb ut-Tahrir's answer {left[0]['id']} is still waiting – note it in \"answer\" in the next update.")
     if not front and dk(now).hour >= QUIET_UNTIL:

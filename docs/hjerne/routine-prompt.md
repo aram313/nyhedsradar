@@ -72,15 +72,23 @@ ut-Tahrirs svar af d/m/åååå …"), and only in the "answer" object below.
      support ('Who: what' is fine: 'Ekspert: Putin holder magten, fordi …' becomes the claim itself; 'Se billederne:
      Kaos i lufthavnen' becomes 'Houthi-angreb lukker King Khalid-lufthavnen i Riyadh; 12 dræbt'). Only what the
      outlet's headline, its teaser and the other outlets' headlines support; the source's loaded words kept
-     ('Israeli occupation aircraft' stays 'Israelske besættelsesfly') – with one exception: 'martyr' (shahid) is
-     written 'dræbt', in titles and everywhere else in your own text. The tool refuses curiosity headlines.
+     ('Israeli occupation aircraft' stays 'Israelske besættelsesfly') – but always beside Israel's own name, never in
+     its place ('Besættelsesstyrker anholder …' becomes 'Israelske styrker anholder …'; 'the Zionist enemy' is
+     'Israel'), and 'martyr' (shahid) is written 'dræbt', 'heroisk' left out, in titles and everywhere else in your own
+     text. The headline states the news of the outlet's article listed first – the one the app opens under 'Læs' –
+     not another outlet's angle; no judgement of your own ('egentlige', 'reelle', 'i virkeligheden') unless it is
+     someone's statement ('Who: what'); no '– video' at the end. The tool refuses curiosity headlines, and an earlier
+     headline of yours that breaks these rules comes back under 'Headlines to write': write it anew.
    - `level`: how much Live holds today – `få` (a quiet day: only the sharpest; a quiet day is never padded), `normal`
-     (the day's most important; the default) or `mange` (a day of many strong stories). The radar applies it at once
-     and keeps it the rest of the Danish day; big stories and Danish politics on Islam, Muslims, integration and
-     foreign policy are never cut. Set it at the first update of the day and change it when the day turns; `note`:
-     one line of reality, why. `take`: stories from 'Just below the line' (or any story) that belong in Live today;
-     `drop`: stories in Live that are no news (light news, a duplicate, a feature). Give every story you take in a
-     headline too. Leave them out to keep today's.
+     (the day's most important; the default) or `mange` (a day of many strong stories). The radar applies it at its
+     next pass (within five minutes) and keeps it for the Danish day – through the night until your first update of
+     the next – as long as you publish at least every six hours (else it falls back to `normal`; the look calls you
+     before that happens); big stories and Danish politics on Islam, Muslims, integration and foreign policy are never
+     cut. Set it at the first update of the day and change it when the day turns; `note`: one line of reality, why.
+     `take`: stories from 'Just below the line' (or any story) that belong in Live; `drop`: stories in Live that are
+     no news (light news, a duplicate, a feature) – even a big story. Both hold today and tomorrow; your newest
+     decision on a story wins (a take today undoes yesterday's drop). Give every story you take in a headline too.
+     Leave them out to keep today's.
    - `front`: the front page, composed by your own editorial taste and the brain – which blocks, in what order, what
      leads, what each block is called – from the palette the input shows (top, liste, udvikling, citat, svar, live,
      linje; at most 8 blocks; a story in one block only; its stories in Live or taken in). The owner's taste: compact,

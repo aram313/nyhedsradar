@@ -244,7 +244,8 @@ def test_every_story_shown_is_asked_for_an_informative_headline_danish_ones_too(
     assert '  Teaser: Regeringen vil stramme' in asked and '  Others: TV 2: Stramning af statsborgerskab på vej' in asked
     assert asked.split('[s1]')[1].splitlines()[2] == '  (teaser and other outlets: listed above)'   # a new story: listed above
     assert '[s3]' not in asked and '[s2]' not in asked                    # headed already; older than the day
-    assert asked.index('[p1]') < asked.index('[s1]') < asked.index('[s5]')   # the strongest first
+    # the strongest first – after the ones the app shows worst (only the machine's Danish, or a curiosity headline)
+    assert asked.index('[p1]') < asked.index('[s5]') < asked.index('[s1]')
     publish(folder, tmp_path, {'lede': 'Dagen kort.', 'titles': [{'id': 's5', 'title': 'Teksten  på dansk'},
                                                                  {'id': 's1', 'title': 'Regeringen strammer reglerne for statsborgerskab'}]})
     out = json.loads((tmp_path / 'out' / 'summaries.json').read_text(encoding='utf-8'))

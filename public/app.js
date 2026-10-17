@@ -40,7 +40,7 @@ const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/'
 
 const RAW = { news: rawOf('lastData'), digest: rawOf('lastDigest'), sums: rawOf('lastSummaries'), front: rawOf('lastFront'), moves: rawOf('lastMoves') };
 idle(() => { try { localStorage.removeItem('lastSums'); localStorage.removeItem('lastTitles'); } catch { /* nothing kept */ } });   // the old copies (before 17/10)
-let data = parse(RAW.news, null);
+let data = slim(parse(RAW.news, null));
 let digest = parse(RAW.digest, null);
 let { sums, titles } = readSummaries(parse(RAW.sums, null));   // story id -> the editor's summary {text, paywall}; article id -> its headline
 let tab = 'home', query = '';
@@ -162,6 +162,15 @@ async function loadNews() {
   if (CFG.appUrl) { try { return await getText(CFG.appUrl); } catch { /* not there yet: the whole pool */ } }
   return getText(CFG.dataUrl);
 }
+// data.json, when it stands in for app.json, is the radar's whole pool: Live shows only what the radar admitted (each
+// story's `live`) and the big stories the editor did not drop – as app.json would; before the radar drew a line (no
+// `live` in the file) everything
+function slim(d) {
+  if (!d || !Array.isArray(d.items) || !d.live || typeof d.live !== 'object' || !d.items.some(i => i.live)) return d;
+  const drop = new Set(d.live.drop || []);
+  d.items = d.items.filter(i => i.live || (i.big && ![i.id, ...(i.members || [])].some(x => drop.has(x))));
+  return d;
+}
 const FRONT_URL = () => CFG.frontUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'front.json');
 // the editor's summaries and its headline of every story: a headline is filed under the story's id with its other
 // articles (members), so it still finds the story when another outlet's article leads it; the newest one wins
@@ -186,7 +195,7 @@ async function load(manual) {
   const fresh = (k, res) => res.status === 'fulfilled' && typeof res.value === 'string' && res.value !== RAW[k] ? res.value : null;
   if (news.status === 'fulfilled') {
     offline = false;
-    const t = fresh('news', news), d = t && parse(t, null);
+    const t = fresh('news', news), d = t && slim(parse(t, null));
     if (d && Array.isArray(d.items)) { RAW.news = t; data = d; changed = true; keepRaw('lastData', t); }
   } else {
     offline = true;
@@ -211,11 +220,14 @@ async function load(manual) {
   if (changed || manual || offline !== wasOffline || redrawAfterLoad) { redrawAfterLoad = false; renderSoon({ fresh: true, keep: true }); } else renderHeader();
 }
 // a reload's drawing waits while a finger is on the screen or the page still moves, so a scroll is never interrupted
-let lastScroll = 0, renderT = 0;
+let lastScroll = 0, renderT = 0, renderOpts = null;
 function renderSoon(opts) {
   clearTimeout(renderT);
-  if (touching || paging || scrubbing || pull || performance.now() - lastScroll < 300) { renderT = setTimeout(() => renderSoon(opts), 250); return; }
-  render(opts);
+  renderOpts = { ...(renderOpts || {}), ...(opts || {}) };   // two calls waiting draw once, with both wishes
+  if (touching || paging || scrubbing || pull || performance.now() - lastScroll < 300) { renderT = setTimeout(renderSoon, 250); return; }
+  const o = renderOpts;
+  renderOpts = null;
+  render(o);
 }
 
 // ---------------------------------------------------------------- what a story shows
@@ -257,11 +269,17 @@ function teaserHead(text) {
   if (s.length < 25 || /^[\p{Ll}]/u.test(s) || /^(?:https?:|www\.)/i.test(s) || curious(s)) return null;
   const plain = s.replace(/[.!]$/, '');
   if (plain.length <= HEAD_MAX) return { title: plain, rest: t.slice(s.length).trim(), cut: false };
+  // too long: end with the main clause, before a clause that only adds to it (', hvilket …', ', som …'), where one is
+  let clause = -1;
+  for (const m of plain.slice(0, HEAD_MAX).matchAll(/,\s(?:hvilket|hvorefter|som|der|hvor|mens|efter at|fordi|selvom|which|who|where|while|after|as)\s/gu)) if (m.index >= 50) clause = m.index;
+  if (clause > 0) return { title: plain.slice(0, clause), rest: '', cut: true };
   const at = plain.lastIndexOf(' ', HEAD_MAX - 2);
   return { title: plain.slice(0, at > 60 ? at : HEAD_MAX - 2).replace(/[\s,;:–-]+$/, '') + ' …', rest: '', cut: true };
 }
-// the editor's headline for a story: filed under any of its articles (its id, its members, its other outlets')
-const edTitle = i => titles[i.id] || (i.members || []).map(m => titles[m]).find(Boolean) || (i.also || []).map(a => titles[a.id]).find(Boolean) || '';
+// the editor's headline for a story: filed under any of its articles (its id, its members, its other outlets'); one of an
+// earlier round that is a curiosity headline itself ('Hvorfor …?', 'Analyse: …') gives way, until the editor writes it anew
+const edOk = t => (t && !curious(t) ? t : '');
+const edTitle = i => edOk(titles[i.id]) || (i.members || []).map(m => edOk(titles[m])).find(Boolean) || (i.also || []).map(a => edOk(titles[a.id])).find(Boolean) || '';
 // What a story is called: the editor's informative headline first (Danish outlets too); else the outlet's – in Danish,
 // the machine's, where the phone shows Danish; a plain curiosity headline gives way to its teaser's first sentence.
 // `how` says where the headline came from: 'ed' the editor, 'mt' the machine's translation, '' the outlet's own;
@@ -283,7 +301,10 @@ function display(i) {
   if (d.how !== 'ed' && curious(tidy(['da', 'en'].includes(i.lang) ? i.title : i.title_tr || ''))) {
     // the teaser in the language shown, else the outlet's own (a headline that says the news beats one that hides it)
     const own = !d.summary && i.summary && readable(i.summary), th = teaserHead(d.summary) || (own ? teaserHead(i.summary) : null);
+    // no teaser to stand in: another outlet's plain headline (Danish first, else English), with that outlet and its link
+    const alt = !th && ['da', 'en'].map(l => (i.also || []).find(a => a.lang === l && a.title && !curious(tidy(a.title)))).find(Boolean);
     if (th) d = { ...d, title: th.title, summary: th.cut ? d.summary || i.summary : th.rest, teased: true };
+    else if (alt) d = { ...d, title: tidy(alt.title), origTitle: alt.title, source: alt.source || d.source, link: alt.link || d.link, kw: [], teased: true, how: '' };
   }
   return d;
 }
@@ -641,16 +662,36 @@ function pick(list, n) {
   }
   return out.concat(rest.slice(0, n - out.length));
 }
-const isNew = i => lastSeen && i.found && new Date(i.found).getTime() > lastSeen && !shared[i.id];
+// A card is known by its lead article's id, and the lead changes when a better outlet joins the story. The card then
+// keeps what the reader had: opened, its other outlets unfolded, seen (no glow, not counted as new), shared, and its row –
+// renamed in place, not built again with its picture.
+const carried = new Map();   // a card's id now -> {from: its id before, found: when the story was first found}
+function carryOver(before, after) {
+  const was = new Map(), had = new Set(before.map(i => i.id)), has = new Set(after.map(i => i.id));
+  for (const i of before) for (const k of [i.id, ...(i.members || []), ...(i.also || []).map(a => a.id)]) if (!was.has(k)) was.set(k, i);
+  for (const i of after) {
+    if (had.has(i.id)) continue;
+    const p = [...(i.members || []), ...(i.also || []).map(a => a.id)].map(k => was.get(k)).find(p => p && !has.has(p.id));
+    if (!p) continue;
+    carried.set(i.id, { from: p.id, found: (carried.get(p.id) || {}).found || p.found });
+    carried.delete(p.id);
+    for (const set of [expanded, covOpen, shownIds]) if (set.has(p.id)) { set.delete(p.id); set.add(i.id); }
+    if (shared[p.id] && !shared[i.id]) shared[i.id] = shared[p.id];
+    for (const el of list.querySelectorAll('#' + CSS.escape('s-' + p.id))) { el.id = 's-' + i.id; el.dataset.id = i.id; }
+  }
+}
+const firstFound = i => (carried.get(i.id) || {}).found || i.found;
+const isNew = i => lastSeen && firstFound(i) && new Date(firstFound(i)).getTime() > lastSeen && !shared[i.id];
 let cache = null;
 let titlesVer = 0;
 function stories() {
   if (!data) return [];
   const mode = foreignMode + danish + titlesVer;
   if (cache && cache.src === data && cache.mode === mode) return cache.list;
-  const list = data.items.filter(visible).map(display);
-  cache = { src: data, mode, list, byId: new Map(list.map(i => [i.id, i])) };
-  return list;
+  const items = data.items.filter(visible).map(display);
+  if (cache && cache.src !== data) carryOver(cache.list, items);
+  cache = { src: data, mode, list: items, byId: new Map(items.map(i => [i.id, i])) };
+  return items;
 }
 const find = id => (stories(), cache && cache.byId.get(id));
 // a story can be found by any of its outlets' articles: its card follows whichever article leads it right now
@@ -675,10 +716,18 @@ function monogram(name) {
   if (w.length === 1) return caps.length > 1 ? caps.slice(0, 3) : w[0][0].toUpperCase();
   return (w[0][0] + w[1][0]).toUpperCase();
 }
-// a story's small picture; where it has none, or it cannot be loaded, the outlet's initials on a quiet tile
+// a story's small picture; where it has none, or it cannot be loaded, the outlet's initials on a quiet tile. The page
+// remembers a picture that failed (it is never asked for again, so a reload does not undo the fallback) and one that
+// has loaded in view (drawn without 'lazy' after, so a reload finds the row as it stands)
+const badPics = new Set(), nearPics = new Set();
+function picFailed(img, fallback) {
+  badPics.add(img.getAttribute('src'));
+  if (fallback && !badPics.has(fallback)) img.setAttribute('src', fallback); else img.remove();
+}
 function thumb(source, file) {
-  return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${file
-    ? `<img src="${esc(THUMBS + file)}" alt="" width="64" height="64" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</span>`;
+  const src = file && THUMBS + file, ok = src && !badPics.has(src);
+  return `<span class="th" aria-hidden="true"><b>${esc(monogram(source))}</b>${ok
+    ? `<img src="${esc(src)}" alt="" width="64" height="64"${nearPics.has(src) ? '' : ' loading="lazy"'} decoding="async" onerror="picFailed(this)">` : ''}</span>`;
 }
 function meta(i, opts = {}) {
   const m = [];
@@ -703,11 +752,12 @@ function story(i, n, opts = {}) {
 }
 // the day's lead story: its own picture big (the outlet's original, else our small copy), headline on top of it
 function heroStory(i, n, opts) {
-  const open = expanded.has(i.id), small = THUMBS + i.thumb;
+  const open = expanded.has(i.id), small = i.thumb ? THUMBS + i.thumb : '';
+  const src = [i.pic, small].find(x => x && !badPics.has(x)) || '';
   shownAs.set(i.id, i);
   return `<article class="story hero${open ? ' open' : ''}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}" data-tag="1" data-top="1">
-    <div class="hero-row"><img src="${esc(i.pic || small)}" alt="" decoding="async"
-      onerror="if (this.src !== '${esc(small)}') this.src = '${esc(small)}'"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(i.title)}"></button><span class="hero-tx"><span class="h" dir="auto">${headHtml(i, open)}</span>
+    <div class="hero-row">${src ? `<img src="${esc(src)}" alt="" decoding="async"
+      onerror="picFailed(this, '${esc(src === small ? '' : small)}')">` : ''}<button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(i.title)}"></button><span class="hero-tx"><span class="h" dir="auto">${headHtml(i, open)}</span>
       <span class="m">${meta(i, opts)}</span></span></div>
     <div class="x"><div><div class="x-in">${open ? detail(i, { noAns: true }) : ''}</div></div></div></article>`;
 }
@@ -883,8 +933,9 @@ async function loadWire() {
   staleOn(['home']);
 }
 // 'Live' on the front page: the three newest stories of the Live list (established outlets); a tap opens the story there
-function nowStrip(n = 3) {
-  const last = stories().filter(i => i.confirmed !== 0).sort((a, b) => when(b) - when(a)).slice(0, n);
+function nowStrip(n = 3, used = null) {   // used: the stories the page shows already (a story in one block only)
+  const last = stories().filter(i => i.confirmed !== 0 && !(used && used.has(i.id))).sort((a, b) => when(b) - when(a)).slice(0, n);
+  if (used) last.forEach(i => used.add(i.id));
   if (!last.length) return '';
   return `<section class="now"><div class="now-h"><i></i>Live</div><ul>${last.map(i =>
     `<li><button data-live="${esc(i.id)}"><time>${clock(i.published || i.found)}</time><span dir="auto">${esc(i.title)}</span><em>${esc(i.source)}</em></button></li>`).join('')}</ul></section>`;
@@ -1006,7 +1057,8 @@ function frontNow() {
   const f = front;
   if (!f || !Array.isArray(f.blocks) || !f.blocks.some(b => b && FRONT_KINDS.has(b.kind))) return null;
   const age = Date.now() - Date.parse(f.updated || '');
-  if (!(age < 6 * 3600e3) && (Number.isNaN(age) || dkHour() >= 6)) return null;
+  // older than six hours between 06 and 24; at night the evening's holds, but never one older than twelve hours
+  if (Number.isNaN(age) || age > 12 * 3600e3 || (age > 6 * 3600e3 && dkHour() >= 6)) return null;
   return f;
 }
 const threadNamed = name => name && allThreads().find(t => t.key === thrKey(String(name)));
@@ -1021,8 +1073,9 @@ function composedHome(all, opts, f) {
   for (const b of f.blocks) {
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
     if (b.kind === 'top') {
-      const first = !tops++, i = take(first && pin ? pin.id : b.story);
-      if (!i) continue;
+      const first = !tops, i = take(first && pin ? pin.id : b.story);
+      if (!i) continue;   // its story left Live: the next main block is the day's story
+      tops++;
       // the editor's headline for the front page; the owner's pick wears its own
       const t = first && pin && pin.id !== (findStory(b.story) || {}).id ? '' : String(b.title || '');
       const shown = t ? { ...i, title: t, kw: [...new Set([...(i.kw || []), ...(i.kw_da || [])])] } : i;
@@ -1057,10 +1110,22 @@ function composedHome(all, opts, f) {
       if (a) html += `<div class="ans-ref f-svar">${answerLine(a)}</div>`;
       else if (waiting('mix') || waiting('ans')) html += `<div class="ans-ref f-svar" data-ans-nr="${esc(b.nr || '')}"></div>`;
     } else if (b.kind === 'live') {
-      const strip = nowStrip(Math.max(1, Math.min(10, +b.n || 3)));
+      // the newest stories no other block shows (also those a later block names)
+      const named = f.blocks.flatMap(x => x && x.kind === 'top' ? [x.story, ...(x.with || [])] : x && x.kind === 'liste' ? x.stories || [] : [])
+        .map(x => findStory(String(x || ''))).filter(Boolean).map(i => i.id);
+      const skip = new Set([...used, ...named]), strip = nowStrip(Math.max(1, Math.min(10, +b.n || 3)), skip);
+      for (const id of skip) if (!named.includes(id)) used.add(id);
       if (strip) html += strip.replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
     } else if (b.kind === 'linje' && b.text) {
       html += `<p class="f-line">${rich(String(b.text), linkSession())}</p>`;
+    }
+  }
+  if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
+    const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
+    if (m) {
+      const hero = !!(m.thumb || m.pic);
+      html = `<section class="block top pkg${hero ? '' : ' text'}" data-sec="${secOf(m)}">${blockHead('Dagens historie')}`
+        + story(m, n++, { ...opts, tag: true, top: true, hero, lead: !hero }) + answerRef(m, '', svarSet) + '</section>' + html;
     }
   }
   return filled ? html : null;   // a composition with none of its stories left: the fixed page
@@ -1104,7 +1169,7 @@ function fixedHome(all, opts) {
     ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
   html += followStrip(pkg && pkg.topic);
   if (!pq) html += quoteOfDay(pin);   // no statement from the main story (or the owner picked one): the day's quote
-  html += nowStrip().replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
+  html += nowStrip(3, new Set([lead, ...rest].filter(Boolean).map(i => i.id))).replace('</section>', '<button class="now-more" data-go="latest">Se alt i Live<svg><use href="#i-chev"/></svg></button></section>');
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
   html += `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn<br>og valgt ${day} ud.</p>`;
   return html;
@@ -1657,13 +1722,20 @@ function drawSoon() {
   }, 120);
 }
 // something only some pages show has changed: draw the page in view if it is one of them, the rest in a quiet moment
-function staleOn(tabs) { if (tabs.includes(tab)) render({ keep: true }); else { ver++; drawSoon(); } }
+function staleOn(tabs) { if (tabs.includes(tab)) renderSoon({ keep: true }); else { ver++; drawSoon(); } }
 // a file of the wiki or the answers came: only the pages that show it are drawn again – the one in view at once, in
 // place (an answer line or a link that arrives above what one reads moves nothing)
+let redrawT = 0;
+const redrawFor = new Set();
 function redrawPages(tabs) {
-  for (const t of tabs) { const p = pageEl(t); if (p && p.dataset.ver) p.dataset.ver = -1; }
-  if (tabs.includes(tab) && (data || OWN[tab])) draw(tab, { keep: true });
-  drawSoon();
+  for (const t of tabs) { const p = pageEl(t); if (p && p.dataset.ver) p.dataset.ver = -1; redrawFor.add(t); }
+  clearTimeout(redrawT);
+  (function now() {   // never under a finger or a scroll that still moves
+    if (handBusy()) { redrawT = setTimeout(now, 250); return; }
+    if (redrawFor.has(tab) && (data || OWN[tab])) draw(tab, { keep: true });
+    redrawFor.clear();
+    drawSoon();
+  })();
 }
 // pictures: the first ones on a page load at once (on a page beside the one in view too, so a swipe shows them), the
 // rest as the page scrolls near them – the browser's own lazy loading does not look ahead inside a page that scrolls
@@ -1672,7 +1744,7 @@ const picWatch = new Map();
 function pictures(pg) {
   let io = picWatch.get(pg);
   if (!io) {
-    io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.removeAttribute('loading'); io.unobserve(e.target); } }),
+    io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { nearPics.add(e.target.getAttribute('src')); e.target.removeAttribute('loading'); io.unobserve(e.target); } }),
       { root: pg, rootMargin: '1200px 0px' });
     picWatch.set(pg, io);
   }
@@ -1707,7 +1779,7 @@ function renderDots(all) {
   document.querySelector('.tabs [data-tab="home"]').classList.toggle('has-new',
     tab !== 'home' && !!(digest && digest.created && lastSeen && new Date(digest.created).getTime() > since('home')));
   document.querySelector('.tabs [data-tab="latest"]').classList.toggle('has-new', tab !== 'latest' &&
-    all.some(i => i.found && new Date(i.found).getTime() > Math.max(since('latest'), Date.now() - 6 * 3600e3)));
+    all.some(i => firstFound(i) && new Date(firstFound(i)).getTime() > Math.max(since('latest'), Date.now() - 6 * 3600e3)));
   // Analyser: a new answer of the amir's the phone has not seen there yet
   if (tab === 'analyses') markAnswersSeen();
   document.querySelector('.tabs [data-tab="analyses"]').classList.toggle('has-new', tab !== 'analyses' && unseenAnswer());
@@ -2668,7 +2740,9 @@ function phoneText() {
   return px ? Math.min(1.6, Math.max(0.85, px / 17)) : 1;   // 17 is iPhone's standard size
 }
 function applyTextSize() {
-  list.style.setProperty('--ts', (textSize === 'auto' ? phoneText() : +textSize || 1).toFixed(3));
+  const ts = textSize === 'auto' ? phoneText() : +textSize || 1;
+  list.style.setProperty('--ts', ts.toFixed(3));
+  list.classList.toggle('ts-l', ts >= 1.15);   // large text: a closed headline gets a third line (the row's height holds it)
   document.querySelectorAll('#sizeSeg [data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === textSize));
 }
 $('sizeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { textSize = b.dataset.v; store.set('textSize', textSize); applyTextSize(); } });

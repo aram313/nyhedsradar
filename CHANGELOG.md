@@ -90,6 +90,49 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
     '· sag'; Analyser's years and the index's letters as a sliding row of chips; long lists unfold twenty at a time;
     the broadest pages (USA, Storbritannien) link after the specific names; nothing moves under the reader when the
     answer line or the links arrive; 'Vis færre' works again (its helper was missing); moves.json is fetched once.
+- **Round 2 of the brain: the editor writes every headline, sets how much Live holds and composes the front page; the
+  app is faster** (the owner's rules of 2026-10-17: docs/hjerne/notes-owner-headlines.md, notes-owner-volume.md,
+  notes-owner-front.md, notes-owner-sources.md, notes-owner-performance.md):
+  - **Informative headlines for every story.** The editor writes its own headline for every story Live shows, Danish
+    outlets too – who did or said what, where, never a teaser. The input lists up to 30 stories still without one (big
+    first, then the ones the app shows worst); `voice.check_headline` refuses questions, 'Derfor/Se/Her er/Sådan …',
+    cliff-hangers, '– video', labels and judgements of its own ('egentlige', 'i virkeligheden') unless they are
+    someone's statement. A headline is filed with the story's members, so it survives a change of lead. The app shows
+    the editor's headline first; until there is one, the outlet's – or, for a plain curiosity headline, the teaser's
+    first sentence or another outlet's plain headline. The opened story names the original ('Originaloverskrift').
+  - **The day's level.** The editor sets `få`, `normal` or `mange` and may take a story in or drop one (live.json on
+    the digest branch); the radar (`src/radar/level.py`) turns the level into a rank floor and a soft count for the last
+    24 hours – få about 30–40 stories, normal 43–56, mange 75–86 on 15–17 October – never cuts a big story or Danish
+    politics on Islam, Muslims, integration and foreign policy, keeps what it showed while its rank stays near the line,
+    and writes a slim **app.json** (the admitted stories of 48 hours and the big ones: 168 KB against data.json's 979
+    KB). Notifications only for stories Live shows. A level holds for the Danish day while the editor publishes at least
+    every six hours, through the night until the morning's update; take and drop hold two days, the newest decision on
+    a story winning.
+  - **The front page composed by the editor** (front.json): blocks in its order – top (Dagens historie with its
+    timeline), liste (a titled group, compact or with pictures), udvikling, citat, svar (the amir's answer, attributed),
+    live and linje (one line of reality) – checked by `publish` (at most 8 blocks, a story once, its stories in Live,
+    titles that never look like day markers). The app draws it with its own pieces; missing, unreadable or older than
+    six hours between 06 and 24 (twelve at night), the fixed front page shows.
+  - **The sources' fit** leads a story: the most informative outlet's article leads (fit, a Danish headline, a teaser;
+    a curiosity headline loses) and fit moves the rank by −5 … +3 – curiosity headlines leading a story of several
+    outlets fell from 8 to 1. Filters at intake (feeds.json `drop`/`cut`): Times of Israel's blogs, Jerusalem Post's
+    opinion pieces, BT's betting ads, Ahram's sport, Shafaq's prefix, Google News site tails, Telegram's speaker-only
+    first lines; the language per post (Daily Islamist's Turkish posts).
+  - **Faster and smoother** (measured at 5× slowed CPU): a reload patches the page instead of rebuilding it and keeps the
+    row being read in place – no long task while reading or scrolling Live (136–159 ms before), pull to refresh's worst
+    frame 170 → 37 ms, back from a side page 163 → 4 ms, scrolling Live's worst frame 85 → 15 ms, the intro's longest
+    task 536 → 238 ms; files that have not changed are neither read nor drawn; the four files are fetched side by side;
+    no blur on the tab bar, no staggered rise of every row, no colour transitions; rows out of sight are skipped.
+  - **Review fixes** (docs/hjerne/notes-r2-review.md): the level no longer lapses between the editor's updates (it held
+    only two hours); a dropped big story leaves app.json; without app.json the app shows only what the radar admitted;
+    a take today undoes yesterday's drop; round 1's curiosity headlines are written anew and removed; the channels'
+    names for Israel ('den zionistiske fjende', 'besættelsesstyrker' in Israel's place) and 'heroisk' are refused in the
+    editor's own voice; a story whose lead changes keeps its place, stays open and does not glow as new; the front
+    page's Live strip no longer repeats the main story; at large text the headlines get a third line and the main
+    story's its full three; a failed picture is not fetched again at every reload; redraws wait for the finger; every
+    story that waited 45 minutes for its headline counts; a composition's day lines do not cross midnight.
+  - Notes: docs/hjerne/notes-r2-editor.md, notes-r2-radar.md, notes-r2-app.md, notes-r2-speed.md, notes-r2-review.md;
+    the deploy checklist: docs/hjerne/launch.md.
 - New page khabar.nu/energi (link in Indstillinger): 'Lige nu' in wire style (Brent, physical oil against paper, the forward curve, the diesel margin, the cheapest pump price), then Råolie (Brent and WTI futures and physical spot), Det fysiske marked (physical minus paper Brent, the forward curve with backwardation/contango, Brent−WTI), Raffinørmargin (3-2-1, diesel and gasoline cracks), Benzin, diesel og jet (futures and New York/Gulf spot), Danmark (every chain's list price at Circle K, INGO, Q8 and F24 with premium and HVO, the cheaper single stations, the raw product's share of a litre, prices in kroner and the dollar), Gas (TTF, Henry Hub) and the energy stories of the last three days. Every price opens in place into a chart you can touch (1, 3 or 6 months) with what it is and where it comes from. The radar job fetches the numbers after each pass (`src/radar/energy.py` → `energy.json` on the data branch); pump prices are kept one point a day from 17 October 2026.
 - More core words for the great-power contest, from the owner's reading of geopolitics: NATO, the Security Council and veto, the straits (Hormuz, Bab el-Mandeb, Suez, Bosporus), military bases, coups, nuclear weapons, blockades, peace plans and normalisation, great powers, the Pentagon, the Kremlin, the White House, BRICS and the IMF (also in Arabic). On today's data a few such stories rose into the top 40 of Mellemøsten and Verden.
 - Light news (weather, royals, sport, celebrities) loses 30 rank points instead of 20, as the owner asked (`rank_trivia` in config/settings.json). On today's data the top of every section is unchanged; one light Danish story fell below the list. `scripts/rank_check.py` works again (its stand-in for notifications took too few arguments).

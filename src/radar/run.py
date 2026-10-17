@@ -888,8 +888,7 @@ def main():
     # hours and every big story, with only the fields the app reads (public/app.js) – a fraction of data.json
     save(STATE / 'app.json', {
         **common,
-        'items': [app_item(it) for it in shown
-                  if it['big'] or (it['live'] and NOW - ts(it['published'] or it['found']) <= timedelta(hours=48))],
+        'items': [app_item(it) for it in shown if level.in_app(it, day_plan)],   # a big story the editor dropped: out too
         'sources': {k: {'label': label_of.get(k, k), 'group': group_of.get(k, 'west'),
                         **({'failing_runs': health[k]} if health.get(k) else {})} for k in status},
         'live': {'level': live_info['level'], 'n_24h': live_info['n_24h']},

@@ -12,35 +12,53 @@ branch. The radar applies it at every pass, so a strong story reaches Live at on
 - a big story, and Danish politics on Islam, Muslims, integration and foreign policy, is never cut (`protect`);
 - take admits a story of the pool, drop removes one (even a big one: the editor's decision); an id matches a story when
   it is the story's id or one of its members;
-- no live.json, no plan for today's Danish date, or one older than `STALE` between 06 and 24 → level 'normal'
-  (take and drop still apply: they are decisions about single stories).
+- the level holds for the Danish day it was set for: between 00 and 06 the evening's level holds until the editor's
+  first update of the day; no live.json, no plan for today, or a file not written for `STALE` between 06 and 24 (the
+  editor has stopped: its updates come at most about two hours apart) → level 'normal' (take and drop still apply:
+  they are decisions about single stories);
+- take and drop of the two days the editor keeps: for one story the newest decision wins (today's take undoes
+  yesterday's drop, and the reverse); on the same day drop wins.
 
 The stories older than 24 hours (up to 48, the app's window) keep the admission they had: the radar remembers every
 admitted story's members in state/admitted.json."""
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 LEVELS = ('få', 'normal', 'mange')
 DEFAULT = 'normal'
-STALE = timedelta(hours=2)
+STALE = timedelta(hours=6)   # the front page's own limit (FRONT_STALE): longer than any gap between the editor's updates
 MAX_IDS = 300   # take/drop ids read from one day (a broken file must not make every story an exception)
 
 
 def plan(live, today, local_hour, now):
-    """The day's plan from live.json: {'level', 'why', 'note', 'updated', 'take': set, 'drop': set}."""
+    """The day's plan from live.json: {'level', 'why', 'note', 'updated', 'take': set, 'drop': set, 'when': {id: day}}."""
     live = live if isinstance(live, dict) else {}
     days = live.get('days') if isinstance(live.get('days'), dict) else {}
-    take, drop = set(), set()
-    for entry in days.values():   # the editor keeps two days; a story's exception holds while its day is kept
-        if isinstance(entry, dict):
-            take |= {x for x in (entry.get('take') or [])[:MAX_IDS] if isinstance(x, str)}
-            drop |= {x for x in (entry.get('drop') or [])[:MAX_IDS] if isinstance(x, str)}
+    take, drop, when = set(), set(), {}
+    for day in sorted(k for k in days if isinstance(k, str)):   # oldest first: a newer day's decision on an id wins
+        entry = days[day]
+        if not isinstance(entry, dict):
+            continue
+        for f, mine, other in (('take', take, drop), ('drop', drop, take)):   # on one day drop wins
+            for x in (entry.get(f) or [])[:MAX_IDS]:
+                if isinstance(x, str):
+                    other.discard(x)
+                    mine.add(x)
+                    when[x] = day
     entry = days.get(today) if isinstance(days.get(today), dict) else None
+    why_ok = 'redaktøren'
+    if not entry and local_hour < 6:   # the night: the evening's level holds until the editor's first update of the day
+        try:
+            entry = days.get((date.fromisoformat(today) - timedelta(days=1)).isoformat())
+            entry = entry if isinstance(entry, dict) else None
+            why_ok = 'i går'
+        except ValueError:
+            entry = None
     updated = None
     try:
         updated = datetime.fromisoformat(live['updated']) if live.get('updated') else None
     except (TypeError, ValueError):
         pass
-    level, why = DEFAULT, 'redaktøren'
+    level, why = DEFAULT, why_ok
     if not live:
         why = 'ingen live.json'
     elif not entry:
@@ -52,7 +70,24 @@ def plan(live, today, local_hour, now):
     else:
         level = entry['level']
     return {'level': level, 'why': why, 'note': (entry or {}).get('note'), 'updated': live.get('updated'),
-            'take': take - drop, 'drop': drop}
+            'take': take, 'drop': drop, 'when': when}
+
+
+def decision(the_plan, ids):
+    """'take', 'drop' or None for a story known by these ids: the newest day's decision on any of them wins (a card's
+    lead changes, so two days may name one story by two ids); on one day drop wins."""
+    take, drop, when = the_plan.get('take') or set(), the_plan.get('drop') or set(), the_plan.get('when') or {}
+    t, d = ids & take, ids & drop
+    if not t or not d:
+        return 'take' if t else 'drop' if d else None
+    return 'take' if max(when.get(x, '') for x in t) > max(when.get(x, '') for x in d) else 'drop'
+
+
+def in_app(story, the_plan):
+    """Whether app.json carries the story: admitted to Live now, or a big story (also one older than Live's 48 hours)
+    the editor has not dropped – drop wins over everything."""
+    return bool(story.get('live')) or (bool(story.get('big'))
+                                       and decision(the_plan, {story['id'], *(story.get('members') or [])}) != 'drop')
 
 
 def admit(pool, levels, margin, the_plan, record, now, when, protect, window=timedelta(hours=24), keep=timedelta(hours=48)):
@@ -61,7 +96,6 @@ def admit(pool, levels, margin, the_plan, record, now, when, protect, window=tim
     new record, a summary for data.json). why is one of take, big, dk (protected), rank, kept (admitted earlier and
     still within the margin)."""
     floor, count = levels[the_plan['level']]
-    take, drop = the_plan['take'], the_plan['drop']
     ids = lambda st: set(st.get('members') or []) | {st['id']}
     seeded = bool(record)
     out, n_day, last = {}, {}, {}
@@ -72,10 +106,11 @@ def admit(pool, levels, margin, the_plan, record, now, when, protect, window=tim
         n, line = 0, floor
         for st in sorted(stories, key=lambda st: -st['rank']):
             mine = ids(st)
-            if mine & drop:
+            said = decision(the_plan, mine)
+            if said == 'drop':
                 continue
             was = bool(mine & record.keys())
-            why = 'take' if mine & take else protect(st)
+            why = 'take' if said == 'take' else protect(st)
             fresh = bucket == 'day' or not seeded   # the first pass ever decides the day before as well
             if not why and fresh and st['rank'] >= floor:
                 if n < count:
@@ -107,7 +142,7 @@ def admit(pool, levels, margin, the_plan, record, now, when, protect, window=tim
         if st['id'] in out:
             for k in mine:
                 new_record.setdefault(k, now.isoformat())
-        elif mine & drop:
+        elif decision(the_plan, mine) == 'drop':
             for k in mine:
                 new_record.pop(k, None)
     why_count = {}
@@ -118,5 +153,5 @@ def admit(pool, levels, margin, the_plan, record, now, when, protect, window=tim
                'plan_updated': the_plan.get('updated'), 'floor': floor, 'count': count, 'margin': margin,
                'line': last.get('rank', floor) if last.get('capped') else floor, 'n_24h': n_day.get('day', 0), 'n_48h': len(out),
                'by_why_24h': why_count, 'candidates_24h': len(recent),
-               'take': sorted(take), 'drop': sorted(drop)}
+               'take': sorted(the_plan.get('take') or ()), 'drop': sorted(the_plan.get('drop') or ())}
     return out, new_record, summary

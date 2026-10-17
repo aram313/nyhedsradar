@@ -1,19 +1,22 @@
 """Khabar's content rules as checks, ported from Khabar 2 (scripts/editor2.py, scripts/knowledge.py and
 scripts/build_movement.py on the khabar2 branch). editor.py publish runs them on what the editor writes.
 
-    check_voice(text, where, problems)     every Danish text: no praise of or call to violence; judge states, rulers,
-                                           policies and ideas – never peoples, religions or anyone's belief; 'Israel'
-                                           in Khabar's own voice ('den jødiske entitet' only inside a quotation); no
-                                           forgeries or conspiracy myths (card H4, H5, D10)
+    check_voice(text, where, problems)     every Danish text: no praise of or call to violence ('heroisk', 'helte' near
+                                           fighting); judge states, rulers, policies and ideas – never peoples, religions
+                                           or anyone's belief; 'Israel' and 'israelske styrker' in Khabar's own voice
+                                           ('den jødiske entitet', 'den zionistiske fjende', 'besættelsesstyrker' only
+                                           inside a quotation); no forgeries or conspiracy myths (card H4, H5, D10)
     check_reality(text, where, problems)   Khabar's own text (the lede, the summaries) is reality only: none of the
                                            movement's reading words (standing, rank, serving) and never Hizb
                                            ut-Tahrir's reading – the brain weighs the news, the app shows no analysis
                                            (card H2; the owner's decision of 2026-10-17)
     check_headline(text, where, problems)  the editor's headlines, block titles and front-page lines: informative, never a
                                            curiosity headline (a question, 'Derfor …', 'Se …', 'Her er …', 'Sådan …',
-                                           'Det skal du vide', a cliff-hanger colon or '…'; English equivalents – the
-                                           owner's rule of 2026-10-17), and the voice and reality checks (the source's
-                                           own words inside »…« are its framing); curiosity(text) says which words
+                                           'Det skal du vide', a cliff-hanger colon or '…', '– video' at the end;
+                                           English equivalents – the owner's rule of 2026-10-17), no judgement of its
+                                           own ('egentlige', 'i virkeligheden') unless as 'Who: what', and the voice and
+                                           reality checks (the source's own words inside »…« are its framing);
+                                           curiosity(text) says which words
     check_movement(text, where, problems)  a reading of one of Hizb ut-Tahrir's answers (the answer object): no agent
                                            words (the layer says 'underordnet'); no attack with dead said to be staged
                                            or sponsored unless deeds are said to be missing; no claim that a mosque, an
@@ -34,6 +37,23 @@ VOICE_BANNED = [   # a call to arms ('Til våben!', 'grib til våben'), not a th
     (re.compile(r'\b(zions vise|protokol\w* fra zion|franklin-citat\w*|IS (blev )?skabt af)\b', re.I),
      'no forgeries or conspiracy myths (H5)'),
 ]
+# outside a quotation (»…«) only: the channels' own names for Israel's state and forces ('den zionistiske fjende',
+# 'Zionist-regimet') – Khabar says Israel, 'israelske styrker' (H5) – and praise of fighters ('heroisk', 'helte' near
+# an attack or an operation: H4). The ideology is named as an idea ('zionismen') and stays allowed. A source's framing
+# word ('besættelsesstyrker', 'Israeli occupation aircraft' → 'Israelske besættelsesfly') may be kept – the owner's
+# headline rule – but only beside Israel's own name: never in its place ('Besættelsesstyrker anholder …').
+OWN_VOICE = [
+    (re.compile(r'\b(zionist(?:isk|iske)?[\s-]*(?:fjende\w*|regime\w*|styrke\w*|stat\b|staten\w*|hær\w*|bosætter\w*|soldat\w*|'
+                r'besættelse\w*|entitet\w*|myndighed\w*|fly\b|flyene|angreb\w*|krigsmaskine\w*)|zionisterne\w*)', re.I),
+     "Khabar says 'Israel' and 'israelske styrker'; the channels' own names only inside a quotation with who said it (H5)"),
+    (re.compile(r'\bheroisk\w*', re.I),
+     "no praise of violence in Khabar's own voice – say what happened (H4)"),
+]
+OCCUPATION = re.compile(r'\b(besættelses(?:styrke|hær|stat|myndighed|soldat|regering|regime|politi|tropp|fly|magten)\w*)', re.I)
+ISRAEL_NAMED = re.compile(r'\bisrael', re.I)
+HERO = re.compile(r'\b(?:helt(?:e|ene|enes|emodig\w*)|heltedåd\w*)\b', re.I)
+VIOLENCE = re.compile(r'\b(\w*angreb\w*|operation\w*|modstand\w*|kamp\w*|kæmpe\w*|\w*bombe\w*|dræb\w*|raket\w*|soldat\w*|'
+                      r'styrker|krig\w*|martyr\w*|faldne)\b', re.I)
 AGENT_WORDS = re.compile(r'\b(agent\w*|marionet\w*|lakaj\w*|bagmand\w*|står bag|stod bag|iscenesat\w*|iscenesæt\w*|'
                          r'på ordre fra|på vegne af|tjener \w+ interesser|går \w+ ærinde|aftalt spil|patron\w*|hoflærd\w*|'
                          r'del af kampagnen|forræder\w*|vasal\w*|proxy\w*|stedfortræder\w*|styret af|falsk flag)', re.I)
@@ -80,7 +100,8 @@ NOT_RULING = ('Compaoré', 'Kaboré', 'Tandja', 'Hasina', 'Kongrespart', 'Kongre
 CURIOUS_DA = re.compile(r'(?:^|[:–—]\s*|\s-\s+)[»«"„“\']?(derfor|se|her er|her får du|her kan du|her ser du|sådan|'
                         r'det skal du vide|dét skal du vide|hvorfor|hvordan)\b', re.I)
 # at the start only: after a colon these open a quoted statement as often as a teaser ('Kreml: Dette er en provokation')
-CURIOUS_OPEN = re.compile(r'^[»«"„“\']?(det ved vi|det betyder|dette er|det her er|det sker der|hvad|hvem|hvornår|'
+CURIOUS_OPEN = re.compile(r'^[»«"„“\']?(det ved vi|det betyder|dette er|det her er|det sker der|dette sker|det her sker|'
+                          r'nu sker der|hvad|hvem|hvornår|'
                           r'hvilke[nt]?|hvor (?:meget|mange|langt|stor)|så (?:meget|mange)|nu sker det|forklaring|læs)\b', re.I)
 CURIOUS_EN = re.compile(r"(?:^|[:–—]\s*|\s-\s+)[»«\"'“]?(Why|How|What|Who|When|Where|Which|Here's|Here’s|Here is|This is|"
                         r"These are|Watch|See|Explained|Everything you need|The reason|You won't believe|Inside)\b")
@@ -89,6 +110,13 @@ CURIOUS_ANY = re.compile(r'og det er ikke godt|eksperter? undrer sig|eksperter? 
                          r"you need to know|you won.t believe|what we know|what to know|what you need", re.I)
 CURIOUS_END = re.compile(r'(?:…|\.\.\.|:)\s*[»«"”]?\s*$')
 EDGES = ' :–—-»«"„“\''
+CURIOUS_TAIL = re.compile(r'\s[-–—]\s*(?:video|se video|se|se billederne|billeder|fotos?|live|watch|photos)\s*$|'
+                          r'\((?:video|billeder|fotos?|live)\)\s*$', re.I)
+# a judgement of Khabar's own in a headline ('Israels egentlige valgtema', 'i virkeligheden'): allowed only as someone's
+# statement, 'Who: what' (the reviewers 2026-10-17: an op-ed's thesis read as Khabar's own words)
+JUDGED = re.compile(r'\b(egentlig(?:e|t)?|reelle|reelt|i virkeligheden|vejer tungere|i realiteten|den sande|det sande|'
+                    r'skjulte dagsorden|afslører sig|viser sit sande)\b', re.I)
+SAID_BY = re.compile(r'^(?:[^\s:»«"]+\s+){0,4}[^\s:»«"]+:\s')   # a who of at most five words before the colon
 CURIOUS_LABEL = re.compile(r'^\s*(?:video|billeder|fotos?|chok|afsløring|afsløret|watch|photos|revealed|shock)\s*:', re.I)
 
 
@@ -99,7 +127,7 @@ def curiosity(text):
         return None
     if '?' in t:
         return 'a question'
-    for rx in (CURIOUS_LABEL, CURIOUS_DA, CURIOUS_OPEN, CURIOUS_EN, CURIOUS_ANY):
+    for rx in (CURIOUS_LABEL, CURIOUS_DA, CURIOUS_OPEN, CURIOUS_EN, CURIOUS_ANY, CURIOUS_TAIL):
         hit = rx.search(t)
         if hit:
             words = hit.group(0).strip(EDGES)
@@ -118,6 +146,11 @@ def check_headline(text, where, problems):
                         "(a statement, as a news wire writes it; 'Who: what' is fine)")
     check_voice(text, where, problems)
     check_reality(QUOTE.sub('', text or ''), where, problems)   # the source's own words inside »…« are its framing
+    plain = QUOTE.sub('', text or '')
+    hit = JUDGED.search(plain)
+    if hit and not SAID_BY.match(plain):
+        problems.append(f"{where}: '{hit.group(0)}' is a judgement – in a headline only as someone's statement ('Who: what'); "
+                        'else state what happened')
 
 
 LOCAL = re.compile(r'\b[A-Za-z]:[\\/]|[\\/]Alpha[\\/]|pCloud|[\\/]Users[\\/]', re.I)
@@ -130,6 +163,19 @@ def check_voice(text, where, problems):
         hit = rx.search(text or '')
         if hit:
             problems.append(f"{where}: '{hit.group(0)}' – {why}")
+    own = QUOTE.sub('', text or '')   # a quotation is the speaker's
+    for rx, why in OWN_VOICE:
+        hit = rx.search(own)
+        if hit:
+            problems.append(f"{where}: '{hit.group(0)}' – {why}")
+    hit = OCCUPATION.search(own)
+    if hit and not ISRAEL_NAMED.search(own):
+        problems.append(f"{where}: '{hit.group(0)}' in Israel's place – name Israel ('israelske styrker', 'Israels "
+                        "besættelsesstyrker'); the source's word only beside the name (H5)")
+    for m in HERO.finditer(own):
+        if VIOLENCE.search(own[max(0, m.start() - 80):m.end() + 80]):
+            problems.append(f"{where}: '{m.group(0)}' near fighting – no praise of violence in Khabar's own voice (H4)")
+            break
 
 
 def check_reality(text, where, problems):

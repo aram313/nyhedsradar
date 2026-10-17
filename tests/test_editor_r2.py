@@ -129,7 +129,7 @@ def test_the_wait_counts_from_the_radars_admission_and_the_line_is_read_as_the_r
     data['live'] = {'level': 'normal', 'why': 'forældet', 'floor': 96, 'count': 45, 'line': 96, 'n_24h': 1}
     write(folder, 'data.json', data)
     write(folder, 'admitted.json', {'s1': '2026-10-10T12:45:00+00:00'})          # admitted 14.45, found 14.01
-    write(folder, 'live.json', {'updated': '2026-10-10T08:00:00+00:00',
+    write(folder, 'live.json', {'updated': '2026-10-10T10:00:00+00:00',
                                 'days': {'2026-10-10': {'level': 'mange', 'take': [], 'drop': [], 'note': ''}}})
     out = check(folder, capsys, now='2026-10-10T13:20:00+00:00')                  # 15.20: 35 minutes since admitted
     assert out[3] == ("Live: level mange (set by the editor) · 1 admitted in 24 h · the radar's line: rank 96 · "
@@ -268,3 +268,85 @@ def test_the_check_names_the_composition(folder, capsys):
         {'kind': 'top', 'story': 's1'}, {'kind': 'liste', 'title': 'Danmark', 'stories': ['s3']}]})
     out = check(folder, capsys)
     assert "  Composition (10.10 14.00): top, liste 'Danmark' – OLDER THAN 6 HOURS: the app shows its fixed page" in out
+
+
+# ------------------------------------------------------------------ the reviewers' findings of 2026-10-17
+
+@pytest.mark.parametrize('title', [
+    'Besættelsesstyrker anholder to palæstinensere i Silwad', 'Den zionistiske fjende bomber Gaza',
+    'Zionist-regimet dræber 12 i Gaza', 'Zionistiske bosættere angriber landsby nær Nablus',
+    'Heroisk modstand slår israelske styrker tilbage', 'Modstandskæmpere angriber i en heroisk operation',
+    'Dette sker der nu i Gaza', 'Intern terror vejer tungere end ekstern jord: Israels egentlige valgtema',
+    'Amerikansk fotojournalist fortæller om overgreb på Vestbredden – video'])
+def test_channel_words_judgements_and_labels_are_refused_in_a_headline(title):
+    problems = []
+    editor.voice.check_headline(title, 'titles: x', problems)
+    assert problems, title
+
+
+@pytest.mark.parametrize('title', [
+    'Israelske styrker anholder to palæstinensere i Silwad', 'Hamas: »Besættelsesstyrkerne« trækker sig fra Rafah',
+    'Analytiker: Israels egentlige mål er Libanon', 'FN: Israel er besættelsesmagt på Vestbredden',
+    'Kreml: Dette er en provokation', 'Zionismen debatteres på konference i London',
+    'Israelske besættelsesstyrker sprænger hjem øst for Gaza by'])   # the source's framing word beside Israel's name
+def test_attributed_and_plain_headlines_pass(title):
+    problems = []
+    editor.voice.check_headline(title, 'titles: x', problems)
+    assert not problems, problems
+
+
+def test_an_earlier_headline_that_breaks_the_rules_is_written_again_and_removed(folder, tmp_path, capsys):
+    admit(folder, 's1', 's4')
+    write(folder, 'summaries.json', {'items': {}, 'titles': {
+        's1': {'title': 'Hvorfor forbyder Aserbajdsjan hijab i skolerne?', 'at': '2026-10-10T08:00:00+00:00'},
+        's4': {'title': 'Aserbajdsjan forbyder hijab i skolerne', 'at': '2026-10-10T08:00:00+00:00'}}})
+    editor.main(['input', '--dir', str(folder), '--now', NOW])
+    heads = (editor.WORK / 'input.md').read_text(encoding='utf-8').split('## Headlines to write')[1].split('## Live')[0]
+    assert '[s1]' in heads and '[s4]' not in heads
+    publish(folder, tmp_path, {'lede': 'Dagen kort.'})
+    titles = out_file(tmp_path, 'summaries.json')['titles']
+    assert 's1' not in titles and 's4' in titles
+    assert "1 earlier headline(s) broke today's rules" in capsys.readouterr().out
+
+
+def test_a_dropped_story_leaves_live_at_once_and_is_not_offered_back(folder):
+    add_items(folder, story('g1', 'Stor', '2026-10-10T18:00:00+00:00', rank=99, big=True),
+              story('b1', 'Lige under stregen', '2026-10-10T18:00:00+00:00', rank=59))
+    admit(folder, 's1', 'g1', line=60)
+    write(folder, 'live.json', {'updated': NOW, 'days': {
+        '2026-10-09': {'level': 'normal', 'take': [], 'drop': ['b1'], 'note': ''},
+        '2026-10-10': {'level': 'normal', 'take': [], 'drop': ['g1'], 'note': ''}}})
+    editor.main(['input', '--dir', str(folder), '--now', NOW])
+    text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
+    heads = text.split('## Headlines to write')[1].split('## Live')[0]
+    assert '[g1]' not in heads                                                  # dropped: not in Live, no headline due
+    live = text.split('## Live – how much the app shows today')[1].split('## The front page')[0]
+    assert 'Still in force from yesterday: taken out b1' in live
+    assert 'Just below the line' in live and '[b1]' not in live.split('Just below the line')[1]   # not offered back
+
+
+def test_a_kept_composition_loses_its_lines_at_midnight(folder, tmp_path):
+    write(folder, 'front.json', {'updated': '2026-10-10T21:30:00+00:00', 'lede': 'x', 'blocks': [
+        {'kind': 'liste', 'title': 'Danmark', 'stories': ['s1'], 'style': 'kompakt'},
+        {'kind': 'linje', 'text': '14 nye angreb på Riyadh i dag'}]})
+    publish(folder, tmp_path, {'lede': 'Natten kort.'}, now='2026-10-10T23:10:00+00:00')   # 01.10 Danish time
+    assert [b['kind'] for b in out_file(tmp_path, 'front.json')['blocks']] == ['liste']
+
+
+def test_every_story_that_waited_too_long_fires_once(folder, capsys):
+    add_items(folder, story('h1', 'Historie et', '2026-10-10T19:00:00+00:00'),
+              story('h2', 'Historie to', '2026-10-10T19:05:00+00:00'))
+    admit(folder, 'h1', 'h2')
+    editor.main(['gate', '--dir', str(folder), '--data-dir', str(folder), '--now', NOW])
+    rec = json.loads((folder / 'editor-gate.json').read_text(encoding='utf-8'))['fires'][-1]
+    late = [k for k in rec['keys'] if k.startswith('late:')]
+    assert len(late) >= 2, rec['keys']   # each story that waited too long has its own key
+
+
+def test_a_level_about_to_lapse_calls_for_an_update(folder, capsys):
+    admit(folder, 's1', line=60)
+    write(folder, 'summaries.json', {'items': {}, 'titles': {'s1': {'title': 'Har sin', 'at': NOW}}})
+    write(folder, 'live.json', {'updated': '2026-10-10T14:30:00+00:00',
+                                'days': {'2026-10-10': {'level': 'få', 'take': [], 'drop': [], 'note': ''}}})
+    out = check(folder, capsys)                                                    # 5 h 31 min since live.json
+    assert 'dagens niveau (få) holder kun 6 timer efter sidste opdatering' in out[-1]

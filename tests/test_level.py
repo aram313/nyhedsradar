@@ -32,12 +32,13 @@ def test_plan_falls_back_to_normal():
     assert level.plan({}, '2026-10-17', 12, NOW)['level'] == 'normal'
     assert plan('mange')['level'] == 'mange' and plan('mange')['note'] == 'en travl dag'
     assert plan('mange', today='2026-10-16')['level'] == 'normal'        # no plan for today yet
-    assert plan('mange', age=timedelta(hours=3))['level'] == 'normal'   # stale in the daytime
+    assert plan('mange', age=timedelta(hours=3))['level'] == 'mange'    # the editor's updates come up to ~2 h apart
+    assert plan('mange', age=timedelta(hours=7))['level'] == 'normal'   # stale in the daytime: the editor has stopped
     night = level.plan({'updated': (NOW - timedelta(hours=5)).isoformat(), 'days': {'2026-10-17': {'level': 'få'}}},
                        '2026-10-17', 3, NOW)
     assert night['level'] == 'få'   # the editor sleeps at night: the evening's level holds
     assert plan('meget')['level'] == 'normal'
-    stale = plan('mange', take=['a'], drop=['b'], age=timedelta(hours=3))
+    stale = plan('mange', take=['a'], drop=['b'], age=timedelta(hours=7))
     assert stale['take'] == {'a'} and stale['drop'] == {'b'}   # single stories still follow the editor
 
 
@@ -94,3 +95,45 @@ def test_older_stories_keep_their_admission():
     assert on == {}   # nothing new comes in after 24 hours
     on, _, _ = admit(pool(hours=60), plan('normal'), record)
     assert on == {}   # beyond the app's 48 hours
+
+
+def test_the_evenings_level_holds_through_the_night():
+    live = {'updated': (NOW - timedelta(hours=4)).isoformat(), 'days': {'2026-10-16': {'level': 'få'}}}
+    night = level.plan(live, '2026-10-17', 2, NOW)
+    assert night['level'] == 'få' and night['why'] == 'i går'
+    assert level.plan(live, '2026-10-17', 7, NOW)['level'] == 'normal'   # the morning: today's own plan is due
+
+
+def test_the_newest_decision_on_a_story_wins():
+    live = {'updated': NOW.isoformat(), 'days': {'2026-10-16': {'level': 'normal', 'drop': ['X', 'm3'], 'take': ['Y']},
+                                                 '2026-10-17': {'level': 'normal', 'take': ['X'], 'drop': ['s4']}}}
+    p = level.plan(live, '2026-10-17', 12, NOW)
+    assert p['take'] == {'X', 'Y'} and p['drop'] == {'m3', 's4'}
+    assert level.decision(p, {'X'}) == 'take' and level.decision(p, {'Y'}) == 'take'
+    # one story, two ids: yesterday dropped it by a member, today took it by its lead
+    p2 = level.plan({'updated': NOW.isoformat(), 'days': {'2026-10-16': {'level': 'normal', 'drop': ['m3']},
+                                                         '2026-10-17': {'level': 'normal', 'take': ['s3']}}},
+                    '2026-10-17', 12, NOW)
+    assert level.decision(p2, {'s3', 'm3'}) == 'take'
+    on, _, _ = admit(pool(), p2)
+    assert on.get('s3') == 'take'
+    # on one day drop wins
+    p3 = level.plan({'updated': NOW.isoformat(), 'days': {'2026-10-17': {'level': 'normal', 'take': ['m3'], 'drop': ['s3']}}},
+                    '2026-10-17', 12, NOW)
+    assert level.decision(p3, {'s3', 'm3'}) == 'drop'
+
+
+def test_a_quiet_level_held_between_updates_is_not_padded():
+    few = plan('få')
+    on, record, _ = admit(pool(), few)
+    assert len(on) == 3
+    later = plan('få', age=timedelta(hours=3))   # three hours without an update: still få, nothing padded in
+    on2, _, _ = admit(pool(), later, record)
+    assert sorted(on2) == sorted(on)
+
+
+def test_app_json_leaves_out_a_big_story_the_editor_dropped():
+    p = plan('normal', drop=['m1'])
+    assert not level.in_app({'id': 's1', 'members': ['s1', 'm1'], 'big': True, 'live': None}, p)
+    assert level.in_app({'id': 's2', 'members': ['s2'], 'big': True, 'live': None}, p)    # older than 48 h: still shown
+    assert level.in_app({'id': 's3', 'live': 'rank'}, p) and not level.in_app({'id': 's4', 'live': None}, p)

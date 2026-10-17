@@ -56,9 +56,25 @@ The verdict itself (`editor.verdict`, also what `check` prints) was tightened at
   admitted stories wait** for the editor's headline (`8 historier i Live venter på redaktørens overskrift`), or when
   **one has waited more than 45 minutes** between 06 and 24 (`en historie i Live har ventet … på redaktørens
   overskrift`); the wait counts from when the radar first admitted the story (its `admitted.json`). The first reason
-  fires once per update (key `heads:<the last update>`), the second once per story (key `late:<its first article>`).
-  Both are ordinary reasons under the day's ceiling and its spread; at night they wait for the morning. Before the
-  radar draws the line, the headlines call for nothing (the app's whole pool is not the editor's queue).
+  fires once per update (key `heads:<the last update>`), the second once per story (key `late:<its first article>`,
+  one for every story that has waited too long – after the review of 2026-10-17, which found that a key for only the
+  oldest story let the others wait). Both are ordinary reasons under the day's ceiling and its spread; at night they
+  wait for the morning. Before the radar draws the line, the headlines call for nothing (the app's whole pool is not
+  the editor's queue).
+- **round 2, the level.** The radar holds the editor's `få` or `mange` while live.json is younger than six hours
+  between 06 and 24 (src/radar/level.py `STALE`; it was two hours, shorter than the gaps between the editor's updates,
+  so the level lapsed to `normal` most evenings and padded a quiet day). When today's level is not `normal` and
+  live.json is 5 h 15 min old, the look says `dagens niveau (få) holder kun 6 timer efter sidste opdatering` (key
+  `level:<live.json's time>`). Between 00 and 06 the evening's level holds until the morning's first update.
+
+### How fast a headline comes
+
+The owner's note expects a new story's headline 'within a quarter of an hour'. With `editor_fires_per_day` at 12
+spread over 06-24, a replay of a busy day publishes at about 06.10, 06.25, 06.40, 08.10, 09.55, 11.40, 13.25, 15.10,
+17.10, 18.55, 20.40 and 21.10: a story waits up to about **two hours** for its headline, and after the day's last
+fire (often 21-22) none is written until the morning. Until then the app shows the outlet's headline – or, for a
+plain curiosity headline, the teaser's first sentence or another outlet's plain headline. A quarter of an hour needs
+about 40-70 fires a day; raise the ceiling as far as the routines' run cap allows (launch.md).
 
 ## Measured: 16 October replayed every quarter of an hour
 
