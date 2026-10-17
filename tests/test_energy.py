@@ -257,12 +257,79 @@ def test_the_page_knows_every_series_the_file_carries():
         assert f'\n  {k}: [' in PAGE, k                     # every debt bar has its Danish name and note
 
 
-def test_the_page_has_its_six_sections_in_a_dock_at_the_bottom():
-    for sid, tab in (('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'), ('raw', 'Råvarer')):
-        assert f"{{ id: '{sid}', tab: '{tab}'" in PAGE
-    assert '<nav class="ec-dock"' in PAGE and 'role="tablist"' in PAGE
+TOPIC_ORDER = (('nu', 'Lige nu'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
+               ('raw', 'Råvarer'))
+
+
+def test_the_page_is_one_long_page_of_seven_topics_in_a_fixed_order():
+    block = PAGE.split('const TOPICS = [')[1].split('\n];')[0]
+    assert re.findall(r"\{ id: '(\w+)', tab: '([^']+)'", block) == list(TOPIC_ORDER)
+    assert 'role="tabpanel"' not in PAGE and 'data-group' not in PAGE and 'ecSec' not in PAGE   # no tab views or chips
+    # each topic: a section with its fly title, the headline line in the serif (a heading), its time and sources once
+    assert '<section class="ec-sec" id="s-${T.h}" data-t="${T.id}" aria-labelledby="f-${T.id}">' in PAGE
+    assert '<p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p><h2 class="ec-head">${esc(head(T.id))}</h2>' in PAGE
+    assert re.search(r'\.ec-top::before \{[^}]*background: var\(--red\)', PAGE)        # the short red rule
+    assert re.search(r'\.ec-sec \{ padding-top: \d{2}px; \}', PAGE)                     # generous space above
+    assert 'font-family: var(--display)' in PAGE.split('.ec-head {')[1].split('}')[0]
+    assert "const parts = ['Opdateret ' + when(D.updated)];" in PAGE and "'kilder: ' : 'kilde: '" in PAGE
+    assert 'seneste ${esc(stamp(k, x))}' not in PAGE                                    # no time on every row
+
+
+def test_the_headlines_are_made_from_the_numbers():
+    h = PAGE.split('function head(id) {')[1].split('\n}')[0]
+    for tid, _ in TOPIC_ORDER:
+        assert f"id === '{tid}'" in h, tid
+    assert "`Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`" in h
+    assert '`USA’s gæld: ${nf(D.debt.v / 1e12, 1)} billioner $`' in h
+    assert "const verb = diff > 0 ? 'steg' : 'faldt';" in PAGE.split('function phrase(')[1].split('\n}')[0]
+    assert not re.search(r'\b(vil stige|vil falde|forventes|bør)\b', h)                   # reality only
+
+
+def test_the_dock_follows_the_scroll():
+    assert '<nav class="ec-dock" aria-label="Emner"><div class="ec-tabs" id="tabs"></div></nav>' in PAGE
+    assert 'aria-current="${T.id === current}"' in PAGE and "a.setAttribute('aria-current', on)" in PAGE
     assert '.ec-dock { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; padding-bottom: var(--bottom);' in PAGE
+    spy = PAGE.split('function watch() {')[1].split('\n}')[0]
+    assert 'new IntersectionObserver(' in spy and 'rootMargin' in spy
+    assert "addEventListener('scroll', () => $('#bar').classList.toggle('scrolled', scrollY > 4), { passive: true });" in PAGE
+    assert len(re.findall(r"addEventListener\('scroll'", PAGE)) == 1                    # the spy is no scroll listener
     assert "history.replaceState(null, '', '#'" in PAGE and 'history.pushState' not in PAGE   # no steps in the app's history
+    # a tap jumps to the topic (smooth unless Reduce Motion), and the chosen chip scrolls into view inside the dock
+    j = PAGE.split('function jump(')[1].split('\n}')[0]
+    assert "behavior: instant || calm() ? 'auto' : 'smooth'" in j and 'scrollIntoView' not in PAGE
+    assert 'box.scrollWidth > box.clientWidth + 1) box.scrollTo({ left: chip.offsetLeft' in PAGE
+    assert "matchMedia('(prefers-reduced-motion: reduce)')" in PAGE
+
+
+def test_each_topic_shows_a_few_tiles_and_folds_the_rest_away():
+    block = PAGE.split('const TOPICS = [')[1].split('\n];')[0]
+    lists = re.findall(r'tiles: \[(.*?)\]\]', block)
+    assert len(lists) == 3                                                              # oil, markets, commodities
+    for tiles in lists:
+        assert 3 <= tiles.count("['") <= 4, tiles
+    assert "else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile(), euTile()];" in PAGE
+    assert "else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];" in PAGE
+    # one quiet 'Flere tal' row per topic, unfolded in place; its contents are made only when unfolded
+    assert '<button class="ec-fold" data-fold aria-expanded="${on}" aria-controls="more-${T.id}">Flere tal${CHEV}</button>' in PAGE
+    assert "<div class=\"ec-folded\" id=\"more-${T.id}\"${on ? '' : ' hidden'}>${on ? foldHtml(T, base) : ''}</div>" in PAGE
+    assert "const FOLDS = new Set(['fuel', 'oil', 'mkt', 'ai', 'debt']);" in PAGE
+    # what is folded: crack spreads, the curve, physical minus paper, the single AI stocks, the lands beyond the top 5
+    for k in ('crack321', 'curve', 'phys_prem'):
+        assert k in block.split("id: 'oil'")[1].split('more:')[1].split('] },')[0], k
+    assert "more: [['De øvrige selskaber', ['msft', 'aapl', 'googl', 'amzn', 'avgo', 'meta']]]" in block
+    assert '${imfBars(0, 5)}' in PAGE and '${imfBars(5)}' in PAGE
+    assert "table(['benzin_plus', 'diesel_plus', 'hvo'], 'Premium')" in PAGE.split('function pumps() {')[1].split('\n}')[0]
+    # charts are drawn only for what is opened
+    assert 'drawCharts(el);' in PAGE.split('function fill(T) {')[1].split('\n}')[0]
+
+
+def test_lige_nu_keeps_only_the_biggest_moves_each_a_way_to_its_topic():
+    top = PAGE.split('function topMoves() {')[1].split('\n}')[0]
+    assert 'if (out.length === 4) break;' in top and '> 2) continue;' in top
+    assert '<button class="ec-mv" data-go="${m.k}">' in PAGE
+    assert 'if (go) { goFigure(go.dataset.go); return; }' in PAGE
+    assert '<b>Pumpen:</b>' not in PAGE and '<b>Brent:</b>' not in PAGE   # no repeats of the topics below
+    assert all(k in PAGE.split('const HOME = {};')[1].split('const FOLDS')[0] for k in ('T.tiles', 'T.more', 'AI'))
 
 
 def test_each_figure_says_what_it_is_why_and_what_a_rise_or_fall_means():

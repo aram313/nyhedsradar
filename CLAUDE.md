@@ -202,19 +202,31 @@ da'wah.
   five slow ones are asked side by side (a cold run ~35 s, a warm one < 1 s); pump prices keep one point a day for 400
   days; a chain's 'ændret' is the change time of its stations at the list price; the news are data.json's oil and
   fuel stories with the editor's headline (RADAR_SUMMARIES), no wire lines. energy.json is ~150 KB (markets 6 months
-  daily). **The page** (Økonomi): six sections in a dock at the bottom of the page (the frame's bottom when embedded;
-  `#braendstof` … `#raavarer` by `history.replaceState`, never a history step) – Brændstof (Lige nu, the cheapest
-  chain's petrol and diesel large with USA and the EU average beside, then Danmark · USA · Europa), Olie (Råolie ·
-  Fysisk · Raffinering · Produkter · Gas · Nyheder), Markeder (Aktier · Risiko), AI (the basket's weight, the basket
-  equal-weighted against the S&P 500 from 100, each company, why people speak of a bubble – no prediction), Gæld (USA:
-  the counter that ticks the last year's average growth onto the last official figure, labelled 'Skøn' and said so;
-  Lande: IMF bars, sorted, a tap opens the years) and Råvarer. Each section opens with a red fly title and a headline
-  line in Source Serif 4 made from the numbers; every figure is a row (its own time: 'kl. 15.59', 'lukkekurs i går',
-  'fredag lukkekurs', 'dagligt · 14/10', 'ugentlig · 12/10', 'årlig · 2025') that opens a chart with ranges its
-  history fills and three texts – Hvad er det, Hvorfor holde øje med det nu, Stiger det / Falder det – factual and
-  neutral; the foot says 'Siden er information, ikke investeringsrådgivning.' Lige nu: the moves most unusual against
-  each figure's typical day, Brent, the VIX's mood, the pump. Reload every 5 minutes and when the page is shown again;
-  a file the same as last time draws nothing. Israel's name in the bars as “israel”. The page holds all names, units
+  daily). **The page** (Økonomi; since 17/10 evening, the owner: 'uoverskuelig … scroll ned og den skifter i mellem
+  forskellige emner med tydeligt emneskift'): **one long page** of seven topics in a fixed order (`TOPICS`) – Lige nu,
+  Brændstof, Olie og gas, Markeder, AI, Gæld, Råvarer – no tab views, no chips. Each topic (`<section class="ec-sec">`)
+  opens with generous space, a short red rule, the red fly title and one headline line (h2) in Source Serif 4 made from
+  the numbers, reality only (`head`, `phrase`: 'Brent steg 3,7 % fredag', 'Benzin 17,69 kr. – diesel 18,89 kr.',
+  'USA’s gæld: 40,4 billioner $'); then 3–4 key figures as large tiles (name, value, the move with an arrow, a
+  sparkline – `tilesOf`; a tap opens one at a time per topic, its chart and texts under its row), then one quiet
+  'Flere tal' row that unfolds the rest in place, made only when unfolded (Brændstof: the chains with premium and HVO,
+  the raw product's share and rows, US diesel, the EU table; Olie: physical market, curve, crack spreads, products, gas,
+  news; Markeder: the other indices, dollar and currencies; AI: the six other companies and why people speak of a
+  bubble – no prediction; Gæld: the IMF lands beyond the top five and IMF's texts), then one line with the topic's time
+  and sources ('Opdateret kl. 18.46 · fredagens lukkekurser · kilder: …', `meta`/`baseOf`): a figure says its own time
+  ('torsdag lukkekurs', 'kl. 18.46', 'ugentlig · 12/10', 'dagligt · 14/10', 'årlig · 2025') only when it differs from the
+  topic's. Gæld: the counter that ticks the last year's average growth onto the last official figure, labelled 'Skøn'
+  and said so, then the IMF's five highest bars. Lige nu: only the four biggest moves against each figure's typical day
+  (at most two from one topic), each a tap to its figure in its topic (opened, unfolded if need be: `goFigure`). The
+  dock at the bottom (the frame's bottom when embedded; a nav of links with `aria-current`) follows the scroll: an
+  IntersectionObserver with a line just under the bar (`watch`; the foot in view means the last topic), never a scroll
+  listener; a tap jumps (smooth unless Reduce Motion, the dock held on its goal meanwhile, `jump`), the chosen chip
+  scrolls into view inside the dock when it overflows, and `#nu` … `#raavarer` follow by `history.replaceState`, never a
+  history step (a link with one opens there). Every figure opens a chart with ranges its history fills and three
+  texts – Hvad er det, Hvorfor holde øje med det nu, Stiger det / Falder det – factual and neutral; nothing is opened
+  from an earlier visit (only the chosen ranges are remembered), so no chart is drawn before a tap. The foot says
+  'Siden er information, ikke investeringsrådgivning.' Reload every 5 minutes and when the page is shown again; a file
+  the same as last time draws nothing, a new one redraws every topic with the topic in view kept in place. Israel's name in the bars as “israel”. The page holds all names, units
   and explanations; the file only numbers (tests/test_energy.py checks both).
 - `public/` is the PWA. `config.js`, `data.json` and `dev/` there are local-preview only (gitignored);
   `pages.yml` generates the real `config.js` (data, app, digest, front, search, moves, answers, analyses, energy

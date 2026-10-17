@@ -53,10 +53,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../style.css">
 <style>
-  /* Økonomi: the app's look (its tokens, bar, blocks and story rows come from style.css). Six sections in a dock at the
-     bottom, in the thumb's reach; each opens with a red fly title and a serif headline line in the manner of The
-     Economist; figures are rows that open in place with a chart and what the number means; colour only for up/down
-     next to an arrow, red only for the fly title, the short rules and the chosen section */
+  /* Økonomi: the app's look (its tokens, bar and story rows come from style.css). One long page of seven topics in a
+     fixed order – Lige nu, Brændstof, Olie og gas, Markeder, AI, Gæld, Råvarer – and a dock at the bottom, in the
+     thumb's reach, that follows the scroll. Each topic opens with generous space, a short red rule, a red fly title and
+     one serif headline line in the manner of The Economist; then three or four figures as large tiles, one quiet
+     'Flere tal' row with the rest, and one line with the topic's time and sources. Colour only for up/down next to an
+     arrow, red only for the rule, the fly title and the dock's chosen topic */
   :root { --up: #2f7a52; --edock: calc(52px + var(--bottom)); --display: "Source Serif 4", "Source Serif Pro", Georgia, serif; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --up: #4cc38a; } }
   :root[data-theme="dark"] { --up: #4cc38a; }
@@ -67,42 +69,57 @@
   .en-home .logo { width: 38px; height: 28px; }
   .en-title { margin: 0 0 0 8px; font-size: calc(18px * var(--ts, 1)); font-weight: 720; letter-spacing: -.015em; }
 
-  /* the section's head: a red fly title, the headline line in the serif, a calm line under it */
-  .ec-top { padding: 18px 16px 2px; }
-  .ec-fly { display: block; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
+  /* a topic: generous space above, a short red rule, the red fly title, the headline line in the serif */
+  .ec-sec { padding-top: 52px; }
+  .ec-sec:first-child { padding-top: 14px; }
+  .ec-top { padding: 0 16px; }
+  .ec-top::before { content: ""; display: block; width: 26px; height: 3px; margin-bottom: 11px; background: var(--red); }
+  .ec-fly { display: block; margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
   .ec-head { margin: 6px 0 0; font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.14; letter-spacing: -.012em;
     font-variation-settings: "opsz" 60; text-wrap: balance; }
-  .ec-stand { margin: 8px 0 0; font-size: var(--fs-small); line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
-  .en .block { margin-top: 22px; }
-  .en .block-h h2 { position: relative; padding-top: 9px; font-size: var(--fs-lead); font-weight: 760; }
-  .en .block-h h2::before { content: ""; position: absolute; top: 0; left: 0; width: 26px; height: 3px; background: var(--red); }
+  .ec-meta { margin: 10px 16px 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); text-wrap: pretty; }
+  .ec-sub { margin: 20px 16px 4px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
   .en-hint { margin: 0 16px 4px; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); }
 
-  /* the choices under a section: the app's chips, in one row that scrolls sideways when the text is large */
-  .ec-chips { display: flex; gap: 8px; overflow-x: auto; margin: 14px 0 6px; padding: 4px 16px; scrollbar-width: none; }
-  .ec-chips::-webkit-scrollbar { display: none; }
-  .ec-chips .chip { flex: none; min-height: 36px; }
-
-  /* Lige nu: short 'Who: what' lines, like the wire */
-  .en-sig { list-style: none; margin: 0; padding: 0 16px; }
-  .en-sig li { padding: 9px 0 10px; font-size: var(--fs-small); line-height: 1.42; letter-spacing: -.005em; }
-  .en-sig li + li { border-top: 1px solid var(--line); }
-  .en-sig b { font-weight: 700; }
-  .en-sig .q { color: var(--text-3); white-space: nowrap; }
-
-  /* the big numbers: two panels side by side (12 from the edge, 12 inside, radius 16 – the app's panel) */
-  .ec-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 12px 0; }
-  .ec-tile { min-width: 0; padding: 12px; border-radius: var(--r-panel); background: var(--fill); }
-  .ec-tile.ec-span { grid-column: 1 / -1; }
-  .ec-k { display: block; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
-  .ec-v { display: block; margin-top: 4px; font-size: calc(30px * var(--ts, 1)); font-weight: 720; line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .ec-v small { margin-left: 3px; font-size: var(--fs-meta); font-weight: 600; letter-spacing: 0; color: var(--text-3); }
+  /* the key figures: large, simple tiles (12 from the edge, 12 inside, radius 16 – the app's panel); a tap opens the
+     figure's chart and what it means under its row */
+  .ec-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 12px 0; }
+  .ec-tile { display: flex; flex-direction: column; align-items: stretch; min-width: 0; width: 100%; padding: 12px 12px 10px; border-radius: var(--r-panel);
+    background: var(--fill); color: var(--text); text-align: left; }
+  .ec-tile:active { background: var(--fill-2); }
+  .ec-tile[aria-expanded="true"] { box-shadow: inset 0 0 0 1.5px var(--text-3); }
+  .ec-span { grid-column: 1 / -1; }
+  .ec-k { display: block; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ec-v { display: block; margin-top: 4px; font-size: min(calc(30px * var(--ts, 1)), 7.4vw); font-weight: 720; line-height: 1.05; letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ec-v small { margin-left: 4px; font-size: var(--fs-meta); font-weight: 600; letter-spacing: 0; color: var(--text-3); }
+  .ec-m { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: 6px; min-width: 0; }
+  .ec-m .en-c { margin: 0; white-space: nowrap; }
+  .ec-t { min-width: 0; font-size: var(--fs-meta); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  svg.ec-sp { display: block; width: 100%; height: 22px; margin-top: 8px; overflow: visible; }
+  .ec-sp path { fill: none; stroke: var(--text-3); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
   .ec-l { display: block; margin-top: 6px; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
   .ec-l b { color: var(--text-2); font-weight: 650; }
   .ec-share { display: flex; height: 6px; margin-top: 8px; border-radius: 3px; overflow: hidden; background: var(--fill-2); }
   .ec-share i { display: block; background: var(--text-2); }
+  .ec-open { grid-column: 1 / -1; min-width: 0; padding: 4px 12px 14px; border-radius: var(--r-panel); background: var(--fill); }
+  .ec-open .en-range button[aria-pressed="true"] span { background: var(--bg); }
 
-  /* one figure: name and its time at the left, three months in a small line, value and day's move at the right */
+  /* Lige nu: the biggest moves across the topics, each a way to its topic */
+  .ec-mv { display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; align-items: center; gap: 10px; width: 100%;
+    min-height: calc(58px * var(--ts, 1)); padding: 8px 12px 8px 16px; text-align: left; }
+  .ec-mv:active { background-color: var(--fill); }
+  .ec-mv .en-name small { white-space: normal; }
+  .ec-chev { width: 16px; height: 16px; color: var(--text-3); }
+
+  /* 'Flere tal': one quiet row per topic; the rest of the figures unfold in place */
+  .ec-fold { display: flex; align-items: center; gap: 4px; width: calc(100% - 32px); min-height: 48px; margin: 12px 16px 0; padding: 0;
+    border-top: 1px solid var(--line); font-size: var(--fs-small); font-weight: 600; color: var(--text-2); text-align: left; }
+  .ec-fold svg { width: 15px; height: 15px; transition: transform .2s var(--ease); }
+  .ec-fold[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .ec-folded { padding-bottom: 4px; }
+
+  /* one figure in the fold: name and unit at the left, three months in a small line, value and day's move at the right */
   .en-item { position: relative; }
   .en-item + .en-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: 1px solid var(--line); }
   .en-item.open { background-color: var(--fill); }
@@ -129,7 +146,6 @@
   .en-range span { padding: 5px 11px; border-radius: 14px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-2); }
   .en-range button[aria-pressed="true"] span { background: var(--fill-2); color: var(--text); }
   .en-item.open .en-range button[aria-pressed="true"] span { background: var(--bg); }
-  .block > .en-range, .ec-pad > .en-range { margin-left: 10px; }
   .en-chart { position: relative; height: 172px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
   .en-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .en-chart .grid { stroke: var(--line); stroke-width: 1; }
@@ -143,7 +159,7 @@
   .en-chart .cross { stroke: var(--text-3); stroke-width: 1; }
   .en-tip { position: absolute; top: -4px; transform: translate(-50%, -100%); padding: 3px 8px; border-radius: 8px; background: var(--text); color: var(--bg);
     font-size: var(--fs-meta); font-weight: 650; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
-  .en-hl { margin: 8px 0 0; font-size: var(--fs-meta); color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .en-hl { margin: 8px 0 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-2); font-variant-numeric: tabular-nums; }
   .en-src { margin: 10px 0 0; font-size: var(--fs-meta); color: var(--text-3); }
   .en-seg { display: inline-flex; gap: 2px; margin: 0 0 2px -6px; }
   .ec-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; font-size: var(--fs-meta); color: var(--text-2); }
@@ -173,16 +189,12 @@
   .en-pump td.low { color: var(--text); font-weight: 700; }
   .en-pump tr.me td { color: var(--text); font-weight: 700; }
   .en-pump tr.avg td { font-style: italic; }
+  .en-pump + .en-pump { margin-top: 14px; }
   .en-note { margin: 8px 16px 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); }
   .en-note b { color: var(--text-2); font-weight: 650; }
-  .en-plus { display: flex; align-items: center; gap: 2px; min-height: 44px; margin: 0 0 0 16px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
-  .en-plus svg { width: 15px; height: 15px; transition: transform .2s var(--ease); }
-  .en-plus[aria-expanded="true"] svg { transform: rotate(90deg); }
-  .en-pchart { margin: 6px 16px 0; }
-  .en-pchart .en-chart { height: 150px; }
+  .ec-open .en-note { margin: 8px 0 0; }
 
   /* the US debt counter: an estimate between the Treasury's daily figures, and it says so */
-  .ec-debt { margin: 14px 12px 0; padding: 14px 12px 12px; border-radius: var(--r-panel); background: var(--fill); }
   .ec-debt .ec-k { display: flex; justify-content: space-between; gap: 8px; }
   .ec-est { font-weight: 700; color: var(--red); letter-spacing: .04em; text-transform: uppercase; font-size: var(--fs-cap); }
   .ec-count { display: block; margin-top: 6px; font-size: min(var(--fs-title), 7.2vw); font-weight: 720; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -208,21 +220,21 @@
   .en-news .story .row { height: auto; min-height: calc(64px * var(--ts, 1)); padding-top: 10px; padding-bottom: 10px; }   /* a row grows with its headline */
   .en-showmore { display: flex; align-items: center; gap: 2px; min-height: 44px; margin-left: 16px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
   .en-showmore svg { width: 15px; height: 15px; transform: rotate(90deg); }
+  main.en > .foot { margin-top: 40px; }
   .ec-advice { margin: 18px 16px 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: var(--fs-meta); line-height: 1.5; color: var(--text-3); text-align: center; }
 
-  /* the dock: the six sections in the thumb's reach, the chosen one with a short red rule over it (solid, no blur) */
+  /* the dock: the seven topics in the thumb's reach; the one in view has a short red rule over it (solid, no blur). It
+     follows the scroll; a tap jumps to the topic. One weight for all, so nothing shifts while it follows */
   .ec-dock { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; padding-bottom: var(--bottom); background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
-  .ec-tabs { display: flex; max-width: 680px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+  .ec-tabs { position: relative; display: flex; max-width: 680px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
   .ec-tabs::-webkit-scrollbar { display: none; }
-  .ec-tabs button { position: relative; flex: 1 0 auto; min-height: 52px; padding: 0 9px; font-size: calc(13px * min(var(--ts, 1), 1.2)); font-weight: 600;
-    color: var(--text-2); white-space: nowrap; }
-  .ec-tabs button::before { content: ""; position: absolute; top: 0; left: 50%; width: 22px; height: 3px; margin-left: -11px; background: var(--red); opacity: 0; transition: opacity .15s; }
-  .ec-tabs button[aria-selected="true"] { color: var(--text); font-weight: 750; }
-  .ec-tabs button[aria-selected="true"]::before { opacity: 1; }
-  .ec-tabs button:active { background: var(--fill); }
-  @media (prefers-reduced-motion: no-preference) { #sec.in { animation: ecIn .2s var(--out); } }
-  @keyframes ecIn { from { opacity: .35; } to { opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { .en-plus svg, .ec-tabs button::before { transition: none; } }
+  .ec-tabs a { position: relative; flex: 1 0 auto; display: grid; place-items: center; min-height: 52px; padding: 0 9px; font-size: calc(13px * min(var(--ts, 1), 1.2));
+    font-weight: 650; color: var(--text-2); white-space: nowrap; text-decoration: none; transition: color .15s; }
+  .ec-tabs a::before { content: ""; position: absolute; top: 0; left: 50%; width: 22px; height: 3px; margin-left: -11px; background: var(--red); opacity: 0; transition: opacity .15s; }
+  .ec-tabs a[aria-current="true"] { color: var(--text); }
+  .ec-tabs a[aria-current="true"]::before { opacity: 1; }
+  .ec-tabs a:active { background: var(--fill); }
+  @media (prefers-reduced-motion: reduce) { .ec-fold svg, .ec-tabs a, .ec-tabs a::before { transition: none; } }
   /* inside the app's Økonomi tab (?embed=1): no bar and no way back of its own – the app's bar is above it and its
      tabs below the frame, so the dock is the frame's own bottom */
   html.embed .bar { display: none; }
@@ -241,11 +253,11 @@
 </header>
 
 <main class="en" id="en">
-  <div id="sec" role="tabpanel"><div class="block"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>
+  <div id="topics"></div>
   <p class="foot" id="foot"></p>
 </main>
 
-<nav class="ec-dock" aria-label="Afsnit"><div class="ec-tabs" role="tablist" id="tabs"></div></nav>
+<nav class="ec-dock" aria-label="Emner"><div class="ec-tabs" id="tabs"></div></nav>
 
 <script src="../config.js"></script>
 <script>
@@ -476,34 +488,62 @@ const IMF_TXT = {
   why: 'Viser, hvor sårbar en stat er over for højere renter og kapitalflugt. Mindst lige så vigtigt er, hvem der ejer gælden og i hvilken valuta: Japan skylder mest til sine egne, mens Egypten og Pakistan skylder meget i dollar.',
   up: 'Mindre råderum og større renteudgifter – og større afhængighed af långivere som IMF, Golfstaterne eller Kina.', down: 'Mere råderum; men et fald kan også skyldes høj inflation, der udhuler gælden.' };
 
-// ---- the sections and their choices ---------------------------------------------------------------------------------
-const SECTIONS = [
-  { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', groups: [['dk', 'Danmark'], ['us', 'USA'], ['eu', 'Europa']] },
-  { id: 'oil', tab: 'Olie', fly: 'Olie og gas', groups: [
-    ['crude', 'Råolie', ['brent', 'wti', 'brent_spot', 'wti_spot', 'brent_kr']],
-    ['phys', 'Fysisk', ['phys_prem', 'curve', 'brent_wti'], 'Rigtige laster mod papirkontrakter – her ses knaphed først.'],
-    ['ref', 'Raffinering', ['crack321', 'crack_diesel', 'crack_gas'], 'Crack spreads: hvad raffinaderierne tjener på at lave brændstof af råolie.'],
-    ['prod', 'Produkter', ['rbob', 'ulsd', 'gas_nyh', 'ulsd_nyh', 'jet_gulf']],
-    ['gas', 'Gas', ['ttf', 'hh', 'hh_spot']],
-    ['news', 'Nyheder']] },
-  { id: 'mkt', tab: 'Markeder', fly: 'Markeder', groups: [
-    ['stocks', 'Aktier', ['spx', 'ndx', 'sx5e', 'c25', 'n225', 'sse']],
-    ['risk', 'Risiko', ['vix', 'tnx', 'dxy', 'usddkk', 'eurdkk'], 'Frygt, renter og dollaren – de tal, der flytter alt det andet.']] },
-  { id: 'ai', tab: 'AI', fly: 'AI-boblen' },
-  { id: 'debt', tab: 'Gæld', fly: 'Gæld', groups: [['us', 'USA'], ['land', 'Lande']] },
-  { id: 'raw', tab: 'Råvarer', fly: 'Råvarer', keys: ['gold', 'copper', 'wheat', 'btc'] },
+// the tiles of their own: the pump, the EU average, the AI basket and its weight
+const PUMP_TXT = {
+  benzin: { what: 'Den laveste listepris på benzin 95 blandt kæderne Circle K, INGO, Q8 og F24 i dag – kr. pr. liter med afgifter og moms. Listeprisen er den pris, de fleste af kædens stationer har.',
+    why: 'Omkring halvdelen af pumpeprisen er afgifter og moms, som ligger fast. Resten følger benzinen på verdensmarkedet og dollaren, typisk med få dages forsinkelse.',
+    up: 'Dyrere at køre bil – oftest efter en stigning i olien eller dollaren.', down: 'Billigere at tanke; kæderne følger faldet på verdensmarkedet, ofte lidt langsommere.' },
+  diesel: { what: 'Den laveste listepris på diesel blandt kæderne Circle K, INGO, Q8 og F24 i dag – kr. pr. liter med afgifter og moms.',
+    why: 'Diesel driver lastbiler, varebiler og landbrug, så prisen slår igennem i fragt og varepriser.',
+    up: 'Dyrere fragt, landbrug og varer.', down: 'Billigere transport for erhverv og husholdninger.' },
+};
+const EU_TXT = {
+  what: 'Gennemsnittet af EU-landenes pumpepris på benzin med afgifter og moms ifølge EU-Kommissionens Weekly Oil Bulletin, omregnet til kroner pr. liter.',
+  why: 'Viser, hvor Danmark ligger i forhold til resten af EU. Forskellen skyldes mest afgifterne, som hvert land selv fastsætter.',
+  up: 'Dyrere brændstof i hele EU – typisk efter en stigning i olien.', down: 'Billigere brændstof i EU.' };
+const AIW_TXT = {
+  what: 'Hvor stor en del af S&P 500 AI-giganterne i indekset udgør tilsammen, målt på SPY-fondens beholdning. TSMC er ikke med i indekset.',
+  why: 'Jo større andelen er, jo mere af et bredt aktieindeks – og af mange pensioner, også danske – hviler på få selskaber.',
+  up: 'Endnu mere af markedet hviler på AI-giganterne.', down: 'Markedet bliver mindre afhængigt af dem – fordi de falder, eller fordi resten stiger.' };
+const AIX_TXT = {
+  what: 'Nvidia, Microsoft, Apple, Alphabet, Amazon, Broadcom, Meta og TSMC som én kurv, hvor hvert selskab tæller lige meget – sat til 100 ved periodens start og sammenlignet med S&P 500.',
+  why: 'Viser, om AI-aktierne trækker fra resten af markedet eller halter efter. Store udsving i kurven slår igennem i brede indeks og pensioner.',
+  up: AI_UP, down: AI_DOWN };
+
+// ---- the topics, in the page's fixed order ---------------------------------------------------------------------------
+// tiles: the 3–4 figures shown large ([key, unit]); more: the rest behind 'Flere tal', in small groups; src: the topic's
+// sources, said once in its foot line
+const TOPICS = [
+  { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
+  { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
+    more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']], ['USA', ['us_diesel']]] },
+  { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
+    tiles: [['brent', '$/tønde'], ['wti', '$/tønde'], ['ulsd', '$/gal.'], ['ttf', '€/MWh']],
+    more: [['Fysisk marked', ['brent_spot', 'wti_spot', 'phys_prem', 'curve', 'brent_wti']], ['Raffinering', ['crack321', 'crack_diesel', 'crack_gas']],
+      ['Produkter', ['rbob', 'gas_nyh', 'ulsd_nyh', 'jet_gulf']], ['Gas', ['hh', 'hh_spot']]] },
+  { id: 'mkt', tab: 'Markeder', fly: 'Markeder', h: 'markeder', src: 'Yahoo Finance (Cboe, ICE)',
+    tiles: [['spx', ''], ['c25', ''], ['vix', ''], ['tnx', '']],
+    more: [['Aktier', ['ndx', 'sx5e', 'n225', 'sse']], ['Dollar og valuta', ['dxy', 'usddkk', 'eurdkk']]] },
+  { id: 'ai', tab: 'AI', fly: 'AI-boblen', h: 'ai', src: 'Yahoo Finance og SPY-fondens beholdning (State Street)',
+    more: [['De øvrige selskaber', ['msft', 'aapl', 'googl', 'amzn', 'avgo', 'meta']]] },
+  { id: 'debt', tab: 'Gæld', fly: 'Gæld', h: 'gaeld', src: 'det amerikanske finansministerium og IMF' },
+  { id: 'raw', tab: 'Råvarer', fly: 'Råvarer', h: 'raavarer', src: 'Yahoo Finance (COMEX, CBOT)',
+    tiles: [['gold', '$/oz'], ['copper', '$/lb'], ['wheat', '¢/bu'], ['btc', '$']] },
 ];
-const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
-const HASH = { braendstof: 'fuel', olie: 'oil', markeder: 'mkt', ai: 'ai', gaeld: 'debt', raavarer: 'raw' };
-const UNHASH = Object.fromEntries(Object.entries(HASH).map(([a, b]) => [b, a]));
+const TOPIC = Object.fromEntries(TOPICS.map(T => [T.id, T]));
+const HASH = Object.fromEntries(TOPICS.map(T => [T.h, T.id]));
+const AI_TILES = ['nvda', 'tsm'];
+// where each figure lives, for Lige nu's way to it
+const HOME = {};
+for (const T of TOPICS) for (const k of [...(T.tiles || []).map(q => q[0]), ...(T.more || []).flatMap(g => g[1])]) HOME[k] = T.id;
+for (const k of AI) HOME[k] = 'ai';
+HOME.us_gas = 'fuel';
+const FOLDS = new Set(['fuel', 'oil', 'mkt', 'ai', 'debt']);   // the topics with more than their tiles
 
 let D = null, lastUpdated = null;
-let sec = HASH[location.hash.slice(1)] || store.get('ecSec', 'fuel');
-if (!SEC[sec]) sec = 'fuel';
-const group = store.get('ecGroup', {});
-const open = new Set(store.get('enOpen', []));
+const open = new Set(), folds = new Set(), openTile = {};
 const range = store.get('enRange', {});
-let curveOf = 'brent', pumpPlus = false, newsAll = false;
+let curveOf = 'brent', newsAll = false;
 
 // ---- numbers and time ----------------------------------------------------------------------------------------------
 const nf = (v, d = 2) => Number(v).toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -529,20 +569,56 @@ function when(t) {
 const monthName = ym => new Date(ym + '-15T12:00:00').toLocaleDateString('da-DK', { month: 'short', year: '2-digit' }).replace('.', '');
 // the exchanges close from Friday night to Sunday night
 const closedNow = () => { const wd = new Date().getDay(); return wd === 6 || wd === 0; };
+// is this figure's market shut now (its session `o`, else the weekend)?
+function shut(x) {
+  const s = Date.now() / 1000;
+  return x.o ? (s < x.o[0] || s > x.o[1] + 120) : (closedNow() && !sameDay(new Date(x.t), new Date()));
+}
 // each figure's own time: 'kl. 15.59' while its market trades, 'fredag lukkekurs' after, 'ugentlig · 13/10', 'dagligt · 14/10'
 function stamp(k, x) {
   if (!x || !x.t) return '';
   if (C[k] && C[k].w) return 'ugentlig · ' + dm(x.t);
   if (isDay(x.t)) return 'dagligt · ' + dm(x.t);
-  const d = new Date(x.t), now = new Date(), s = Date.now() / 1000;
-  const shut = x.o ? (s < x.o[0] || s > x.o[1] + 120) : (closedNow() && !sameDay(d, now));
-  if (shut) {
+  const d = new Date(x.t), now = new Date();
+  if (shut(x)) {
     if (sameDay(d, now)) return 'lukkekurs i dag';
     if (sameDay(d, yesterday())) return 'lukkekurs i går';
     if (now - d < 6 * 864e5) return weekday(d) + ' lukkekurs';
     return 'lukkekurs ' + dm(x.t);
   }
   return when(x.t);
+}
+// the kind of time a figure has, so a topic says its time once and a figure only when its own differs
+function tclass(k, x) {
+  if (!x || !x.t) return '';
+  if (C[k] && C[k].w) return 'w' + x.t.slice(0, 10);
+  if (isDay(x.t)) return 'd' + x.t;
+  return shut(x) ? 'c' + new Date(x.t).toDateString() : 'live';
+}
+// the topic's time: the kind most of its key figures share
+function baseOf(figs) {
+  const n = {};
+  for (const f of figs) if (f && f.tc) n[f.tc] = (n[f.tc] || 0) + 1;
+  const best = Object.keys(n).sort((a, b) => n[b] - n[a])[0];
+  return best ? figs.find(f => f && f.tc === best) : null;
+}
+function baseText(b) {
+  const c = b.tc, now = new Date();
+  if (c === 'live') return 'løbende kurser, ca. 10–15 min. forsinket';
+  if (c === 'pumps') return 'kædernes listepriser i dag';
+  if (c[0] === 'w') return 'ugentlige tal fra ' + dm(c.slice(1));
+  if (c[0] === 'd') return 'daglige tal fra ' + dm(c.slice(1));
+  const d = new Date(b.tt);
+  if (sameDay(d, now)) return 'dagens lukkekurser';
+  if (now - d < 6 * 864e5) return weekday(d) + 'ens lukkekurser';
+  return 'lukkekurser fra ' + dm(b.tt);
+}
+// 'i dag', 'fredag' or 'den 9/10': the day a move belongs to, for the headline lines
+function dayWord(x) {
+  const d = asDate(x.t), now = new Date();
+  if (sameDay(d, now)) return 'i dag';
+  if (now - d < 6 * 864e5) return weekday(d);
+  return 'den ' + dm(x.t);
 }
 const pct = x => x && x.p ? (x.v - x.p) / x.p * 100 : null;
 
@@ -557,7 +633,27 @@ function move(k, x) {
   const p = Math.abs(diff / x.p * 100);
   return { cls, text: `${arrow} ${nf(p, p < .1 ? 2 : 1)} %` };
 }
+// a move between two plain numbers (the pump in kroner, the weight in points, the EU average in %)
+function step(a, b, unit, d = 2) {
+  if (a == null || b == null) return { cls: '', text: '' };
+  const diff = a - b;
+  if (Math.abs(diff) < 1e-9) return { cls: '', text: 'uændret' };
+  return { cls: diff > 0 ? 'up' : 'down', text: `${diff > 0 ? '▲' : '▼'} ${nf(Math.abs(unit === '%' ? diff / b * 100 : diff), unit === '%' ? 1 : d)} ${unit}` };
+}
 const fmtv = (k, v) => C[k] && C[k].kind === 'spread' ? signed(v, C[k].d) : C[k] && C[k].kind === 'pp' ? nf(v, 2) + ' %' : nf(v, C[k] ? C[k].d : 2);
+// the headline line of a figure's day: 'Brent steg 3,7 % fredag', 'USA, 10-årig rente steg 0,01 point fredag'
+function phrase(k, name = C[k].n) {
+  const x = D.s[k];
+  if (!x || x.v == null) return '';
+  if (x.p == null) return `${name} ${fmtv(k, x.v)}`;
+  const diff = x.v - x.p, day = dayWord(x), c = C[k];
+  if (Math.abs(diff) < 1e-9) return `${name} uændret ${day}`;
+  const verb = diff > 0 ? 'steg' : 'faldt';
+  if (c.kind === 'pp') return `${name} ${verb} ${nf(Math.abs(diff), 2)} point ${day}`;
+  if (c.kind === 'spread') return `${name} ${verb} ${nf(Math.abs(diff), c.d)} $ ${day}`;
+  const p = Math.abs(diff / x.p * 100);
+  return `${name} ${verb} ${nf(p, p < .1 ? 2 : 1)} % ${day}`;
+}
 
 // ---- small and large charts ----------------------------------------------------------------------------------------
 function sparkPath(vals, w, h) {
@@ -569,6 +665,11 @@ function spark(vals) {
   if (!vals || vals.length < 2) return '<svg class="en-spark" aria-hidden="true"></svg>';
   const { d, end } = sparkPath(vals, 64, 26);
   return `<svg class="en-spark" viewBox="0 0 64 26" aria-hidden="true"><path d="${d}"/><circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="2.4"/></svg>`;
+}
+// a tile's sparkline: the tile's width, no dot
+function tileSpark(vals) {
+  if (!vals || vals.length < 2) return '';
+  return `<svg class="ec-sp" viewBox="0 0 120 22" preserveAspectRatio="none" aria-hidden="true"><path d="${sparkPath(vals, 120, 22).d}"/></svg>`;
 }
 function ticks(lo, hi, n = 4) {
   const span = hi - lo || Math.abs(hi) || 1, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw));
@@ -645,14 +746,16 @@ function cut(key, kind, h) {
 const rangeRow = (key, rs, r) => rs.length < 2 ? '' : `<div class="en-range" data-for="${esc(key)}">${rs.map(([id, label]) => `<button data-range="${id}" aria-pressed="${id === r[0]}"><span>${label}</span></button>`).join('')}</div>`;
 const explain = t => `<dl class="ec-ex"><dt>Hvad er det</dt><dd>${esc(t.what)}</dd>${t.why ? `<dt>Hvorfor holde øje med det nu</dt><dd>${esc(t.why)}</dd>` : ''}`
   + (t.up ? `<div class="ec-ud"><div class="up"><dt><span class="a">▲</span>Stiger det</dt><dd>${esc(t.up)}</dd></div><div class="down"><dt><span class="a">▼</span>Falder det</dt><dd>${esc(t.down)}</dd></div></div>` : '') + '</dl>';
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-// ---- one figure ----------------------------------------------------------------------------------------------------
+// ---- one figure in a fold: a row that opens in place ---------------------------------------------------------------
 function curveSpread(c) {
   if (!c || c.length < 2) return null;
   const a = c[0], z = c[Math.min(6, c.length - 1)];
   return { a, z, v: a[1] - z[1] };
 }
-function rowFor(k, sub) {
+// base: the topic's time – a row says its own time only when it differs
+function rowFor(k, base, sub) {
   const c = C[k];
   if (k === 'curve') {
     const cs = curveSpread(D.curve && D.curve.brent);
@@ -662,30 +765,32 @@ function rowFor(k, sub) {
   const x = D.s[k];
   if (!c || !x || x.v == null) return '';
   const h = (x.h || []).slice(c.w ? -26 : -66).map(p => p[1]);
-  return item(k, [stamp(k, x), sub || c.s].filter(Boolean).join(' · '), spark(h), fmtv(k, x.v), move(k, x));
+  const own = base && tclass(k, x) === base.tc ? '' : stamp(k, x);
+  return item(k, [own, sub || c.s].filter(Boolean).join(' · '), spark(h), fmtv(k, x.v), move(k, x));
 }
 function item(k, sub, sp, val, mv) {
   const isOpen = open.has(k);
   return `<div class="en-item${isOpen ? ' open' : ''}" data-k="${k}">
     <button class="en-row" aria-expanded="${isOpen}"><span class="en-name"><b>${esc(C[k].n)}</b><small>${esc(sub)}</small></span>${sp}
     <span class="en-val"><span class="en-v">${esc(val)}</span><span class="en-c ${mv.cls}">${esc(mv.text)}</span></span></button>
-    ${isOpen ? `<div class="en-more">${more(k)}</div>` : ''}</div>`;
+    ${isOpen ? `<div class="en-more" data-panel="${k}">${more(k)}</div>` : ''}</div>`;
 }
-function more(k) {
+const rows = (keys, base) => keys.map(k => rowFor(k, base)).join('');
+// what an opened figure shows: its chart with ranges, high/low/average, what it is, and its source
+function more(k, extra = '') {
   const c = C[k];
   if (k === 'curve') {
     const segs = ['brent', 'wti'].filter(q => D.curve && D.curve[q]).map(q => `<button data-curve="${q}" aria-pressed="${q === curveOf}"><span>${q === 'brent' ? 'Brent' : 'WTI'}</span></button>`).join('');
     const cs = curveSpread(D.curve[curveOf]);
     const hl = cs ? `${monthName(cs.a[0])}: <b>${nf(cs.a[1], 2)} $</b> · ${monthName(cs.z[0])}: <b>${nf(cs.z[1], 2)} $</b> · ${cs.v > 0 ? 'backwardation' : 'contango'} ${nf(Math.abs(cs.v), 2)} $` : '';
-    return `<div class="en-range en-seg">${segs}</div><div class="en-chart" data-chart="curve"></div><p class="en-hl">${hl}</p>${explain(c)}<p class="en-src">${esc(c.src)} · ${esc(when(D.ok && D.ok.curve))}</p>`;
+    return `<div class="en-range en-seg">${segs}</div><div class="en-chart" data-chart="curve"></div><p class="en-hl">${hl}</p>${explain(c)}<p class="en-src">${esc(c.src)}</p>`;
   }
   const x = D.s[k], { rs, r, pts } = cut(k, c.w ? 'w' : 'd', x.h || []);
   const vals = pts.map(p => p[1]);
   const f = v => fmtv(k, v);
   const hl = vals.length ? `Høj ${f(Math.max(...vals))} · lav ${f(Math.min(...vals))} · snit ${f(vals.reduce((a, b) => a + b, 0) / vals.length)}` : '';
-  let extra = '';
-  if (k in (D.spy && D.spy.w || {})) extra = D.spy.w[k] ? `<p class="en-hl">Vægt i S&amp;P 500: <b>${nf(D.spy.w[k], 1)} %</b> (${esc(dm(D.spy.t))})</p>` : '<p class="en-hl">Ikke med i S&amp;P 500.</p>';
-  return `${rangeRow(k, rs, r)}<div class="en-chart" data-chart="${k}"></div><p class="en-hl">${hl}</p>${extra}${explain(c)}<p class="en-src">${esc(c.src)} · seneste ${esc(stamp(k, x))}</p>`;
+  if (k in (D.spy && D.spy.w || {})) extra += D.spy.w[k] ? `<p class="en-hl">Vægt i S&amp;P 500: <b>${nf(D.spy.w[k], 1)} %</b> (${esc(dm(D.spy.t))})</p>` : '<p class="en-hl">Ikke med i S&amp;P 500.</p>';
+  return `${rangeRow(k, rs, r)}<div class="en-chart" data-chart="${k}"></div><p class="en-hl">${hl}</p>${extra}${explain(c)}<p class="en-src">${esc(c.src)}</p>`;
 }
 function drawCharts(root = document) {
   root.querySelectorAll('.en-chart[data-chart]').forEach(box => {
@@ -694,7 +799,11 @@ function drawCharts(root = document) {
       const c = D.curve[curveOf] || [];
       return chart(box, [{ pts: c.map(([m, v]) => [m, v, monthName(m), monthName(m)]) }], { d: 2, dots: true, fmt: v => nf(v, 2) + ' $' });
     }
-    if (k === 'pumps') return pumpChart(box);
+    if (k.startsWith('pump:')) return pumpChart(box, k.slice(5));
+    if (k === 'eu') {
+      const { pts } = cut('eu', 'w', D.eu.h || []);
+      return chart(box, [{ pts: dated(pts.map(([t, b]) => [t, euL(b)])) }], { d: 2, dots: pts.length < 8, fmt: v => nf(v, 2) + ' kr.' });
+    }
     if (k === 'aiidx') return aiChart(box);
     if (k === 'aiw') return chart(box, [{ pts: dated(D.spy.h) }], { d: 1, dots: D.spy.h.length < 8, fmt: v => nf(v, 1) + ' %' });
     if (k === 'debt') {
@@ -712,91 +821,14 @@ function drawCharts(root = document) {
   });
 }
 
-// ---- Lige nu: what moved most today, from the numbers ----------------------------------------------------------------
-const MOVERS = ['spx', 'ndx', 'sx5e', 'c25', 'n225', 'sse', 'vix', 'tnx', 'dxy', 'gold', 'copper', 'wheat', 'btc', 'brent', 'ttf', 'ulsd', ...AI];
-const median = a => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
-function movers() {
-  const out = [];
-  for (const k of MOVERS) {
-    const x = D.s[k];
-    if (!x || x.p == null || !x.h || x.h.length < 30 || Date.now() - asDate(x.t) > 4 * 864e5) continue;
-    const rate = C[k].kind === 'pp';
-    const ch = rate ? x.v - x.p : pct(x);
-    const days = [];
-    for (let i = Math.max(1, x.h.length - 66); i < x.h.length; i++) days.push(Math.abs(rate ? x.h[i][1] - x.h[i - 1][1] : (x.h[i][1] - x.h[i - 1][1]) / x.h[i - 1][1] * 100));
-    const typ = median(days);
-    if (ch == null || !typ) continue;
-    out.push({ k, ch, typ, z: Math.abs(ch) / typ });
-  }
-  return out.sort((a, b) => b.z - a.z);
+// ---- the tiles: a figure's name, value, move with an arrow and three months in a line ----------------------------------
+// one tile: { k (what a tap opens), n, v, u, mv, sp, tc/tt (its kind of time), ts (its own time, said only when it differs) }
+function sTile(k, u, over = {}) {
+  const x = D.s[k];
+  if (!C[k] || !x || x.v == null) return null;
+  return { k, n: C[k].n, v: fmtv(k, x.v), u, mv: move(k, x), sp: (x.h || []).slice(C[k].w ? -26 : -66).map(p => p[1]),
+    tc: tclass(k, x), tt: x.t, ts: stamp(k, x), ...over };
 }
-function moverLine(m) {
-  const c = C[m.k], x = D.s[m.k], rate = c.kind === 'pp';
-  const verb = m.ch > 0 ? 'steg' : 'faldt';
-  const amount = rate ? `${nf(Math.abs(m.ch), 2)} point til ${nf(x.v, 2)} %` : `${nf(Math.abs(m.ch), 1)} %`;
-  const note = m.z >= 2.5 ? ` – usædvanligt meget (typisk ${rate ? nf(m.typ, 2) + ' point' : nf(m.typ, 1) + ' %'})` : '';
-  return `<b>${esc(c.n)}</b> ${verb} ${amount}${note} <span class="q">${esc(stamp(m.k, x))}</span>`;
-}
-function signals() {
-  const s = D.s, out = [];
-  if (closedNow()) out.push('<b>Børserne holder weekend:</b> kurserne er fredagens lukkekurser <span class="q">Bitcoin handles hele døgnet</span>');
-  const top = movers().filter(m => m.z >= 1.2).slice(0, 3);
-  for (const m of top) out.push(moverLine(m));
-  const b = s.brent;
-  if (b && !top.some(m => m.k === 'brent')) {
-    const p = pct(b), mv = p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), 1)} %`;
-    out.push(`<b>Brent:</b> ${nf(b.v, 2)} $ pr. tønde${mv ? ' – ' + mv : ''} <span class="q">${esc(stamp('brent', b))}</span>`);
-  }
-  const v = s.vix;
-  if (v && !top.some(m => m.k === 'vix')) {
-    const mood = v.v < 15 ? 'roligt marked' : v.v < 20 ? 'normalt' : v.v < 30 ? 'nervøst marked' : 'frygt i markedet';
-    out.push(`<b>Frygtindekset VIX:</b> ${nf(v.v, 1)} – ${mood} <span class="q">${esc(stamp('vix', v))}</span>`);
-  }
-  const low = lowest();
-  if (low.benzin) out.push(`<b>Pumpen:</b> benzin ${nf(low.benzin.v, 2)} kr.${low.diesel ? ` · diesel ${nf(low.diesel.v, 2)} kr.` : ''} pr. liter <span class="q">billigste kæde</span>`);
-  return out.slice(0, 6);
-}
-
-// ---- the sections' heads: a fly title and a headline line from the numbers -------------------------------------------
-const dir = (p, d = 1) => p == null ? '' : Math.abs(p) < .05 ? 'uændret' : `${p > 0 ? 'op' : 'ned'} ${nf(Math.abs(p), d)} %`;
-function head(id) {
-  const s = D.s, low = lowest();
-  try {
-    if (id === 'fuel' && low.benzin && low.diesel) {
-      const us = s.us_gas && s.usddkk ? s.us_gas.v * s.usddkk.v / 3.78541 : null;
-      return [`Benzin ${nf(low.benzin.v, 2)} kr. og diesel ${nf(low.diesel.v, 2)} kr. literen`,
-        `Den billigste kædes listepris i dag${us ? `. I USA koster benzin i snit ${nf(us, 2)} kr. literen` : ''}.`];
-    }
-    if (id === 'oil' && s.brent) {
-      const cs = curveSpread(D.curve && D.curve.brent);
-      return [`Brent ${nf(s.brent.v, 2)} dollar tønden${pct(s.brent) != null ? ', ' + dir(pct(s.brent)) : ''}`,
-        cs ? (cs.v > 0 ? 'Terminskurven falder: markedet betaler ekstra for olie nu.' : 'Terminskurven stiger: markedet venter olie nok.') : 'Råolie, det fysiske marked, raffinering og gas.'];
-    }
-    if (id === 'mkt' && s.spx) {
-      const p = pct(s.spx);
-      return [`S&P 500 ${p == null ? nf(s.spx.v, 0) : p > 0 ? 'steg ' + nf(p, 1) + ' %' : p < 0 ? 'faldt ' + nf(-p, 1) + ' %' : 'uændret'}${s.vix ? ` · VIX ${nf(s.vix.v, 1)}` : ''}`,
-        'Aktier, frygt, renter og dollaren – hvad investorerne tror om verden.'];
-    }
-    if (id === 'ai') {
-      const n = AI.filter(k => D.spy && D.spy.w && D.spy.w[k]).length;
-      if (D.spy && D.spy.ai) return [`${n === 7 ? 'Syv' : n} AI-giganter er ${nf(D.spy.ai, 1)} % af S&P 500`, 'Hvor meget af verdens største aktieindeks hviler på de selskaber, der bygger AI.'];
-      return ['AI-giganterne mod resten af markedet', 'Hvor meget af aktiemarkedet hviler på de selskaber, der bygger AI.'];
-    }
-    if (id === 'debt' && group.debt === 'land' && D.imf && D.imf.c) {
-      const top = Object.entries(D.imf.c).filter(([c]) => LAND[c]).map(([c, h]) => [c, h[h.length - 1][1]]).sort((a, b) => b[1] - a[1]);
-      const dk = D.imf.c.DNK;
-      return [`${LAND[top[0][0]][0]} skylder mest: ${nf(top[0][1], 0)} % af BNP`,
-        `Statsgælden i ${top.length} lande i forhold til deres økonomi${dk ? ` – Danmark ${nf(dk[dk.length - 1][1], 0)} %` : ''}.`];
-    }
-    if (id === 'debt' && D.debt) return [`USA skylder ${nf(D.debt.v / 1e12, 2)} billioner dollar`,
-      D.debt.g ? `Gælden er vokset med ${nf(D.debt.g / 1e9, 1)} mia. dollar om dagen i snit det seneste år.` : 'Statsgæld i USA og i resten af verden.'];
-    if (id === 'raw' && s.gold) return [`Guld ${whole(s.gold.v)} dollar pr. ounce${pct(s.gold) != null ? ', ' + dir(pct(s.gold)) : ''}`,
-      'Guld, kobber, hvede og bitcoin – den sikre havn, industrien, brødet og spekulationen.'];
-  } catch (e) { /* a missing number: the plain head */ }
-  return [{ fuel: 'Benzin og diesel nu', oil: 'Olie og gas nu', mkt: 'Markederne nu', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne nu' }[id], ''];
-}
-
-// ---- Brændstof -----------------------------------------------------------------------------------------------------
 function lowest() {
   const out = {};
   for (const c of (D.pumps && D.pumps.chains) || []) for (const [k, x] of Object.entries(c.p)) {
@@ -807,18 +839,159 @@ function lowest() {
 }
 const perL = (usdGal) => D.s.usddkk ? usdGal * D.s.usddkk.v / 3.78541 : null;
 const euL = eur => D.s.eurdkk ? eur * D.s.eurdkk.v / 1000 : null;
-function fuelTiles() {
-  const low = lowest(), us = { benzin: D.s.us_gas, diesel: D.s.us_diesel }, eu = D.eu && D.eu.c && D.eu.c.EU;
-  const tile = (k, i) => {
-    const x = low[k];
-    if (!x) return '';
-    const cmp = [us[k] && perL(us[k].v) ? `USA <b>${nf(perL(us[k].v), 2)}</b>` : '', eu && euL(eu[i]) ? `EU-snit <b>${nf(euL(eu[i]), 2)}</b>` : ''].filter(Boolean).join(' · ');
-    return `<div class="ec-tile"><span class="ec-k">${k === 'benzin' ? 'Benzin 95' : 'Diesel'} · billigst</span><span class="ec-v">${nf(x.v, 2)}<small>kr./l</small></span>
-      <span class="ec-l">${esc(x.who.join(', '))}${cmp ? `<br>${cmp} kr.` : ''}</span></div>`;
-  };
-  const t = tile('benzin', 0) + tile('diesel', 1);
-  return t ? `<div class="ec-tiles">${t}</div>` : '';
+// the cheapest chain's list price per day, one point a day
+const pumpLine = f => ((D.pumps && D.pumps.h) || []).map(([day, chains]) => {
+  const vals = Object.values(chains).map(c => c[f]).filter(v => v != null);
+  return vals.length ? [day, Math.min(...vals)] : null;
+}).filter(Boolean);
+function pumpTile(f) {
+  const x = lowest()[f];
+  if (!x) return null;
+  const h = pumpLine(f), prev = h.length > 1 ? h[h.length - 2][1] : null;
+  return { k: 'dk:' + f, n: f === 'benzin' ? 'Benzin 95 · billigst' : 'Diesel · billigst', v: nf(x.v, 2), u: 'kr./l', mv: step(x.v, prev, 'kr.'),
+    sp: h.slice(-31).map(p => p[1]), tc: 'pumps', ts: 'listepris i dag' };
 }
+function usTile() {
+  const x = D.s.us_gas;
+  return x && perL(x.v) ? sTile('us_gas', 'kr./l', { n: 'Benzin, USA · snit', v: nf(perL(x.v), 2) }) : null;
+}
+function euTile() {
+  const E = D.eu;
+  if (!E || !E.c || !E.c.EU || !euL(E.c.EU[0])) return null;
+  const h = E.h || [], prev = h.length > 1 ? h[h.length - 2][1] : null;
+  return { k: 'eu', n: 'Benzin, EU-snit', v: nf(euL(E.c.EU[0]), 2), u: 'kr./l', mv: step(E.c.EU[0], prev, '%'),
+    sp: h.slice(-26).map(p => p[1]), tc: 'w' + E.t, tt: E.t, ts: 'ugentlig · ' + dm(E.t) };
+}
+function aiwTile() {
+  const W = D.spy;
+  if (!W || !W.ai) return null;
+  const h = W.h || [], prev = h.length > 1 ? h[h.length - 2][1] : null;
+  return { k: 'ai:w', n: 'Vægt i S&P 500', v: nf(W.ai, 1), u: '%', mv: step(W.ai, prev, 'pt.', 1), sp: h.slice(-66).map(p => p[1]),
+    tc: 'd' + W.t, tt: W.t, ts: 'dagligt · ' + dm(W.t) };
+}
+function aiIdxTile() {
+  const s = aiSeries();
+  if (!s) return null;
+  const ch = a => a[a.length - 1][1] - 100, a = ch(s.ai), b = ch(s.sp);
+  return { k: 'ai:idx', n: 'AI-kurven · ' + s.r[1], v: signed(a, 1), u: '%', mv: { cls: '', text: `S&P 500 ${signed(b, 1)} %` },
+    sp: s.ai.map(p => p[1]), tc: tclass('nvda', D.s.nvda), tt: D.s.nvda.t, ts: stamp('nvda', D.s.nvda) };
+}
+// the debt counter's tile: an estimate between the Treasury's daily figures, and it says so
+const debtStart = () => new Date(D.debt.t + 'T16:00:00-04:00').getTime();
+const debtNow = () => D.debt.v + (D.debt.g || 0) * Math.max(0, Date.now() - debtStart()) / 864e5;
+function debtTile() {
+  const X = D.debt;
+  if (!X) return null;
+  const isOpen = openTile.debt === 'debt';
+  return { k: 'debt', wide: true, tc: 'd' + X.t, tt: X.t, ts: 'dagligt · ' + dm(X.t),
+    html: `<div class="ec-span" role="group" aria-label="USA’s statsgæld, skøn"><button class="ec-tile ec-debt" data-tile="debt" aria-expanded="${isOpen}"><span class="ec-k"><span>USA’s statsgæld lige nu</span><span class="ec-est">Skøn</span></span>
+      <span class="ec-count" id="debtNow">${whole(debtNow())} $</span>
+      <span class="ec-l">Skøn mellem de daglige tal: det officielle tal fra ${esc(dm(X.t))} plus gældens gennemsnitlige vækst det seneste år, <b>${nf((X.g || 0) / 1e9, 1)} mia. $ om dagen</b>.</span></button></div>` };
+}
+function tilesOf(t) {
+  const T = TOPIC[t];
+  let out = [];
+  if (T.tiles) out = T.tiles.map(([k, u]) => sTile(k, u));
+  else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile(), euTile()];
+  else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];
+  else if (t === 'debt') out = [debtTile()];
+  return out.filter(Boolean);
+}
+function tileHtml(d, base, isOpen, wide) {
+  if (d.html) return d.html;
+  const own = d.tc && base && d.tc !== base.tc ? d.ts : '';
+  return `<button class="ec-tile${wide ? ' ec-span' : ''}" data-tile="${esc(d.k)}" aria-expanded="${isOpen}"><span class="ec-k">${esc(d.n)}</span>`
+    + `<span class="ec-v">${esc(d.v)}${d.u ? `<small>${esc(d.u)}</small>` : ''}</span>`
+    + `<span class="ec-m"><span class="en-c ${d.mv.cls}">${esc(d.mv.text)}</span>${own ? `<span class="ec-t">${esc(own)}</span>` : ''}</span>${tileSpark(d.sp)}</button>`;
+}
+// two tiles a row (an odd last one is wide); the opened tile's chart and texts go under its row
+function tileGrid(t, tiles, base) {
+  if (!tiles.length) return WAIT;
+  const k = openTile[t];
+  let out = '', col = 0, row = [];
+  tiles.forEach((d, i) => {
+    const last = i === tiles.length - 1, wide = d.wide || (last && col === 0);
+    out += tileHtml(d, base, d.k === k, wide);
+    row.push(d.k); col += wide ? 2 : 1;
+    if (col >= 2 || last) {
+      if (row.includes(k)) out += `<div class="ec-open" data-panel="${esc(k)}">${panel(k)}</div>`;
+      row = []; col = 0;
+    }
+  });
+  return `<div class="ec-tiles">${out}</div>`;
+}
+function panel(k) {
+  if (k.startsWith('dk:')) return pumpPanel(k.slice(3));
+  if (k === 'eu') return euPanel();
+  if (k === 'ai:w') return aiwPanel();
+  if (k === 'ai:idx') return aiIdxPanel();
+  if (k === 'debt') return debtPanel();
+  if (k === 'us_gas') {
+    const x = D.s.us_gas;
+    return more(k, `<p class="en-hl">${nf(x.v, 3)} $ pr. gallon = <b>${nf(perL(x.v), 2)} kr. pr. liter</b> med dollarkursen (${nf(D.s.usddkk.v, 2)} kr.); 1 gallon = 3,785 liter. Skatten på brændstof er langt lavere i USA end i Danmark.</p>`);
+  }
+  return C[k] ? more(k) : '';
+}
+
+// ---- Lige nu: the biggest moves across the topics, from the numbers --------------------------------------------------
+const MOVERS = ['spx', 'ndx', 'sx5e', 'c25', 'n225', 'sse', 'vix', 'tnx', 'dxy', 'gold', 'copper', 'wheat', 'btc', 'brent', 'ttf', 'ulsd', ...AI];
+const median = a => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+// each move against the figure's typical day (the median of the last three months' daily moves)
+function movers() {
+  const out = [];
+  for (const k of MOVERS) {
+    const x = D.s[k];
+    if (!x || x.p == null || !x.h || x.h.length < 30 || Date.now() - asDate(x.t) > 4 * 864e5) continue;
+    const rate = C[k].kind === 'pp';
+    const ch = rate ? x.v - x.p : pct(x);
+    const days = [];
+    for (let i = Math.max(1, x.h.length - 66); i < x.h.length; i++) days.push(Math.abs(rate ? x.h[i][1] - x.h[i - 1][1] : (x.h[i][1] - x.h[i - 1][1]) / x.h[i - 1][1] * 100));
+    const typ = median(days);
+    if (ch == null || !typ || Math.abs(ch) < 1e-9) continue;
+    out.push({ k, ch, typ, z: Math.abs(ch) / typ });
+  }
+  return out.sort((a, b) => b.z - a.z);
+}
+// the four biggest, at most two from one topic
+function topMoves() {
+  const out = [], per = {};
+  for (const m of movers()) {
+    const t = HOME[m.k];
+    if ((per[t] = (per[t] || 0) + 1) > 2) continue;
+    out.push(m);
+    if (out.length === 4) break;
+  }
+  return out;
+}
+const moveFig = m => ({ k: m.k, tc: tclass(m.k, D.s[m.k]), tt: D.s[m.k].t });
+function nowRows(list, base) {
+  if (!list.length) return WAIT;
+  return '<div class="ec-mvs" style="margin-top:12px">' + list.map(m => {
+    const c = C[m.k], x = D.s[m.k], rate = c.kind === 'pp', mv = move(m.k, x);
+    const typ = rate ? nf(m.typ, 2) + ' point' : nf(m.typ, 1) + ' %';
+    const own = tclass(m.k, x) !== base.tc ? stamp(m.k, x) : '';
+    const note = [TOPIC[HOME[m.k]].tab, own, `${m.z >= 2.5 ? 'usædvanligt – ' : ''}typisk ${typ} på en dag`].filter(Boolean).join(' · ');
+    return `<div class="en-item"><button class="ec-mv" data-go="${m.k}"><span class="en-name"><b>${esc(c.n)}</b><small>${esc(note)}</small></span>`
+      + `<span class="en-val"><span class="en-v">${esc(fmtv(m.k, x.v))}</span><span class="en-c ${mv.cls}">${esc(mv.text)}</span></span><span class="ec-chev">${CHEV}</span></button></div>`;
+  }).join('') + '</div>';
+}
+
+// ---- the topics' headline lines: what matters now, from the numbers – reality only ------------------------------------
+function head(id) {
+  const s = D.s, low = lowest();
+  try {
+    if (id === 'nu') { const m = topMoves()[0]; if (m) return phrase(m.k); }
+    if (id === 'fuel' && low.benzin && low.diesel) return `Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`;
+    if (id === 'oil' && s.brent) return phrase('brent');
+    if (id === 'mkt' && s.spx) return phrase('spx');
+    if (id === 'ai' && D.spy && D.spy.ai) return `AI-giganterne er ${nf(D.spy.ai, 1)} % af S&P 500`;
+    if (id === 'debt' && D.debt) return `USA’s gæld: ${nf(D.debt.v / 1e12, 1)} billioner $`;
+    if (id === 'raw' && s.gold) return phrase('gold');
+  } catch (e) { /* a missing number: the plain head */ }
+  return { nu: 'Tallene lige nu', fuel: 'Benzin og diesel', oil: 'Olie og gas', mkt: 'Markederne', ai: 'AI-giganterne', debt: 'Statsgæld', raw: 'Råvarerne' }[id];
+}
+
+// ---- Brændstof -----------------------------------------------------------------------------------------------------
 function pumps() {
   const P = D.pumps;
   if (!P || !P.chains || !P.chains.length) return '<p class="en-note">Pumpepriserne kunne ikke hentes lige nu.</p>';
@@ -840,65 +1013,57 @@ function pumps() {
     }
     return t + '</tbody></table>';
   };
-  let t = table(['benzin', 'diesel'], 'Kæde');
-  if (pumpPlus) t += '<div style="height:14px"></div>' + table(['benzin_plus', 'diesel_plus', 'hvo'], 'Premium');
   const cheap = [];
   for (const c of P.chains) for (const k of ['benzin', 'diesel']) {
     const x = c.p[k];
     if (x && x.min < x.v - 1e-9 && x.at && x.at.length) cheap.push(`${esc(c.c)} ${esc(x.at.join(', '))}: ${PUMP[k].toLowerCase()} ${nf(x.min, 2)}`);
   }
-  const listNote = `<p class="en-note">Kædernes listepris i kr. pr. liter (den pris de fleste stationer har)${cheap.length ? '. Billigere enkeltstationer: ' + cheap.slice(0, 4).join(' · ') : ''}.</p>`;
-  const plus = `<button class="en-plus" id="pumpPlus" aria-expanded="${pumpPlus}">${pumpPlus ? 'Kun benzin og diesel' : 'Premium og HVO'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  return t + listNote + plus;
+  return table(['benzin', 'diesel'], 'Kæde') + table(['benzin_plus', 'diesel_plus', 'hvo'], 'Premium')
+    + `<p class="en-note">Kædernes listepris i kr. pr. liter (den pris de fleste stationer har)${cheap.length ? '. Billigere enkeltstationer: ' + cheap.slice(0, 4).join(' · ') : ''}.</p>`;
 }
-function pumpHistory() {
-  const P = D.pumps, h = (P && P.h) || [];
-  if (h.length < 2) return `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((h[0] && h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
-  const { rs, r } = cut('pumps', 'c', h);
-  return `<section class="block"><div class="block-h"><h2>Prisen over tid</h2></div><p class="en-hint">Den billigste kædes listepris, ét punkt om dagen.</p>${rangeRow('pumps', rs, r)}<div class="en-pchart"><div class="en-chart" data-chart="pumps"></div></div><div class="ec-legend" style="margin-left:16px"><span><i></i>Diesel</span><span><i class="two"></i>Benzin</span></div></section>`;
+function pumpPanel(f) {
+  const h = pumpLine(f), P = D.pumps;
+  const each = (P.chains || []).filter(c => c.p[f]).sort((a, b) => a.p[f].v - b.p[f].v).map(c => `${esc(c.c)} ${nf(c.p[f].v, 2)}`).join(' · ');
+  let out = '';
+  if (h.length < 2) out += `<p class="en-note">Prisudviklingen samles fra ${esc(dayLabel((h[0] && h[0][0]) || new Date().toISOString().slice(0, 10), { day: 'numeric', month: 'long' }))} og vises her, når der er to dage.</p>`;
+  else { const { rs, r } = cut('pumps', 'c', h); out += rangeRow('pumps', rs, r) + `<div class="en-chart" data-chart="pump:${f}" style="height:150px"></div>`; }
+  return out + `<p class="en-hl">Kædernes listepris i dag: ${each} kr.</p>${explain(PUMP_TXT[f])}<p class="en-src">Circle K (også INGO) og Q8 (også F24), kædernes egne prislister</p>`;
 }
-function pumpChart(box) {
-  const { pts } = cut('pumps', 'c', D.pumps.h || []);
-  const line = k => pts.map(([day, chains]) => {
-    const vals = Object.values(chains).map(c => c[k]).filter(v => v != null);
-    return vals.length ? [day, Math.min(...vals), dayLabel(day), dayLabel(day)] : null;
-  }).filter(Boolean);
-  chart(box, [{ pts: line('diesel'), name: 'Diesel' }, { pts: line('benzin'), name: 'Benzin', cls: 'two' }], { d: 2 });
+function pumpChart(box, f) {
+  const { pts } = cut('pumps', 'c', pumpLine(f));
+  chart(box, [{ pts: dated(pts) }], { d: 2, dots: pts.length < 8, fmt: v => nf(v, 2) + ' kr.' });
 }
 // the part of the price that is the raw product: a bar and its share
 function rawShare(label, raw, price, rest) {
   if (!raw || !price) return '';
   const p = Math.max(0, Math.min(100, raw / price * 100));
-  return `<div class="ec-tile ec-span"><span class="ec-k">${esc(label)}</span><span class="ec-v">${nf(p, 0)}<small>% er selve råvaren</small></span><span class="ec-share"><i style="width:${p.toFixed(1)}%"></i></span><span class="ec-l">${esc(rest)}</span></div>`;
+  return `<div class="ec-tiles"><div class="ec-tile ec-span"><span class="ec-k">${esc(label)}</span><span class="ec-v">${nf(p, 0)}<small>% er selve råvaren</small></span><span class="ec-share"><i style="width:${p.toFixed(1)}%"></i></span><span class="ec-l">${esc(rest)}</span></div></div>`;
 }
-function fuelDk() {
-  const low = lowest(), rb = D.s.rbob_kr;
-  let h = `<section class="block"><div class="block-h"><h2>Kæderne i dag</h2></div>${pumps()}</section>`;
-  h += `<div class="ec-tiles">${rawShare('Benzin i Danmark', rb && rb.v, low.benzin && low.benzin.v, `Af ${nf(low.benzin ? low.benzin.v : 0, 2)} kr. er ca. ${nf(rb ? rb.v : 0, 2)} kr. selve benzinen på verdensmarkedet; resten er afgifter, moms, transport og avance.`)}</div>`;
-  h += pumpHistory();
-  h += `<section class="block"><div class="block-h"><h2>Råvaren i kroner</h2></div><div class="en-rows">${['rbob_kr', 'ulsd_kr', 'brent_kr', 'usddkk'].map(k => rowFor(k)).join('')}</div></section>`;
-  return h;
+function euPanel() {
+  const E = D.eu, h = E.h || [], [b, d] = E.c.EU;
+  let out = '';
+  if (h.length < 2) out += `<p class="en-note">Ugens tal samles fra ${esc(dayLabel(E.t, { day: 'numeric', month: 'long' }))} og vises som kurve, når der er to uger.</p>`;
+  else { const { rs, r } = cut('eu', 'w', h); out += rangeRow('eu', rs, r) + '<div class="en-chart" data-chart="eu" style="height:150px"></div>'; }
+  return out + `<p class="en-hl">EU-snit: benzin <b>${nf(euL(b), 2)} kr.</b> · diesel <b>${nf(euL(d), 2)} kr.</b> pr. liter. Landene står under Flere tal.</p>${explain(EU_TXT)}<p class="en-src">EU-Kommissionens Weekly Oil Bulletin, omregnet med euroens kurs (${nf(D.s.eurdkk.v, 2)} kr.)</p>`;
 }
-function fuelUs() {
-  const g = D.s.us_gas, d = D.s.us_diesel;
-  if (!g && !d) return '<p class="en-note">De amerikanske pumpepriser kunne ikke hentes lige nu.</p>';
-  const tile = (x, name) => x ? `<div class="ec-tile"><span class="ec-k">${name} · snit</span><span class="ec-v">${nf(x.v, 2)}<small>$/gal.</small></span><span class="ec-l">= <b>${perL(x.v) ? nf(perL(x.v), 2) : '–'} kr.</b> pr. liter<br>ugentlig · ${esc(dm(x.t))}</span></div>` : '';
-  let h = `<div class="ec-tiles">${tile(g, 'Benzin')}${tile(d, 'Diesel')}</div>`;
-  h += `<p class="en-note">Gennemsnit for hele USA ved pumpen, med skatter. 1 gallon = 3,785 liter; omregnet med dollarkursen${D.s.usddkk ? ' (' + nf(D.s.usddkk.v, 2) + ' kr.)' : ''}. Skatten på brændstof er langt lavere i USA end i Danmark.</p>`;
-  h += `<div class="ec-tiles">${rawShare('Benzin i USA', D.s.rbob && D.s.rbob.v, g && g.v, 'Benzin-futures i New York mod prisen ved pumpen; resten er skatter, transport og avance.')}${rawShare('Diesel i USA', D.s.ulsd && D.s.ulsd.v, d && d.v, 'Diesel-futures i New York mod prisen ved pumpen.')}</div>`;
-  h += `<section class="block"><div class="block-h"><h2>Udviklingen</h2></div><div class="en-rows">${['us_gas', 'us_diesel', 'rbob', 'ulsd'].map(k => rowFor(k)).join('')}</div></section>`;
-  return h;
-}
-function fuelEu() {
+function euTable(base) {
   const E = D.eu;
   if (!E || !E.c || !D.s.eurdkk) return '<p class="en-note">EU’s ugentlige priser kunne ikke hentes lige nu.</p>';
-  const rows = Object.entries(E.c).map(([c, [b, d]]) => [c, euL(b), euL(d)]).sort((a, b) => b[1] - a[1]);
+  const list = Object.entries(E.c).map(([c, [b, d]]) => [c, euL(b), euL(d)]).sort((a, b) => b[1] - a[1]);
   const low = lowest();
   let t = '<table class="en-pump"><thead><tr><th>Land</th><th>Benzin</th><th>Diesel</th></tr></thead><tbody>';
-  for (const [c, b, d] of rows) t += `<tr class="${c === 'DK' ? 'me' : c === 'EU' ? 'avg' : ''}"><td>${esc(EU_NAME[c] || c)}</td><td>${nf(b, 2)}</td><td>${nf(d, 2)}</td></tr>`;
-  t += '</tbody></table>';
-  return `<section class="block"><div class="block-h"><h2>Pumpepriser i Europa</h2></div><p class="en-hint">Kr. pr. liter med afgifter og moms · ugentlig · ${esc(dm(E.t))}</p>${t}
-    <p class="en-note">EU-Kommissionens Weekly Oil Bulletin, omregnet med euroens kurs (${nf(D.s.eurdkk.v, 2)} kr.). EU’s tal for Danmark er de vejledende listepriser${low.benzin ? `; kæderne sælger i dag benzin fra <b>${nf(low.benzin.v, 2)} kr.</b>` : '.'}</p></section>`;
+  for (const [c, b, d] of list) t += `<tr class="${c === 'DK' ? 'me' : c === 'EU' ? 'avg' : ''}"><td>${esc(EU_NAME[c] || c)}</td><td>${nf(b, 2)}</td><td>${nf(d, 2)}</td></tr>`;
+  return t + `</tbody></table><p class="en-note">Kr. pr. liter med afgifter og moms${base && base.tc === 'w' + E.t ? '' : ' · ugentlig · ' + esc(dm(E.t))}. EU’s tal for Danmark er de vejledende listepriser${low.benzin ? `; kæderne sælger i dag benzin fra <b>${nf(low.benzin.v, 2)} kr.</b>` : '.'}</p>`;
+}
+function fuelFold(T, base) {
+  const low = lowest(), rb = D.s.rbob_kr;
+  let h = `<h3 class="ec-sub">Kæderne i dag</h3>${pumps()}`;
+  h += `<h3 class="ec-sub">${esc(T.more[0][0])}</h3>`;
+  h += rawShare('Benzin i Danmark', rb && rb.v, low.benzin && low.benzin.v, `Af ${nf(low.benzin ? low.benzin.v : 0, 2)} kr. er ca. ${nf(rb ? rb.v : 0, 2)} kr. selve benzinen på verdensmarkedet; resten er afgifter, moms, transport og avance.`);
+  h += `<div class="en-rows" style="margin-top:6px">${rows(T.more[0][1], base)}</div>`;
+  h += `<h3 class="ec-sub">${esc(T.more[1][0])}</h3><div class="en-rows">${rows(T.more[1][1], base)}</div>`;
+  h += `<h3 class="ec-sub">Europa</h3>${euTable(base)}`;
+  return h;
 }
 
 // ---- AI ------------------------------------------------------------------------------------------------------------
@@ -920,66 +1085,59 @@ function aiChart(box) {
   if (!s) { box.innerHTML = ''; return; }
   chart(box, [{ pts: dated(s.ai), name: 'AI', cls: 'red' }, { pts: dated(s.sp), name: 'S&P 500', cls: 'two' }], { d: 0, fmt: v => nf(v, 1) });
 }
-function aiPage() {
-  const W = D.spy, s = aiSeries();
-  let h = '';
-  if (W && W.ai) {
-    const names = AI.filter(k => W.w && W.w[k]).sort((a, b) => W.w[b] - W.w[a]).map(k => C[k].n);
-    h += `<div class="ec-tiles"><div class="ec-tile ec-span"><span class="ec-k">AI-giganternes vægt i S&amp;P 500</span><span class="ec-v">${nf(W.ai, 1)}<small>%</small></span>
-      <span class="ec-share"><i style="width:${Math.min(100, W.ai).toFixed(1)}%"></i></span>
-      <span class="ec-l">${esc(names.join(', '))}.<br>Indeksets ti største aktier i alt: <b>${nf(W.top10, 1)} %</b> · SPY-fondens beholdning ${esc(dm(W.t))}</span></div></div>`;
-    if (W.h && W.h.length >= 3) h += `<div class="ec-pad" style="margin-top:12px"><div class="en-chart" data-chart="aiw" style="height:120px"></div></div>`;
-  }
-  if (s) {
-    const ch = a => a[a.length - 1][1] - 100;
-    h += `<section class="block"><div class="block-h"><h2>Kurven mod markedet</h2></div><p class="en-hint">De otte selskaber lige vægtet mod S&amp;P 500, begge sat til 100 ved periodens start.</p>
-      ${rangeRow('aiidx', s.rs, s.r)}<div class="ec-pad"><div class="en-chart" data-chart="aiidx"></div>
-      <div class="ec-legend"><span><i class="red"></i>AI-kurven ${esc(signed(ch(s.ai), 1))} %</span><span><i class="two"></i>S&amp;P 500 ${esc(signed(ch(s.sp), 1))} %</span></div></div></section>`;
-  }
-  const rows = AI.map(k => rowFor(k, W && W.w && k in W.w ? (W.w[k] ? `${nf(W.w[k], 1)} % af S&P 500` : 'ikke i S&P 500') : '')).join('');
-  h += `<section class="block"><div class="block-h"><h2>Selskaberne i dag</h2></div><div class="en-rows">${rows || WAIT}</div></section>`;
+function aiwPanel() {
+  const W = D.spy, names = AI.filter(k => W.w && W.w[k]).sort((a, b) => W.w[b] - W.w[a]).map(k => C[k].n);
+  return `${W.h && W.h.length >= 3 ? '<div class="en-chart" data-chart="aiw" style="height:120px"></div>' : ''}
+    <div class="ec-share" style="margin-top:12px"><i style="width:${Math.min(100, W.ai).toFixed(1)}%"></i></div>
+    <p class="en-hl">${esc(names.join(', '))}. Indeksets ti største aktier i alt: <b>${nf(W.top10, 1)} %</b>.</p>${explain(AIW_TXT)}<p class="en-src">SPY-fondens beholdning (State Street) · ${esc(dm(W.t))}</p>`;
+}
+function aiIdxPanel() {
+  const s = aiSeries(), ch = a => a[a.length - 1][1] - 100;
+  return `${rangeRow('aiidx', s.rs, s.r)}<div class="en-chart" data-chart="aiidx"></div>
+    <div class="ec-legend"><span><i class="red"></i>AI-kurven ${esc(signed(ch(s.ai), 1))} %</span><span><i class="two"></i>S&amp;P 500 ${esc(signed(ch(s.sp), 1))} %</span></div>
+    ${explain(AIX_TXT)}<p class="en-src">${esc(STK)}</p>`;
+}
+function aiFold(T, base) {
+  const W = D.spy;
+  const list = T.more[0][1].map(k => rowFor(k, base, W && W.w && k in W.w ? (W.w[k] ? `${nf(W.w[k], 1)} % af S&P 500` : 'ikke i S&P 500') : '')).join('');
   const conc = W && W.ai ? `Syv selskaber udgør ${nf(W.ai, 1)} % af S&P 500. Den, der sparer op i et bredt indeks – også mange danske pensioner – har i høj grad satset på dem.` : 'Få selskaber udgør en meget stor del af S&P 500, så et bredt indeks i høj grad er et væddemål på dem.';
-  h += `<section class="block"><div class="block-h"><h2>Hvorfor taler man om en boble?</h2></div><ul class="ec-pts">
+  return `<h3 class="ec-sub">${esc(T.more[0][0])}</h3><div class="en-rows">${list || WAIT}</div>
+    <h3 class="ec-sub">Hvorfor taler man om en boble?</h3><ul class="ec-pts">
     <li><b>Prisen.</b> Aktierne handles til mange gange selskabernes årlige overskud. Prisen bygger på den indtjening, investorerne venter fra AI i fremtiden.</li>
     <li><b>Investeringerne.</b> De store tech-selskaber bruger tilsammen hundredvis af milliarder dollar om året på datacentre, chips og strøm – mere, end AI indtil videre tjener ind.</li>
     <li><b>Koncentrationen.</b> ${esc(conc)}</li>
     <li><b>Kredsløbet.</b> Chipleverandører investerer i deres egne kunder, som så køber deres chips, og meget af væksten hviler på få kunder.</li>
-    <li><b>Modargumentet.</b> I modsætning til dotcom-boblen i 2000 tjener selskaberne store penge i dag. Om der er en boble, ved man først bagefter – ingen kan sige, om eller hvornår kurserne vender.</li></ul></section>`;
-  return h;
+    <li><b>Modargumentet.</b> I modsætning til dotcom-boblen i 2000 tjener selskaberne store penge i dag. Om der er en boble, ved man først bagefter – ingen kan sige, om eller hvornår kurserne vender.</li></ul>`;
 }
 
 // ---- Gæld ----------------------------------------------------------------------------------------------------------
-// the counter: the latest official figure plus the last year's average growth, second by second – an estimate
-const debtStart = () => new Date(D.debt.t + 'T16:00:00-04:00').getTime();
-const debtNow = () => D.debt.v + (D.debt.g || 0) * Math.max(0, Date.now() - debtStart()) / 864e5;
-function debtUs() {
-  const X = D.debt;
-  if (!X) return '<p class="en-note">Gældstallet kunne ikke hentes lige nu.</p>';
-  const ps = X.g ? X.g / 86400 : 0;
-  let h = `<div class="ec-debt" role="group" aria-label="USA’s statsgæld, skøn"><span class="ec-k"><span>USA’s statsgæld lige nu</span><span class="ec-est">Skøn</span></span>
-    <span class="ec-count" id="debtNow">${whole(debtNow())} $</span>
-    <span class="ec-l">Skøn mellem de daglige tal: det seneste officielle tal (<b>${esc(dm(X.t))}: ${whole(X.v)} $</b>) plus gældens gennemsnitlige vækst det seneste år, <b>${nf((X.g || 0) / 1e9, 1)} mia. $ om dagen</b> – ${whole(ps)} $ i sekundet.</span></div>`;
-  const { rs, r } = cut('debt', 'd', X.h || []);
-  h += `<section class="block"><div class="block-h"><h2>Gælden over tid</h2></div><p class="en-hint">Mia. dollar, hver bankdag · dagligt · ${esc(dm(X.t))}</p>${rangeRow('debt', rs, r)}<div class="ec-pad"><div class="en-chart" data-chart="debt"></div>${explain(DEBT_TXT)}<p class="en-src">Det amerikanske finansministerium: Debt to the Penny (fiscaldata.treasury.gov)</p></div></section>`;
-  const usa = D.imf && D.imf.c && D.imf.c.USA;
-  h += `<section class="block"><div class="block-h"><h2>Hvad gælden koster</h2></div>${usa ? `<p class="en-hint">Gælden svarer til ${nf(usa[usa.length - 1][1], 0)} % af USA’s årlige økonomi (IMF, ${usa[usa.length - 1][0]}).</p>` : ''}<div class="en-rows">${['tnx', 'dxy'].map(k => rowFor(k)).join('')}</div></section>`;
-  return h;
+function debtPanel() {
+  const X = D.debt, { rs, r } = cut('debt', 'd', X.h || []);
+  return `${rangeRow('debt', rs, r)}<div class="en-chart" data-chart="debt"></div>
+    <p class="en-hl">Officielt ${esc(dm(X.t))}: <b>${whole(X.v)} $</b> · vækst ${nf((X.g || 0) / 1e9, 1)} mia. $ om dagen – ${whole((X.g || 0) / 86400)} $ i sekundet. Mia. dollar, hver bankdag.</p>
+    ${explain(DEBT_TXT)}<p class="en-src">Det amerikanske finansministerium: Debt to the Penny (fiscaldata.treasury.gov)</p>`;
 }
-function debtLands() {
+// debt in % of GDP: one bar per land, sorted, the five highest in view and the rest under 'Flere tal'
+function imfBars(from, to) {
   const I = D.imf;
-  if (!I || !I.c) return '<p class="en-note">IMF’s tal kunne ikke hentes lige nu.</p>';
-  const rows = Object.entries(I.c).map(([c, h]) => [c, h[h.length - 1]]).filter(([c]) => LAND[c]).sort((a, b) => b[1][1] - a[1][1]);
-  const max = Math.max(...rows.map(r => r[1][1]));
-  const bars = rows.map(([c, [y, v]]) => {
+  if (!I || !I.c) return from ? '' : '<p class="en-note">IMF’s tal kunne ikke hentes lige nu.</p>';
+  const list = Object.entries(I.c).map(([c, h]) => [c, h[h.length - 1]]).filter(([c]) => LAND[c]).sort((a, b) => b[1][1] - a[1][1]);
+  const max = Math.max(...list.map(r => r[1][1]));
+  return list.slice(from, to).map(([c, [y, v]]) => {
     const k = 'imf:' + c, isOpen = open.has(k);
     return `<div class="en-item bar-item${isOpen ? ' open' : ''}" data-k="${k}"><button class="en-row ec-bar${c === 'DNK' ? ' me' : ''}" aria-expanded="${isOpen}"><b>${esc(LAND[c][0])}</b><span class="tr"><i style="width:${(v / max * 100).toFixed(1)}%"></i></span><span class="n">${nf(v, 0)} %</span></button>
-      ${isOpen ? `<div class="en-more"><div class="en-chart" data-chart="${k}" style="height:140px"></div><p class="en-hl">${esc(LAND[c][1])}</p><p class="en-src">IMF · årlig · ${y}</p></div>` : ''}</div>`;
+      ${isOpen ? `<div class="en-more" data-panel="${k}"><div class="en-chart" data-chart="${k}" style="height:140px"></div><p class="en-hl">${esc(LAND[c][1])}</p><p class="en-src">IMF · årlig · ${y}</p></div>` : ''}</div>`;
   }).join('');
-  return `<section class="block"><div class="block-h"><h2>Gæld i procent af BNP</h2></div><p class="en-hint">Offentlig bruttogæld · IMF · årlig · ${I.y} · tryk på et land for årene siden 2000</p>${bars}
-    <div class="ec-pad">${explain(IMF_TXT)}<p class="en-src">IMF World Economic Outlook (DataMapper); de nyeste år er for nogle lande et skøn.</p></div></section>`;
+}
+function debtView() {
+  const I = D.imf;
+  return `<h3 class="ec-sub">Gæld i % af BNP${I && I.y ? ' · IMF · årlig · ' + esc(I.y) : ''}</h3>${imfBars(0, 5)}`;
+}
+function debtFold() {
+  return `${imfBars(5)}<div class="ec-pad">${explain(IMF_TXT)}<p class="en-src">IMF World Economic Outlook (DataMapper); offentlig bruttogæld; de nyeste år er for nogle lande et skøn. Tryk på et land for årene siden 2000.</p></div>`;
 }
 
-// ---- news (Olie) ---------------------------------------------------------------------------------------------------
+// ---- news (Olie og gas, under Flere tal) -----------------------------------------------------------------------------
 function news() {
   const list = D.news || [];
   if (!list.length) return '<p class="en-note">Ingen nyheder om olie og brændstof de seneste tre døgn.</p>';
@@ -998,63 +1156,135 @@ function news() {
     return out;
   };
   const shown = newsAll ? list : list.slice(0, 8);
-  const rows = shown.map(n => {
+  const items = shown.map(n => {
     const [t, k] = pick(n);
     return `<div class="story"><a class="row" href="${esc(n.u)}" target="_blank" rel="noopener"><span class="tx"><span class="h">${words(tidy(t), k)}</span><span class="m"><span class="src">${esc(n.s)}</span><span>${esc(when(n.p))}</span>${n.n > 1 ? `<span>${n.n} medier</span>` : ''}</span></span></a></div>`;
   }).join('');
-  const moreBtn = !newsAll && list.length > 8 ? `<button class="en-showmore" id="newsMore">${list.length - 8} mere<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
-  return `<section class="block en-news"><div class="block-h"><h2>Energinyheder</h2></div>${rows}${moreBtn}</section>`;
+  const moreBtn = !newsAll && list.length > 8 ? `<button class="en-showmore" id="newsMore">${list.length - 8} mere${CHEV}</button>` : '';
+  return `<div class="en-news">${items}${moreBtn}</div>`;
 }
 
-// ---- the page ------------------------------------------------------------------------------------------------------
+// ---- a topic -------------------------------------------------------------------------------------------------------
 const WAIT = '<p class="en-note">Tallene er ikke hentet endnu – de kommer ved en af de næste opdateringer.</p>';
-function chips(S, g) {
-  return `<div class="ec-chips" role="group" aria-label="Vis">${S.groups.map(([id, label]) => `<button class="chip${id === g ? ' on' : ''}" data-group="${id}" aria-pressed="${id === g}">${esc(label)}</button>`).join('')}</div>`;
+function foldHtml(T, base) {
+  if (T.id === 'fuel') return fuelFold(T, base);
+  if (T.id === 'ai') return aiFold(T, base);
+  if (T.id === 'debt') return debtFold();
+  let h = T.more.map(([name, keys]) => { const r = rows(keys, base); return r ? `<h3 class="ec-sub">${esc(name)}</h3><div class="en-rows">${r}</div>` : ''; }).join('');
+  if (T.id === 'oil') h += `<h3 class="ec-sub">Nyheder om olie og brændstof</h3>${news()}`;
+  return h;
 }
-function body(S) {
-  const g = S.groups ? (S.groups.some(q => q[0] === group[S.id]) ? group[S.id] : S.groups[0][0]) : null;
-  const [h, stand] = head(S.id);
-  let out = `<header class="ec-top"><span class="ec-fly">${esc(S.fly)}</span><h2 class="ec-head">${esc(h)}</h2>${stand ? `<p class="ec-stand">${esc(stand)}</p>` : ''}</header>`;
-  if (S.id === 'fuel') {
-    const sig = signals();
-    if (sig.length) out += `<section class="block"><div class="block-h"><h2>Lige nu</h2></div><ul class="en-sig">${sig.map(s => `<li>${s}</li>`).join('')}</ul></section>`;
-    out += fuelTiles();
+// the topic's foot: its time and its sources, once
+function meta(T, base) {
+  const parts = ['Opdateret ' + when(D.updated)];
+  if (base) parts.push(baseText(base));
+  if (T.id === 'nu' && closedNow()) parts.push('børserne holder weekend, Bitcoin handles hele døgnet');
+  parts.push((/,| og /.test(T.src) ? 'kilder: ' : 'kilde: ') + T.src);
+  return `<p class="ec-meta">${esc(parts.join(' · '))}</p>`;
+}
+function topicHtml(T) {
+  let h = `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p><h2 class="ec-head">${esc(head(T.id))}</h2></header>`;
+  let base;
+  if (T.id === 'nu') {
+    const list = topMoves();
+    base = baseOf(list.map(moveFig));
+    h += nowRows(list, base);
+  } else {
+    const tiles = tilesOf(T.id);
+    base = baseOf(tiles);
+    h += tileGrid(T.id, tiles, base);
+    if (T.id === 'debt') h += debtView();
   }
-  if (S.groups) out += chips(S, g);
-  if (S.id === 'fuel') out += g === 'us' ? fuelUs() : g === 'eu' ? fuelEu() : fuelDk();
-  else if (S.id === 'debt') out += g === 'land' ? debtLands() : debtUs();
-  else if (S.id === 'ai') out += aiPage();
-  else if (S.groups) {
-    const G = S.groups.find(q => q[0] === g);
-    if (g === 'news') out += news();
-    else out += `${G[3] ? `<p class="en-hint">${esc(G[3])}</p>` : ''}<div class="en-rows">${G[2].map(k => rowFor(k)).join('') || WAIT}</div>`;
-  } else out += `<div class="en-rows" style="margin-top:14px">${S.keys.map(k => rowFor(k)).join('') || WAIT}</div>`;
-  return out;
+  if (FOLDS.has(T.id)) {
+    const on = folds.has(T.id);
+    h += `<button class="ec-fold" data-fold aria-expanded="${on}" aria-controls="more-${T.id}">Flere tal${CHEV}</button>`
+      + `<div class="ec-folded" id="more-${T.id}"${on ? '' : ' hidden'}>${on ? foldHtml(T, base) : ''}</div>`;
+  }
+  return h + meta(T, base);
 }
-function tabs() {
-  $('#tabs').innerHTML = SECTIONS.map(S => `<button role="tab" data-sec="${S.id}" aria-selected="${S.id === sec}" aria-controls="sec">${esc(S.tab)}</button>`).join('');
+const secEl = id => document.getElementById('s-' + TOPIC[id].h);
+// one topic drawn again (a tap inside it): the charts only of what is opened; the focus stays on what was tapped
+function fill(T) {
+  const el = secEl(T.id), a = document.activeElement;
+  let again = null;
+  if (a && el.contains(a)) {
+    if (a.dataset.tile) again = `[data-tile="${a.dataset.tile}"]`;
+    else if (a.hasAttribute('data-fold')) again = '[data-fold]';
+    else if (a.dataset.go) again = `[data-go="${a.dataset.go}"]`;
+    else if (a.classList.contains('en-row')) again = `.en-item[data-k="${a.parentElement.dataset.k}"] > .en-row`;
+  }
+  el.innerHTML = topicHtml(T);
+  drawCharts(el);
+  if (again) { const b = el.querySelector(again); if (b) b.focus({ preventScroll: true }); }
+  if (T.id === 'debt') tick();
 }
-function render(fade) {
+// all topics (new numbers): the topic in view keeps its place on the screen
+function renderAll() {
   if (!D) return;
-  const y = scrollY, box = $('#sec');
-  box.innerHTML = body(SEC[sec]);
-  box.setAttribute('aria-label', SEC[sec].fly);
-  if (fade) { box.classList.remove('in'); void box.offsetWidth; box.classList.add('in'); }
-  drawCharts(box);
-  if (!fade) scrollTo(0, y);
-  tick();
+  const anchor = secEl(current), y0 = anchor.getBoundingClientRect().top;
+  for (const T of TOPICS) fill(T);
+  if (scrollY > 0) scrollBy(0, anchor.getBoundingClientRect().top - y0);
 }
 function foot() {
-  $('#foot').innerHTML = 'Futures, indeks og aktier via Yahoo Finance (ca. 10–15 min. forsinket) · fysiske priser og amerikanske pumpepriser fra det amerikanske energiministerium (EIA) · europæiske pumpepriser fra EU-Kommissionen · vægte fra SPY-fondens beholdning (State Street) · USA’s gæld fra det amerikanske finansministerium · gæld i % af BNP fra IMF · danske pumpepriser fra Circle K og Q8 · nyheder fra Khabar. Opdateres hvert 5. minut.'
+  $('#foot').innerHTML = 'Opdateres hvert 5. minut. Tryk på et tal for dets graf, og hvad det betyder.'
     + '<span class="ec-advice" style="display:block">Siden er information, ikke investeringsrådgivning. Den anbefaler hverken at købe eller sælge noget.</span>';
 }
-function go(id) {
-  if (!SEC[id]) return;
-  sec = id; store.set('ecSec', id);
-  try { history.replaceState(null, '', '#' + UNHASH[id]); } catch (e) { /* a sandboxed frame */ }
-  tabs();
-  scrollTo(0, 0);
-  render(true);
+
+// ---- the dock follows the scroll (scroll-spy): the topic that crosses a line under the top is the chosen one ----------
+const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const barOff = () => document.documentElement.classList.contains('embed') ? 0 : $('#bar').offsetHeight;
+let current = 'nu', hold = 0, holdT = null, atEnd = false, spyIO = null;
+const inView = new Set();
+function dock() {
+  $('#tabs').innerHTML = TOPICS.map(T => `<a href="#${T.h}" data-sec="${T.id}" aria-current="${T.id === current}">${esc(T.tab)}</a>`).join('');
+}
+function mark(id) {
+  if (id === current) return;
+  current = id;
+  const box = $('#tabs');
+  let chip = null;
+  box.querySelectorAll('[data-sec]').forEach(a => { const on = a.dataset.sec === id; a.setAttribute('aria-current', on); if (on) chip = a; });
+  // the chosen chip into view inside the dock when the dock is wider than the screen (never scrolls the page itself)
+  if (chip && box.scrollWidth > box.clientWidth + 1) box.scrollTo({ left: chip.offsetLeft - (box.clientWidth - chip.offsetWidth) / 2, behavior: calm() ? 'auto' : 'smooth' });
+  try { history.replaceState(null, '', '#' + TOPIC[id].h); } catch (e) { /* a sandboxed frame */ }
+}
+function spy() {
+  if (Date.now() < hold) return;
+  const T = atEnd ? TOPICS[TOPICS.length - 1] : TOPICS.find(q => inView.has(q.id));
+  if (T) mark(T.id);
+}
+// the line sits a little under the bar (the frame's top when embedded); IntersectionObserver, no layout work on scroll
+function watch() {
+  if (spyIO) spyIO.disconnect();
+  const line = barOff() + 110;
+  spyIO = new IntersectionObserver(es => {
+    for (const e of es) { const id = e.target.dataset.t; if (e.isIntersecting) inView.add(id); else inView.delete(id); }
+    spy();
+  }, { rootMargin: `-${line}px 0px -${Math.max(0, innerHeight - line - 2)}px 0px` });
+  inView.clear();
+  for (const T of TOPICS) spyIO.observe(secEl(T.id));
+}
+// the foot in view at the end of the page: the last topic, which is too short to reach the line
+new IntersectionObserver(es => { atEnd = es[0].isIntersecting && scrollY > 10; spy(); }).observe($('#foot'));
+// a jump: the dock shows its goal at once and does not flicker through the topics on the way
+function jump(id, el, { instant = false } = {}) {
+  mark(id);
+  hold = Date.now() + 1500;
+  clearTimeout(holdT);
+  holdT = setTimeout(() => { hold = 0; spy(); }, 1500);
+  const target = el || secEl(id).querySelector('.ec-top');
+  const top = id === 'nu' && !el ? 0 : target.getBoundingClientRect().top + scrollY - barOff() - 16;
+  scrollTo({ top: Math.max(0, top), behavior: instant || calm() ? 'auto' : 'smooth' });
+}
+addEventListener('scrollend', () => { if (hold) { hold = 0; clearTimeout(holdT); spy(); } });
+// Lige nu's rows: to the figure in its topic, opened (unfolded first when it lives under Flere tal)
+function goFigure(k) {
+  const t = HOME[k];
+  if (!t) return;
+  const T = TOPIC[t], tile = (T.tiles || []).some(q => q[0] === k) || (t === 'ai' && AI_TILES.includes(k));
+  if (tile) openTile[t] = k; else { folds.add(t); open.add(k); }
+  fill(T);
+  jump(t, tile ? null : secEl(t).querySelector(`.en-item[data-k="${k}"]`));
 }
 
 // the debt counter ticks only while it is on screen and the page is in view
@@ -1064,51 +1294,63 @@ function tick() {
   const el = $('#debtNow');
   if (!el || !D || !D.debt || !D.debt.g) return;
   ticker = setInterval(() => { if (!document.hidden && el.isConnected) el.textContent = whole(debtNow()) + ' $'; else if (!el.isConnected) clearInterval(ticker); },
-    matchMedia('(prefers-reduced-motion: reduce)').matches ? 1000 : 250);
+    calm() ? 1000 : 250);
 }
 
 // ---- touch -----------------------------------------------------------------------------------------------------------
-$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if (b) go(b.dataset.sec); });
-$('#sec').addEventListener('click', e => {
-  const t = e.target;
-  const gr = t.closest('[data-group]'), rng = t.closest('[data-range]'), cur = t.closest('[data-curve]');
-  if (gr) { group[sec] = gr.dataset.group; store.set('ecGroup', group); render(); return; }
+$('#tabs').addEventListener('click', e => {
+  const a = e.target.closest('[data-sec]');
+  if (!a) return;
+  e.preventDefault();
+  jump(a.dataset.sec);
+});
+$('#topics').addEventListener('click', e => {
+  const t = e.target, el = t.closest('.ec-sec');
+  if (!el) return;
+  const T = TOPIC[el.dataset.t];
+  const go = t.closest('[data-go]'), rng = t.closest('[data-range]'), cur = t.closest('[data-curve]'), tile = t.closest('[data-tile]'), fold = t.closest('[data-fold]');
+  if (go) { goFigure(go.dataset.go); return; }
   if (rng) {
-    const holder = rng.closest('[data-for]'), it = rng.closest('.en-item');
-    const k = holder && holder.dataset.for || (it && it.dataset.k);
-    range[k] = rng.dataset.range; store.set('enRange', range);
-    if (it && it.dataset.k === k) { const box = rng.closest('.en-more'); box.innerHTML = more(k); drawCharts(box); }
-    else render();
+    const holder = rng.closest('[data-for]'), box = rng.closest('[data-panel]');
+    range[holder.dataset.for] = rng.dataset.range; store.set('enRange', range);
+    if (holder.dataset.for === 'aiidx' || !box) fill(T);   // the AI tile says its range too
+    else { box.innerHTML = box.classList.contains('ec-open') ? panel(box.dataset.panel) : more(box.dataset.panel); drawCharts(box); }
     return;
   }
   if (cur) {
     curveOf = cur.dataset.curve;
-    const box = cur.closest('.en-more'); box.innerHTML = more('curve'); drawCharts(box);
+    const box = cur.closest('[data-panel]'); box.innerHTML = more('curve'); drawCharts(box);
     return;
   }
-  if (t.closest('#pumpPlus')) { pumpPlus = !pumpPlus; render(); return; }
-  if (t.closest('#newsMore')) { newsAll = true; render(); return; }
+  if (tile) { const k = tile.dataset.tile; openTile[T.id] = openTile[T.id] === k ? null : k; fill(T); return; }
+  if (fold) { if (folds.has(T.id)) folds.delete(T.id); else folds.add(T.id); fill(T); return; }
+  if (t.closest('#newsMore')) { newsAll = true; fill(T); return; }
   const row = t.closest('.en-row');
   if (!row) return;
   const k = row.closest('.en-item').dataset.k;
   if (open.has(k)) open.delete(k); else open.add(k);
-  store.set('enOpen', [...open].slice(-40));
-  render();
+  fill(T);
 });
 let resizeT;
-addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => D && drawCharts($('#sec')), 150); });
-addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== sec) go(id); });
+addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { watch(); if (D) drawCharts($('#topics')); }, 150); });
+addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== current) jump(id); });
 
 // ---- data ------------------------------------------------------------------------------------------------------------
+let first = true;
 async function load() {
   const st = $('#status');
   try {
     const r = await fetch(SRC, { cache: 'no-cache' });
     if (!r.ok) throw new Error(r.status);
     const next = await r.json();
-    if (!D || next.updated !== lastUpdated) { D = next; lastUpdated = next.updated; render(); }
+    if (!D || next.updated !== lastUpdated) { D = next; lastUpdated = next.updated; renderAll(); }
+    if (first) {   // a link to a topic (khabar.nu/energi#olie): there, once the numbers are drawn
+      first = false;
+      const id = HASH[location.hash.slice(1)];
+      if (id && id !== 'nu') jump(id, null, { instant: true });
+    }
   } catch (e) {
-    if (!D) $('#sec').innerHTML = '<p class="empty">Tallene kunne ikke hentes lige nu. Prøv igen om lidt.</p>';
+    if (!D) secEl('nu').insertAdjacentHTML('beforeend', '<p class="empty">Tallene kunne ikke hentes lige nu. Prøv igen om lidt.</p>');
   }
   if (D && D.updated) {
     const age = Date.now() - new Date(D.updated);
@@ -1122,7 +1364,10 @@ addEventListener('scroll', () => $('#bar').classList.toggle('scrolled', scrollY 
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 setInterval(() => { if (!document.hidden) load(); }, 5 * 60e3);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
-tabs();
+// the seven topics' places (Lige nu's head and a skeleton until the numbers come; the others then)
+$('#topics').innerHTML = TOPICS.map(T => `<section class="ec-sec" id="s-${T.h}" data-t="${T.id}" aria-labelledby="f-${T.id}">${T.id === 'nu' ? `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p></header><div class="block"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>` : ''}</section>`).join('');
+dock();
+watch();
 foot();
 load();
 </script>

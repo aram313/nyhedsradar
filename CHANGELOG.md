@@ -9,6 +9,23 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The economy page as one long page that changes topic as you scroll** (2026-10-17, the owner: 'økonomi siden kan
+  virke lidt uoverskuelig … scroll ned og den skifter i mellem forskellige emner med tydeligt emneskift'):
+  `public/energi/` is no longer six tab views with chips but seven topics in a fixed order – Lige nu, Brændstof, Olie
+  og gas, Markeder, AI, Gæld, Råvarer. Each starts with generous space, a short red rule, the red fly title and one
+  serif headline line made from the numbers ('Brent steg 3,7 % fredag', 'Benzin 17,69 kr. – diesel 18,89 kr.',
+  'USA’s gæld: 40,4 billioner $'). The dock at the bottom follows the scroll (IntersectionObserver; the chosen chip
+  scrolls into view inside the dock with large text) and a tap jumps to the topic (smooth unless Reduce Motion). Each
+  topic shows three or four figures as large tiles – name, value, the move with an arrow, a sparkline; a tap opens its
+  chart and the three texts under its row – and one quiet 'Flere tal' row unfolds the rest in place (crack spreads, the
+  forward curve, physical minus paper, the products and gas, the other AI stocks and the bubble's points, the chains'
+  table with premium and HVO, the EU table, the IMF lands beyond the top five, the energy news). Lige nu keeps only the
+  four biggest moves against each figure's typical day (at most two from a topic), each a way to its figure. Time and
+  sources are said once, in one line at each topic's foot; a figure says its own time only when it differs (TTF's
+  Thursday close, Bitcoin's live price, the weekly US and EU prices). Nothing is opened from an earlier visit, so no
+  chart is drawn until a figure is tapped. At 430 px a topic's first view went from Brændstof 1 658, Olie 462, Markeder
+  543, AI 1 694, Gæld 1 243, Råvarer 374 px (5 974 in six separate views) to Lige nu 377, Brændstof 461, Olie 509,
+  Markeder 509, AI 509, Gæld 645, Råvarer 449 px (3 459 for all seven on one page). No change to energy.json or the app.
 - **A fuller explanation for the calendar's weighty events** (2026-10-17, the owner: 'de ting i kalenderen med høj og
   middel betydning må gerne få en lidt mere uddybende forklaring'): `config/calendar-why.json` holds two or three
   sentences of reality for each kind – the elections in the USA (midterms, president), “israel”, Denmark, France,
