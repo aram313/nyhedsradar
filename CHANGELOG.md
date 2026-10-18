@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An event page never contradicts its own development** (2026-10-18, the owner on the France page: 'hvad skaber
+  denne kognitive dissonans på begivenhedssiden?' – the boxes said 150 police injured and over 2.000 arrested while
+  'Forløbet' under them gave the interior ministry's 997 and 2.397). The ministry's figures came only by the Al Jazeera
+  wire, and a box could cite stories only: the editor put them in the recap and left the boxes. Now a wire line grounds a
+  box (`wire_stories`; Arabic-Indic digits read too); the input shows each page's development with what it counts
+  beyond the boxes ('BEHIND'), the check calls for an update when a page is behind (`behind_pages`), and publish refuses
+  an update that puts a higher count in a page's development – or changes the page – while a box stays behind
+  (`events.behind`, `counts_in`). An earlier figure (`was`) must name a time, never another source: Lecornu's 1.200 set
+  against Global Times' 'over 2.000' was no growth.
 - **Fixed: the economy page never had the editors' headlines** (2026-10-18). The radar's energy step read the
   workflow's `.cache/summaries.json` (and now `.cache/okonomi.json`) as a file of the state folder, so it found neither:
   the page's news fell back to Danish outlets' own headlines and the economy editor's first day did not show. It now

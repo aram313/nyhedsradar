@@ -126,6 +126,7 @@ READING_LEN = 420
 NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
+FEEDS = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
                 'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
@@ -490,6 +491,39 @@ def resolver(items):
     return out
 
 
+def wire_stories(lines):
+    """The wire's lines (lines.json: Al Jazeera's urgent one-liners) as stories an event page may cite for a count (18/10:
+    the interior ministry's 2.397 arrested and 997 police injured came only by the wire, so the boxes could not take them
+    while the recap did): the original line, its machine English and Danish; never a story the page lists."""
+    labels = {f.get('name'): f.get('outlet') or f.get('label') or f.get('name') for f in FEEDS}
+    out = {}
+    for v in (lines or {}).get('items') or []:
+        if v.get('i') and v.get('k') == 'w':
+            out[v['i']] = {'id': v['i'], 'title': v.get('t') or '', 'title_tr': v.get('tr') or '', 'title_da': v.get('da') or '',
+                           'summary': '', 'source': labels.get(v.get('s'), v.get('s') or 'Al Jazeera'), 'link': v.get('u') or '',
+                           'published': v.get('p'), 'found': v.get('p'), 'wire': True}
+    return out
+
+
+def development(moves, now):
+    """{recap topic name: its lines, newest first} for today and yesterday – an event page's development."""
+    out = {}
+    for d in sorted(recent_days(moves, now), key=lambda d: d['date'], reverse=True):
+        for tp in d['topics']:
+            out.setdefault(tp['name'], []).extend(tp['lines'])
+    for k in out:
+        out[k] = [{**x, 'hm': f"{dk(ts(x['at'])):%H.%M}" if x.get('at') else ''}
+                  for x in sorted(out[k], key=lambda x: str(x.get('at') or ''), reverse=True)]
+    return out
+
+
+def behind_pages(pages, moves, now):
+    """[(page, [(what, box, count, line)])] for the pages under way whose boxes count less than their own development."""
+    dev = development(moves, now)
+    return [(e, b) for e in pages or [] if e.get('status') == 'i gang' and e.get('topic')
+            for b in [event_pages.behind(e, dev.get(e['topic']) or [])] if b]
+
+
 def app_of(args):
     """The radar's slim app.json (the admitted stories the app shows), or None before the radar writes it."""
     a = read(args, 'origin/data', 'app.json', None)
@@ -795,6 +829,10 @@ def look(args, now):
         reasons.append(f"begivenhedssiden kan få nye tal fra artiklerne: {clip(page.get('title'), 60)} ({', '.join(nums[:4])})")
     for page, lacks in thin_pages[:1]:
         reasons.append(f"begivenhedssiden mangler {' og '.join(lacks)}: {clip(page.get('title'), 60)}")
+    behind_now = behind_pages(pages, moves, now)[:1]
+    for page, gaps in behind_now:
+        reasons.append(f"begivenhedssidens tal er bagud for dens eget forløb: {clip(page.get('title'), 60)} ("
+                       + '; '.join(f"{n} {what} mod {have if have is not None else 'ingen boks'}" for what, have, n, _ in gaps[:3]) + ')')
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     if great:
@@ -813,6 +851,7 @@ def look(args, now):
         keys.append(f"memo:{memo_new['at']}")
     keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
     keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
+    keys += [f"behind:{page['id']}:{','.join(str(g[2]) for g in gaps)}" for page, gaps in behind_now]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
@@ -1522,7 +1561,7 @@ def cmd_input(args):
     out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
     evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
     find_any = resolver([*pool, *items]).get
-    out += event_pages.lines(evt_now, now, find_any, headline, teaser_of)
+    out += event_pages.lines(evt_now, now, find_any, headline, teaser_of, development(moves, now))
     out += event_pages.great_lines(great_groups(pool, evt_now.get('items') or [], now), headline, teaser_of)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
@@ -2453,10 +2492,21 @@ def cmd_publish(args):
              | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
     ev_problems = []
     evt = event_pages.events_file(draft.get('events'), quoted(read(args, 'origin/digest', 'events.json', {'items': []})),
-                                  resolver(data.get('items', [])), now, dk(now).date(), ev_problems, voice)
+                                  {**resolver(data.get('items', [])), **wire_stories(lines)}, now, dk(now).date(), ev_problems, voice)
     extra['events'] = {e['id']: e for e in evt['items']}
     days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {}, extra)
     problems += ev_problems
+    # the page and its own development agree (18/10: the boxes said 150 police injured, 'Forløbet' under them 997): a
+    # count this update puts in a page's development, or a page this update changes, leaves no box behind it
+    touched = {str(e.get('id')) for e in draft.get('events') or [] if isinstance(e, dict)}
+    after = {'days': [*(days or {}).values(), *[d for d in moves.get('days') or [] if d['date'] not in (days or {})]]}
+    for page, gaps in behind_pages(evt['items'], after, now) if days else []:
+        mine = [g for g in gaps if g[3].get('added') == notes['created']]
+        for what, have, n, line in (gaps if page['id'] in touched else mine):
+            problems.append(f"events {page['id']}: its development counts {n} {what} (line [{line.get('id')}]: "
+                            f"{clip(line.get('text'), 90)}) – the box says {have if have is not None else 'nothing'}; put the count "
+                            "in the page's box (cite the line's id – a wire line grounds a box too; the old value as \"was\" only "
+                            "when the same giver gave it), or the page contradicts itself")
     answer = None
     if draft.get('answer'):
         answer, more = check_answer(draft['answer'], {str(a['id']): a for a in waiting(args, noted)},

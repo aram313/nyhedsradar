@@ -272,3 +272,28 @@ def test_the_hindu_is_never_a_source():
     page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang', 'stories': ['fx'],
             'facts': [{'label': 'Anholdte', 'value': 'over 1.800', 'ids': ['fx']}, {'label': 'Sårede politifolk', 'value': '150', 'ids': ['fx']}]}
     assert any('en kilde, vi bruger, for over 1.800' in w for _, lacks in events.thin([page], {'fx': story}.get) for w in lacks)
+
+
+def test_a_page_behind_its_own_development_is_named_and_a_wire_line_grounds_a_box():
+    # 18/10, the owner on the France page: 'hvad skaber denne kognitive dissonans' – boxes 150 police injured and over
+    # 2.000 arrested, while its development under them gave the interior ministry's 997 and 2.397 (a wire line)
+    assert events.counts_in('Frankrigs indenrigsministerium: 2.397 mennesker er anholdt og 997 betjente såret under urolighederne.') \
+        == [('anholdt', False, 2397), ('såret', True, 997)]
+    assert events.counts_in('arrest of 2397 persons and injury of 997 security elements') == [('anholdt', False, 2397), ('såret', True, 997)]
+    page = {'facts': [{'label': 'Anholdte', 'value': 'over 2.000'}, {'label': 'Sårede politifolk', 'value': '150'},
+                      {'label': 'Demonstranter i Paris', 'value': '110.000'}]}
+    line = {'id': 'w1', 'who': 'Frankrigs indenrigsministerium', 'text': '2.397 mennesker er anholdt og 997 betjente såret.'}
+    assert [(w, h, n) for w, h, n, _ in events.behind(page, [line])] == [('anholdte', 2000, 2397), ('sårede politifolk', 150, 997)]
+    assert events.behind(page, [{'id': 's1', 'text': '1.200 mennesker er anholdt'}]) == []     # an older, lower count: no
+    wire = {'id': 'w1', 'title': 'الداخلية الفرنسية: اعتقال ٢٣٩٧ شخصا', 'source': 'Al Jazeera', 'wire': True}
+    assert events.grounded('2.397', [wire])                                                    # Arabic-Indic digits too
+
+
+def test_an_earlier_figure_names_a_time_never_another_source():
+    problems = []
+    entry = {'id': 'uro-x', 'title': 'Uroligheder i X', 'kicker': 'X', 'status': 'i gang', 'since': '2026-10-17', 'dek': 'Protester.',
+             'facts': [{'label': 'Anholdte', 'value': 'over 2.000', 'note': 'ifølge Global Times', 'ids': ['a'],
+                        'was': {'value': '1.200', 'when': 'ifølge premierministeren', 'ids': ['a']}}], 'stories': ['a']}
+    find = {'a': {'id': 'a', 'title': 'Over 2.000 anholdt, mod 1.200 i går', 'source': 'Reuters', 'outlets': 3}}
+    events.events_file([entry], {'items': []}, find, datetime(2026, 10, 18, 19, tzinfo=timezone.utc), date(2026, 10, 18), problems)
+    assert any("'when' is a time" in p for p in problems)

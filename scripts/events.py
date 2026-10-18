@@ -42,10 +42,80 @@ DAY = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 NUMBER = re.compile(r'\d+(?:[.,\s]\d{3})*(?:[.,]\d+)?')
 
 
+ARABIC_DIGITS = str.maketrans('٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹', '01234567890123456789')
+
+
 def digits(text):
     """Every number a text carries, as its plain digits: '550.000', '550,000' and '550 000' are all '550000', '2,5'
-    and '2.5' both '25'."""
-    return {re.sub(r'\D', '', m) for m in NUMBER.findall(str(text or '')) if re.sub(r'\D', '', m)}
+    and '2.5' both '25' (Arabic-Indic digits read as their Western ones – a wire line's own text)."""
+    return {re.sub(r'\D', '', m) for m in NUMBER.findall(str(text or '').translate(ARABIC_DIGITS)) if re.sub(r'\D', '', m)}
+
+
+# The page's counts against its own development (18/10, the owner on the France page: 'hvad skaber denne kognitive
+# dissonans' – the boxes said 150 police injured and over 2.000 arrested while 'Forløbet' under them gave the interior
+# ministry's 997 and 2.397): a count is the number a text ties to an arrest, an injury or a death – the words after it to
+# the next clause ('2.397 mennesker er anholdt'), else those before it ('arrest of 2397') – and whether police are
+# counted; a page is behind when a line of its development counts more than every box of that kind
+COUNT_KINDS = (('anholdt', re.compile(r'(?<!\w)(?:anhold\w*|arrest\w*|tilbagehold\w*|detain\w*|detention\w*)', re.I)),
+               ('såret', re.compile(r'(?<!\w)(?:såre\w*|såret|kvæst\w*|injur\w*|wound\w*|hurt)', re.I)),
+               ('dræbt', re.compile(r'(?<!\w)(?:dræbt\w*|omkom\w*|døde\b|dødsofre\w*|killed|dead|deaths?)', re.I)))
+POLICE = re.compile(r'(?<!\w)(?:politi\w*|betjent\w*|police\w*|officer\w*|gendarm\w*|sikkerhedsfolk\w*|security)', re.I)
+CLAUSE = re.compile(r'[,;:]|\s(?:og|samt|mens|and|while)\s', re.I)
+
+
+def _kind(text):
+    for kind, rx in COUNT_KINDS:
+        if rx.search(text or ''):
+            return kind
+    return None
+
+
+def counts_in(text):
+    """[(kind, police, number)] for the counts a text gives."""
+    text = str(text or '').translate(ARABIC_DIGITS)
+    hits = list(NUMBER.finditer(text))
+    out = []
+    for k, m in enumerate(hits):
+        end = hits[k + 1].start() if k + 1 < len(hits) else len(text)
+        after = CLAUSE.split(text[m.end():end])[0]
+        start = hits[k - 1].end() if k else 0
+        before = CLAUSE.split(text[start:m.start()])[-1]
+        part = after if _kind(after) else before
+        kind = _kind(part)
+        n = re.sub(r'\D', '', m.group())
+        if kind and n:
+            out.append((kind, bool(POLICE.search(after) or POLICE.search(before)), int(n)))
+    return out
+
+
+def box_counts(page):
+    """The page's boxes as counts: {(kind, police): the highest value shown}."""
+    got = {}
+    for f in page.get('facts') or []:
+        kind, n = _kind(f.get('label')), sorted(digits(f.get('value')), key=len)
+        if kind and n:
+            key = (kind, bool(POLICE.search(str(f.get('label') or ''))))
+            got[key] = max(got.get(key, 0), int(n[-1]))
+    return got
+
+
+COUNT_LABEL = {('anholdt', False): 'anholdte', ('anholdt', True): 'anholdte politifolk', ('såret', False): 'sårede',
+         ('såret', True): 'sårede politifolk', ('dræbt', False): 'dræbte', ('dræbt', True): 'dræbte politifolk'}
+
+
+def behind(page, lines):
+    """The counts of the page's development (lines: [{id, who, text}]) higher than every box of their kind – or of a
+    kind the page shows no box for at all, when it shows that kind otherwise: [(what, box value or None, count, line)]."""
+    boxes, out = box_counts(page), []
+    if not boxes:
+        return out
+    for line in lines:
+        for kind, police, n in counts_in(f"{line.get('who') or ''}: {line.get('text') or ''}"):
+            have = boxes.get((kind, police))
+            if (have is not None and n > have) or (have is None and any(k == kind for k, _ in boxes)):
+                if not any(x[2] == n and x[0] == COUNT_LABEL[(kind, police)] for x in out):
+                    out.append((COUNT_LABEL[(kind, police)], have, n, line))
+    return out
 
 
 def story_text(it):
@@ -484,6 +554,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 else:
                     box['of'] = whole
             was = f.get('was')
+            if was and isinstance(was, dict) and re.search(r'\bifølge\b|\baccording\b', str(was.get('when') or ''), re.I):
+                problems.append(f"{where} fact {n}: was when {was.get('when')!r} – 'when' is a time ('fredag', 'i går'); an earlier "
+                                "figure is the same giver's – one from another source is no growth: give it a box of its own "
+                                "with who gives it")
             if was:
                 if not isinstance(was, dict) or not text(was.get('value')):
                     problems.append(f'{where} fact {n}: was – {{value, when, ids}}: the number before')
@@ -510,7 +584,8 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 voice.check_voice(text(q.get('text')), f'{where} quote {n}', problems)
             quotes.append({'who': text(q.get('who'), 60), 'text': text(q.get('text'), 300), 'ids': [it['id'] for it in cited],
                            'src': sources(cited)})
-        told = stories_of(e.get('stories') or [], 'stories')[:STORIES]
+        told = [it for it in stories_of(e.get('stories') or [], 'stories') if not it.get('wire')]   # a wire line is no story
+        told = list({it['id']: it for it in told}.values())[:STORIES]   # each story once
         stories = [it['id'] for it in told]
         # its picture: the outlet's own of its first story that has one (the card and the page set it large with the
         # title on a dark fade – the owner, 18/10), kept also when the story leaves Live
@@ -603,9 +678,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
     return {'updated': stamp, 'items': keep}
 
 
-def lines(current, now, find=None, head=None, teaser=None):
+def lines(current, now, find=None, head=None, teaser=None, development=None):
     """The input's view of the event pages: what each says now, so an update changes only what the news moved – and,
-    for a page under way, its stories' material (with find, head and teaser)."""
+    for a page under way, its stories' material (with find, head and teaser) and its development's lines (development:
+    {topic name: [recap lines]}), with the counts there the boxes do not show yet."""
     items = (current or {}).get('items') or []
     out = [f'## Event pages (Begivenheder) – {len(items)} now', '']
     if find and any(e.get('status') == 'i gang' for e in items):
@@ -630,4 +706,14 @@ def lines(current, now, find=None, head=None, teaser=None):
             if told:
                 nums = numbers_in(told)
                 out.append(f"    Numbers in its stories: {', '.join(nums) if nums else 'none'}")
+        dev = (development or {}).get(e.get('topic') or '') or []
+        if dev and e.get('status') == 'i gang':
+            out.append(f"    Its development ('{e.get('topic')}', the page shows it under 'Forløbet') – a wire line [id] grounds a box "
+                       "too: cite its id")
+            out += [f"    [{x.get('id')}] {x.get('hm') or str(x.get('at') or '')[11:16]} · {x.get('who') + ': ' if x.get('who') else ''}{x.get('text')}"
+                    for x in dev[:6]]
+            for what, have, n, line in behind(e, dev):
+                out.append(f"    BEHIND: its development counts {n} {what} ([{line.get('id')}]), the boxes "
+                           f"{have if have is not None else 'none'} – update the box (the old value as \"was\" only when the "
+                           "same giver gave it), or the page contradicts itself")
     return out + ['']
