@@ -1638,6 +1638,7 @@ def econ_input(args, now):
     out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
     out += note_lines(open_notes(args, now, ('okonomi', 'kalender')), resolver(items).get,
                       read(args, 'origin/digest', 'events.json', {}).get('items') or [])
+    out += owner_title_lines(args)
     out += brain.section(stories[:TOP], noted['items'])
     cal_now, kal_now = read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {})
     out += econ.input_lines(read(args, 'origin/data', 'energy.json', {}), stories, read(args, 'origin/digest', 'okonomi.json', {}),
