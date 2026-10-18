@@ -130,7 +130,11 @@ plain Danish without "Ifølge …".
      streets, a war, a strike, a coup, a disaster or a vote gets its page in this update, built from the group's
      stories – their teasers and the numbers they carry are listed –, unless one of your pages holds it already (then
      add its stories there); a decision, a statement, a single attack or an analysis gets none. A new page is the one
-     exception to keeping an update small: write it whole. Name in your last line the page you made, or why none. At
+     exception to keeping an update small: write it whole, as a news agency would – each fact with who gives it (the
+     interior minister, the police, an outlet by name), never 'the media say' –; the boxes hold every count the
+     stories carry (marching, arrested, injured, dead), the earlier figure as `was` when it has grown; the article
+     tells what happened, where, the counts and what was said, in four to six paragraphs when the material holds it.
+     Name in your last line the page you made, or why none. At
      most five pages under way or ahead; most later updates change only a page's numbers and stories. Each: `id`, `title`, `kicker` (where or what),
      `status` (i gang | kommende | afsluttet), `since` (the day it began) or `date` (the day it happens, kommende),
      `dek` (one factual line), `facts` (at most six boxes: `label`, `value`, `note` – who says it, `ids`), `places`,

@@ -120,9 +120,16 @@ def stems(headline):
 
 
 def eventish(it):
-    """(the word that marks a story as an event – its headlines and teasers –, its kind), or (None, None)."""
-    hit = EVENTISH.search(story_text(it))
-    return (hit.group(0).lower(), hit.lastgroup) if hit else (None, None)
+    """(the word that marks a story as an event, its kind), or (None, None): in its own headline or teaser, or in two
+    other outlets' headlines – one outlet's 'will intensify war' under a story on a decision marks nothing."""
+    own = ' · '.join(str(it.get(k) or '') for k in ('title', 'title_tr', 'title_da', 'summary', 'summary_tr',
+                                                     'summary_da', 'origTitle'))
+    hit = EVENTISH.search(own)
+    if hit:
+        return hit.group(0).lower(), hit.lastgroup
+    hits = [h for h in (EVENTISH.search(' · '.join(str(a.get(k) or '') for k in ('title', 'title_tr')))
+                        for a in it.get('also') or [] if isinstance(a, dict)) if h]
+    return (hits[0].group(0).lower(), hits[0].lastgroup) if len(hits) >= 2 else (None, None)
 
 
 def great_events(stories, head, most=6):
@@ -162,6 +169,37 @@ def numbers_in(stories, most=14):
     return out[:most]
 
 
+LATIN = re.compile(r'^[\x00-\u024f\u2000-\u206f\u20ac\s]*$')
+
+
+def material(it, head, teaser, most=10, indent='        '):
+    """A story's material for an event page: its headline's teaser and every other outlet's headline with the outlet
+    (18/10: the first page the editor built had no fact box – the input gave one teaser, while the other outlets'
+    headlines carried '1,200 arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says')."""
+    out = []
+    if teaser(it):
+        out.append(f"{indent}Teaser: {text(teaser(it), 300)}")
+    for a in (it.get('also') or [])[:most]:
+        if not isinstance(a, dict):
+            continue
+        t = a.get('title') if LATIN.match(str(a.get('title') or '')) else a.get('title_tr') or a.get('title')
+        if t:
+            out.append(f"{indent}{a.get('source') or '?'}: {text(t, 160)}")
+    return out
+
+
+def thin(items, find):
+    """The pages under way that hold fewer than two numbers while their stories carry two or more: (page, numbers)."""
+    out = []
+    for e in items or []:
+        if e.get('status') != 'i gang' or len(e.get('facts') or []) >= 2:
+            continue
+        nums = numbers_in([it for it in (find(x) for x in e.get('stories') or []) if it])
+        if len(nums) >= 2:
+            out.append((e, nums))
+    return out
+
+
 def great_lines(groups, head, teaser):
     """The input's section on the great events without a page."""
     if not groups:
@@ -169,16 +207,16 @@ def great_lines(groups, head, teaser):
     out = [f'## Great events without a page – {len(groups)} (many outlets, the last 36 hours): decide on each', '',
            'Stories that share their subject are one group. A group marked EVENT (a people in the streets, a war, a '
            'strike, a coup, a disaster, a vote) gets its page in this update under "events", built from these stories: '
-           'their teasers and the numbers they carry are below. A decision, a statement, a single attack or an analysis '
-           'gets none.', '']
+           "their teasers, every other outlet's headline and the numbers they carry are below. A decision, a statement, "
+           'a single attack or an analysis gets none.', '']
     for k, g in enumerate(groups):
         tag = f"EVENT – {g['kind']} ('{g['word']}')" if g['word'] else 'not marked – a page only when it is an event all the same'
         out.append(f"[{chr(65 + k)}] {tag} · {len(g['items'])} {'story' if len(g['items']) == 1 else 'stories'} · "
                    f"up to {g['outlets']} outlets")
         for it in g['items']:
-            out.append(f"    [{it['id']}] {it.get('outlets') or 1} outlets · {head(it)}")
-            if g['word'] and teaser(it):
-                out.append(f"        Teaser: {text(teaser(it), 300)}")
+            out.append(f"    [{it['id']}] {it.get('outlets') or 1} outlets · {it.get('source') or '?'} · {head(it)}")
+            if g['word']:
+                out += material(it, head, teaser, 10 if k < 2 else 3)
         if g['word']:
             nums = numbers_in(g['items'])
             out.append(f"    Numbers in its stories: {', '.join(nums) if nums else 'none – the page gets no fact box yet'}")
@@ -377,10 +415,15 @@ def events_file(entries, current, find, now, today, problems, voice=None):
     return {'updated': stamp, 'items': keep}
 
 
-def lines(current, now):
-    """The input's view of the event pages: what each says now, so an update changes only what the news moved."""
+def lines(current, now, find=None, head=None, teaser=None):
+    """The input's view of the event pages: what each says now, so an update changes only what the news moved – and,
+    for a page under way, its stories' material (with find, head and teaser)."""
     items = (current or {}).get('items') or []
     out = [f'## Event pages (Begivenheder) – {len(items)} now', '']
+    if find and any(e.get('status') == 'i gang' for e in items):
+        out += ['Bring each page under way up to date from its stories\' material below: every count they carry in a box '
+                '(the earlier figure as "was" when it has grown), who gives each, the places named, a statement, and '
+                'the article told from all of it.', '']
     if not items:
         out.append('None yet. A great event (many outlets, a state or a people in motion, a vote ahead) gets a page.')
     for e in items:
@@ -391,4 +434,12 @@ def lines(current, now):
         out.append(f"    facts: {facts or '–'} · places: {', '.join(e.get('places') or []) or '–'} · "
                    f"{len(e.get('stories') or [])} stories · topic: {e.get('topic') or '–'} · "
                    f"article: {len(e.get('article') or [])} paragraphs")
+        if find and e.get('status') == 'i gang':
+            told = [it for it in (find(x) for x in (e.get('stories') or [])[:4]) if it]
+            for it in told:
+                out.append(f"    [{it['id']}] {it.get('outlets') or 1} outlets · {it.get('source') or '?'} · {head(it)}")
+                out += material(it, head, teaser, 8)
+            if told:
+                nums = numbers_in(told)
+                out.append(f"    Numbers in its stories: {', '.join(nums) if nums else 'none'}")
     return out + ['']

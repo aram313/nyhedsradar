@@ -147,3 +147,29 @@ def test_the_great_events_are_grouped_by_event_and_the_events_come_first():
 def test_an_english_date_is_no_count():
     assert events.ungrounded('Den 17. oktober og October 17 og 17 October gik 550.000 på gaden.',
                              [{'title': '550,000 marched'}]) == []
+
+
+def test_a_page_under_way_without_its_numbers_is_named_and_its_material_listed():
+    # 18/10: the first page the editor built had no fact box – the input gave one teaser, while the other outlets'
+    # headlines carried '1,200 arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says'
+    story = {'id': 'f1', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+             'also': [{'source': 'Times of Israel', 'title': 'Mass protests in France; 1,200 arrested, 150 cops injured'},
+                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+    page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
+            'since': '2026-10-18', 'dek': '…', 'facts': [], 'stories': ['f1'], 'at': '2026-10-18T14:49:58+00:00'}
+    find = {'f1': story}.get
+    assert events.thin([page], find) == [(page, ['1,200', '150', '1,800'])]
+    text = '\n'.join(events.lines({'items': [page]}, NOW, find, lambda i: i['title'], lambda i: ''))
+    assert 'The Hindu: France protests: More than 1,800 arrested, Interior Minister says' in text
+    assert 'Numbers in its stories: 1,200, 150, 1,800' in text and 'Bring each page under way up to date' in text
+    # a page with its numbers is not thin
+    assert events.thin([{**page, 'facts': [{}, {}]}], find) == []
+
+
+def test_one_outlets_word_marks_no_event():
+    head = lambda i: i['title']   # noqa: E731
+    one = {'id': 'z', 'outlets': 14, 'title': 'Zelenskyj kritiserer Trumps pause i sanktionerne',
+           'also': [{'title': "Zelenskyy says the waiver will intensify war in Ukraine"}]}
+    assert events.great_events([one], head)[0]['word'] is None
+    two = {**one, 'also': one['also'] + [{'title': 'Russia steps up its war on the energy grid'}]}
+    assert events.great_events([two], head)[0]['kind'] == 'krig'

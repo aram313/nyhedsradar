@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The editor gets the whole material of an event** (2026-10-18, the first page it built – Uroligheder i Frankrig –
+  had no fact box and two thin paragraphs: the input gave one teaser, while the other outlets' headlines carried '1,200
+  arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says'). For the great events and for
+  every page under way the input lists each story's teaser and every other outlet's headline with the outlet, and the
+  counts they carry; the check calls for an update once when a page under way holds fewer than two numbers while its
+  stories carry them; the prompt asks for a page written as a news agency would – each fact with who gives it, every
+  count in a box, the earlier figure as 'was', four to six paragraphs. An event word counts in a story's own headline
+  or teaser, or in two other outlets' headlines – one outlet's 'will intensify war' under a decision marks nothing.
 - **The editor sees the great events as events** (2026-10-18, its first run with event pages made none: it weighed only
   the most widely carried story – Trump's pause of the sanctions on Russia, a decision – while France's riots came as
   two stories of 23 and 22 outlets). The input's 'Great events without a page' groups the widely carried stories by

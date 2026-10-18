@@ -767,6 +767,10 @@ def look(args, now):
         lead = great['items'][0]
         reasons.append(f"stor begivenhed uden egen side: {clip(headline(lead), 80)} ({len(great['items'])} "
                        f"{'historie' if len(great['items']) == 1 else 'historier'}, op til {great['outlets']} medier)")
+    # a page under way without its numbers while its stories carry them (18/10: the first page had none)
+    thin_pages = event_pages.thin(pages, resolver([*pool, *items]).get)
+    for page, nums in thin_pages[:1]:
+        reasons.append(f"begivenhedssiden mangler tal: {clip(page.get('title'), 60)} ({', '.join(nums[:4])} i dens historier)")
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     if great:
@@ -780,6 +784,7 @@ def look(args, now):
         keys.append(f"answer:{answer['id']}")
     if facts_great:
         keys.append(facts_great)
+    keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
@@ -1326,7 +1331,8 @@ def cmd_input(args):
     heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (summaries_of(args).get('titles') or {}).items()}
     out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
     evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
-    out += event_pages.lines(evt_now, now)
+    find_any = resolver([*pool, *items]).get
+    out += event_pages.lines(evt_now, now, find_any, headline, teaser_of)
     out += event_pages.great_lines(great_groups(pool, evt_now.get('items') or [], now), headline, teaser_of)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
