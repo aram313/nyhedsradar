@@ -921,6 +921,14 @@ def main():
         pass
     except Exception as e:  # noqa: BLE001 – pictures are a bonus; the radar must keep running
         print(f'pictures failed: {type(e).__name__}: {e}')
+    # the great stories' articles read for their counts (radar/reader.py): the editor's material for an event page
+    # (the owner, 18/10: 'Se kilderne her, hvorfor kan vi ikke bruge de samme?'); the cloud run only (RADAR_READ=1)
+    if os.environ.get('RADAR_READ') == '1':
+        try:
+            from radar import reader
+            save(STATE / 'read.json', reader.attach(shown, members_of, load(STATE / 'read.json', {}), NOW))
+        except Exception as e:  # noqa: BLE001 – a bonus too
+            print(f'reading failed: {type(e).__name__}: {e}')
 
     # one-line statements ("Kremlin: ...") from the wire and elsewhere, for the 'Bevægelser' view and the
     # editor's briefing: English and Danish versions made once and kept
@@ -1037,7 +1045,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pf', 'pl', 'kw', 'kw_tr', 'kw_da',
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pf', 'pl', 'said', 'kw', 'kw_tr', 'kw_da',
                      'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live', 'kind')
     app_fields = ('id', 'title', 'summary', 'link', 'lang', 'published', 'found', 'rank', 'sec', 'secs', 'big', 'important',
                   'outlets', 'confirmed', 'cover', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb',

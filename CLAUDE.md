@@ -124,6 +124,11 @@ da'wah.
   which app.json carries and Dagens historie shows large since 2026-10-17),
   shrunk with Pillow to a 144 px JPEG in `state/t/` (served from the data branch); unverified Telegram channels
   never lend one. `state/pics.json` remembers page images and failed pictures for 3 days.
+- `src/radar/reader.py` (18/10, the owner: 'Se kilderne her, hvorfor kan vi ikke bruge de samme?'): in the cloud run
+  (`RADAR_READ=1`) the article pages of the ten most widely carried stories in Live are read (Google News links resolved
+  by `fresh.resolve`) and up to six sentences with a count kept per article with its outlet (`said` on the card in
+  data.json, `state/read.json` remembers pages two days) – the editor's material for event pages (events.story_text,
+  carriers, material); only single sentences, never an article, and the app shows none of it.
 - **The large pictures** (18/10): `thumbs.large` grades every outlet's picture of the 18 strongest stories in Live and the
   big ones (`fitness`: wide, sharp, light, a scene or a small high face; the face's height is `pf[4]`), keeps the best as
   the card's `pic` with its `pf` and a light copy `pl` (960 px, state/l/, kept per picture in pics.json `grade`); the app

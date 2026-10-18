@@ -87,6 +87,7 @@ jobs:
           RADAR_LIVE: .cache/live.json              # the editor's level for Live; app.json holds what Live shows
           RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines: a notification says what the app shows
           RADAR_ANALYSES: '1'                       # follow Hizb ut-Tahrir's new political answers (analyses.py)
+          RADAR_READ: '1'                           # read the great stories' articles for their counts (reader.py)
           ADMIN_KEY: ${{ secrets.ADMIN_KEY }}       # checks the owner's long-press removals from the app (admin.py)
           PROFILE_KEY: ${{ secrets.PROFILE_KEY }}   # encrypts the list of signed-up phones (state/phones.bin)
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}

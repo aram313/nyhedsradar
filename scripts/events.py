@@ -52,6 +52,8 @@ def story_text(it):
     """What a story carries: its headlines (the outlet's, the translations, the other outlets') and its teasers."""
     parts = [it.get(k) for k in ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')]
     parts += [a.get(k) for a in it.get('also') or [] if isinstance(a, dict) for k in ('title', 'title_tr')]
+    # the sentences with counts the radar read in its outlets' articles (radar/reader.py, 18/10)
+    parts += [x.get('t') for x in it.get('said') or [] if isinstance(x, dict)]
     return ' · '.join(str(p) for p in parts if p)
 
 
@@ -191,6 +193,10 @@ def material(it, head, teaser, most=10, indent='        '):
         t = a.get('title') if LATIN.match(str(a.get('title') or '')) else a.get('title_tr') or a.get('title')
         if t:
             out.append(f"{indent}{a.get('source') or '?'}: {text(t, 160)}")
+    # what the outlets' articles say in numbers (radar/reader.py): who gives each count is in the sentence
+    said = sorted((x for x in it.get('said') or [] if isinstance(x, dict) and x.get('t')), key=lambda x: x.get('s') in LAST)
+    for x in said[:most + 2]:
+        out.append(f"{indent}In {x.get('s') or '?'}'s article: {text(x['t'], 300)}")
     return out
 
 
@@ -223,6 +229,30 @@ def thin(items, find):
     return out
 
 
+def unused(items, find, least=3):
+    """The pages under way whose stories' articles (radar/reader.py) carry counts the page does not show – at least
+    `least` of them: (page, those counts as written). The check names such a page once for each set of counts."""
+    out = []
+    for e in items or []:
+        if e.get('status') != 'i gang':
+            continue
+        told = [it for it in (find(x) for x in e.get('stories') or []) if it]
+        shown = set().union(*(digits(t) for t in [*(f.get('value') for f in e.get('facts') or []),
+                                                    *((f.get('was') or {}).get('value') for f in e.get('facts') or []),
+                                                    *(a.get('text') for a in e.get('article') or [])] if t)) if e else set()
+        new, seen = [], set()
+        for it in told:
+            for x in it.get('said') or []:
+                for m in NUMBER.findall(NOT_A_COUNT.sub(' ', str(x.get('t') or ''))):
+                    d = re.sub(r'\D', '', m)
+                    if len(d) >= 2 and d not in shown and d not in seen:
+                        seen.add(d)
+                        new.append(m.strip())
+        if len(new) >= least:
+            out.append((e, new[:6]))
+    return out
+
+
 def great_lines(groups, head, teaser):
     """The input's section on the great events without a page."""
     if not groups:
@@ -230,7 +260,7 @@ def great_lines(groups, head, teaser):
     out = [f'## Great events without a page – {len(groups)} (many outlets, the last 36 hours): decide on each', '',
            'Stories that share their subject are one group. A group marked EVENT (a people in the streets, a war, a '
            'strike, a coup, a disaster, a vote) gets its page in this update under "events", built from these stories: '
-           "their teasers, every other outlet's headline and the numbers they carry are below. A decision, a statement, "
+           "their teasers, every other outlet's headline, the sentences with counts from their articles (\"In X's article\" – who gives each count is in the sentence) and the numbers they carry are below. A decision, a statement, "
            'a single attack or an analysis gets none.', '']
     for k, g in enumerate(groups):
         tag = f"EVENT – {g['kind']} ('{g['word']}')" if g['word'] else 'not marked – a page only when it is an event all the same'
@@ -274,6 +304,9 @@ def carriers(stories, number):
         for a in it.get('also') or []:
             if isinstance(a, dict) and a.get('source') and number in digits(f"{a.get('title') or ''} · {a.get('title_tr') or ''}"):
                 out.append(str(a['source']))
+        for x in it.get('said') or []:   # a sentence of an outlet's article
+            if isinstance(x, dict) and x.get('s') and number in digits(NOT_A_COUNT.sub(' ', str(x.get('t') or ''))):
+                out.append(str(x['s']))
     return out
 
 

@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The editor reads what the articles say in numbers** (2026-10-18, the owner on DR's overview of France's riots: 'Se
+  kilderne her, hvorfor kan vi ikke bruge de samme?' – DR gave 550.000 according to the authorities, 800.000 according to
+  the organisers and 110 marches, citing Reuters, the interior ministry, the government and the CGT, while Khabar's
+  editor, without internet, saw only headlines and teasers). `src/radar/reader.py` (the cloud run, `RADAR_READ=1`) reads
+  the article pages of the ten most widely carried stories in Live – a Google News link resolved to the outlet's own
+  page – and keeps, per article, up to six sentences that carry a count, with the outlet (`said` in data.json; the app
+  shows none of it; a page is read once and remembered two days). The editor's material lists them ('In Reuters's
+  article: …'), a box or a paragraph may rest on them and is credited to that outlet, and the check names a page under
+  way whose stories' articles carry three counts or more it does not show, once for each set of counts.
 - **Notifications that tell the news and lead to it** (2026-10-18, the owner: 'Notifikationerne er forvirrende … den
   sender ikke en til historierne … på telefonen er der en begrænset tekst … den sender bare en til forsiden. Det er
   bedre hvis man får et kort resume af nye historier. Og ingen notifikation når man er på siden'). One story: its

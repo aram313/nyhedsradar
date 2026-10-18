@@ -769,6 +769,10 @@ def look(args, now):
                        f"{'historie' if len(great['items']) == 1 else 'historier'}, op til {great['outlets']} medier)")
     # a page under way without its numbers while its stories carry them (18/10: the first page had none)
     thin_pages = event_pages.thin(pages, resolver([*pool, *items]).get)
+    # a page under way whose stories' articles carry counts it does not show (radar/reader.py): once for those counts
+    fresh_counts = [] if thin_pages else event_pages.unused(pages, resolver([*pool, *items]).get)[:1]
+    for page, nums in fresh_counts:
+        reasons.append(f"begivenhedssiden kan få nye tal fra artiklerne: {clip(page.get('title'), 60)} ({', '.join(nums[:4])})")
     for page, lacks in thin_pages[:1]:
         reasons.append(f"begivenhedssiden mangler {' og '.join(lacks)}: {clip(page.get('title'), 60)}")
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
@@ -785,6 +789,7 @@ def look(args, now):
     if facts_great:
         keys.append(facts_great)
     keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
+    keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
