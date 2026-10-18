@@ -56,7 +56,7 @@ da'wah.
   unverified channel) and `wire` a one-line statement feed (Al Jazeera urgent: counts as an outlet, feeds
   `lines.json` and the Bevægelser briefing, never a card of its own). `"scout": true` (18/10) marks a Google News
   search on a subject across outlets (states' borrowing stress, central banks, deadlines, Danish deadlines): its items
-  keep the outlet Google names, and an outlet that is no source of ours is off the scale (`run.OffScale`). `"scale": false` marks a source added for its
+  keep the outlet Google names, and an outlet that is no source of ours is off the scale (`run.OffScale`). A scout's new item is looked up before it enters (`radar/fresh.py`: Google's link resolved, the address's month and the page's own date read); one older than `scout_max_age_days` (2) is left out – Google dates an old page anew when its outlet touches it. `"scale": false` marks a source added for its
   camp (31 of them, 2026-10-17): it never moves the established sources' scale (taste percentiles, a section's bar,
   the outlet lift, big stories) and leads at most `max_added_per_day` (config/settings.json, 3) cards of its own a day,
   and only stories no established source carries. The movement's own outlets (group `bevægelsen`) never count as an

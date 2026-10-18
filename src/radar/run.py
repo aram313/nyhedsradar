@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from radar import admin, analyses, feedback, level, push, stats
+from radar import admin, analyses, feedback, fresh, level, push, stats
 from radar.translate import VERSION as TR_VERSION, Translator, tidy
 from radar.feeds import fetch_all, tidy as tidy_headline
 from radar.headlines import clean_teaser, commentary, curious
@@ -445,6 +445,14 @@ def main():
         seen[it['id']] = NOW.isoformat()
         it.update(published=pub.isoformat(), found=NOW.isoformat(), community=it['source'] in community)
         new.append(it)
+    # an old article Google News dates anew (the owner, 18/10: ABC's April report of a 'Tuesday 8 p.m.' Iran deadline
+    # came in a scout's search dated 16 October): a scout's new item is looked up first – an old one is left out (and
+    # stays seen), one not looked up this pass waits for the next
+    scouted = [it for it in new if it.get('scout')]
+    stale, later = fresh.old(scouted, NOW, s.get('scout_max_age_days', 2)) if scouted else (set(), set())
+    for k in later:
+        seen.pop(k, None)
+    new = [it for it in new if it['id'] not in stale and it['id'] not in later]
 
     embed = Embedder(s['model'])
 
@@ -1084,7 +1092,7 @@ def main():
     np.savez_compressed(STATE / 'emb.npz', ids=np.array(keep, dtype='U32'),
                         m=np.array([emb_store[k] for k in keep], dtype=np.float16) if keep else np.zeros((0, 384), np.float16))
     bad = [k for k, v in status.items() if not v['ok']]
-    print(f"fetched {len(fetched)} · new {len(new)} · kept {len(items)} · shown {len(shown)} · "
+    print(f"fetched {len(fetched)} · new {len(new)} · old {len(stale)} · kept {len(items)} · shown {len(shown)} · "
           f"live {live_info['n_24h']} in 24 h ({live_info['level']}: {live_info['why']}, line {live_info['line']}) · "
           f"learned {why_count} · owner: {acted} new, {len(owner['removed'])} removed · pending pushes {len(pending)} · failed: {', '.join(bad) or 'none'}")
 

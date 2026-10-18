@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Radar: old articles Google News dates anew are left out** (2026-10-18, the owner: 'undersøg de gamle artikler der
+  kommer igen'). ABC's April report of a 'Tuesday 8 p.m.' Iran deadline came in the deadlines scout dated 16 October,
+  and EnergyNow's April piece with it. Of all 149 Google News items in the pool only these two were old – both from a
+  scout, none from the outlets' own feeds. A scout's new item is now looked up first (`radar/fresh.py`): the link
+  resolved to the outlet's address, its month in the path and the page's own date read; older than two days, it is
+  left out. One that cannot be dated is kept as before; at most 40 lookups a pass, the rest wait for the next.
 - **Radar: widely carried, weighty stories reach Live** (2026-10-18, the owner: 'gennemgå de nyheder der er blevet valgt
   fra med hjernen og så om vi har misset noget'). A review of the 327 stories left out in 48 hours found Sisi's 2030
   exit (14 outlets) and Tunisia's biggest protest in years (5) missing: 'big' needs the taste model's 80, and it rates a
