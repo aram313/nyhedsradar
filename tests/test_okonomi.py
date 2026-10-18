@@ -135,15 +135,17 @@ def test_the_radar_finds_the_workflows_cache_files_from_its_working_directory(tm
 def test_a_story_in_another_language_needs_its_danish_headline_to_be_shown():
     # 18/10, the owner: 'nyheder med oversættelser … burde kun tages med når redaktørerne har gennemgået oversættelserne'
     problems = []
-    okonomi.okonomi_file({'emner': {'oil': {'stories': ['o1', 'f1']}}}, {}, FIND, CAL, {}, T, problems, voice,
-                         titled=lambda it: it['id'] == 'o1')
-    assert problems == ["okonomi emner oil stories: f1 is in another language and has no Danish headline of yours – write it "
+    arabic = {**FED, 'id': 'a1', 'lang': 'ar', 'title': 'الاحتياطي الفيدرالي يثبت الفائدة'}
+    find = {'o1': OIL, 'f1': FED, 'a1': arabic}.get
+    okonomi.okonomi_file({'emner': {'oil': {'stories': ['o1', 'f1', 'a1']}}}, {}, find, CAL, {}, T, problems, voice,
+                         titled=lambda it: it['id'] == 'o1')   # f1 is English: its machine Danish is good enough
+    assert problems == ["okonomi emner oil stories: a1 is in another language and has no Danish headline of yours – write it "
                         "under titles (the page shows no machine translation)"]
 
 
 def test_no_machine_translation_reaches_a_reader():
     assert '.filter(d => !d.held)' in APP and "{ ...d, held: true }" in APP           # the app holds an unreviewed story back
-    assert "i.summary_da" not in APP.split('function display(i) {')[1].split('\n}\n')[0]   # nor shows the machine's teaser
+    assert "} else if (i.foreign && !keepOrig) {" in APP                                # only Arabic and the like wait
     assert 'const reviewed = n =>' in PAGE and 'list = list.filter(reviewed);' in PAGE
     run = (ROOT / 'src' / 'radar' / 'run.py').read_text(encoding='utf-8')
     assert "ready = [p for p in pending if push_headline(items[p['id']], ed_titles)]" in run   # a notification waits for it

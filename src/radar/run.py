@@ -341,9 +341,9 @@ def push_line(it, sums):
     else of the outlet's teaser; at most about 140 characters, or nothing."""
     ids = [it['id'], *(it.get('members') or [])]
     ed = next((v.get('text') for i in ids for v in [(sums or {}).get(i)] if isinstance(v, dict) and v.get('text')), '')
-    head = it.get('title') or ''
-    # never the machine's translation (the owner, 18/10): the editor's summary, else a Danish outlet's own teaser
-    text = ed or (clean_teaser(it.get('summary') or '', head) if it.get('lang') == 'da' else '')
+    head = it.get('title_da') or it.get('title') or ''
+    # no machine translation from Arabic and the like (the owner, 18/10); English's machine Danish is good enough
+    text = ed or ('' if it.get('foreign') else clean_teaser(it.get('summary_da') or it.get('summary') or '', head))
     first = re.split(r'(?<=[.!?])\s+', str(text or '').strip(), maxsplit=1)[0] if text else ''
     if len(first) < 25 or curious(first):
         return ''
@@ -374,18 +374,19 @@ def push_note(batch, items, titles, sums, tops, label_of):
 
 def push_headline(it, titles):
     """A notification says the news as the app shows it (the owner's headline rule of 2026-10-17): the editor's
-    headline for the story or one of its articles, else the outlet's own Danish one – a Danish outlet's of a story in
-    another language –; never the machine's translation (the owner, 18/10: 'i dag er de for svage'), so a story with
-    neither has none yet ('') and waits; a curiosity headline gives way to its teaser's first sentence."""
+    headline for the story or one of its articles, else the Danish one (English by the machine – good enough, the owner,
+    18/10), the outlet's own; a story in Arabic or another such language never by the machine's translation ('i dag er de
+    for svage'): a Danish outlet's own headline of it, else none yet ('') and it waits; a curiosity headline gives way to
+    its teaser's first sentence."""
     ids = [it['id'], *(it.get('members') or []), *(a.get('id') for a in it.get('also') or [])]
     ed = next((titles[i] for i in ids if titles.get(i) and not curious(titles[i])), '')
     if ed:
         return ed
-    if it.get('lang') != 'da':
+    if it.get('foreign'):
         return next((a['title'] for a in it.get('also') or [] if a.get('lang') == 'da' and a.get('title') and not curious(a['title'])), '')
-    head = it['title']
+    head = it.get('title_da') or it['title']
     if curious(head):
-        teaser = clean_teaser(it.get('summary') or '', head)
+        teaser = clean_teaser(it.get('summary_da') or it.get('summary') or '', head)
         first = re.split(r'(?<=[.!?])\s+', teaser, maxsplit=1)[0].rstrip('.') if teaser else ''
         if len(first) >= 25 and not curious(first):
             return first if len(first) <= 140 else first[:138].rsplit(' ', 1)[0] + ' …'

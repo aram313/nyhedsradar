@@ -203,7 +203,7 @@ def okonomi_file(entry, current, find, cal, kal, now, problems, voice=None, titl
         shown = stories_of((v.get('stories') or [])[:STORIES + 1], f'{where} stories')
         # the page shows no machine translation (the owner, 18/10): a story in another language needs its Danish headline
         for it in shown if titled else []:
-            if it.get('lang') != 'da' and not titled(it):
+            if it.get('lang') not in ('da', 'en') and not titled(it):   # English's machine Danish is good enough
                 problems.append(f"{where} stories: {it['id']} is in another language and has no Danish headline of yours – "
                                 "write it under titles (the page shows no machine translation)")
         if len(v.get('stories') or []) > STORIES:

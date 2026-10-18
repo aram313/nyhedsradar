@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **English keeps the machine's Danish** (2026-10-18, the owner: 'engelsk til dansk oversættelserne var gode nok, så
+  dem beholder vi'): the reviewed-only rule holds for Arabic, Turkish and the other languages; an English story shows its
+  machine Danish headline and teaser again (Live, notifications, search, Økonomi), and the economy editor needs to write
+  headlines only for the stories in those other languages.
 - **The event page's article keeps up with its numbers too** (2026-10-18, the owner: 'er kilderne stadig rigtige på
   begivenhedssiden? jeg bemærker det er samme kilder, selvom tallene kom fra al jazeera breaking'). The boxes had taken
   the interior ministry's figures from the wire, but the article still told Lecornu's 1.200 and Global Times' count, so

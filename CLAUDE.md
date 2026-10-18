@@ -635,8 +635,9 @@ da'wah.
     reading text – a summary, the lede, the movement's texts (`READING` in app.js = the rule in style.css) – never a row
     or a button, and the owner's long press skips it. Waiting (the owner's call): following a topic, picture share cards,
     
-- **No machine translation reaches a reader** (18/10, the owner: '… burde kun tages med når redaktørerne har
-  gennemgået oversættelserne. i dag er de for svage'): `display` shows a story in another language with the editor's
+- **No machine translation from Arabic, Turkish and the like reaches a reader** (18/10, the owner: '… burde kun tages
+  med når redaktørerne har gennemgået oversættelserne. i dag er de for svage'; and then 'engelsk til dansk
+  oversættelserne var gode nok, så dem beholder vi' – English keeps the machine's Danish): `display` shows such a story with the editor's
   headline, else a Danish outlet's own headline (`also`, lang da), else marks it `held` and `stories()` leaves it out
   until the editor writes one; no machine teaser as a summary; the coverage list and search show the outlets' own words;
   Økonomi's `reviewed`; `run.push_headline` returns '' for such a story and the notification waits in `pending`; the

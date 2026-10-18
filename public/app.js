@@ -386,19 +386,22 @@ const edTitle = i => edOk(titles[i.id]) || (i.members || []).map(m => edOk(title
 // the machine's, where the phone shows Danish; a plain curiosity headline gives way to its teaser's first sentence.
 // `how` says where the headline came from: 'ed' the editor, 'mt' the machine's translation, '' the outlet's own;
 // `teased` that the teaser stands in for a curiosity headline.
-// No machine translation is shown (the owner, 18/10: 'nyheder med oversættelser fra arabisk eller andre sprog burde kun
-// tages med når redaktørerne har gennemgået oversættelserne. i dag er de for svage'): a story in another language shows
-// the editor's Danish headline, else a Danish outlet's own headline of it; with neither it is held back (`held`) until
-// the editor has written one. Its teaser is not translated either – the editor's summary, or none. A reader who chose
-// the originals (Arabic and Turkish as 'Original', or English with Danish off) sees the outlet's own words.
+// No machine translation from Arabic, Turkish or another such language is shown (the owner, 18/10: 'nyheder med
+// oversættelser fra arabisk eller andre sprog burde kun tages med når redaktørerne har gennemgået oversættelserne. i dag er
+// de for svage' – and then: 'engelsk til dansk oversættelserne var gode nok, så dem beholder vi'): such a story shows the
+// editor's Danish headline, else a Danish outlet's own headline of it; with neither it is held back (`held`) until the
+// editor has written one, and its teaser is not translated (the editor's summary, or none). English keeps the machine's
+// Danish. A reader who chose the originals (Arabic and Turkish as 'Original', English with Danish off) sees them.
 function display(i) {
   let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [], how: '', teased: false, kind: i.kind || (isComment(i) ? 'kommentar' : '') };
   const keepOrig = i.foreign && foreignMode === 'original';
   const ed = edTitle(i);
   if (ed && (danish || i.lang === 'da') && !keepOrig) {
     const kw = i.lang === 'da' ? d.kw : [...new Set([...(i.kw_da || []), ...(i.kw || [])])];
-    d = { ...d, title: ed, summary: i.lang === 'da' || (!danish && !i.foreign) ? i.summary : '', from: i.lang, to: 'da', kw, how: 'ed' };
-  } else if (i.lang !== 'da' && !keepOrig && (danish || i.foreign)) {
+    d = { ...d, title: ed, summary: i.lang === 'da' || (!danish && !i.foreign) ? i.summary : i.foreign ? '' : i.summary_da || '', from: i.lang, to: 'da', kw, how: 'ed' };
+  } else if (danish && !i.foreign && i.lang !== 'da' && i.title_da && !keepOrig) {   // English: the machine's Danish is good enough
+    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: i.lang, to: 'da', kw: i.kw_da || [], how: 'mt' };
+  } else if (i.foreign && !keepOrig) {
     const dk = (i.also || []).find(a => a.lang === 'da' && a.title && !curious(tidy(a.title)));
     d = dk ? { ...d, title: tidy(dk.title), origTitle: dk.title, source: dk.source || d.source, link: dk.link || d.link, summary: '', kw: [], to: 'da' }
       : { ...d, held: true };
@@ -2195,7 +2198,7 @@ function searchPage(all) {
       if (others.length) {
         found += others.length;
         const ok = 'search|others', shownN = unfolded.has(ok) ? 60 : 10;
-        html += `<h2 class="grp">Andre nyheder · ${others.length}</h2>` + others.slice(0, shownN).map(({ x, n }) => { const t = x.t;   // the outlet's own headline, not the machine's Danish
+        html += `<h2 class="grp">Andre nyheder · ${others.length}</h2>` + others.slice(0, shownN).map(({ x, n }) => { const t = danish && x.da && !x.tr ? x.da : x.t;   // English in Danish; never Arabic's machine Danish
           return `<a class="hit" href="${esc(x.u)}" target="_blank" rel="noopener"><b dir="auto">${mark(t, terms)}</b><span>${esc(x.s)} · ${stamp(x.p)}${n > 1 ? ` · ${n} medier` : ''}</span></a>`; }).join('')
           + (others.length > shownN && shownN < 60 ? `<button class="qbtn" data-unfold="${ok}">Vis flere (${others.length - shownN})</button>` : '');
       }

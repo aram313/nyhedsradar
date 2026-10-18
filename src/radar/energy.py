@@ -835,8 +835,8 @@ def energy_news(state, hours=72, limit=16, summaries=None, pattern=None):
         if (pattern or NEWS).search(text) and it.get('id') not in seen:
             seen.add(it.get('id'))
             rec = news_rec(it, ed)
-            if not rec['ed'] and it.get('lang') != 'da':
-                continue      # the machine's Danish of a foreign headline reads badly: only the editor's or a Danish outlet's
+            if not rec['ed'] and it.get('lang') not in ('da', 'en'):
+                continue      # Arabic's and the others' machine Danish reads badly; English's is good enough (the owner, 18/10)
             out.append(rec)
     fresh = []
     for x in out:

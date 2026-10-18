@@ -54,10 +54,11 @@ def test_a_notification_uses_the_editors_headline_else_the_danish_else_a_plain_t
         'a1': {'title': 'Houthierne rammer lufthavn i Aden', 'members': ['a2'], 'at': '2026-10-17T08:00:00+00:00'},
         'b1': {'title': 'Hvorfor rammer houthierne Aden?', 'at': '2026-10-17T08:00:00+00:00'}}})
     assert run.push_headline({'id': 'x', 'members': ['a2'], 'title': 'Houthis hit Aden'}, titles) == 'Houthierne rammer lufthavn i Aden'
-    # never the machine's translation (the owner, 18/10: 'i dag er de for svage'): the editor's curiosity headline is
-    # skipped as the app skips it, and a story in another language waits for a reviewed headline – a Danish outlet's own
-    assert run.push_headline({'id': 'b1', 'title': 'Houthis hit Aden', 'title_da': 'Houthierne rammer Aden'}, titles) == ''
-    assert run.push_headline({'id': 'b2', 'title': 'Houthis hit Aden', 'also': [{'lang': 'da', 'title': 'Houthierne rammer Aden'}]},
+    # the editor's curiosity headline is skipped as the app skips it; English by the machine's Danish (good enough, the
+    # owner, 18/10), Arabic never by the machine's: a Danish outlet's own headline, else it waits
+    assert run.push_headline({'id': 'b1', 'title': 'Houthis hit Aden', 'title_da': 'Houthierne rammer Aden'}, titles) == 'Houthierne rammer Aden'
+    assert run.push_headline({'id': 'b2', 'foreign': True, 'title': 'الحوثيون', 'title_da': 'Houthierne rammer Aden'}, titles) == ''
+    assert run.push_headline({'id': 'b3', 'foreign': True, 'title': 'الحوثيون', 'also': [{'lang': 'da', 'title': 'Houthierne rammer Aden'}]},
                              titles) == 'Houthierne rammer Aden'
     assert run.push_headline({'id': 'c', 'lang': 'da', 'title': 'Hvorfor brænder Aden?', 'summary': 'Houthi-missiler ramte '
                               'lufthavnen i Aden fredag. Mere følger.'}, {}) == 'Houthi-missiler ramte lufthavnen i Aden fredag'

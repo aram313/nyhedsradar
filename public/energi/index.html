@@ -1279,8 +1279,8 @@ const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/
 // the editor's headline, else a Danish outlet's own (the radar sends only those: the machine's Danish read badly)
 // never the machine's translation (the owner, 18/10: 'i dag er de for svage'): the editor's headline, a Danish outlet's
 // own, or – for a reader who chose the originals – the outlet's own words; a story with none of them waits (reviewed)
-const newsPick = n => n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : [n.o, n.k];
-const reviewed = n => !!(n && (n.ed || n.l === 'da' || !store.get('danish', true)));
+const newsPick = n => n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : n.l === 'en' && n.da && store.get('danish', true) ? [qi(n.da), n.kd] : [n.o, n.k];
+const reviewed = n => !!(n && (n.ed || n.l === 'da' || n.l === 'en' || !store.get('danish', true)));   // English's machine Danish is good enough
 const newsTidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
   .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
 // a story opened here unfolds in place, as everywhere in Khabar (the owner, 18/10: 'når man åbner nyheder på økonomi må
