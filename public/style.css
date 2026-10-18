@@ -1199,6 +1199,23 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="home"] .lede-t .lede-h { display: block; margin-bottom: 8px; font-size: var(--fs-title); font-weight: 700; line-height: 1.14;
   letter-spacing: -.012em; color: var(--text); font-variation-settings: "opsz" 60; }
 .page[data-tab="home"] .lede-t a.lede-a { text-decoration-thickness: 1px; text-underline-offset: .18em; }
+/* the top merged (the owner, 18/10: 'Slå dem sammen'): the day's headline above, Dagens historie's picture and line
+   under it without its own headline, then 'Også i dag' – a line each, each opening its story (app.js homeTop) */
+.lede.merged { padding-bottom: 10px; }
+.lede.merged .lede-t .lede-h { margin-bottom: 0; }
+.pkg.merged .story.lead .tx .h { display: none; }
+.pkg.merged .lead-pic::after { display: none; }
+.pkg.merged .story.lp .row > .tx { position: static; padding: 10px 16px 4px; text-shadow: none; }
+.pkg.merged .story.lp .tx .m, .pkg.merged .story.lp .tx .m .kind, .pkg.merged .story.lp .tx .m > span::before { color: var(--text-3); }
+.pkg.merged .story.lp .tx .m .src { color: var(--text-2); }
+.also-day { margin: 8px 16px 14px; }
+.also-h { margin: 0 0 6px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
+.also-day ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.also-day li { position: relative; padding-left: 16px; font-family: var(--display); font-size: var(--fs-lead); line-height: 1.3; color: var(--text); text-wrap: pretty; }
+.also-day li > svg { position: absolute; left: -3px; top: .3em; width: 15px; height: 15px; }
+.page[data-tab="home"] .also-day li > svg { color: var(--red); }
+.also-day a.lede-a { color: inherit; text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: .18em; text-decoration-color: var(--line); }
+.also-day a.lede-a:active { text-decoration-color: var(--text-3); }
 /* the block titles: a short red rule above, not a bar beside */
 .page[data-tab="home"] .block-h h2 { position: relative; padding-top: 9px; }
 .page[data-tab="home"] .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }

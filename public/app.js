@@ -1585,6 +1585,40 @@ function ledeHead(lede, body = '', ids = null) {
     + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
     + (lede ? `<p class="lede-t">${ledeHtml(lede, pageStories(body), ids)}</p>` : '') + catchUpLine() + '</header>' + installCard();
 }
+// The top of the front page: the day's headline and Dagens historie as one (the owner, 18/10: 'overskriften ser ud til at
+// gentage dagens nyhed' – he chose 'Slå dem sammen'). The lede's first clause is the big headline when it is about
+// Dagens historie, else Dagens historie's own headline; the story's picture and its line under it (its own headline not
+// again); then the lede's other clauses as 'Også i dag', a line each, each opening its story. Nothing is said twice.
+// A page without Dagens historie keeps the lede whole (ledeHead).
+function homeTop(lede, body, ids) {
+  const sec = body.match(/<section class="block top pkg[^"]*"[^>]*>/), at = sec ? sec.index + sec[0].length : -1;
+  const mainId = sec && (body.slice(at).match(/<article [^>]*id="s-([^"]+)"/) || [])[1];
+  if (!mainId) return ledeHead(lede, body, ids) + body;
+  const main = shownAs.get(mainId) || find(mainId) || findStory(mainId);
+  const wiki = t => scan(t).map(f => f.id).filter(id => !LINK_SKIP.has(id));
+  const linked = lede ? ledeLinks(lede, pageStories(body), stories(), ids, findStory, wiki) : [];
+  const brk = Math.max(1, linked.findIndex((p, n) => n && LEDE_OPEN.test(p.sep)));
+  const own = linked.slice(0, brk).some(p => p.id === mainId);
+  const line = (p, first) => {
+    const t = first ? p.t : cap(p.t.replace(/^[\s,;–-]+/u, '')), [, words, stop] = t.match(/^([\s\S]*?)([.!?…]*)$/u);
+    return p.id ? `${first ? esc(p.sep) : ''}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-lede="${esc(p.id)}">${esc(words)}</a>${first ? esc(stop) : ''}`
+      : esc((first ? p.sep : '') + words + (first ? stop : ''));
+  };
+  const head = own ? linked.slice(0, brk).map(p => line(p, true)).join('')
+    : main ? `<a class="lede-a" href="?item=${encodeURIComponent(mainId)}" data-lede="${esc(mainId)}">${bold(main.title, [])}</a>` : '';
+  const also = (own ? linked.slice(brk) : linked).filter(p => p.id !== mainId && p.t.trim());
+  const todayStr = FMT.ymd.format(new Date());
+  const top = `<header class="lede merged"><div class="lede-d"><span>${cap(dateDa(todayStr, true))}</span>`
+    + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
+    + (head ? `<p class="lede-t"><span class="lede-h">${head}</span></p>` : '') + '</header>';
+  const alsoHtml = also.length ? `<div class="also-day"><p class="also-h">Også i dag</p><ul>${also.map(p => `<li><svg aria-hidden="true"><use href="#i-chev"/></svg>${line(p, false)}</li>`).join('')}</ul></div>` : '';
+  // Dagens historie without its block title and its headline (the headline above says it); 'Også i dag' under its line
+  let b = body.slice(0, sec.index) + sec[0].replace('class="block top pkg', 'class="block top pkg merged') + body.slice(at).replace(blockHead('Dagens historie'), '');
+  const end = b.indexOf('</article>', sec.index);
+  if (end > -1) b = b.slice(0, end + 10) + alsoHtml + b.slice(end + 10);
+  const close = b.indexOf('</section>', sec.index);
+  return top + (close > -1 ? b.slice(0, close + 10) + catchUpLine() + installCard() + b.slice(close + 10) : b + catchUpLine() + installCard());
+}
 // the foot: what Khabar read and chose (the prices live in the Økonomi tab)
 function homeFoot(all) {
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
@@ -1595,7 +1629,7 @@ function home(all, opts) {
   frontAns.clear();
   const f = frontNow(), composed = f && composedHome(all, opts, f);
   // the lede's parts link the stories the page shows: the page is drawn first
-  if (composed) return ledeHead(f.lede || notes().lede, composed, f.lede ? f.lede_ids : notes().lede_ids) + composed + homeFoot(all);
+  if (composed) return homeTop(f.lede || notes().lede, composed, f.lede ? f.lede_ids : notes().lede_ids) + homeFoot(all);
   frontAns.clear();
   return fixedHome(all, opts);
 }
@@ -1638,7 +1672,7 @@ function fixedHome(all, opts) {
   html += calBlock();   // 'Det sker snart' between the news and the developments
   html += followStrip(own);   // not the main story's own development again
   html += nowStrip(3, onPage);
-  return ledeHead(notes().lede, html, notes().lede_ids) + html + homeFoot(all);
+  return homeTop(notes().lede, html, notes().lede_ids) + homeFoot(all);
 }
 // a statement from the recap, set as a quote (the front page's 'Dagens citat' and the main story's)
 const quoteCard = (l, pick) => `<a class="quote"${pick ? ' data-pick' : ''} href="${esc(l.link || '#')}" target="_blank" rel="noopener"><q>${esc(l.text)}</q><span>${esc(l.who)}</span></a>`;

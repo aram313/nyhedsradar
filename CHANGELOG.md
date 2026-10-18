@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: the day's headline and Dagens historie are one** (2026-10-18, the owner: 'overskriften ser ud til at
+  gentage dagens nyhed' – of three proposals he chose 'Slå dem sammen'). The lede's first clause is the big headline
+  when it is about Dagens historie (else Dagens historie's own headline); the story's picture and its line follow
+  without its block title or its headline again; then 'Også i dag', the lede's other clauses a line each, each opening
+  its story. The catch-up line and the install card come after the block. A page without Dagens historie keeps the
+  lede whole (app.js homeTop).
 - **Økonomi: a story unfolds in place, with the app's buttons** (2026-10-18, the owner: 'når man åbner nyheder på
   økonomi må den gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side' – then
   'hvor er logoerne på knapperne'). A tap on a story of the page – the list, its lead, 'Stor nyhed', the quote – no

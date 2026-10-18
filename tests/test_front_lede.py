@@ -210,3 +210,14 @@ def test_the_input_shows_the_ledes_parts(folder):
     text = (editor.WORK / 'input.md').read_text(encoding='utf-8')
     assert 'Lede parts: 1. Regeringen strammer reglerne = [s1] | 2. Israel angriber Gaza igen.' in text
     assert '"lede_ids"' in text
+
+
+def test_the_days_headline_and_dagens_historie_are_one():
+    # the owner, 18/10: 'overskriften ser ud til at gentage dagens nyhed' – he chose 'Slå dem sammen'
+    top = fn('homeTop')
+    assert 'ledeHead(lede, body, ids) + body' in top                              # no Dagens historie: the lede whole
+    assert ".some(p => p.id === mainId)" in top and "filter(p => p.id !== mainId" in top   # nothing said twice
+    assert "replace(blockHead('Dagens historie'), '')" in top and "pkg merged" in top
+    assert '<p class="also-h">Også i dag</p>' in top
+    assert 'homeTop(f.lede || notes().lede, composed' in CODE and 'homeTop(notes().lede, html' in CODE
+    assert '.pkg.merged .story.lead .tx .h { display: none; }' in RULES
