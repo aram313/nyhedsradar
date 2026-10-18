@@ -37,7 +37,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
 const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
-  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt', nyhed: 'Nyhed' };
+  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt', nyhed: 'Nyhed', begivenhed: 'Begivenhed' };
 // the tab whose options the dock above the tabs shows (paintOpts)
 let dockTab = '';
 // the small pictures live next to data.json on the data branch
@@ -495,11 +495,13 @@ const VFILES = {
   // the Kalender tab: the radar's planned events (data branch) and the editor's own from the news (digest branch)
   cal: () => CFG.calendarUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'calendar.json'),
   kal: () => CFG.kalenderUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'kalender.json'),
+  // the editor's event pages (Begivenheder, 18/10): the digest branch's events.json
+  evt: () => CFG.eventsUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'events.json'),
   // the front page's markets line: Økonomi's numbers (energy.json, 42 KB packed), asked for once the page is drawn
   eco: () => CFG.energyUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'energy.json'),
 };
 // the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3 };
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
@@ -523,7 +525,7 @@ function vLoaded(k) {
   if (k === 'bix' || k === 'mix' || k === 'ans') fillAnswerRefs();
   // (search and Gemt too: a search's answers found through the wiki come with its whole file, a saved answer with the index)
   const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'],
-    ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], txt: ['analyses', 'svar'], mfull: ['svar'],
+    ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], evt: ['home', 'begivenhed', 'latest'], txt: ['analyses', 'svar'], mfull: ['svar'],
     bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'] }[k] || [];
   if (k === 'cal' || k === 'kal') calGen++;   // the merged calendar is worked out again
   if (k === 'bix' && busy) { redrawAfterLoad = true; return; }   // the news are on their way: their drawing takes the links along
@@ -882,6 +884,25 @@ function picFailed(img, fallback) {
 // picture (`pic`: the feed's or the outlet's og:image, else another outlet's – the radar never takes one from an
 // unverified channel), never the small copy blown up and never an initials tile; none, or one that failed: the text lead
 const leadPic = i => [i.pic].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
+// A large picture with text on its bottom keeps its subject clear of the text (the owner, 18/10: 'Teksten dækker for
+// rubios ansigt, der skal vurderes om det er et godt nok billede til forside i sådanne tilfælde'): the radar finds where
+// a face sits (thumbs.subject: x, y, its shape, face or not); the picture is moved in its frame so the face comes about
+// a quarter from the top, above the dark fade – and where it cannot (the face low in a wide picture), the picture is no
+// picture for text: the headline goes under it instead
+const pfAttr = pf => Array.isArray(pf) && pf.length >= 3 ? ` data-pf="${pf.map(Number).join(',')}"` : '';
+function placePic(img) {
+  const pf = String(img.dataset.pf || '').split(',').map(Number);
+  if (pf.length < 3 || pf.some(n => !isFinite(n))) return;
+  const box = img.parentNode.getBoundingClientRect(), W = box.width, H = box.height, w = img.naturalWidth, h = img.naturalHeight;
+  if (!W || !H || !w || !h) return;
+  const k = Math.max(W / w, H / h), rw = w * k, rh = h * k, [fx, fy, , face] = pf;
+  const offY = Math.min(0, Math.max(H - rh, H * 0.26 - fy * rh)), offX = Math.min(0, Math.max(W - rw, W / 2 - fx * rw));
+  const py = rh - H > 1 ? offY / (H - rh) : 0.5, px = rw - W > 1 ? offX / (W - rw) : 0.5;
+  img.style.objectPosition = `${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%`;
+  const low = face === 1 && (offY + fy * rh) / H > 0.5;   // the face would be under the text
+  const host = img.closest('.story.lp') || img.closest('.ev-hero');
+  if (host) host.classList.toggle('tx-below', low);
+}
 function leadPicFailed(img) {
   badPics.add(img.getAttribute('src'));   // remembered: a reload draws the text lead
   const art = img.closest('.story'), box = img.closest('.lead-pic'), sec = img.closest('.block.top');
@@ -950,21 +971,21 @@ function story(i, n, opts = {}) {
   const w = opts.tick ? weightOf(i) : 1;   // Live's rows show their weight
   const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', opts.fl && 'fl', opts.fpic && 'fp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
-  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>`
+  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"${pfAttr(i.pf)} onload="placePic(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? '' : thumb(i.source, i.thumb)}</div>
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
 // the line under a block's headline on the front page, as a paper's standfirst (the owner, 18/10: 'stilfuldt og elegant
 // … tænker mere economist' – 'Underrubrik'): the first sentence of the editor's summary, else of the outlet's own
 // teaser (what the opened story shows then too); opened, the whole summary says it
-function dek(i) {
+function dek(i, cls = '') {
   const ed = sumOf(i), t = String((ed && ed.text) || i.summary || '').trim();
   if (!t) return '';
   const first = (t.match(/^[\s\S]*?[.!?](?=\s|$)/u) || [t])[0];
   const line = first.length > 180 ? first.slice(0, 177).replace(/\s+\S*$/u, '') + ' …' : first;
-  return `<span class="dek" dir="auto">${esc(line)}</span>`;
+  return `<span class="dek${cls ? ' ' + cls : ''}" dir="auto">${esc(line)}</span>`;
 }
 // Live's rows carry the bookmark at their right (the owner, 17/10: "gør det samme for 'Live' oversigten"): saved
 // without opening the story, and one sees which are saved; it sits beside the row's button, never inside it
@@ -1033,10 +1054,11 @@ const OIL = /\b(?:olie\w*|benzin\w*|diesel\w*|brændstof\w*|brent|opec\w*|hormuz
 const energyRow = () => '<a class="qrow" href="?tab=okonomi" data-okonomi><span>Olie og brændstof – priser nu</span><svg><use href="#i-chev"/></svg></a>';
 const oilRow = text => (OIL.test(text || '') ? energyRow() : '');
 function moreRow(i) {
+  const ev = eventFor(i), evRow = ev ? `<button class="mini ev-mini" data-event="${esc(ev.id)}"><span class="ev-dot" aria-hidden="true"></span><span>Begivenhed: ${esc(ev.title)}</span><svg class="go"><use href="#i-chev"/></svg></button>` : '';
   const t = threadFor(i), n = (i.outlets || 1) - 1;
   const follow = t ? `<button class="mini" data-follow="${t.key}"><svg class="ic"><use href="#i-thread"/></svg><span>Udvikling: ${esc(t.name)}</span><svg class="go"><use href="#i-chev"/></svg></button>` : '';
   const cov = (i.also || []).length ? `<button class="mini${covOpen.has(i.id) ? ' on' : ''}" data-cov aria-expanded="${covOpen.has(i.id)}">Andre medier<em>${n}</em><svg class="chev"><use href="#i-chev"/></svg></button>` : '';
-  return follow || cov ? `<div class="mini-row">${follow}${cov}</div>` : '';
+  return evRow || follow || cov ? `<div class="mini-row">${evRow}${follow}${cov}</div>` : '';
 }
 function coverSummary(cover) {
   return GROUP_ORDER.filter(g => cover && cover[g]).map(g => `${cover[g]} ${GROUP_SHORT[g][cover[g] === 1 ? 0 : 1]}`).join(' · ');
@@ -1315,7 +1337,7 @@ function frontMore(used, onPage, svar) {
   }
   brief.forEach(({ i }) => used.add(i.id));
   let html = brief.length ? `<section class="block f-list brief">${blockHead('Kort nyt', moreLink('Alle', 'latest'))}`
-    + brief.map(({ i }, n) => story(i, 200 + n, { home: true, tag: true, top: true, plain: true })).join('') + '</section>' : '';
+    + brief.map(({ i }, n) => story(i, 200 + n, { home: true, tag: true, top: true, plain: true, sq: true })).join('') + '</section>' : '';
   html += svar ? '' : movementBlock(used);
   return html + marketsLine();
 }
@@ -1380,7 +1402,7 @@ const folRows = list => list.map(t => { const l = t.lines[t.lines.length - 1];
 // the quote, the amir's answer, the Live preview, one line of reality. A block it cannot draw (an unknown kind, a story
 // no longer in Live) is left out; a composition that is missing, cannot be read or is older than six hours between 06
 // and 24 gives way to the fixed front page below.
-const FRONT_KINDS = new Set(['top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje']);
+const FRONT_KINDS = new Set(['top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje', 'begivenhed', 'tal', 'nedtaelling']);
 function dkHour() {
   try { return +new Intl.DateTimeFormat('da-DK', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Copenhagen' }).format(new Date()); }
   catch { return new Date().getHours(); }
@@ -1398,7 +1420,7 @@ const threadNamed = name => name && allThreads().find(t => t.key === thrKey(Stri
 // er vigtige historier"): a Danish story matters on the front page when it is big, when Live holds it as Danish politics
 // on Islam, Muslims, integration or foreign policy (`live: 'dk'`), or when it is among the day's five strongest (the
 // editor's picks first, then rank). Live and the radar keep their Danish rules; this is the front page's.
-const FRONT_MAX = 6;   // blocks after the lede, whatever the composition says
+const FRONT_MAX = 8;   // blocks after the lede, whatever the composition says (6 until the event modules, 18/10)
 const dayTops = () => new Set(frontCands(stories().filter(i => i.kind !== 'kommentar'), 5).map(i => i.id));
 // a Danish story matters when it is among the day's five strongest, or big and Danish politics on Islam, Muslims,
 // integration or foreign policy (the radar's 'dk' protection) – 'big' alone is a third of Live on a busy day
@@ -1409,7 +1431,7 @@ const dkMatters = (i, tops) => !!i && !!i.big && tops.has(i.id);
 // sorteres bedre"): Dagens historie, the day's quote right under it, the news blocks in the editor's order, Hizb
 // ut-Tahrir's answer, a line, 'Det sker snart', the developments, Live – whatever order the composition gives. A list
 // whose stories are all Danish and none of them very big is left off the front page (it is in Live).
-const FRONT_RANK = { top: 0, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };
+const FRONT_RANK = { top: 0, begivenhed: 0.5, nedtaelling: 0.7, tal: 1, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };
 const CAL_RANK = 5;   // 'Det sker snart' sits between the news and the developments
 function frontOrder(blocks) {
   const tops = dayTops(), out = [];
@@ -1427,6 +1449,8 @@ function composedHome(all, opts, f) {
   // the owner's own choice of the main story (held on the front page) leads the first main block
   const pin = owner().lead && findStory(owner().lead);
   let html = '', n = 0, filled = 0, tops = 0, drawn = 0, calPut = false;
+  evShown.clear();
+  need('evt');
   // every subject once (the owner, 18/10: 'Ingen gentagelser'): the subjects the page has a block for already – the main
   // story's development and the lists' titles – are not offered again under 'Følg udviklingen'
   const onPage = new Set(), seen = t => overlap(stems(t), onPage) > 0, mark = t => { for (const w of stems(t)) { onPage.add(w); said.add(w); } };
@@ -1436,7 +1460,7 @@ function composedHome(all, opts, f) {
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
   for (const b of frontOrder(f.blocks)) {
-    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += frontMore(used, said, svarSet) + calBlock(); }   // before the developments
+    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock(); }   // before the developments
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
     if (drawn >= FRONT_MAX) break;   // overskuelighed før fuldstændighed: at most six blocks, whatever the composition
     const before = html.length;
@@ -1452,7 +1476,7 @@ function composedHome(all, opts, f) {
       // editor chose a text lead
       const pic = first || b.picture !== false ? leadPic(i) : '';
       html += `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
-        + story(shown, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic });
+        + story(shown, n++, pic ? { ...opts, tag: true, top: true, lead: true, pic, dek: true } : { ...opts, tag: true, top: true, plain: true, fl: true });
       // the development under the story is the story's own: the editor's timeline when its name shares a subject with
       // the story's headline (or the editor filed this very story in it), else the development the story belongs to by
       // the same test – else none: a timeline of another development is worse than none
@@ -1464,8 +1488,9 @@ function composedHome(all, opts, f) {
       if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
       if (tp) mark(tp.name);
       tell(shown.title);
-      for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true, plain: true }); break; } }   // one more at most
+      for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true, plain: true, sq: true }); break; } }   // one more at most
       html += '</section>';
+      if (first) html += eventsUnplaced(f.blocks, 'i gang');   // an event under way the editor gave no card: under Dagens historie
       filled++;
     } else if (b.kind === 'liste') {
       // the editor's order, but a story of the last 24 hours never waits behind an older one under 'Alle' (the owner,
@@ -1488,7 +1513,7 @@ function composedHome(all, opts, f) {
       const rows = list.filter(i => i !== big);
       html += `<section class="block f-list${unfolded.has(key) ? ' unf' : ''}">${blockHead(esc(b.title || ''), more)}`
         + (big ? story(big, n++, { ...opts, tag, msec, top: true, hero: true }) : '')
-        + rows.map((i, k) => story(i, n++, { ...opts, tag, msec, top: true, plain: true, fl: !big && !k })).join('') + '</section>';
+        + rows.map((i, k) => story(i, n++, { ...opts, tag, msec, top: true, plain: true, sq: true, fl: !big && !k })).join('') + '</section>';
       filled++;
     } else if (b.kind === 'udvikling') {
       const list = (b.topics || []).map(threadNamed).filter(t => t && !seen(t.name)).slice(0, 3);
@@ -1511,16 +1536,19 @@ function composedHome(all, opts, f) {
       html += strip;
     } else if (b.kind === 'linje' && b.text) {
       html += `<p class="f-line">${esc(String(b.text))}</p>`;   // the front page's texts without the wiki's underlines
+    } else if (b.kind === 'begivenhed' || b.kind === 'tal' || b.kind === 'nedtaelling') {
+      const ev = eventOf(b.event);
+      if (ev && !evShown.has(b.kind + ev.id)) { evShown.add(b.kind + ev.id); html += b.kind === 'begivenhed' ? eventCard(ev) : b.kind === 'tal' ? numberBlock(ev, b.fact) : countdownBlock(ev); }
     }
     if (html.length > before) drawn++;
   }
-  if (!calPut && html) html += frontMore(used, said, svarSet) + calBlock();
+  if (!calPut && html) html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
     if (m) {
       const pic = leadPic(m);
       html = `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(m)}">${blockHead('Dagens historie')}`
-        + story(m, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic }) + mainAnswer(m, '', svarSet) + '</section>' + html;
+        + story(m, n++, pic ? { ...opts, tag: true, top: true, lead: true, pic, dek: true } : { ...opts, tag: true, top: true, plain: true, fl: true }) + mainAnswer(m, '', svarSet) + '</section>' + html;
     }
   }
   return filled ? html : null;   // a composition with none of its stories left: the fixed page
@@ -1734,7 +1762,7 @@ function fixedHome(all, opts) {
     // a Danish outlet's headline for the package when the story has one
     const dk = lead.lang !== 'da' && lead.how !== 'ed' && (lead.also || []).find(a => a.group === 'dk' && !curious(a.title));
     const shown = dk ? { ...lead, title: dk.title, origTitle: dk.title, source: dk.source, kw: [] } : lead;
-    html += `<section class="block top pkg${leadPic(lead) ? '' : ' text'}" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: leadPic(lead) })}`;
+    html += `<section class="block top pkg${leadPic(lead) ? '' : ' text'}" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, leadPic(lead) ? { ...opts, tag: true, top: true, lead: true, pic: leadPic(lead), dek: true } : { ...opts, tag: true, top: true, plain: true, fl: true })}`;
     // one quiet line when the amir has answered on the main story's subject (its own words, and the recap topic's name
     // when that topic is the story's own); the topic's timeline only then too
     own = pkg && pkg.topic && topicOf(lead, pkg.topic) ? pkg.topic : null;
@@ -1749,14 +1777,15 @@ function fixedHome(all, opts) {
   if (!pq) html += quoteOfDay(pin);   // the day's quote right under Dagens historie (the owner, 17/10), when it had none
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
-    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true, plain: true, fl: !n })).join('')}</section>`;
+    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true, plain: true, sq: true, fl: !n })).join('')}</section>`;
   // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
   // strongest), and then its two strongest such stories not shown above
   const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
   const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
-  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, fl: !n })).join('')}</section>`;
+  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, sq: true, fl: !n })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
-  html += frontMore(onPage, new Set(), '') + calBlock();   // the day in brief, the movement, the markets; then the dates
+  evShown.clear(); need('evt');
+  html += eventsUnplaced([], 'i gang') + frontMore(onPage, new Set(), '') + eventsUnplaced([], 'kommende') + calBlock();   // the day in brief, the movement, the markets; then the dates
   html += followStrip(own);   // not the main story's own development again
   html += nowStrip(3, onPage);
   return homeTop(notes().lede, html, notes().lede_ids) + homeFoot(all);
@@ -2263,6 +2292,7 @@ function prefetchLibrary() {
 // it (folded behind 'Læs hele svaret'). Everything that is the movement's is set in its face (17/10: "uoverskuelig").
 let svarNr = params.get('svar') || '';
 let nyhedId = '';   // the story the 'Nyhed' side page shows
+let evId = '';      // the event the 'Begivenhed' side page shows
 const SHOW_READS = 6;
 // each paragraph finds its own direction (an English answer opens with the Arabic basmala)
 const paras = text => String(text || '').trim().split(/\n\s*\n+/).map(b => {
@@ -2730,7 +2760,7 @@ function pageHtml(t, all, opts = {}) {
   // the same words as everywhere else for the same cause, with the day when the copy is from another day
   const note = offline ? `<p class="notice off"><svg aria-hidden="true"><use href="#i-offline"/></svg><span>Ingen forbindelse – viser nyhederne fra ${fromWhen(data.updated)}.</span></p>`
     : isStale() ? `<p class="notice"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Khabar har ikke hentet nyt siden ${fromWhen(data.updated)}. Listen kan være forældet.</span></p>` : '';
-  return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts) : t === 'nyhed' ? nyhedPage() : threadsPage());
+  return note + (t === 'home' ? home(all, opts) : t === 'search' ? searchPage(all) : t === 'latest' ? latestPage(all, opts) : t === 'nyhed' ? nyhedPage() : t === 'begivenhed' ? eventPage() : threadsPage());
 }
 // what the pages show changes with the data and the user's choices; each page notes the state it was drawn from
 let ver = 0;
@@ -3150,6 +3180,10 @@ async function share(text, i) {
 
 async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
+  const evb = t.closest('[data-event]');   // an event's card, number, countdown or row: its page
+  if (evb) { e.preventDefault(); openSide('begivenhed', evb.dataset.event); return; }
+  const evs = t.closest('[data-ev-share]');
+  if (evs) { const ev = eventOf(evs.dataset.evShare); if (ev) share(eventText(ev)); return; }
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
@@ -3421,6 +3455,169 @@ function nyhedPage() {
   expanded.add(i.id);
   return `<div class="nyhed-one">${story(i, 0, { tick: true })}</div>`
     + `<button class="qrow nyhed-live" data-go="latest"><span>Alle nyheder i Live</span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+}
+// ---------------------------------------------------------------- Begivenheder: the event pages
+// The day's great events on pages of their own (the owner, 18/10: 'Hvad skal der til for at vi kan få sådan nogle
+// faktabokse og begivenheds sider. Lige nu sker der kæmpe store optøjer i Frankrig. Men ser man på vores side føles det
+// som en fodnote' – '/goal … undersider hvor vi følger med i begivenheder med faktabokse' – 'artikler til store
+// begivenheder, hvor vi holder os objektive til selve begivenheden … fakta, begivenhed og tal'). The editor writes them
+// (scripts/events.py: every number grounded in a story it cites, the article without opinion or forecast); the page
+// shows the event's state, its fact boxes, the article, its places, its statements, its course and its stories.
+const events = () => ((V('evt') || {}).items || []).filter(e => e && e.id && e.title);
+const eventOf = id => events().find(e => e.id === String(id || ''));
+const evShown = new Set();   // the front page's event modules drawn this time (one of each kind for an event)
+// the event a story belongs to (the editor named it among the event's stories): the way to its page under the story
+function eventFor(i) {
+  const ids = new Set([i.id, ...(i.members || [])]);
+  return events().find(e => e.status !== 'afsluttet' && (e.stories || []).some(x => ids.has(x)));
+}
+// 'I GANG · DAG 3', 'OM 2 DAGE', 'I MORGEN', 'AFSLUTTET'
+function evState(e) {
+  const today = calToday();
+  if (e.status === 'kommende' && e.date) {
+    const n = calDay(e.date) - today;
+    return n <= 0 ? 'I dag' : n === 1 ? 'I morgen' : `Om ${n} dage`;
+  }
+  if (e.status === 'afsluttet') return 'Afsluttet';
+  const d = e.since ? today - calDay(e.since) + 1 : 0;
+  return d >= 1 ? `I gang · dag ${d}` : 'I gang';
+}
+// the outlets a box or an article cites, each once
+// the outlets a box, the article or a statement rests on, each once – as the editor filed them (src), else the stories'
+const evSources = parts => [...new Set((parts || []).flatMap(x => x.src && x.src.length ? x.src
+  : (x.ids || []).map(id => (find(id) || findStory(id) || {}).source)).filter(Boolean))];
+// A box's number as the news give it, drawn (the owner, 18/10: 'Gør gerne tallene … visuel interessant med professionelle
+// stilfulde widgets'): a share – '7 af 10', '68 %', or a value with its whole ('of') – as a ring; a number with the one
+// before ('was') as two bars and the change; else the number alone, large
+const evNum = v => { const d = String(v || '').replace(/(\d)[.\s](?=\d{3}\b)/g, '$1').replace(',', '.').match(/\d+(?:\.\d+)?/); return d ? +d[0] : null; };
+function evShare(f) {
+  const v = String(f.value || ''), of = String(v.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:af|ud af|of)\s*(\d+(?:[.,]\d+)?)/i)?.[2] || f.of || '');
+  const pct = v.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:%|procent)/i);
+  const r = pct ? evNum(pct[1]) / 100 : of ? evNum(v) / evNum(of) : null;
+  return r != null && isFinite(r) && r > 0 && r <= 1 ? r : null;
+}
+// The fact boxes as a paper's graphics desk sets them (the owner, 18/10: 'Det her ser ikke stilrent ud, ser ikke
+// nytænkende eller moderne ud'): no boxes – hairlines, air and the numbers large in the serif; the label in small
+// capitals over its number, who says it in italics under it; the first number the page's headline number, the rest two
+// to a row. A share of ten as ten dots, any other share as a thin meter; a number with the one before as two thin bars
+// and the change beside the number.
+function factDelta(f) {
+  const now = evNum(f.value), was = f.was && evNum(f.was.value);
+  if (now == null || !was) return '';
+  const ch = (now - was) / was * 100, n = Math.abs(ch) >= 10 ? Math.round(Math.abs(ch)) : Math.abs(ch).toFixed(1).replace('.', ',');
+  return `<em class="kf-d${ch >= 0 ? ' up' : ' down'}"><i aria-hidden="true">${ch >= 0 ? '▲' : '▼'}</i>${n} %${f.was.when ? ` siden ${esc(f.was.when)}` : ''}</em>`;
+}
+function factGraphic(f) {
+  const r = evShare(f), m = String(f.value || '').match(/^\s*(\d+)\s*(?:af|ud af|of)\s*10\b/i);
+  if (m || (r != null && String(f.of || '') === '10')) {
+    const k = m ? +m[1] : Math.round(r * 10);
+    return `<span class="kf-dots" aria-hidden="true">${Array.from({ length: 10 }, (_, j) => `<i${j < k ? ' class="on"' : ''}></i>`).join('')}</span>`;
+  }
+  if (r != null) return `<span class="kf-meter" aria-hidden="true"><i style="width:${(r * 100).toFixed(1)}%"></i></span>`;
+  const now = evNum(f.value), was = f.was && evNum(f.was.value);
+  if (now != null && was) {
+    const top = Math.max(now, was);
+    return `<span class="kf-bars" aria-hidden="true"><span><em>${esc(cap(f.was.when || 'før'))}</em><b><i style="width:${(was / top * 100).toFixed(1)}%"></i></b><span>${esc(f.was.value)}</span></span>`
+      + `<span class="kf-now"><em>Nu</em><b><i style="width:${(now / top * 100).toFixed(1)}%"></i></b><span>${esc(f.value)}</span></span></span>`;
+  }
+  return '';
+}
+function factCell(f, lead, wide) {
+  const g = factGraphic(f);
+  return `<div class="kf${lead ? ' kf-lead' : g || wide ? ' kf-wide' : ''}"><span class="kf-l">${esc(f.label)}</span><span class="kf-v">${esc(f.value)}</span>`
+    + factDelta(f) + g + (f.note ? `<span class="kf-n">${esc(f.note)}</span>` : '') + '</div>';
+}
+function factBoxes(e, n = 6) {
+  const facts = (e.facts || []).slice(0, n);
+  if (!facts.length) return '';
+  const [lead, ...rest] = facts, src = evSources(facts);
+  // the plain numbers pair up; one left alone takes the whole row
+  const plain = rest.filter(f => !factGraphic(f)), lone = plain.length % 2 ? plain[plain.length - 1] : null;
+  return `<div class="kfacts">${factCell(lead, true)}${rest.length ? `<div class="kf-grid">${rest.map(f => factCell(f, false, f === lone)).join('')}</div>` : ''}</div>`
+    + (src.length ? `<p class="ev-src">Kilder: ${esc(src.join(', '))}</p>` : '');
+}
+// the event's picture: the one the editor filed (the outlet's own of its first story with one), else a story's in Live
+const evPic = e => [e.pic, ...(e.stories || []).map(id => (find(id) || findStory(id) || {}).pic)].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
+// a picture large with the event's state and title on a dark fade at its bottom (the card and the page's head)
+const evHero = (e, tag = 'span', title = 'span') => {
+  const pic = evPic(e), live = e.status === 'i gang';
+  return pic ? `<${tag} class="ev-hero"><img src="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nopic')"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
+    + `<span class="ev-over"><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span>`
+    + `<${title} class="ev-ct">${esc(e.title)}</${title}></span></${tag}>` : '';
+};
+function eventPage() {
+  need('evt');
+  const e = eventOf(evId);
+  if (!e) return waiting('evt') ? '<div class="skel"></div>'.repeat(4)
+    : stateBlock('gone', 'Begivenheden er ikke længere fulgt på Khabar.', [['Til forsiden', 'data-go="home"']]);
+  const today = calToday(), st = evState(e), live = e.status === 'i gang';
+  const hero = evHero(e, 'div', 'h1');
+  let h = `<article class="ev">${hero}<header class="ev-head">`
+    + (hero ? `<p class="ev-kick"><span>${esc(e.kicker || '')}</span></p>` : `<p class="ev-kick"><span>${esc(e.kicker || '')}</span><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(st)}</span></p>`
+      + `<h1 class="ev-title">${esc(e.title)}</h1>`)
+    + `${e.dek ? `<p class="ev-dek">${esc(e.dek)}</p>` : ''}`
+    + `<p class="ev-meta">Opdateret ${esc(stamp(e.at))}<button class="ev-share" data-ev-share="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button></p></header>`;
+  if (e.status === 'kommende' && e.date) {
+    const n = Math.max(0, calDay(e.date) - today);
+    h += `<div class="ev-count"><span class="ev-cn">${n === 0 ? 'I dag' : n === 1 ? 'I morgen' : n}</span>${n > 1 ? '<span class="ev-cu">dage</span>' : ''}`
+      + `<span class="ev-cd">${esc(cap(FMT.full.format(calDate(e.date))))}</span></div>`;
+  }
+  if ((e.facts || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Fakta</h2>${factBoxes(e)}</section>`;
+  if ((e.article || []).length) {
+    const src = evSources(e.article);
+    h += `<section class="ev-sec ev-art"><h2 class="ev-h2">Det er sket</h2>${e.article.map(a => `<p>${rich(a.text, linkSession())}</p>`).join('')}`
+      + (src.length ? `<p class="ev-src">Bygger på ${esc(src.join(', '))}</p>` : '') + '</section>';
+  }
+  if ((e.places || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Steder</h2><p class="ev-places">${e.places.map(x => `<span>${esc(x)}</span>`).join('')}</p></section>`;
+  if ((e.quotes || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Udtalelser</h2>${e.quotes.map(q => `<figure class="ev-q"><blockquote>»${esc(q.text)}«</blockquote><figcaption>${esc(q.who)}</figcaption></figure>`).join('')}</section>`;
+  const tp = e.topic && threadNamed(e.topic);
+  if (tp && tp.lines.length) h += `<section class="ev-sec"><h2 class="ev-h2">Forløbet</h2>${storyline(tp, 6).html}</section>`;
+  const list = (e.stories || []).map(id => find(id) || findStory(id)).filter(Boolean).sort((a, b) => when(b) - when(a));
+  if (list.length) h += `<section class="ev-sec ev-news"><h2 class="ev-h2">Nyheder</h2>${list.map((i, k) => story(i, 300 + k, { tag: true, top: true, plain: true, sq: true })).join('')}</section>`;
+  const a = list.length && V('bix') && V('mix') ? list.map(i => answerFor(i)).find(Boolean) : null;
+  if (a) h += `<section class="ev-sec"><h2 class="ev-h2">Analyser</h2><div class="ans-ref">${answerLine(a)}</div></section>`;
+  return h + '</article>';
+}
+// the share text: the event, its state, its numbers and its page
+function eventText(e) {
+  const facts = (e.facts || []).map(f => `${f.label}: ${f.value}${f.note ? ` (${f.note})` : ''}`).join('\n');
+  return `*${e.title}* – ${evState(e).toLowerCase()}\n${e.dek || ''}\n${facts ? facts + '\n' : ''}\nvia khabar.nu/?begivenhed=${encodeURIComponent(e.id)}`;
+}
+// the front page's modules: an event's card with its key numbers, one number large, the days to an event ahead
+function eventCard(e) {
+  const live = e.status === 'i gang';
+  const nums = (e.facts || []).slice(0, 3);
+  const hero = evHero(e);
+  return `<section class="block ev-b">${blockHead(esc(e.kicker || 'Begivenhed'))}<button class="ev-card${hero ? ' pic' : ''}" data-event="${esc(e.id)}">`
+    + (hero || `<span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span><span class="ev-ct">${esc(e.title)}</span>`)
+    + (e.dek ? `<span class="ev-cdek">${esc(e.dek)}</span>` : '')
+    + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num"><b>${esc(f.value)}</b><small>${esc(f.label)}</small></span>`).join('')}</span>` : '')
+    + `<span class="ev-go">Følg begivenheden<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button></section>`;
+}
+function numberBlock(e, n = 1) {
+  const f = (e.facts || [])[(+n || 1) - 1];
+  if (!f) return '';
+  return `<section class="block tal-b">${blockHead(esc(e.kicker || 'Tal'))}<button class="tal kfacts" data-event="${esc(e.id)}">${factCell(f, true)}`
+    + `<span class="tal-go">${esc(e.title)}<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button></section>`;
+}
+function countdownBlock(e) {
+  if (e.status !== 'kommende' || !e.date) return '';
+  const n = calDay(e.date) - calToday();
+  if (n < 0) return '';
+  return `<section class="block nt-b">${blockHead(esc(e.kicker || 'Snart'))}<button class="nt" data-event="${esc(e.id)}">`
+    + `<span class="nt-n">${n === 0 ? 'I dag' : n === 1 ? 'I morgen' : n}${n > 1 ? '<small>dage</small>' : ''}</span>`
+    + `<span class="nt-t"><b>${esc(e.title)}</b><span>${esc(cap(FMT.full.format(calDate(e.date))))}</span></span><svg aria-hidden="true"><use href="#i-chev"/></svg></button></section>`;
+}
+// what the editor's composition does not place: the first event under way gets its card, the first ahead within a week
+// its countdown – a great event is never a footnote while the editor has not yet composed it in
+function eventsUnplaced(blocks, status) {
+  const placed = new Set((blocks || []).filter(b => b && b.event).map(b => String(b.event)));
+  const today = calToday();
+  const e = events().find(x => x.status === status && !placed.has(x.id) && !evShown.has('auto' + x.id)
+    && (status !== 'kommende' || (x.date && calDay(x.date) - today >= 0 && calDay(x.date) - today <= 7)));
+  if (!e) return '';
+  evShown.add('auto' + e.id);
+  return status === 'i gang' ? eventCard(e) : countdownBlock(e);
 }
 window.khabarOkRefresh = async run => {
   logo.classList.add('blink');
@@ -4140,14 +4337,14 @@ addEventListener('online', () => {
 const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
-const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed']);
+const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed', 'begivenhed']);
 // the tab a side page belongs to: it stays selected while the side page is in view (an answer, a page, A–Å: Analyser)
-const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '' };
+const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '', begivenhed: 'home' };
 const ASIDE = new Set(['search', ...SIDE]);
 let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
 // the side pages one came through (a story's concept, its answer, an earlier answer …): the logo goes back through them
 const backStack = [];
-const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : '';
+const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : t === 'begivenhed' ? evId : '';
 // The phone's own back (Android's button and gesture, a browser's swipe) goes the app's way back: every side page
 // opened is a step in the browser's history, and stepping back there is stepping back here. A tab chosen from a side
 // page takes those steps away again; the address names the page in view and nothing older.
@@ -4156,7 +4353,8 @@ let sideDepth = 0, unwinding = false;
 // the address names the page in view: ?svar=, ?begreb=, ?forlob= (a development), ?digest=1 (Udvikling), ?gemt=1
 const sideUrl = (t, arg) => {
   const q = t === 'svar' ? `svar=${encodeURIComponent(arg)}` : t === 'begreb' ? `begreb=${encodeURIComponent(arg)}`
-    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1' : t === 'nyhed' ? `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}` : '';
+    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1' : t === 'nyhed' ? `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}`
+    : t === 'begivenhed' ? `begivenhed=${encodeURIComponent(arg)}` : '';
   return q ? BASE + (BASE.includes('?') ? '&' : '?') + q : BASE;
 };
 try { history.replaceState({ khabar: 'base' }, '', BASE); } catch {}
@@ -4168,6 +4366,7 @@ function openSide(t, arg = '') {
     if (backStack.length > 40) backStack.shift();
   }
   if (t === 'nyhed') nyhedId = arg;
+  if (t === 'begivenhed') { evId = arg; need('evt'); }
   if (t === 'svar') svarNr = arg; else if (t === 'begreb') begrebId = arg; else if (t === 'threads') { udFocus = arg; if (arg) { udOpen.add(arg); pendingThr = arg; } }
   try { history.pushState({ khabar: 'side', t, arg }, '', sideUrl(t, arg)); sideDepth++; } catch {}
   if (t === tab) { render({ view: true }); if (!pendingThr) cur().scrollTop = 0; } else setTab(t, { top: true });
@@ -4221,7 +4420,7 @@ function leaveSides() {
 function stepBack() {
   const b = backStack.pop();
   if (!b) { setTab(backTo || 'home'); return; }
-  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg; else if (b.t === 'nyhed') { nyhedId = b.arg; expanded.clear(); expanded.add(b.arg); }
+  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg; else if (b.t === 'nyhed') { nyhedId = b.arg; expanded.clear(); expanded.add(b.arg); } else if (b.t === 'begivenhed') evId = b.arg;
   pendingThr = '';
   if (b.t === tab) render({ view: true }); else setTab(b.t);
   cur().scrollTop = b.y;
@@ -4591,7 +4790,7 @@ const LANGS = { da: 'Dansk', ar: 'Arabisk', en: 'Engelsk', tr: 'Tyrkisk', ur: 'U
 const VIA_NAMES = { push: 'En notifikation', whatsapp: 'WhatsApp', facebook: 'Facebook / Messenger', google: 'Google', sms: 'En sms',
   web: 'Andre sider', direct: 'Direkte (ikon eller bogmærke)' };
 const TAB_NAMES = { home: 'Forside', dk: 'Danmark', me: 'Mellemøsten', world: 'Verden', threads: 'Udvikling', latest: 'Live', search: 'Søg',
-  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å', nyhed: 'En nyhed' };
+  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å', nyhed: 'En nyhed', begivenhed: 'En begivenhed' };
 async function loadStats() {
   const url = CFG.statsUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 'stats.enc');
   const r = await fetch(url, { cache: 'no-cache' });
@@ -5102,7 +5301,8 @@ const startTab = params.get('kalender') ? 'kalender' : START[params.get('tab')];
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 takeMove();   // a 'Flyt til en anden telefon' link: its saves added to this phone's
 addEventListener('hashchange', () => { if (location.hash.startsWith('#flyt=')) { takeMove(); openSide('gemt'); } });   // one opened in a running app
-if (params.get('begreb')) openSide('begreb', params.get('begreb'));
+if (params.get('begivenhed')) openSide('begivenhed', params.get('begivenhed'));
+else if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (params.get('forlob')) { goOverview = false; openSide('threads', params.get('forlob')); }   // a shared development
 else if (params.has('gemt')) openSide('gemt');

@@ -60,6 +60,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import brain  # noqa: E402 – the books' order of weight and Hizb ut-Tahrir's newest answers, for weighing
 import voice  # noqa: E402 – Khabar's content rules
+import events as event_pages  # noqa: E402 – Begivenheder: the event pages and their fact boxes
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from radar import level as radar_level  # noqa: E402 – how the radar reads live.json (stdlib only)
 
@@ -85,12 +86,17 @@ LEVELS = ('få', 'normal', 'mange')   # how far down the ranking Live reaches to
 LEVEL_SIZE = {'få': 25, 'normal': 45, 'mange': 80}   # the owner's first guess of stories in 24 hours, for the input
 LIVE_NOTE = 160  # characters of the level's note
 LINE_SHOWN = 6   # candidates shown just above and just below the radar's line
-FRONT_KINDS = ('top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje')   # the front page's palette
-FRONT_BLOCKS = 6     # blocks in a composition (the app draws no more)
+# the front page's palette; since 18/10 the event modules (the owner: 'Lav moduler som vores redaktør kan udnytte til den
+# fulde potentiale'): 'begivenhed' (an event page's card with its key numbers), 'tal' (one fact, large) and 'nedtaelling'
+# (the days to an event ahead)
+FRONT_KINDS = ('top', 'liste', 'udvikling', 'citat', 'svar', 'live', 'linje', 'begivenhed', 'tal', 'nedtaelling')
+FRONT_BLOCKS = 8     # blocks in a composition (the app draws no more); 6 until the event modules came (18/10)
 FRONT_DRAWN = 6      # of which the app draws the first six (2026-10-17: overskuelighed før fuldstændighed)
 FRONT_TOPS = 2       # 'top' blocks: one, two on a day with two main stories
 FRONT_LIST = 8       # stories in one 'liste'
 FRONT_TOPICS = 3     # developments in one 'udvikling' (the app shows three)
+GREAT_OUTLETS, GREAT_SHOWN = 8, 6   # the input names the stories this widely carried that have no event page
+GREAT_FIRST = 12    # the check calls for an update when a story this widely carried has come and no event page is kept
 BLOCK_TITLE = 40     # characters of a block title
 FRONT_LINE = 120     # characters of a 'linje'
 LIST_STYLES = ('kompakt', 'billeder')
@@ -116,7 +122,8 @@ READING_LEN = 420
 NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
-DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json')
+DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
+                'events.json')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
 CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
 CAL_AHEAD = 30      # days of the calendar the input lists
@@ -738,6 +745,15 @@ def look(args, now):
         out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
     reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads, lapse)
+    # a great event and no event page yet (Begivenheder, 18/10): the first one is never missed; once pages are kept, the
+    # update's input names the great stories without one
+    pages = read(args, 'origin/digest', 'events.json', {}).get('items') or []
+    great = None if pages else max((i for i in pool if (i.get('outlets') or 1) >= GREAT_FIRST
+                                    and now - ts(i.get('published') or i.get('found')) < timedelta(hours=36)),
+                                   key=lambda i: i.get('outlets') or 1, default=None)
+    out.append(f"Event pages: {len(pages)}" + (f" · {sum(1 for e in pages if e.get('status') == 'i gang')} under way" if pages else ''))
+    if great:
+        reasons.append(f"stor begivenhed uden egen side: {clip(headline(great), 80)} ({great.get('outlets')} medier)")
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     keys = [f"big:{story_key(r[0], seen)}" for r in rows if weighty_big(r) and r[0]['id'] not in picked and r[0]['id'] not in recapped]
@@ -950,7 +966,22 @@ TEMPLATE = {
                          {'kind': 'citat', 'quote': '<q1, q2 … – a quote of the front page, as listed>'},
                          {'kind': 'svar', 'nr': "<an answer of Hizb ut-Tahrir's that bears on today>"},
                          {'kind': 'live', 'n': 3},
-                         {'kind': 'linje', 'text': '<one short line of reality>'}]},
+                         {'kind': 'linje', 'text': '<one short line of reality>'},
+                         {'kind': 'begivenhed', 'event': '<an event page id: its card with three key numbers, large>'},
+                         {'kind': 'tal', 'event': '<an event page id>', 'fact': 1},
+                         {'kind': 'nedtaelling', 'event': "<an event page ahead (status 'kommende'): the days to it>"}]},
+    'events': [{'id': '<lowercase-with-hyphens, e.g. frankrig-uroligheder-2026-10; the same id changes a page, '
+                      '{"id": …, "remove": true} takes it away>',
+                'title': '<what is happening, in Danish: Uroligheder i Frankrig>', 'kicker': '<where or what: Frankrig>',
+                'status': 'i gang | kommende | afsluttet', 'since': 'YYYY-MM-DD (i gang)', 'date': 'YYYY-MM-DD (kommende)',
+                'dek': '<one factual line of what is happening and why it matters – reality, never a forecast>',
+                'facts': [{'label': '<what is counted: Demonstranter>', 'value': '<the number as the news give it: 550.000>',
+                           'note': '<who says it: ifølge indenrigsministeriet>', 'ids': ['<the stories the number stands in>']}],
+                'places': ['<the places it happens in: Paris>'],
+                'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish>', 'ids': ['<story id>']}],
+                'stories': ['<its story ids in Live, the weightiest first>'], 'topic': '<a recap topic name: its timeline>',
+                'article': [{'text': '<one paragraph told objectively: what happened, who, where, when, the numbers and what '
+                                     'was said – facts, never opinion or forecast>', 'ids': ['<the stories it tells>']}]}],
     'calendar': [{'date': 'YYYY-MM-DD (or YYYY-MM with "approx": true)', 'title': '<what happens, in Danish: reality only>',
                   'kind': ' | '.join(CAL_KINDS), 'place': '<the country or city, optional>',
                   'why': '<one factual line: why it matters – never a forecast>', 'link': '<the source, optional with ids>',
@@ -1275,6 +1306,17 @@ def cmd_input(args):
     out += calendar_lines(cal_now, kal_now, now)
     heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (summaries_of(args).get('titles') or {}).items()}
     out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
+    evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
+    out += event_pages.lines(evt_now, now)
+    paged = {s for e in evt_now.get('items') or [] for s in e.get('stories') or []}
+    great = sorted((i for i in pool if (i.get('outlets') or 1) >= GREAT_OUTLETS and i['id'] not in paged
+                    and now - ts(i.get('published') or i.get('found')) < timedelta(hours=36)),
+                   key=lambda i: -(i.get('outlets') or 1))[:GREAT_SHOWN]
+    if great:
+        out += [f'## Great stories without an event page – {len(great)} (many outlets, the last 36 hours)', '',
+                'A great event – a people in the streets, a war widening, a vote ahead – gets a page under "events": fact '
+                'boxes with the news\'s own numbers, an objective article, its places, its stories. Not every big story:', '']
+        out += [f"[{i['id']}] {i.get('outlets')} outlets · {headline(i)}" for i in great] + ['']
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:
@@ -1404,7 +1446,7 @@ def refreshed(blocks, find):
     return out
 
 
-def compose(spec, current, find, pool, topics, quotes, answers, lede, now, problems, lede_ids=None):
+def compose(spec, current, find, pool, topics, quotes, answers, lede, now, problems, lede_ids=None, events=None):
     """The front page as the editor composes it (front.json), or None when there is none to write. spec: the update's
     'front' – left out (or "keep"): the composition now stays, re-dated, its stories as the radar has them (not one of
     an earlier day after 06: the app's fixed page shows until a new one comes). pool: the ids in Live (None before the
@@ -1521,6 +1563,21 @@ def compose(spec, current, find, pool, topics, quotes, answers, lede, now, probl
                 problems.append(f'{where}: n – a number of stories, 1-10')
                 n = 3
             row['n'] = n
+        elif kind in ('begivenhed', 'tal', 'nedtaelling'):
+            ev = (events or {}).get(clean(b.get('event')))
+            if not ev:
+                problems.append(f"{where}: event {b.get('event')!r} is no event page – write it under \"events\" first")
+            else:
+                row['event'] = ev['id']
+                if kind == 'tal':
+                    n = b.get('fact', 1)
+                    if not isinstance(n, int) or isinstance(n, bool) or not 1 <= n <= len(ev.get('facts') or []):
+                        problems.append(f"{where}: fact – the number of one of the page's fact boxes, 1-{len(ev.get('facts') or [])}"
+                                        if ev.get('facts') else f'{where}: the event page has no fact boxes')
+                    else:
+                        row['fact'] = n
+                if kind == 'nedtaelling' and ev.get('status') != 'kommende':
+                    problems.append(f"{where}: a countdown is for an event ahead (status 'kommende')")
         elif kind == 'linje':
             text = clean(b.get('text'))
             if not text or len(text) > FRONT_LINE:
@@ -1768,7 +1825,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             problems[:] = [p for p in problems if not p.startswith('lede: ')]   # the front page's lede is the update's
     lede_ids = lede_links(draft, prev, lede, lede_at == stamp, by_id, problems)
     front = compose(draft.get('front'), extra.get('front'), find, pool, topics, quotes, extra.get('answers'), lede, now,
-                    problems, lede_ids)
+                    problems, lede_ids, extra.get('events'))
     if front and lede and lede_at == stamp:   # a new lede is a standfirst: it does not repeat the main story's headline
         top = next((b for b in front['blocks'] if b.get('kind') == 'top'), None)
         if top:
@@ -2182,7 +2239,12 @@ def cmd_publish(args):
              'pool': pool if known else None,
              'answers': {str(k) for k in brain.static_answers()} | {str(k) for k in noted.get('items') or {}}
              | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
+    ev_problems = []
+    evt = event_pages.events_file(draft.get('events'), quoted(read(args, 'origin/digest', 'events.json', {'items': []})),
+                                  resolver(data.get('items', [])), now, dk(now).date(), ev_problems, voice)
+    extra['events'] = {e['id']: e for e in evt['items']}
     days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {}, extra)
+    problems += ev_problems
     answer = None
     if draft.get('answer'):
         answer, more = check_answer(draft['answer'], {str(a['id']): a for a in waiting(args, noted)},
@@ -2220,7 +2282,7 @@ def cmd_publish(args):
              'summaries.json': {'updated': notes['created'], 'items': kept_sums, 'titles': checked},
              'answers.json': {'items': dict(sorted(noted['items'].items(), key=lambda kv: str(kv[1].get('date') or ''),
                                                    reverse=True))},
-             'live.json': live['file'], 'kalender.json': kal}
+             'live.json': live['file'], 'kalender.json': kal, 'events.json': evt}
     if front:
         files['front.json'] = front
     out = Path(args.out) if args.out else WORK / 'out'

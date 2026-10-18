@@ -26,8 +26,9 @@ def test_five_tabs_forside_live_kalender_okonomi_analyser_in_that_order():
 
 def test_every_page_the_app_draws_has_its_section():
     pages = re.findall(r'<section class="page[^"]*" data-tab="(\w+)"', INDEX)
-    assert pages == ['home', 'latest', 'kalender', 'okonomi', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'nyhed', 'search']
-    for side in ('threads', 'begreb', 'begreber', 'svar', 'gemt', 'nyhed'):
+    assert pages == ['home', 'latest', 'kalender', 'okonomi', 'analyses', 'threads', 'begreb', 'begreber', 'svar', 'gemt', 'nyhed',
+                     'begivenhed', 'search']
+    for side in ('threads', 'begreb', 'begreber', 'svar', 'gemt', 'nyhed', 'begivenhed'):
         assert f'<section class="page side" data-tab="{side}"' in INDEX
 
 

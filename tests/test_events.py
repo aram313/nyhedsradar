@@ -1,0 +1,118 @@
+"""Begivenheder (the owner, 18/10: 'Hvad skal der til for at vi kan få sådan nogle faktabokse og begivenheds sider' –
+'artikler til store begivenheder, hvor vi holder os objektive … fakta, begivenhed og tal'): the editor's event pages,
+their fact boxes grounded in the news, the objective article, and the front page's event modules (scripts/events.py,
+scripts/editor.py compose)."""
+import sys
+from datetime import date, datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+sys.path.insert(0, str(ROOT / 'src'))
+
+import events  # noqa: E402
+import voice  # noqa: E402
+
+NOW = datetime(2026, 10, 18, 9, 0, tzinfo=timezone.utc)
+TODAY = date(2026, 10, 18)
+STORIES = {
+    'fr1': {'id': 'fr1', 'title': 'Around 550,000 people take part in protests across France, about 400 arrested: minister'},
+    'fr2': {'id': 'fr2', 'title': '1.200 personer anholdt efter uroligheder i flere franske byer.',
+            'also': [{'title': 'Macron: No place for violence after riots in Paris and Lyon'}]},
+    'ab1': {'id': 'ab1', 'title': 'Alberta votes Monday on a path towards leaving Canada'},
+}
+RIOTS = {'id': 'frankrig-uroligheder-2026-10', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
+         'since': '2026-10-16', 'dek': 'Demonstrationer mod leveomkostningerne i flere franske byer, med sammenstød og anholdelser.',
+         'facts': [{'label': 'Demonstranter', 'value': '550.000', 'note': 'ifølge indenrigsministeriet', 'ids': ['fr1']},
+                   {'label': 'Anholdte', 'value': '1.200', 'ids': ['fr2']}],
+         'places': ['Paris', 'Lyon'], 'stories': ['fr1', 'fr2'],
+         'article': [{'text': 'Omkring 550.000 mennesker demonstrerede den 17. oktober i Frankrig ifølge indenrigsministeriet.',
+                      'ids': ['fr1']}]}
+
+
+def make(entries, current=None, today=TODAY):
+    problems = []
+    out = events.events_file(entries, current, STORIES, NOW, today, problems, voice)
+    return out, problems
+
+
+def test_an_event_page_with_its_fact_boxes_grounded_in_the_news():
+    out, problems = make([RIOTS])
+    assert not problems, problems
+    (e,) = out['items']
+    assert [f['value'] for f in e['facts']] == ['550.000', '1.200'] and e['places'] == ['Paris', 'Lyon']
+    assert e['article'][0]['ids'] == ['fr1'] and e['status'] == 'i gang' and e['since'] == '2026-10-16'
+
+
+def test_a_number_the_news_do_not_carry_is_refused():
+    wrong = {**RIOTS, 'facts': [{'label': 'Demonstranter', 'value': '800.000', 'ids': ['fr1']}]}
+    _, problems = make([wrong])
+    assert any("'800.000' stands in none of the stories" in p for p in problems), problems
+    _, problems = make([{**RIOTS, 'facts': [{'label': 'Anholdte', 'value': '1.200'}]}])
+    assert any('ids – the stories the number stands in' in p for p in problems), problems
+    # an article's number too – but a date, a year and a clock time are no counts
+    loose = {**RIOTS, 'article': [{'text': 'Den 17. oktober 2026 kl. 21.30 var 1.200 anholdt og 150 betjente såret.', 'ids': ['fr2']}]}
+    _, problems = make([loose])
+    assert [p for p in problems if 'article 1' in p] == [p for p in problems if '150 stand in none' in p] and problems, problems
+
+
+def test_the_article_holds_to_the_event_not_to_opinions():
+    said = {**RIOTS, 'article': [{'text': 'Det er tydeligt, at regeringen vil falde, og protesterne vil sprede sig.', 'ids': ['fr1']}]}
+    _, problems = make([said])
+    assert any('article 1' in p for p in problems), problems
+
+
+def test_pages_change_by_id_are_removed_and_kept_a_few_days():
+    out, _ = make([RIOTS])
+    out, problems = make([{'id': RIOTS['id'], 'status': 'afsluttet'}], out)
+    assert not problems and out['items'][0]['status'] == 'afsluttet' and out['items'][0]['facts']   # the rest stays
+    out, problems = make([{'id': RIOTS['id'], 'remove': True}], out)
+    assert out['items'] == [] and not problems
+    vote = {'id': 'alberta-folkeafstemning', 'title': 'Folkeafstemning i Alberta', 'kicker': 'Canada', 'status': 'kommende',
+            'date': '2026-10-19', 'dek': 'Vælgerne i Alberta stemmer om vejen mod løsrivelse fra Canada.', 'stories': ['ab1']}
+    out, problems = make([vote])
+    assert not problems and out['items'][0]['date'] == '2026-10-19'
+    later, _ = make(None, out, today=date(2026, 10, 30))          # long past its day: gone
+    assert later['items'] == []
+    _, problems = make([{**vote, 'date': '2026-10-01'}])
+    assert any('has passed' in p for p in problems)
+
+
+def test_only_the_great_events_get_a_page():
+    many = [{**RIOTS, 'id': f'uro-{n}'} for n in range(events.MAX_EVENTS + 1)]
+    _, problems = make(many)
+    assert any('only the great events' in p for p in problems)
+
+
+def test_the_front_page_modules_name_an_event_page():
+    import editor
+    find = {'fr1': {**STORIES['fr1'], 'members': ['fr1']}}
+    page = make([RIOTS])[0]['items'][0]
+    spec = {'blocks': [{'kind': 'begivenhed', 'event': page['id']}, {'kind': 'tal', 'event': page['id'], 'fact': 2},
+                       {'kind': 'nedtaelling', 'event': page['id']}, {'kind': 'tal', 'event': 'ukendt'}]}
+    problems = []
+    out = editor.compose(spec, None, find, None, {}, [], None, 'En lede.', NOW, problems, None, {page['id']: page})
+    assert [b.get('event') for b in out['blocks']] == [page['id'], page['id'], page['id'], None]
+    assert out['blocks'][1]['fact'] == 2
+    assert any("a countdown is for an event ahead" in p for p in problems)
+    assert any("'ukendt' is no event page" in p for p in problems)
+
+
+def test_a_box_can_be_a_share_or_a_change_and_both_are_grounded():
+    # the owner, 18/10: 'Gør gerne tallene … visuel interessant med professionelle stilfulde widgets'
+    stories = {**STORIES, 'poll': {'id': 'poll', 'title': 'Nearly 7 in 10 French people approve Oct. 17 protests'},
+               'old': {'id': 'old', 'title': 'About 400 arrested: minister', 'pic': 'https://img.test/riot.jpg'}}
+    e = {**RIOTS, 'stories': ['old', 'fr1'],
+         'facts': [{'label': 'Støtter protesterne', 'value': '7', 'of': '10', 'ids': ['poll']},
+                   {'label': 'Anholdte', 'value': '1.200', 'was': {'value': '400', 'when': 'fredag', 'ids': ['old']}, 'ids': ['fr2']}]}
+    problems = []
+    out = events.events_file([e], None, stories, NOW, TODAY, problems, voice)
+    assert not problems, problems
+    f1, f2 = out['items'][0]['facts']
+    assert f1['of'] == '10' and f2['was'] == {'value': '400', 'when': 'fredag', 'ids': ['old']}
+    assert out['items'][0]['pic'] == 'https://img.test/riot.jpg'      # the first story with a picture
+    bad = {**e, 'facts': [{'label': 'Støtte', 'value': '7', 'of': '12', 'ids': ['poll']},
+                          {'label': 'Anholdte', 'value': '1.200', 'was': {'value': '300', 'ids': ['old']}, 'ids': ['fr2']}]}
+    problems = []
+    events.events_file([bad], None, stories, NOW, TODAY, problems, voice)
+    assert any("of '12' stands in none" in p for p in problems) and any("was '300' stands in none" in p for p in problems), problems

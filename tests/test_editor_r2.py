@@ -197,7 +197,7 @@ def test_a_composition_that_breaks_the_rules_is_refused(folder, tmp_path, capsys
     with pytest.raises(SystemExit):
         publish(folder, tmp_path, {'lede': 'Dagen kort.', 'front': bad})
     out = capsys.readouterr().out
-    assert "front: 9 blocks – at most 6" in out and "front block 1: kind 'hero'" in out
+    assert "front: 9 blocks – at most 8" in out and "front block 1: kind 'hero'" in out
     assert 'front block 2 (top) title' in out and 'curiosity headline' in out
     assert "front block 4 (top): story – unknown story id 'nope'" in out
     assert "looks like a day marker" in out

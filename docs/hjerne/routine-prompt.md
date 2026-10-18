@@ -93,9 +93,16 @@ plain Danish without "Ifølge …".
      no news (light news, a duplicate, a feature) – even a big story. Both hold today and tomorrow; your newest
      decision on a story wins (a take today undoes yesterday's drop). Give every story you take in a headline too.
      Leave them out to keep today's.
+   - The whole front page, every update (the owner: "Redaktøren skal have frihed til at lave artikler og gøre forsiden
+     interessant. Samt skal vurdere hele forsidens indhold ift dagens begivenheder og altid prøve at hæve niveauet"):
+     weigh all of it against the day's events, not only what is new – does it show what the world lives today, in the
+     right order and weight, and is it alive to read? You are free to compose it: use every module, give a great event
+     its page with an objective article and fact boxes, set a number large, count down to what is ahead, lead with
+     the event that matters most. Always try to lift the page a step – a sharper headline, a truer Dagens historie,
+     today's numbers in a box, a page brought up to date. Never fill for the sake of it: every block earns its place.
    - `front`: the front page, composed by your own editorial taste and the brain – which blocks, in what order, what
      leads, what each block is called – from the palette the input shows (top, liste, udvikling, citat, svar, live,
-     linje; at most 6 blocks, the app draws no more; a list shows its first three stories; a story in one block only;
+     linje, and for an event page begivenhed, tal and nedtaelling; at most 8 blocks, the app draws no more; a list shows its first three stories; a story in one block only;
      its stories in Live or taken in). The owner's taste: compact, overskuelighed før fuldstændighed, few kinds of
      information per row, block titles short and concrete and never like a day marker. A Danish story reaches the
      front page only when it is very big (a big story among the day's strongest); the app leaves a Danish block of
@@ -116,6 +123,22 @@ plain Danish without "Ifølge …".
      'sandsynligvis', 'kan føre til'), `link`, `ids` (the stories it comes from) and `weight`: 3 when it can move the balance of the powers or touches Denmark's government (it then stands out in red), 2 when it matters to the Muslim world or the dollar and oil, else leave it out. To raise an event the calendar holds already (an EU summit whose agenda holds the sanctions on Russia, Ukraine, the Middle East, migration or trade with “israel”), write it again with its date, its exact title and `weight` 3. Decide on every line under 'Dates in the news' (the stories that name a coming day or a deadline, with what the calendar holds then): add what is a planned event of weight, skip the rest without a word. Only a date the stories state;
      change one of yours by its `id`, remove one with `{"id": …, "remove": true}`; leave `calendar` out to keep the
      calendar as it is. Entries stay until two days after their day.
+   - `events`: a page of its own (Begivenheder) for a great event – a people in the streets across a country, a war
+     widening, a coup, a vote or a summit ahead that can move the balance of the powers – when a story or two a day no
+     longer carry it. The input lists the pages now and the great stories without one. At most five pages under way or
+     ahead; most updates change only a page's numbers and stories. Each: `id`, `title`, `kicker` (where or what),
+     `status` (i gang | kommende | afsluttet), `since` (the day it began) or `date` (the day it happens, kommende),
+     `dek` (one factual line), `facts` (at most six boxes: `label`, `value`, `note` – who says it, `ids`), `places`,
+     `quotes`, `stories` (its story ids in Live, the weightiest first), `topic` (a recap topic: its timeline) and
+     `article` (at most six paragraphs, each with its `ids`): the event told objectively, as the group's culture
+     (thaqafah) asks – what happened, who, where, when, the numbers and what was said; facts, never opinion, judgement
+     or forecast. Every number in a box or a paragraph must stand in a story it cites – the news's own numbers, with
+     who gives them ('ifølge indenrigsministeriet'); the tool refuses any other. Update a page by its `id` when its
+     numbers or its course move (only the fields that changed); mark it `afsluttet` when it is over; remove it with
+     `{"id": …, "remove": true}`. On the front page: `begivenhed` (the page's card with three key numbers – put it right
+     under the top block), `tal` (one fact box large: `event`, `fact` its number) and `nedtaelling` (the days to an
+     event ahead). The app puts the card of an event under way, and the countdown of one within a week, on the front
+     page itself when you do not.
    - `answer`: when the input shows a new answer of Hizb ut-Tahrir – its Danish title and question, a note of 2-4
      sentences and one reading per subject it reads, each saying what the answer reads in plain Danish without
      "Ifølge Hizb ut-Tahrirs svar …" or "Ifølge svaret …" ("Saudi-Arabien er underordnet USA"; the app labels them
@@ -126,7 +149,7 @@ plain Danish without "Ifølge …".
    Run `python3 scripts/editor.py publish /tmp/editor/update.json --push`. If it lists problems, fix the file and run it
    again until it reports 'Published'. If it says another update was published after your input, run step 3 again and
    write the update on top of the new front page. It commits digest.json, moves.json, summaries.json, answers.json,
-   live.json, front.json and kalender.json to the digest branch; do not touch any other branch or file. Only the first update at or after 21 Danish time
+   live.json, front.json, kalender.json and events.json to the digest branch; do not touch any other branch or file. Only the first update at or after 21 Danish time
    notifies the phones – the tool decides that.
 
 5. Finish with one line: the time, the lede (new or kept), the picks (changed or kept), the recap lines, the

@@ -1015,7 +1015,9 @@ def main():
                   'pic', 'kw', 'kw_tr', 'kw_da', 'actors', 'members', 'live', 'kind',
                   # the books' tier: the app's weight and 'Høj betydning' read it (app.js heavy, as run.top_score) – left
                   # out until 18/10, so the phone never weighed the heaviest tiers the radar did
-                  'tier')
+                  'tier',
+                  # where the large picture's subject sits (thumbs.subject): the app keeps a face clear of the text on it
+                  'pf')
     also_fields = ('id', 'source', 'title', 'link', 'lang', 'group', 'title_tr')
 
     def slim(d, keys):   # empty values left out (the app reads a missing field as empty); 0 stays (confirmed: 0)

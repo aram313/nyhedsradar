@@ -22,6 +22,7 @@ NO_PAGE = re.compile(r'^https?://(?:[\w-]+\.)?(?:news\.google\.com|t\.me|youtube
 STAND_IN = re.compile(r'/(?:brands?|logos?)/|[/_-](?:logo|share|default|placeholder|fallback)[\w-]*\.(?:jpe?g|png|webp|gif)(?:[?#]|$)', re.I)
 
 
+SPOT_AGAIN = 8   # pictures made before the subject was kept, looked at again in a run (18/10)
 CUT = 'face1'   # change it when pictures are cut differently: every card then gets a freshly made one
 
 
@@ -63,6 +64,24 @@ def focus(im):
         return None
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
     return (x + w / 2) / gray.shape[1], (y + h / 2) / gray.shape[0]
+
+
+def subject(raw):
+    """Where a picture's subject sits and its shape, for the app's large pictures with text on them (the owner, 18/10:
+    'Teksten dækker for rubios ansigt, der skal vurderes om det er et godt nok billede til forside i sådanne tilfælde'):
+    [x, y, width/height, 1 for a face or 0] – the centre of its biggest face as fractions, else the middle a little above
+    its centre; None for no picture."""
+    from PIL import Image, ImageOps
+    try:
+        im = Image.open(io.BytesIO(raw))
+        im.draft('RGB', (960, 960))
+        im = ImageOps.exif_transpose(im).convert('RGB')
+        w, h = im.size
+        at = focus(im)
+        x, y = at or (.5, .4)
+        return [round(x, 3), round(y, 3), round(w / h, 3), 1 if at else 0]
+    except Exception:  # noqa: BLE001 – a broken picture is no picture
+        return None
 
 
 def crop_box(size, target, at):
@@ -130,6 +149,8 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     have = {p.name for p in folder.glob('*.jpg')}
     # a picture made before the darkness rule is looked at once (18/10): a too dark one is set aside as no picture
     lit = dict(memory.get('lit', {}))
+    # where the subject of each large picture sits (subject): kept per picture, the ones made before looked at a few a run
+    spot = dict(memory.get('spot', {}))
 
     def bright(url):
         name = name_of(url)
@@ -214,26 +235,49 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
 
     def fetch(url):
         if time.monotonic() - start > seconds:
-            return url, None               # out of time: try again next run
+            return url, None, None         # out of time: try again next run
         try:
-            return url, shrink(get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8')) or False
+            raw = get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8')
+            jpg = shrink(raw)
+            return url, jpg or False, subject(raw) if jpg else None
         except Exception:  # noqa: BLE001
-            return url, False
+            return url, False, None
 
     made = {}
     with ThreadPoolExecutor(8) as pool:
-        for url, jpg in pool.map(fetch, list(dict.fromkeys(todo.values()))[:image_budget]):
+        for url, jpg, where in pool.map(fetch, list(dict.fromkeys(todo.values()))[:image_budget]):
             if jpg:
                 (folder / name_of(url)).write_bytes(jpg)
                 made[url] = name_of(url)
+                if where:
+                    spot[url] = where
             elif jpg is False:
                 bad[url] = now.isoformat()
     for it in cards:
         if 'thumb' not in it and todo.get(it['id']) in made:
             it['thumb'], it['pic'] = made[todo[it['id']]], todo[it['id']]
 
+    # the pictures made before (no spot yet): the original looked at again, a few a run, the strongest cards first
+    def look_again(url):
+        if time.monotonic() - start > seconds:
+            return url, None
+        try:
+            return url, subject(get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8'))
+        except Exception:  # noqa: BLE001
+            return url, None
+    again = list(dict.fromkeys(it['pic'] for it in cards if it.get('pic') and it['pic'] not in spot))[:SPOT_AGAIN]
+    with ThreadPoolExecutor(4) as pool:
+        for url, where in pool.map(look_again, again):
+            if where:
+                spot[url] = where
+    for it in cards:
+        if it.get('pic') in spot:
+            it['pf'] = spot[it['pic']]
+
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):
         if p.name not in used:
             p.unlink()
-    return {'page': pages, 'bad': bad, 'lit': {k: v for k, v in lit.items() if k in used}}
+    shown = {it.get('pic') for it in cards}
+    return {'page': pages, 'bad': bad, 'lit': {k: v for k, v in lit.items() if k in used},
+            'spot': {k: v for k, v in spot.items() if k in shown}}

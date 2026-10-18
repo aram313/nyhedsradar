@@ -150,9 +150,9 @@ def test_dagens_historie_has_its_own_picture_with_the_headline_on_it():
 
 def test_the_front_page_shows_less():
     comp = fn('composedHome')
-    assert 'const FRONT_MAX = 6' in CODE and 'if (drawn >= FRONT_MAX) break;' in comp
+    assert 'const FRONT_MAX = 8' in CODE and 'if (drawn >= FRONT_MAX) break;' in comp
     assert "most = b.dkQuiet ? 2 : 3" in comp and 'data-unfold="${esc(key)}"' in comp   # 'Alle ›' unfolds the rest
-    assert "top: true, plain: true }); break; } }" in comp and ".slice(0, 3)" in comp   # one more story under Dagens historie
+    assert "top: true, plain: true, sq: true }); break; } }" in comp and ".slice(0, 3)" in comp   # one more story under Dagens historie
     line = fn('storyline')
     assert 'storyline(tp, n = 2)' in line and 'stepsWithDays(lines, null)' in line and 'Hele udviklingen' in line
     assert "esc(String(b.text))" in comp   # a linje without the wiki's underlines
@@ -162,7 +162,7 @@ def test_denmark_only_when_it_matters_and_the_page_keeps_its_order():
     assert "const dkMatters = (i, tops) => !!i && !!i.big && tops.has(i.id);" in CODE   # only very big Danish news
     order = fn('frontOrder')
     assert "list.every(i => secOf(i) === 'dk')" in order and 'continue;' in order        # a quiet Danish list is left off
-    assert "const FRONT_RANK = { top: 0, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };" in CODE
+    assert "const FRONT_RANK = { top: 0, begivenhed: 0.5, nedtaelling: 0.7, tal: 1, citat: 1, liste: 2, svar: 3, linje: 4, udvikling: 6, live: 7 };" in CODE
     fixed = fn('fixedHome')
     assert 'dkMatters(i, tops)), 2)' in fixed and "blockHead('Danmark')" in fixed
     assert fixed.index('quoteOfDay(pin)') < fixed.index("blockHead('Døgnets vigtigste'")   # the quote under the main story
@@ -219,7 +219,8 @@ def test_dagens_historie_is_a_block_like_every_other():
     assert 'Også i dag' not in CODE and 'alsoGo' not in CODE and 'class="top-h"' not in CODE
     assert 'data-brief' in top and "'<div class=\"follow pkg-f of-main\"'" in top
     comp = fn('composedHome')
-    assert 'story(shown, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic })' in comp
+    # since 18/10 (the owner: 'samme på dagens nyhed'): its picture large with the headline on a dark fade, else the serif
+    assert 'story(shown, n++, pic ? { ...opts, tag: true, top: true, lead: true, pic, dek: true } : { ...opts, tag: true, top: true, plain: true, fl: true })' in comp
     assert "b.style === 'billeder'" not in comp                                    # no headline on a picture
     assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{[^}]*background: none', RULES)
     assert '.pkg.merged > .of-main { display: none; }' in RULES and "!sib.matches('.dim, .of-main')" in CODE
@@ -229,8 +230,9 @@ def test_the_front_page_says_each_subject_once_in_the_papers_way():
     # the owner, 18/10: 'Ingen gentagelser', 'Avisens typografi', 'Billeder med mening'
     comp = fn('composedHome')
     assert 'mark(b.title' in comp and 'mark(tp.name)' in comp and "filter(t => t && !seen(t.name))" in comp
-    assert 'plain: true, fl: !big && !k })' in comp and 'fpic' not in comp.split("b.kind === 'liste'")[1].split("b.kind === 'udvikling'")[0]
-    assert "opts.plain ? '' : thumb(i.source, i.thumb)" in CODE        # no small pictures, no outlet's initials
+    assert 'plain: true, sq: true, fl: !big && !k })' in comp and 'fpic' not in comp.split("b.kind === 'liste'")[1].split("b.kind === 'udvikling'")[0]
+    # since 18/10 a small square picture on the rows that have one – never the outlet's initials in its place
+    assert "opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '')" in CODE
     assert re.search(r'\.page\[data-tab="home"\] \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
     assert re.search(r'\.page\[data-tab="home"\] \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)
 

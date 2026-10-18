@@ -9,6 +9,36 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Begivenheder: a page of its own for a great event, with fact boxes and an objective article** (2026-10-18, the
+  owner: 'Lige nu sker der kæmpe store optøjer i Frankrig. Men ser man på vores side føles det som en fodnote … lav
+  undersider hvor vi følger med i begivenheder med faktabokse', and 'artikler til store begivenheder, hvor vi holder os
+  objektive til selve begivenheden, ligesom vi får beskrevet i vores thaqafah … fakta, begivenhed og tal'). The editor
+  files `events` in an update (`events.json` on the digest branch, `scripts/events.py`): at most five pages, each with
+  its state (i gang · dag N, kommende, afsluttet), a factual line, up to six numbers, places, quotes, its stories, its
+  development and an article of up to six paragraphs. Every number in a box or a paragraph must stand in a story it
+  cites, and an opinion, a judgement or a forecast in the article is refused. The page (`?begivenhed=<id>`): the
+  event's picture with its state and title on a dark fade, Fakta, Det er sket, Steder, Udtalelser, Forløbet, Nyheder
+  and the movement's answer on it. The front page has three new modules – the event's card (picture, line, three key
+  numbers, 'Følg begivenheden'), one number large, a countdown – and at most eight blocks; the card of an event under
+  way and the countdown to one within a week come on the front page by themselves when the editor has not placed them.
+  The editor's input lists the pages and the great stories without one, and the prompt asks the editor to weigh the whole
+  front page every update and lift it a step.
+- **The fact boxes set like a paper's graphics desk** (2026-10-18, the owner on the first version: 'Det her ser ikke
+  stilrent ud, ser ikke nytænkende eller moderne ud'): no grey boxes – hairlines and air; the first number the page's
+  headline number in large serif figures, the rest two to a row (a lone one across the row); each label in small
+  capitals above its number and who says it in italics below. A share of ten is ten dots, any other share a thin
+  meter, a number with an earlier one '▲ 350 % siden fredag' and two thin bars, before and now; the bars draw out once
+  as the page opens (not with Reduce Motion). The front page's card sits on the page's own ground like the other
+  blocks, and its 'tal' module wears the same cell.
+- **Large pictures keep a face clear of the text** (2026-10-18, the owner: 'Teksten dækker for rubios ansigt, der skal
+  vurderes om det er et godt nok billede til forside i sådanne tilfælde'): the radar finds where a picture's face sits
+  (`thumbs.subject`, card `pf`, kept per picture, the older pictures looked at eight a run) and the app moves the
+  picture in its frame so the face sits a quarter from the top; where it cannot – a face low in a wide picture – the
+  headline goes under the picture instead of on it (`placePic`, Dagens historie and the event pictures).
+- **More pictures on the front page** (2026-10-18, the owner: 'Vi burde udnytte flere billeder til forsiden … samme på
+  dagens nyhed … billeder på de historier der er kort nyt, i en lille firkantet boks'): Dagens historie wears its
+  picture with the headline on the dark fade, and the rows of the lists and Kort nyt a small square picture where the
+  story has one.
 - **Kalender: one event once** (2026-10-18, the owner: 'Libanon historien i kalender vises dobbelt?'). Two editor updates
   had named the Lebanon talks of 20/10 under two ids ('… med “israel”' and '… med “israel” i Florida'). On the same day,
   the same source or nearly the same title (four fifths of the shorter title's words) is now the same event: the app

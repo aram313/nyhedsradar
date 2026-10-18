@@ -161,6 +161,21 @@ da'wah.
   Danish date: each update adds short 'Who: what' lines to the day's topics (newest first); the day lists every
   wire line id its updates were given (`ids`), so the next update gets only new ones. Old edition archives
   (`briefs`) are folded into days automatically.
+- `scripts/events.py` – **Begivenheder** (2026-10-18, the owner: 'undersider hvor vi følger med i begivenheder med
+  faktabokse'; 'objektive til selve begivenheden, ligesom vi får beskrevet i vores thaqafah … fakta, begivenhed og
+  tal'): the editor's `events` in an update become `events.json` on the digest branch (in `DIGEST_FILES`; at most
+  `MAX_EVENTS` 5, a page kept `EVENT_KEEP` 4 days after its last change, merged by id, `remove` removes one). Every number in a fact's
+  value, its `of` and `was`, and in an article paragraph must stand in the stories it cites (`grounded`, digits
+  normalised; dates, years and clock times exempt in paragraphs), an article paragraph with an opinion, judgement or
+  forecast is refused (`OPINION`), and every text goes through voice.py. The page's picture and its face (`pf`) come
+  from its first story with one. The app: the side page 'begivenhed' (`eventPage`, `?begivenhed=<id>`) and the front
+  page's modules `begivenhed` (`eventCard`), `tal` (`numberBlock`) and `nedtaelling` (`countdownBlock`); an event under
+  way that the editor did not place gets its card after the first block, one ahead within a week its countdown
+  (`eventsUnplaced`). The fact boxes (`factBoxes`, `factCell`, `factGraphic`, `factDelta`): hairlines, no boxes, the
+  first number large; a share of ten as dots, another share a meter, a number with `was` two bars and the change.
+- **Faces in large pictures** (18/10): `thumbs.subject` keeps where a picture's face sits (`spot` in pics.json, card
+  `pf`, app.json carries it); the app's `placePic` sets the picture so the face sits about a quarter from the top, and
+  where it would sit under the text, the headline goes under the picture (`tx-below`).
 - `src/radar/osint.py` (**shelved since 17/10** at the owner's wish: "Du skal kassere kortvisningen, eller gemme den, i
   hvert fald for nu, og ikke lave videre på den … den bidrager ikke til det store billede"): it wrote `map.json` for the
   Kort tab from data.json and the editor's headlines, placing violent events at the places of `config/map-places.json`.

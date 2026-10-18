@@ -1245,6 +1245,175 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="home"] .foot { position: relative; margin-top: 30px; padding-top: 22px; font-family: var(--display); font-style: italic;
   font-size: var(--fs-small); color: var(--text-3); }
 .page[data-tab="home"] .foot::before { content: ""; position: absolute; top: 0; left: 50%; width: 32px; height: 1px; margin-left: -16px; background: var(--line); }
+/* ------------------------------------------------------------ Begivenheder: the event pages and their front modules
+   (the owner, 18/10: 'faktabokse og begivenheds sider … gør vores forside livlig'): a magazine's feature in the app's two
+   voices – the serif for the title, the numbers and the article, the sans for labels; red for the label, the live mark and
+   the countdown only (app.js eventPage, eventCard, numberBlock, countdownBlock) */
+.ev { padding: 6px 0 24px; }
+.ev-head { padding: 10px 16px 4px; }
+.ev-kick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0; font-size: var(--fs-cap); font-weight: 750;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
+.page[data-tab="begivenhed"] .ev-kick > span:first-child { color: var(--red); }
+.ev-state { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-2); }
+.ev-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-2); }
+.page[data-tab="begivenhed"] .ev-state.live i, .page[data-tab="home"] .ev-state.live i { background: var(--red); }
+.ev-title { margin: 8px 0 0; font-family: var(--display); font-size: calc(var(--fs-title) * 1.12); font-weight: 700; line-height: 1.1;
+  letter-spacing: -.015em; text-wrap: balance; font-variation-settings: "opsz" 60; }
+.ev-dek { margin: 10px 0 0; font-family: var(--display); font-size: var(--fs-lead); line-height: 1.4; color: var(--text-2); text-wrap: pretty; }
+.ev-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 0; font-size: var(--fs-meta); color: var(--text-3); }
+.ev-share { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; background: var(--fill);
+  color: var(--text); font-size: var(--fs-meta); font-weight: 600; }
+.ev-share svg { width: 16px; height: 16px; }
+.ev-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin: 18px 16px 0; padding: 16px; border-radius: 14px;
+  background: var(--fill); }
+.ev-cn { font-family: var(--display); font-size: calc(var(--fs-title) * 1.85); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.page[data-tab="begivenhed"] .ev-cn { color: var(--red); }
+.ev-cu { font-family: var(--display); font-size: var(--fs-lead); font-weight: 600; }
+.ev-cd { flex-basis: 100%; font-size: var(--fs-meta); color: var(--text-2); }
+.ev-sec { margin-top: 28px; }
+.ev-h2 { position: relative; margin: 0 16px 10px; padding-top: 12px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-3); }
+.ev-h2::before { content: ""; position: absolute; top: 0; left: 0; width: 26px; height: 3px; background: var(--line); }
+.page[data-tab="begivenhed"] .ev-h2::before { background: var(--red); }
+.ev-src { margin: 8px 16px 0; font-size: var(--fs-meta); color: var(--text-3); }
+.ev-art p { margin: 0 16px 14px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.6; color: var(--text); text-wrap: pretty; }
+.ev-places { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px; }
+.ev-places span { padding: 6px 12px; border-radius: 999px; background: var(--fill); font-size: var(--fs-small); font-weight: 560; }
+.ev-q { margin: 0 16px 14px; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); }
+.ev-q blockquote { margin: 0; font-family: var(--display); font-size: var(--fs-lead); line-height: 1.4; font-style: italic; }
+.ev-q figcaption { margin-top: 6px; font-size: var(--fs-meta); font-weight: 600; color: var(--text-2); }
+.ev .follow { margin: 0 16px; }
+/* the front page's event card: its state, its title in the serif, one line, three numbers and the way in */
+.ev-card { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: calc(100% - 32px); margin: 4px 16px 0; padding: 0;
+  color: var(--text); text-align: left; }
+.ev-card:active { opacity: .7; }
+.ev-ct { font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.12; letter-spacing: -.012em; text-wrap: balance;
+  font-variation-settings: "opsz" 60; }
+.ev-cdek { font-family: var(--display); font-size: var(--fs-read); line-height: 1.4; color: var(--text-2); display: -webkit-box;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.ev-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 4px; padding: 14px 0; border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line); }
+.ev-num { display: flex; flex-direction: column; gap: 2px; padding-right: 8px; min-width: 0; }
+.ev-num + .ev-num { padding-left: 10px; border-left: 1px solid var(--line); }
+.ev-num b { font-family: var(--display); font-size: calc(var(--fs-lead) * 1.3); font-weight: 650; line-height: 1; letter-spacing: -.02em;
+  font-variant-numeric: lining-nums tabular-nums; overflow-wrap: anywhere; }
+.ev-num small { margin-top: 6px; font-size: var(--fs-meta); line-height: 1.3; color: var(--text-3); overflow-wrap: anywhere; hyphens: auto; }
+.ev-go { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-body); font-weight: 650; }
+.ev-go svg { width: 16px; height: 16px; }
+/* one number large, as a paper's 'number of the day' */
+.tal.kfacts { display: block; width: calc(100% - 32px); text-align: left; color: var(--text); }
+.tal.kfacts .kf-lead { padding-top: 10px; }
+.tal-go { display: flex; align-items: center; gap: 4px; padding: 12px 0 2px; font-size: var(--fs-small); font-weight: 650; color: var(--text-2); }
+.tal-go svg { width: 14px; height: 14px; }
+.tal:active { opacity: .6; }
+/* the days to an event ahead */
+.nt { display: flex; align-items: center; gap: 16px; width: 100%; padding: 4px 16px 0; text-align: left; color: var(--text); }
+.nt-n { flex: none; min-width: 64px; font-family: var(--display); font-size: calc(var(--fs-title) * 1.7); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.page[data-tab="home"] .nt-n { color: var(--red); }
+.nt-n small { display: block; margin-top: 2px; font-family: var(--sans); font-size: var(--fs-meta); font-weight: 600; color: var(--text-3); }
+.nt-t { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.nt-t b { font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.25; }
+.nt-t span { font-size: var(--fs-meta); color: var(--text-3); }
+.nt > svg { flex: none; width: 16px; height: 16px; color: var(--text-3); }
+.nt:active { opacity: .6; }
+/* a story of an event: the way to its page, first under the opened story */
+.ev-mini .ev-dot { width: 7px; height: 7px; margin-right: 2px; border-radius: 50%; background: var(--text-2); }
+.page[data-tab="home"] .ev-mini .ev-dot, .page[data-tab="latest"] .ev-mini .ev-dot { background: var(--red); }
+/* the great pictures (the owner, 18/10: 'billederne til store begivenheder burde have tekst på i bunden med en sort fade i
+   bunden til at fremhæve teksten, samme på dagens nyhed'): Dagens historie's picture inset with round corners, its
+   headline in the serif on the dark fade, its standfirst under it; the calm treatment of the page (a little colour, soft
+   contrast, no grain) */
+.pkg.merged .story.lp .row { background: none; }
+.pkg.merged .story.lp .lead-pic { width: auto; margin: 0; border-radius: 12px; }   /* the row gives the 16 px */
+.pkg.merged .story.lp .row > .tx { left: 30px; right: 30px; bottom: 16px; }
+.page[data-tab="home"] .pkg.merged .story.lp .tx .h { font-size: var(--fs-title); line-height: 1.12; letter-spacing: -.012em; }
+.page[data-tab="home"] .lead-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
+.page[data-tab="home"] .story.lp.open .lead-pic img { filter: grayscale(.45) contrast(1.04); }
+.page[data-tab="home"] .lead-pic::before { display: none; }
+.lp-dek { margin: 10px 16px 0; }
+.page[data-tab="home"] .pkg.merged .lp-dek + .x, .pkg.merged .story.lp .lp-dek { margin-bottom: 2px; }
+/* a picture whose face would sit under the text (app.js placePic): the text goes under the picture, on the page */
+.story.lp.tx-below .lead-pic::after { display: none; }
+.story.lp.tx-below .row > .tx, .pkg.merged .story.lp.tx-below .row > .tx { position: static; padding: 10px 0 0; text-shadow: none; }
+.story.lp.tx-below .tx .h { color: var(--text); }
+.story.lp.tx-below .tx .m, .story.lp.tx-below .tx .m .kind, .story.lp.tx-below .tx .m > span::before { color: var(--text-3); }
+.story.lp.tx-below .tx .m .src { color: var(--text-2); }
+.ev-hero.tx-below { aspect-ratio: auto; max-height: none; overflow: visible; background: none; }
+.ev-hero.tx-below img { position: relative; display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; max-height: 42vh; border-radius: inherit; }
+.ev-hero.tx-below::after { display: none; }
+.ev-hero.tx-below .ev-over { position: static; padding: 12px 0 0; color: var(--text); text-shadow: none; }
+.ev-card .ev-hero.tx-below .ev-over { padding: 12px 0 0; }
+.ev-hero.tx-below .ev-over .ev-ct, .ev-hero.tx-below .ev-over h1.ev-ct { color: var(--text); }
+.ev-hero.tx-below .ev-over .ev-state { color: var(--text-2); }
+.ev-hero.tx-below .ev-over .ev-state i { background: var(--text-2); }
+.page[data-tab="home"] .ev-hero.tx-below .ev-state.live i, .page[data-tab="begivenhed"] .ev-hero.tx-below .ev-state.live i { background: var(--red); }
+/* the small square pictures of the rows (Kort nyt, the lists): calm like the large */
+.page[data-tab="home"] .th img, .page[data-tab="begivenhed"] .th img { filter: grayscale(.62) contrast(1.04); }
+/* an event's picture with its state and title on the dark fade: the card on the front page and the page's head */
+.ev-hero { position: relative; display: block; overflow: hidden; aspect-ratio: 16 / 9; max-height: 42vh; background: var(--fill-2); }
+.ev-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; filter: grayscale(.62) contrast(1.04) brightness(.97); }
+.ev-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, .9) 0%, rgba(0, 0, 0, .7) 32%, rgba(0, 0, 0, .2) 62%, transparent 84%); }
+.ev-hero.nopic { aspect-ratio: auto; min-height: 0; }
+.ev-hero.nopic img, .ev-hero.nopic::after { display: none; }
+.ev-over { position: absolute; z-index: 2; left: 16px; right: 16px; bottom: 14px; display: flex; flex-direction: column; gap: 6px;
+  color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .35); }
+.ev-hero.nopic .ev-over { position: static; color: var(--text); text-shadow: none; padding: 0; }
+.ev-over .ev-state { color: rgba(255, 255, 255, .86); }
+.ev-over .ev-state i { background: rgba(255, 255, 255, .86); }
+.ev-over .ev-state.live i { background: #ff5a52; }
+.ev-over .ev-ct, .ev-over h1.ev-ct { margin: 0; color: #fff; }
+.ev > .ev-hero { margin: 0 16px; border-radius: 14px; }
+.ev > .ev-hero .ev-ct { font-family: var(--display); font-size: calc(var(--fs-title) * 1.12); font-weight: 700; line-height: 1.1; letter-spacing: -.015em; }
+.ev > .ev-hero + .ev-head { padding-top: 14px; }
+.ev-card.pic .ev-hero { margin: 0 0 2px; border-radius: 12px; }
+/* the fact boxes as a graphics desk sets them (app.js factBoxes): hairlines, air, the numbers large in the serif */
+.kfacts { margin: 0 16px; border-top: 1px solid var(--line); }
+.kf { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
+.kf-lead { padding: 18px 0 20px; }
+.kf-l { font-size: var(--fs-cap); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.kf-v { margin-top: 6px; font-family: var(--display); font-size: calc(var(--fs-title) * 1.3); font-weight: 650; line-height: 1;
+  letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; color: var(--text); overflow-wrap: anywhere; }
+.kf-lead .kf-v { font-size: calc(var(--fs-title) * 2.3); letter-spacing: -.035em; }
+.kf-n { margin-top: 8px; font-family: var(--display); font-style: italic; font-size: var(--fs-small); line-height: 1.35; color: var(--text-2); }
+.kf-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; column-gap: 24px; }
+.kf-grid .kf-wide { grid-column: 1 / -1; }
+.kf-d { display: inline-flex; align-items: baseline; gap: 4px; margin-top: 8px; font-style: normal; font-size: var(--fs-meta); font-weight: 700;
+  font-variant-numeric: tabular-nums; color: var(--text); }
+.kf-d i { font-style: normal; font-size: var(--fs-cap); }
+.page[data-tab="begivenhed"] .kf-d.up i, .page[data-tab="home"] .kf-d.up i { color: var(--red); }
+/* a share of ten: ten dots, the share filled */
+.kf-dots { display: flex; gap: 6px; margin-top: 12px; }
+.kf-dots i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--text-3); }
+.kf-dots i.on { box-shadow: none; background: var(--text); }
+.page[data-tab="begivenhed"] .kf-dots i.on, .page[data-tab="home"] .kf-dots i.on { background: var(--red); }
+/* any other share: a thin meter */
+.kf-meter { position: relative; display: block; align-self: stretch; height: 6px; margin-top: 12px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.kf-meter i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--text); }
+.page[data-tab="begivenhed"] .kf-meter i, .page[data-tab="home"] .kf-meter i { background: var(--red); }
+/* the number before and now: two thin bars, their values at the end */
+.kf-bars { display: grid; gap: 8px; align-self: stretch; margin-top: 12px; }
+.kf-bars > span { display: grid; grid-template-columns: 4.6em 1fr 4.2em; align-items: center; gap: 10px; font-size: var(--fs-meta); color: var(--text-3); }
+.kf-bars em { font-style: normal; }
+.kf-bars b { position: relative; display: block; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.kf-bars i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--text-3); }
+.kf-bars > span > span { text-align: right; font-variant-numeric: tabular-nums; }
+.kf-bars .kf-now { color: var(--text); font-weight: 650; }
+.kf-bars .kf-now i { background: var(--text); }
+.page[data-tab="begivenhed"] .kf-bars .kf-now i, .page[data-tab="home"] .kf-bars .kf-now i { background: var(--red); }
+/* the bars and the meter draw out once when the page is made (a keyframe on insertion: a patch keeps them drawn) */
+@media (prefers-reduced-motion: no-preference) {
+  .kf-bars i, .kf-meter i { transform-origin: left center; animation: kf-grow .9s cubic-bezier(.2, .7, .2, 1) .15s both; }
+  .kf-dots i.on { animation: kf-dot .5s ease-out both; }
+  .kf-dots i.on:nth-child(2) { animation-delay: .04s; } .kf-dots i.on:nth-child(3) { animation-delay: .08s; }
+  .kf-dots i.on:nth-child(4) { animation-delay: .12s; } .kf-dots i.on:nth-child(5) { animation-delay: .16s; }
+  .kf-dots i.on:nth-child(6) { animation-delay: .2s; } .kf-dots i.on:nth-child(7) { animation-delay: .24s; }
+  .kf-dots i.on:nth-child(8) { animation-delay: .28s; } .kf-dots i.on:nth-child(9) { animation-delay: .32s; }
+  .kf-dots i.on:nth-child(10) { animation-delay: .36s; }
+}
+@keyframes kf-grow { from { transform: scaleX(0); } }
+@keyframes kf-dot { from { opacity: 0; transform: scale(.4); } }
 /* the development under Dagens historie shows only with the story opened (app.js homeTop) */
 .pkg.merged > .of-main { display: none; }
 .pkg.merged:has(> .story.open) > .of-main { display: block; }
