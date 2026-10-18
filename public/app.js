@@ -397,7 +397,7 @@ function display(i) {
   const chose = (i.pics || []).length ? ownerPicOf(i) : null;
   if (chose) d = { ...d, pic: chose.u, pf: chose.pf, pl: chose.pl };
   const keepOrig = i.foreign && foreignMode === 'original';
-  const ed = edTitle(i);
+  const ed = ownerTitleOf(i) || edTitle(i);   // the owner's own headline first: his words are the editor's to learn from
   if (ed && (danish || i.lang === 'da') && !keepOrig) {
     const kw = i.lang === 'da' ? d.kw : [...new Set([...(i.kw_da || []), ...(i.kw || [])])];
     d = { ...d, title: ed, summary: i.lang === 'da' || (!danish && !i.foreign) ? i.summary : i.foreign ? '' : i.summary_da || '', from: i.lang, to: 'da', kw, how: 'ed' };
@@ -818,8 +818,15 @@ function owner() {
   for (const [id, x] of Object.entries(ownerLocal.rank || {})) if (fresh(x)) { if (x.v) rank[id] = x.v; else delete rank[id]; }
   const pics = { ...(pub.pics || {}) };
   for (const [id, x] of Object.entries(ownerLocal.pics || {})) if (fresh(x)) { if (x.v) pics[id] = x.v; else delete pics[id]; }
-  return { quote: fresh(ownerLocal.quote) ? ownerLocal.quote.v : pub.quote || '', lead: fresh(ownerLocal.lead) ? ownerLocal.lead.v : pub.lead || '', rank, pics };
+  const titles = { ...(pub.titles || {}) };
+  for (const [id, x] of Object.entries(ownerLocal.titles || {})) if (fresh(x)) { if (x.v) titles[id] = x.v; else delete titles[id]; }
+  return { quote: fresh(ownerLocal.quote) ? ownerLocal.quote.v : pub.quote || '', lead: fresh(ownerLocal.lead) ? ownerLocal.lead.v : pub.lead || '', rank, pics, titles };
 }
+const saveOwner = () => store.set('ownerLocal', ownerLocal);
+// the owner's own headline (18/10: 'giv også en funktion der lader mig edit overskrifter direkte'): a story's by its id, a
+// member or another outlet's article; an event page's under 'ev:<id>'. It wins over the editor's everywhere it shows
+const ownerTitleOf = i => { const t = owner().titles || {}; return t[i.id] || (i.members || []).map(m => t[m]).find(Boolean)
+  || (i.also || []).map(a => t[a.id]).find(Boolean) || ''; };
 // the picture the owner chose for a story (18/10: 'vælge mellem 3 billeder når jeg holder nede på de store artikler'):
 // one of its best pictures (the radar's `pics`), by its key – shown at once, before the radar has applied it for all
 const ownerPicOf = i => { const p = owner().pics || {}, k = p[i.id] || (i.members || []).map(m => p[m]).find(Boolean);
@@ -1549,8 +1556,8 @@ function composedHome(all, opts, f) {
       const first = !tops, i = take(first && pin ? pin.id : b.story);
       if (!i) continue;   // its story left Live: the next main block is the day's story
       tops++;
-      // the editor's headline for the front page; the owner's pick wears its own
-      const t = first && pin && pin.id !== (findStory(b.story) || {}).id ? '' : String(b.title || '');
+      // the editor's headline for the front page; the owner's pick wears its own, and so does a story he titled himself
+      const t = ownerTitleOf(i) || (first && pin && pin.id !== (findStory(b.story) || {}).id) ? '' : String(b.title || '');
       const shown = t ? { ...i, title: t, kw: [...new Set([...(i.kw || []), ...(i.kw_da || [])])] } : i;
       shownAs.set(i.id, shown);   // opened, shared or saved, it is the headline the front page shows
       // its picture large above the headline: Dagens historie always when it has one, a second main story unless the
@@ -1936,7 +1943,8 @@ function briefText() {
   const ids = b => (b.kind === 'top' ? b.with || [] : b.stories || []).map(x => findStory(String(x || '')));
   for (const b of blocks) {   // one from each block
     const main = b.kind === 'top' && findStory(String(b.story || ''));
-    if (main && (b.title || briefOk(main)) && put(main, b.title)) continue;
+    const bt = main && !ownerTitleOf(main) ? b.title : '';   // his own headline over the front page's
+    if (main && (bt || briefOk(main)) && put(main, bt)) continue;
     put(ids(b).find(i => i && !seen.has(i.id) && briefOk(i)));
   }
   for (const b of blocks) for (const i of ids(b)) if (briefOk(i)) put(i);   // then each block's next stories
@@ -3697,7 +3705,10 @@ function nyhedPage() {
 // begivenheder, hvor vi holder os objektive til selve begivenheden … fakta, begivenhed og tal'). The editor writes them
 // (scripts/events.py: every number grounded in a story it cites, the article without opinion or forecast); the page
 // shows the event's state, its fact boxes, the article, its places, its statements, its course and its stories.
-const events = () => ((V('evt') || {}).items || []).filter(e => e && e.id && e.title);
+const events = () => ((V('evt') || {}).items || []).filter(e => e && e.id && e.title).map(e => {
+  const t = (owner().titles || {})['ev:' + e.id];
+  return t ? { ...e, title: t, edTitle: e.title } : e;
+});
 const eventOf = id => events().find(e => e.id === String(id || ''));
 const evShown = new Set();   // the front page's event modules drawn this time (one of each kind for an event)
 // the event a story belongs to (the editor named it among the event's stories): the way to its page under the story
@@ -3882,7 +3893,7 @@ function eventPage() {
     : stateBlock('gone', 'Begivenheden er ikke længere fulgt på Khabar.', [['Til forsiden', 'data-go="home"']]);
   const today = e._day ? calDay(e._day) : calToday(), st = evState(e), live = e.status === 'i gang';
   const hero = evHero(e, 'div', 'h1');
-  let h = `<article class="ev">${hero}<header class="ev-head">`
+  let h = `<article class="ev" data-evp="${esc(e.id)}">${hero}<header class="ev-head">`
     + (hero ? `<p class="ev-kick"><span>${esc(e.kicker || '')}</span></p>` : `<p class="ev-kick"><span>${esc(e.kicker || '')}</span><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(st)}</span></p>`
       + `<h1 class="ev-title">${esc(e.title)}</h1>`)
     + `${e.dek ? `<p class="ev-dek">${esc(e.dek)}</p>` : ''}`
@@ -5186,14 +5197,46 @@ async function notesHtml() {
       + `<span class="adm-by"><b>${NOTE_BY[m.by]}</b> · ${esc(stamp(m.at))}</span><span class="adm-tx">${esc(m.text)}</span></button>`).join('');
   } catch { return ''; }
 }
-$('adminStats').addEventListener('click', e => {
+// the owner's comments to the editors (18/10) with the answer each got: the radar's list (removed.json on the data
+// branch) and this phone's own not yet through, the editors' answers from owner.json on the digest branch
+const NOTE_EDITOR = { 'begivenhedsredaktør': 'Seniorredaktøren', 'forsideredaktør': 'Forsideredaktøren', 'chefredaktør': 'Chefredaktøren',
+  'økonomiredaktør': 'Økonomiredaktøren' };
+const getJson = async url => { try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; } };
+async function commentsHtml() {
+  const [st, ans] = await Promise.all([getJson((CFG.dataUrl || '').replace(/data\.json.*$/, 'removed.json')),
+    getJson(CFG.ownerUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'owner.json'))]);
+  const answers = (ans && ans.items) || {}, theirs = ((st && st.notes) || []).map(n => ({ ...n, at: Date.parse(n.at) }));
+  const known = new Set(theirs.map(n => n.id));
+  const list = [...theirs, ...(ownerLocal.notes || []).filter(n => !known.has(n.id) && Date.now() - n.at < 864e5).map(n => ({ ...n, sent: true }))]
+    .sort((a, b) => b.at - a.at).slice(0, 10);
+  if (!list.length) return '';
+  return '<h4 class="adm-h">Dine kommentarer</h4>' + list.map(n => {
+    const a = answers[n.id], sc = noteScope(n.ref);
+    const state = a ? `<span class="adm-ans${a.done === false ? ' no' : ''}"><b>${esc(NOTE_EDITOR[a.by] || 'Redaktøren')}</b> · ${esc(stamp(a.at))}`
+      + `${a.done === false ? ' · ikke rettet' : ''}<span>${esc(a.text)}</span></span>`
+      : `<span class="adm-wait">${n.sent ? 'Sendt' : sc === 'udvikler' ? 'Til udvikleren' : sc === 'okonomi' ? 'Venter på økonomiredaktøren' : 'Venter på redaktørerne'}</span>`;
+    return `<div class="adm-c"><span class="adm-by">${esc(stamp(new Date(n.at).toISOString()))} · ${esc(clipTo(n.ctx || n.ref, 90))}</span>`
+      + `<span class="adm-tx">${esc(n.text)}</span>${state}<button class="adm-del" data-unnote="${esc(n.id)}">Slet</button></div>`;
+  }).join('');
+}
+$('adminStats').addEventListener('click', async e => {
+  const del = e.target.closest('[data-unnote]');
+  if (del) {   // a comment taken back: gone here at once, at the radar's next pass for the editors
+    const id = del.dataset.unnote;
+    ownerLocal.notes = (ownerLocal.notes || []).filter(n => n.id !== id); saveOwner();
+    del.closest('.adm-c').remove();
+    const ok = await ownerAct('unnote', { id });
+    toast(ok ? 'Kommentaren er slettet' : 'Kunne ikke sende – prøv igen', ok);
+    return;
+  }
   const b = e.target.closest('.adm-note');
   if (b) b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
 });
 async function showStats() {
-  const box = $('adminStats'), head = '<h3>Kun for dig</h3>';
+  const box = $('adminStats'), head = '<h3>Kun for dig</h3><p class="hint adm-help">Hold et element nede – en historie, et tal, en dato, '
+    + 'en linje på Økonomi – for at skrive en kommentar til redaktørerne, rette overskriften, vælge billede, flytte eller fjerne det.</p>';
   box.innerHTML = head + '<p class="hint">Henter …</p>';
-  const rep = reportHtml(), notes = notesHtml(), top = async () => head + (await rep) + (await notes);
+  const rep = reportHtml(), mine = commentsHtml(), notes = notesHtml(), top = async () => head + (await rep) + (await mine) + (await notes);
   try { const st = await loadStats(); box.innerHTML = (await top()) + statsHtml(st); } catch (e) {
     box.innerHTML = (await top()) + '<h4 class="adm-h">Statistik</h4><p class="hint">' + (e.message === 'key'
       ? 'Statistikken kunne ikke låses op med din admin-kode.'
@@ -5278,9 +5321,9 @@ async function sign(text) {
   const k = await crypto.subtle.importKey('raw', enc.encode(adminKey), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(text)))].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-async function ownerAct(act, i, why = '', sec = '') {
+async function ownerAct(act, i, why = '', sec = '', at = String(Date.now())) {
   if (!CFG.feedbackTopic) return false;
-  const at = String(Date.now()), m = { kind: 'admin', act, id: i.id, why, sec, at };
+  const m = { kind: 'admin', act, id: i.id, why, sec, at };
   try {
     m.sig = await sign(`${act}|${i.id}|${why}|${sec}|${at}`);
     return (await fetch('https://ntfy.sh/' + CFG.feedbackTopic, { method: 'POST', body: JSON.stringify(m) })).ok;
@@ -5319,15 +5362,18 @@ function openCode() {
 let press = null, pressed = false, actItem = null;
 const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
 const READING = '.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht';   // text one may select (style.css)
+// every element can be held down by the owner (18/10: 'alle elementer burde kunne holdes nede og få en "kommentar"
+// valgmulighed'), on every page – reading text too: in admin it is not selected, its sheet copies it
+const holdable = t => adminKey && t.closest('.page') && !t.closest('input, textarea, .az-idx, .ev-map');
 $('list').addEventListener('pointerdown', e => {
-  const el = adminKey && !e.target.closest(READING) && (e.target.closest('[data-pick]') || e.target.closest('.story[data-id]'));
-  if (!el) return;
+  if (e.button > 0 || !holdable(e.target)) return;
+  const at = e.target;
   press = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
     press = null; pressed = true; setTimeout(() => { pressed = false; }, 900);
     if (navigator.vibrate) navigator.vibrate(12);
-    if (el.hasAttribute('data-pick')) openQuotes();
-    else if (el.closest('.pkg') && el.classList.contains('hero')) openLead();
-    else openAct(findStory(el.dataset.id));
+    const h = heldInfo(at);
+    if (h.kind === 'quote') openQuotes();
+    else openHeld(h);
   }, 550) };
 });
 $('list').addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
@@ -5335,7 +5381,7 @@ for (const ev of ['pointerup', 'pointercancel']) $('list').addEventListener(ev, 
 document.addEventListener('scroll', cancelPress, { capture: true, passive: true });
 // the tap that ends a long press must not also open the story
 $('list').addEventListener('click', e => { if (pressed) { pressed = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-$('list').addEventListener('contextmenu', e => { if (adminKey && !e.target.closest(READING) && e.target.closest('.story, [data-pick]')) e.preventDefault(); });
+$('list').addEventListener('contextmenu', e => { if (holdable(e.target)) e.preventDefault(); });
 
 // the middle mouse button on a PC scrolls the page, as browsers do on ordinary pages (they do not on our fixed pager):
 // hold it and move, or click it and move – the further from where it began, the faster; any click or Esc stops it.
@@ -5441,86 +5487,265 @@ addEventListener('mouseup', e => { if (auto && e.button === 1 && auto.moved) sto
 addEventListener('keydown', e => { if (auto && e.key === 'Escape') stopAuto(); });
 addEventListener('blur', () => { if (auto) stopAuto(); });
 addEventListener('click', e => { if (swallow) { swallow = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-function showOwnerSheet(title, html, item = null, label = 'Admin') {
-  $('actTitle').textContent = title; $('act').setAttribute('aria-label', label);
+// ---------------------------------------------------------------- the owner's sheet (admin)
+// Cleaned up 18/10 (the owner: 'til slut så ryd op i admin funktionerne så det er mere brugervenlige'): what is held on
+// top – its kind and where it sits, then its words –, the main actions as one row of icon buttons (a comment to the
+// editors, his own headline, the text copied), the picture, then each choice under a small heading as a segment that
+// shows the current one (priority, section), Dagens historie, and removal last, in red. Every choice shows at once on
+// this phone and for everyone at the radar's next pass; a comment's answer comes in Indstillinger under 'Kun for dig'.
+function showOwnerSheet(title, html, item = null, label = 'Admin', kick = '') {
+  $('actKick').textContent = kick; $('actKick').hidden = !kick;
+  $('actTitle').textContent = title; $('actTitle').hidden = !title; $('act').setAttribute('aria-label', label);
   $('actBtns').innerHTML = html + '<button class="wide soft" data-a="">Annuller</button>';
   actItem = item; $('act').hidden = false; $('act').scrollTop = 0;
   requestAnimationFrame(() => { $('act').classList.add('on'); $('scrim').classList.add('on'); });
 }
+const osMain = btns => `<div class="os-main">${btns.map(([a, icon, label]) => `<button data-a="${a}"><svg aria-hidden="true"><use href="#${icon}"/></svg><span>${esc(label)}</span></button>`).join('')}</div>`;
+// a choice as the app's segment (`.seg`): the current one marked, a tap on it does nothing
+const osSeg = (label, opts, warn = false) => `<h4 class="os-h">${esc(label)}</h4><div class="seg${warn ? ' warn' : ''}${opts.length === 2 ? ' two' : ''}" role="${warn ? 'group' : 'radiogroup'}" aria-label="${esc(label)}">`
+  + opts.map(([a, l, on]) => (warn ? `<button data-a="${a}">${esc(l)}</button>`   // actions, not a choice
+    : `<button data-a="${on ? '' : a}" aria-checked="${!!on}" role="radio">${esc(l)}</button>`)).join('') + '</div>';
+const clipTo = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+const slugOf = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+const NOTE_PAGES = { home: 'Forside', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', threads: 'Udvikling',
+  begreb: 'Leksikon', begreber: 'Leksikon A–Å', svar: 'Et svar', begivenhed: 'Begivenhed', forsider: 'Tidligere forsider',
+  forside: 'En tidligere forside', gemt: 'Gemt', nye: 'Nye historier', search: 'Søg' };
+// What the owner holds, for the editors: a reference they can find it by (`ref`: 'story:<id>', 'ev:<id>:fakta:2',
+// 'kal:<id>', 'forside:overblik', 'side:<page>:<block>'), where it sits and the words it shows (`seen`)
+// an element's words as written – not in the capitals a style may set them in –, its blocks apart, nothing hidden
+function heldWords(el) {
+  if (!el) return '';
+  let out = '', last = null;
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const p = n.parentElement;
+    if (!p || p.closest('[hidden], svg')) continue;
+    let b = p;
+    while (b !== el && getComputedStyle(b).display === 'inline') b = b.parentElement;
+    out += (last && b !== last ? ' ' : '') + n.nodeValue;
+    last = b;
+  }
+  return out.replace(/\s+/g, ' ').trim();
+}
+function heldInfo(t) {
+  const pg = t.closest('.page'), tb = (pg && pg.dataset.tab) || tab, page = NOTE_PAGES[tb] || cap(String(tb || ''));
+  const txt = el => clipTo(heldWords(el), 220), name = el => clipTo(heldWords(el), 80);
+  const block = t.closest('.block, .ev-sec, section:not(.page)'), bh = block && block.querySelector('.block-h h2, h2, h3');
+  const bname = bh ? name(bh) : '', where = [page, ...(bname ? [bname] : [])];
+  const st = t.closest('.story[data-id]'), si = st && findStory(st.dataset.id);
+  if (si) return { kind: 'story', i: si, where, hero: !!(st.closest('.pkg') && st.classList.contains('hero')) };
+  if (t.closest('[data-pick]')) return { kind: 'quote' };
+  const card = t.closest('[data-event]'), evp = t.closest('[data-evp]');
+  const evId = card ? card.dataset.event : evp ? evp.dataset.evp : '', ev = evId && (eventOf(evId) || arkEvent(evId));
+  if (ev) {
+    const box = card || evp, ew = [page === 'Begivenhed' ? page : `${page} · begivenhed`, ev.title];
+    const nth = (el, sel) => [...box.querySelectorAll(sel)].indexOf(el) + 1;
+    const kf = t.closest('.kf'), para = t.closest('.ev-art p'), q = t.closest('.ev-q'), sec = t.closest('.ev-sec');
+    if (kf) return { kind: 'text', ref: `ev:${ev.id}:fakta:${nth(kf, '.kf')}`, where: [...ew, 'Fakta'], seen: txt(kf) };
+    if (para) return { kind: 'text', ref: `ev:${ev.id}:artikel:${nth(para, '.ev-art p')}`, where: [...ew, 'Det er sket'], seen: txt(para) };
+    if (q) return { kind: 'text', ref: `ev:${ev.id}:udtalelse:${nth(q, '.ev-q')}`, where: [...ew, 'Udtalelser'], seen: txt(q) };
+    if (sec && evp && !t.closest('.ev-head, .ev-hero')) {
+      const h2 = name(sec.querySelector('h2'));
+      return { kind: 'text', ref: `ev:${ev.id}:${slugOf(h2) || 'del'}`, where: [...ew, h2], seen: txt(t.closest('p, li, figure, .row') || sec) };
+    }
+    return { kind: 'event', ev, ref: 'ev:' + ev.id, where: ew.slice(0, 1), seen: ev.title };
+  }
+  const ce = t.closest('.ce[id]');
+  if (ce) return { kind: 'text', ref: 'kal:' + ce.id.replace(/^c[ef]-/, ''), where: tb === 'kalender' ? [page] : [page, 'Kalender'], seen: txt(ce.querySelector('.row') || ce) };
+  const lede = t.closest('.lede');
+  if (lede) return { kind: 'text', ref: 'forside:overblik', where: [page, 'Overblikket'], seen: txt(lede.querySelector('.lede-t') || lede) };
+  const thr = t.closest('.thr[id^="thr-"]');
+  if (thr) return { kind: 'text', ref: 'udvikling:' + slugOf(thr.id.slice(4)), where: [page, name(thr.querySelector('h3'))], seen: txt(t.closest('li, p') || thr.querySelector('h3')) };
+  const bit = t.closest('p, li, figure, blockquote, h1, h2, h3, .row, .qrow, button, a') || block || pg;
+  return { kind: 'text', ref: `side:${tb}${bname ? ':' + slugOf(bname) : ''}`, where, seen: txt(bit) };
+}
+let heldNow = null;
+// anything but a story: a comment, an event page's own headline, its words copied
+function openHeld(h) {
+  if (!h) return;
+  if (h.kind === 'story') { openAct(h.i, h); return; }
+  heldNow = h;
+  const btns = [['note', 'i-quote', 'Kommentar']];
+  if (h.kind === 'event') btns.push(['title', 'i-edit', 'Ret overskrift']);
+  if (h.seen) btns.push(['copy', 'i-copy', 'Kopiér tekst']);
+  showOwnerSheet(h.seen, osMain(btns), null, 'Admin', h.where.join(' · '));
+}
 // the time a quote was said shows only here, to choose by; newest first
 function openQuotes() {
   if (!wire) loadWire();
-  const now = (pinnedQuote() || {}).key, list = quoteChoices().sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  const pin = pinnedQuote() || {}, now = pin.key, list = quoteChoices().sort((a, b) => (b.at || '').localeCompare(a.at || ''));
   const when = q => (new Date(q.at).toDateString() === new Date().toDateString() ? 'kl. ' : 'i går kl. ') + clock(q.at);
-  showOwnerSheet('Vælg dagens citat', `<button class="wide pickq${now ? '' : ' on'}" data-a="quote:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
-    + list.map(q => `<button class="wide pickq${q.key === now ? ' on' : ''}" data-a="quote:${q.key}"><q>${esc(q.text)}</q><span>${esc(q.who)}${q.at ? ` · ${when(q)}` : ''}</span></button>`).join(''));
+  heldNow = { kind: 'text', ref: 'forside:citat', where: ['Forside', 'Dagens citat'], seen: pin.text || '', back: openQuotes };
+  showOwnerSheet(pin.text ? `»${pin.text}«` : 'Dagens citat', osMain([['note', 'i-quote', 'Kommentar']]) + '<h4 class="os-h">Vælg dagens citat</h4>'
+    + `<button class="wide pickq${now ? '' : ' on'}" data-a="quote:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
+    + list.map(q => `<button class="wide pickq${q.key === now ? ' on' : ''}" data-a="quote:${q.key}"><q>${esc(q.text)}</q><span>${esc(q.who)}${q.at ? ` · ${when(q)}` : ''}</span></button>`).join(''),
+  null, 'Admin', 'Forside · Dagens citat');
 }
 // the day's main story: today's strongest stories to choose from
 function openLead() {
   const cur = mainStory(), list = [cur, ...frontCands(stories(), 11).filter(i => !cur || i.id !== cur.id)].filter(Boolean).slice(0, 10);   // the one shown now first
-  showOwnerSheet('Vælg dagens historie', `<button class="wide pickq${owner().lead ? '' : ' on'}" data-a="lead:"><b>Automatisk</b><span>Efter dagens resumé</span></button>`
-    + list.map(i => `<button class="wide pickq${cur && i.id === cur.id ? ' on' : ''}" data-a="lead:${esc(i.id)}"><b>${esc(i.title)}</b><span>${SECTIONS[secOf(i)]} · ${stamp(i.published || i.found)}${i.outlets >= 2 ? ` · ${i.outlets} medier` : ''}</span></button>`).join('')
-    + (cur ? `<button class="wide" data-a="story:${esc(cur.id)}">Fjern, flyt eller prioriter denne historie</button>` : ''));
+  showOwnerSheet('Vælg dagens historie', `<button class="wide pickq${owner().lead ? '' : ' on'}" data-a="lead:"><b>Automatisk</b><span>Redaktørens valg</span></button>`
+    + list.map(i => `<button class="wide pickq${cur && i.id === cur.id ? ' on' : ''}" data-a="lead:${esc(i.id)}"><b>${esc(i.title)}</b><span>${SECTIONS[secOf(i)]} · ${stamp(i.published || i.found)}${i.outlets >= 2 ? ` · ${i.outlets} medier` : ''}</span></button>`).join(''),
+  null, 'Admin', 'Forside');
 }
-function openAct(i) {
+// a story: the comment and the headline first, the picture, its priority and section, Dagens historie, removal last
+function openAct(i, h = null) {
   if (!i) return;
-  const here = secOf(i), lift = ownerRankOf(i);
-  const rank = [lift === 'up' ? ['rank:', 'Fortryd op'] : ['rank:up', 'Opprioriter'],
-                lift === 'down' ? ['rank:', 'Fortryd ned'] : ['rank:down', 'Nedprioriter']];
+  const d = display(i), here = secOf(i), lift = ownerRankOf(i), main = mainStory(), isLead = !!(h && h.hero) || !!(main && main.id === i.id);
+  heldNow = { kind: 'story', i, ref: 'story:' + i.id, where: (h && h.where) || [], seen: d.title, hero: isLead };
   const pics = i.pics || [], mine = ownerPicOf(i), shown = mine ? mine.k : (pics.find(p => p.u === i.pic) || {}).k;
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
-  const choose = pics.length >= 2 ? '<p class="pp-h">Vælg billede</p><div class="pp">' + pics.map(p =>
-    `<button class="pp-b${p.k === shown ? ' on' : ''}" data-a="pic:${esc(p.k)}" aria-pressed="${p.k === shown}" aria-label="Billede fra ${esc(host(p.u))}">`
-    + `<img src="${esc(LIGHT + p.pl)}" alt="" decoding="async"><span>${esc(host(p.u))}</span></button>`).join('') + '</div>'
-    + (mine ? '<button class="wide soft-btn pp-auto" data-a="pic:">Lad Khabar vælge billedet igen</button>' : '') : '';
-  showOwnerSheet(i.title, choose + `<div class="pair">${rank.map(([a, l]) => `<button class="wide" data-a="${a}">${esc(l)}</button>`).join('')}</div>`
-    + [['hide:irrelevant', 'Fjern · irrelevant'], ['hide:noise', 'Fjern · ikke en nyhed'], ['hide:dup', 'Fjern · dublet'],
-    ...Object.entries(SECTIONS).filter(([k]) => k !== here).map(([k, n]) => ['move:' + k, 'Flyt til ' + n])]
-    .map(([a, l]) => `<button class="wide${a.startsWith('hide') ? ' warn' : ''}" data-a="${a}">${esc(l)}</button>`).join(''), i);
+  let html = osMain([['note', 'i-quote', 'Kommentar'], ['title', 'i-edit', ownerTitleOf(i) ? 'Din overskrift' : 'Ret overskrift']]);
+  if (pics.length >= 2) {
+    html += '<h4 class="os-h">Billede</h4><div class="pp">' + pics.map(p =>
+      `<button class="pp-b${p.k === shown ? ' on' : ''}" data-a="pic:${esc(p.k)}" aria-pressed="${p.k === shown}" aria-label="Billede fra ${esc(host(p.u))}">`
+      + `<img src="${esc(LIGHT + p.pl)}" alt="" decoding="async"><span>${esc(host(p.u))}</span></button>`).join('') + '</div>'
+      + (mine ? '<button class="wide soft-btn pp-auto" data-a="pic:">Lad Khabar vælge billedet igen</button>' : '');
+  }
+  html += osSeg('Prioritet', [['rank:up', 'Op', lift === 'up'], ['rank:', 'Normal', !lift], ['rank:down', 'Ned', lift === 'down']]);
+  html += osSeg('Sektion', Object.entries(SECTIONS).map(([k, n]) => ['move:' + k, n, k === here]));
+  html += '<h4 class="os-h">Dagens historie</h4>' + (isLead
+    ? `<button class="wide row-link" data-a="leads"><span>Vælg en anden</span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>`
+      + (owner().lead ? '<button class="wide" data-a="lead:">Lad redaktøren vælge igen</button>' : '')
+    : `<button class="wide" data-a="lead:${esc(i.id)}">Gør til dagens historie</button>`);
+  html += osSeg('Fjern fra Khabar', [['hide:irrelevant', 'Irrelevant'], ['hide:noise', 'Ikke en nyhed'], ['hide:dup', 'Dublet']], true);
+  showOwnerSheet(d.title, html, i, 'Admin', ['Historie', ...heldNow.where.filter(w => w !== 'Historie')].join(' · '));
+}
+// the economy page in its frame hands what the owner held to this sheet (public/energi/index.html)
+window.khabarOwnerHold = x => {
+  if (!adminKey || !x) return;
+  const i = x.story && findStory(String(x.story));
+  if (i) openAct(i, { where: Array.isArray(x.where) ? x.where.map(String) : ['Økonomi'] });
+  else openHeld({ kind: 'text', ref: String(x.ref || 'oko:side').slice(0, 150), where: Array.isArray(x.where) ? x.where.map(String) : ['Økonomi'],
+    seen: clipTo(String(x.seen || ''), 220) });
+};
+// ---- a comment to the editors (18/10, the owner: 'Giv mig også et felt hvor jeg kan skrive en kommentar til elementet
+// til redaktørerne'): a few quick words to start from, who reads it and when; sent signed, its answer under 'Kun for dig'
+const NOTE_QUICK = ['Forkert tal', 'Mangler en kilde', 'Dårlig overskrift', 'Forældet', 'Hører ikke til her', 'Mangler noget vigtigt'];
+// whose a comment is – keep it like note_scope in scripts/editor.py
+const noteScope = ref => { const r = String(ref || ''); return /^(oko:|side:okonomi)/.test(r) ? 'okonomi' : /^(kal:|side:kalender)/.test(r) ? 'kalender'
+  : /^(svar:|begreb:|side:(analyses|svar|begreb))/.test(r) ? 'udvikler' : 'redaktion'; };
+const NOTE_WHO = { redaktion: 'Redaktørerne læser den ved deres næste kørsel – som regel inden for en time – og svarer dig under Indstillinger.',
+  kalender: 'Redaktørerne læser den ved deres næste kørsel og svarer dig under Indstillinger.',
+  okonomi: 'Økonomiredaktøren læser den ved sin kørsel om eftermiddagen og svarer dig under Indstillinger.',
+  udvikler: 'Svarene og begreberne bygges ikke af redaktørerne: kommentaren gemmes til udvikleren under Indstillinger.' };
+let noteDraft = null;
+function showCompose(kick, title, html) {
+  $('actKick').textContent = kick; $('actKick').hidden = !kick;
+  $('actTitle').textContent = title; $('actTitle').hidden = !title;
+  $('actBtns').innerHTML = html; $('act').scrollTop = 0;
+  const t = $('ownText');
+  if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
+}
+function noteView(h) {
+  const draft = noteDraft && noteDraft.ref === h.ref ? noteDraft.text : '';
+  showCompose('Kommentar til redaktørerne', h.seen || h.where.join(' · '),
+    `<textarea id="ownText" class="os-text" rows="4" maxlength="1000" placeholder="Hvad skal rettes eller gøres bedre?" aria-label="Din kommentar">${esc(draft)}</textarea>`
+    + `<div class="os-quick" role="group" aria-label="Hurtige ord">${NOTE_QUICK.map(q => `<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`
+    + `<p class="os-hint">${esc(NOTE_WHO[noteScope(h.ref)])}</p>`
+    + '<div class="pair"><button class="wide soft" data-a="back">Tilbage</button><button class="wide primary" data-a="note-send">Send</button></div>');
+}
+async function sendNote(h, text) {
+  const at = String(Date.now()), ctx = clipTo(`${h.where.join(' · ')} · »${h.seen || ''}«`, 480);
+  const n = { id: 'n' + at, ref: h.ref, text, ctx, at: Number(at) };
+  ownerLocal.notes = [n, ...(ownerLocal.notes || []).filter(x => Date.now() - x.at < 14 * 864e5)].slice(0, 40); saveOwner();
+  const ok = await ownerAct('note', { id: h.ref }, text, ctx, at);
+  if (!ok) { ownerLocal.notes = ownerLocal.notes.filter(x => x.id !== n.id); saveOwner(); noteDraft = { ref: h.ref, text }; }
+  else noteDraft = null;
+  toast(ok ? 'Sendt til redaktørerne – svaret kommer under Indstillinger' : 'Kunne ikke sende – din tekst er gemt, prøv igen', ok);
+}
+// ---- his own headline (18/10, the owner: 'giv også en funktion der lader mig edit overskrifter direkte')
+const titleKey = h => (h.kind === 'event' ? 'ev:' + h.ev.id : h.i.id);
+function titleView(h) {
+  const mine = (owner().titles || {})[titleKey(h)], now = h.kind === 'event' ? h.ev.title : display(h.i).title;
+  showCompose('Ret overskrift', '', `<textarea id="ownText" class="os-text os-title" rows="3" maxlength="200" aria-label="Overskrift">${esc(now)}</textarea>`
+    + '<p class="os-hint">Din overskrift vises med det samme og for alle inden for få minutter. Redaktørerne lærer af den og skriver ikke en anden.</p>'
+    + (mine ? '<button class="wide" data-a="title-auto">Brug redaktørens overskrift igen</button>' : '')
+    + '<div class="pair"><button class="wide soft" data-a="back">Tilbage</button><button class="wide primary" data-a="title-save">Gem</button></div>');
+}
+async function saveTitle(h, text) {
+  const key = titleKey(h), before = (ownerLocal.titles || {})[key];
+  // what the app showed before his first edit: the editors learn from the pair
+  const was = (before && before.was) || (h.kind === 'event' ? h.ev.edTitle || h.ev.title : ownerTitleOf(h.i) ? edTitle(h.i) || h.i.title_da || h.i.title : display(h.i).title);
+  text = text.replace(/\s+/g, ' ').trim().slice(0, 200);
+  (ownerLocal.titles ||= {})[key] = { v: text, at: Date.now(), was }; saveOwner(); cache = null; ver++; render();
+  if (h.kind === 'event') redrawPages([tab]);
+  const ok = await ownerAct('title', { id: key }, text, clipTo(String(was || ''), 290));
+  toast(ok ? (text ? 'Overskrift rettet – redaktørerne lærer af den' : 'Redaktørens overskrift igen') : 'Kunne ikke sende – prøv igen', ok);
 }
 function closeAct() {
   $('act').classList.remove('on'); $('scrim').classList.remove('on');
   setTimeout(() => { if (!$('act').classList.contains('on')) $('act').hidden = true; }, 300);
 }
 $('scrim').addEventListener('click', closeAct);
+// Enter in the headline saves it (a headline is one line)
+$('act').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('os-title')) { e.preventDefault(); $('actBtns').querySelector('[data-a="title-save"]').click(); }
+});
 $('act').addEventListener('click', async e => {
-  const b = e.target.closest('[data-a]'), i = actItem;
-  if (!b) return;
-  if (b.dataset.a === 'code' || b.dataset.a === 'code-off') {
-    adminKey = b.dataset.a === 'code' ? $('adminCode').value.trim().toLowerCase() : '';
-    store.set('adminKey', adminKey); applyAdmin(); closeAct();
-    toast(adminKey ? 'Admin slået til – hold en nyhed nede' : 'Admin slået fra');
+  const q = e.target.closest('[data-q]');
+  if (q) {   // a quick word: added to the comment, the keyboard stays
+    const t = $('ownText'), was = t.value.trim();
+    t.value = (was ? (/[.!?]$/.test(was) ? was + ' ' : was + '. ') : '') + q.dataset.q + ' ';
+    t.focus();
     return;
   }
+  const b = e.target.closest('[data-a]'), i = actItem, h = heldNow;
+  if (!b) return;
+  const a = b.dataset.a;
+  if (a === 'code' || a === 'code-off') {
+    adminKey = a === 'code' ? $('adminCode').value.trim().toLowerCase() : '';
+    store.set('adminKey', adminKey); applyAdmin(); closeAct();
+    toast(adminKey ? 'Admin slået til – hold et element nede' : 'Admin slået fra');
+    return;
+  }
+  // the steps inside the sheet: it stays open
+  if (h && a === 'note') { noteView(h); return; }
+  if (h && a === 'title') { titleView(h); return; }
+  if (h && a === 'back') { if (h.back) h.back(); else if (h.kind === 'story') openAct(h.i, h); else openHeld(h); return; }
+  if (h && a === 'note-send') {
+    const text = $('ownText').value.trim();
+    if (!text) { $('ownText').focus(); return; }
+    closeAct(); sendNote(h, text);
+    return;
+  }
+  if (h && (a === 'title-save' || a === 'title-auto')) {
+    const text = a === 'title-save' ? $('ownText').value.trim() : '';
+    if (a === 'title-save' && !text) { $('ownText').focus(); return; }
+    closeAct(); saveTitle(h, text);
+    return;
+  }
+  if (a === 'leads') { openLead(); return; }
+  if (!a) { closeAct(); return; }
   closeAct();
-  const kind = b.dataset.a.split(':')[0], val = b.dataset.a.slice(kind.length + 1);
+  if (h && a === 'copy') { const ok = await copyText(h.seen || ''); toast(ok ? 'Teksten er kopieret' : 'Kunne ikke kopiere', ok); return; }
+  const kind = a.split(':')[0], val = a.slice(kind.length + 1);
   if (kind === 'story') { setTimeout(() => openAct(findStory(val)), 320); return; }
   if (kind === 'flyt') { useMove(val); return; }   // a link's saves: added or in place of the phone's own
   if (kind === 'quote' || kind === 'lead') {
-    ownerLocal[kind] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); render();
+    ownerLocal[kind] = { v: val, at: Date.now() }; saveOwner(); render();
     const ok = await ownerAct(kind, { id: val });
     const said = kind === 'quote' ? (val ? 'Citat valgt' : 'Citatet vælges automatisk igen') : (val ? 'Dagens historie valgt' : 'Dagens historie vælges automatisk igen');
     toast(ok ? said : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
   if (kind === 'pic' && i) {   // the owner's picture: shown at once, for everyone at the radar's next pass, and learned
-    (ownerLocal.pics ||= {})[i.id] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); cache = null; ver++; render();
+    (ownerLocal.pics ||= {})[i.id] = { v: val, at: Date.now() }; saveOwner(); cache = null; ver++; render();
     const ok = await ownerAct('pic', i, val);
     toast(ok ? (val ? 'Billede valgt – Khabar lærer din smag' : 'Khabar vælger billedet igen') : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
   if (kind === 'rank' && i) {
-    (ownerLocal.rank ||= {})[i.id] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); render();
+    (ownerLocal.rank ||= {})[i.id] = { v: val, at: Date.now() }; saveOwner(); render();
     const ok = await ownerAct('rank', i, val);
-    toast(ok ? (val === 'up' ? 'Opprioriteret' : val === 'down' ? 'Nedprioriteret' : 'Prioritering fortrudt') : 'Kunne ikke sende – prøv igen', ok);
+    toast(ok ? (val === 'up' ? 'Opprioriteret' : val === 'down' ? 'Nedprioriteret' : 'Normal prioritet igen') : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
-  if (!b.dataset.a || !i) return;
-  const [act, arg] = b.dataset.a.split(':');
-  if (act === 'hide') ownerGone[i.id] = { at: Date.now() }; else ownerMoved[i.id] = { at: Date.now(), sec: arg };
+  if (!i || !['hide', 'move'].includes(kind)) return;
+  if (kind === 'hide') ownerGone[i.id] = { at: Date.now() }; else ownerMoved[i.id] = { at: Date.now(), sec: val };
   keepOwner(); render();
-  const ok = await ownerAct(act, i, act === 'hide' ? arg : '', act === 'move' ? arg : '');
-  toast(ok ? (act === 'hide' ? 'Fjernet – Khabar lærer af det' : 'Flyttet til ' + SECTIONS[arg]) : 'Kunne ikke sende – prøv igen', ok);
+  const ok = await ownerAct(kind, i, kind === 'hide' ? val : '', kind === 'move' ? val : '');
+  toast(ok ? (kind === 'hide' ? 'Fjernet – Khabar lærer af det' : 'Flyttet til ' + SECTIONS[val]) : 'Kunne ikke sende – prøv igen', ok);
 });
 $('scrim').addEventListener('click', closeSheet);
 $('closeSheet').addEventListener('click', closeSheet);

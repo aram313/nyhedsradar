@@ -84,3 +84,61 @@ def test_the_owner_chooses_a_storys_picture():
     assert sid not in st['pics']                                                  # back to Khabar's own choice
     st = admin.prune({'removed': [], 'moved': {}, 'pics': {sid: {'k': key, 'at': (NOW - timedelta(days=4)).isoformat()}}}, NOW, 30)
     assert st['pics'] == {}
+
+
+def test_the_owner_comments_on_any_element_and_takes_a_comment_back():
+    # 18/10, the owner: 'Giv mig også et felt hvor jeg kan skrive en kommentar til elementet til redaktørerne … alle
+    # elementer burde kunne holdes nede og få en "kommentar" valgmulighed'
+    at = str(int(NOW.timestamp() * 1000))
+    note = signed(act='note', id='ev:frankrig-uroligheder-2026-10:fakta:2', why='Tallet er forældet –\n ministeriet siger 997.',
+                  sec='Begivenhed · Fakta · »Anholdte 412«', at=at)
+    n, st = run([note, note, signed(act='note', id='story:aaaabbbbccccdddd', why='   ', sec=''),
+                 signed(act='note', id='has space', why='x', sec=''), signed(act='note', id='kal:x', why='y' * 1001, sec='')])
+    assert n == 1 and st['notes'] == [{'id': f'n{at}', 'ref': 'ev:frankrig-uroligheder-2026-10:fakta:2',
+                                       'text': 'Tallet er forældet – ministeriet siger 997.',
+                                       'ctx': 'Begivenhed · Fakta · »Anholdte 412«', 'at': NOW.isoformat()}]
+    n, st = run([signed(act='unnote', id=f'n{at}', why='', sec='')], st)
+    assert n == 1 and st['notes'] == []
+    old = {'id': 'n1', 'ref': 'kal:x', 'text': 'x', 'ctx': '', 'at': (NOW - timedelta(days=15)).isoformat()}
+    assert admin.prune({'removed': [], 'moved': {}, 'notes': [old]}, NOW, 30)['notes'] == []
+
+
+def test_the_owner_writes_a_storys_or_an_event_pages_headline():
+    # 18/10, the owner: 'giv også en funktion der lader mig edit overskrifter direkte'
+    sid = 'aaaabbbbccccdddd'
+    n, st = run([signed(act='title', id=sid, why='Macron:  undtagelsestilstand i Paris', sec='Macron taler til nationen'),
+                 signed(act='title', id='ev:frankrig-uroligheder-2026-10', why='Urolighederne i Frankrig', sec='Store uroligheder'),
+                 signed(act='title', id='not-a-story', why='x', sec=''), signed(act='title', id=sid, why='to\nlinjer', sec='')])
+    assert n == 2 and st['titles'][sid] == {'t': 'Macron: undtagelsestilstand i Paris', 'was': 'Macron taler til nationen',
+                                            'at': NOW.isoformat()}
+    assert st['titles']['ev:frankrig-uroligheder-2026-10']['t'] == 'Urolighederne i Frankrig'
+    n, st = run([signed(act='title', id=sid, why='', sec='')], st)
+    assert sid not in st['titles']                                                 # back to the editors' headline
+    five = (NOW - timedelta(days=5)).isoformat()
+    kept = admin.prune({'removed': [], 'moved': {}, 'titles': {sid: {'t': 'x', 'at': five}, 'ev:a-b': {'t': 'y', 'at': five}}}, NOW, 30)
+    assert list(kept['titles']) == ['ev:a-b']                                      # a story's lasts four days, a page's 30
+    assert admin.load(Path('/nonexistent')) == {'removed': [], 'moved': {}}
+
+
+APP = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
+ECON = (Path(__file__).resolve().parents[1] / 'public' / 'energi' / 'index.html').read_text(encoding='utf-8')
+
+
+def test_every_element_can_be_held_and_the_sheet_is_ordered_for_the_owner():
+    # 18/10, the owner: 'alle elementer burde kunne holdes nede og få en "kommentar" valgmulighed … til slut så ryd op i
+    # admin funktionerne så det er mere brugervenlige'
+    assert "const holdable = t => adminKey && t.closest('.page')" in APP          # every page, reading text too
+    sheet = APP.split('function openAct(i, h = null) {')[1].split('\n}\n')[0]
+    order = ["['note', 'i-quote', 'Kommentar']", "'<h4 class=\"os-h\">Billede</h4>", "osSeg('Prioritet'", "osSeg('Sektion'",
+             "Dagens historie</h4>", "osSeg('Fjern fra Khabar'"]
+    at = [sheet.index(x) for x in order]
+    assert at == sorted(at)                                                        # comment first, removal last
+    assert "window.khabarOwnerHold = x =>" in APP and "appFn('khabarOwnerHold')" in ECON   # Økonomi's frame too
+    # the app reads a comment's scope as the editors' tool does
+    assert "/^(oko:|side:okonomi)/" in APP and "/^(svar:|begreb:|side:(analyses|svar|begreb))/" in APP
+
+
+def test_the_owners_headline_wins_in_the_app():
+    assert "const ed = ownerTitleOf(i) || edTitle(i);" in APP
+    assert "const t = ownerTitleOf(i) || (first && pin" in APP                     # over the front page's own headline
+    assert "const t = (owner().titles || {})['ev:' + e.id];" in APP                # an event page's title

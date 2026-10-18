@@ -9,6 +9,24 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The owner comments on any element, writes headlines himself, and the admin sheet is cleaned up** (2026-10-18, the
+  owner: 'Giv mig også et felt hvor jeg kan skrive en kommentar til elementet til redaktørerne … alle elementer burde kunne
+  holdes nede og få en "kommentar" valgmulighed … giv også en funktion der lader mig edit overskrifter direkte … til slut
+  så ryd op i admin funktionerne så det er mere brugervenlige'). In admin every element of every page can be held – a
+  story, a number, a paragraph or a quote on an event page, a calendar date, the lede, a block, and on Økonomi a figure, a
+  line, a story or a date (its frame hands the hold to the app, `khabarOwnerHold`). The sheet: what is held on top (its
+  kind and where, then its words), one row of icon buttons – Kommentar, Ret overskrift, Kopiér tekst –, the picture, then
+  Prioritet (Op · Normal · Ned) and Sektion as segments that show the current choice, Dagens historie (choose another,
+  give it back to the editor, or make this one it) and removal last in red. A comment is written in place with a few quick
+  words to start from and says who reads it and when; it goes signed to the radar (admin action `note`, `removed.json`
+  `notes`, 14 days; `unnote` takes it back), every editor's input lists the open ones near its top with what they name
+  now, an open one calls for the front-page editor's update, the editors answer in `owner_notes` (owner.json on the digest
+  branch) and the owner reads each answer under Indstillinger › Kun for dig › Dine kommentarer (a comment on the answers or
+  the wiki goes to the builder, not the editors). His own headline (`title`, a story's id or 'ev:<id>'): shown at once,
+  for everyone at the radar's next pass (`owner.titles`), over the editor's and the front page's own headline, in the
+  notifications and the archive; the editors' input lists his headlines beside the ones they replaced, never asks for
+  another and the event page takes his title. The four routine prompts say how to handle both. The relay keeps a
+  comment's words whole (feedback.py: longer fields for admin, so the signature holds).
 - **The owner chooses a large story's picture, and Khabar learns his taste** (2026-10-18, the owner: 'kan jeg som admin
   få lov til at vælge mellem 3 billeder når jeg holder nede på de store artikler på forsiden … redaktøren vil også i
   fremtiden lære af dette og forstå min smag for billedvalg'). The radar keeps the three best pictures of each of the

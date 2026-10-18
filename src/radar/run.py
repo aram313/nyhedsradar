@@ -569,6 +569,8 @@ def main():
     # what the owner removed is gone for everyone; a story very like an 'irrelevant' or 'not news' one stays out
     # too (same language: the model finds any two Arabic headlines rather alike), and near ones score lower
     owner = admin.prune(owner, NOW, s.get('removed_days', 30))
+    # the owner's own headlines win over the editor's – in the app and in a notification (18/10)
+    ed_titles = {**ed_titles, **{k: v['t'] for k, v in (owner.get('titles') or {}).items() if not k.startswith('ev:')}}
     owner['moved'] = {k: v for k, v in owner['moved'].items() if k in items}
     for it in items.values():
         it.pop('removed', None)
@@ -1101,7 +1103,9 @@ def main():
         # the owner's front-page choices: quote, main story, raised/lowered stories
         'owner': {'quote': (owner.get('quote') or {}).get('key'), 'lead': (owner.get('lead') or {}).get('id'),
                   'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()},
-                  'pics': {k: v['k'] for k, v in (owner.get('pics') or {}).items()}},
+                  'pics': {k: v['k'] for k, v in (owner.get('pics') or {}).items()},
+                  # his own headlines (a story's id, or 'ev:<id>' for an event page), shown for everyone (18/10)
+                  'titles': {k: v['t'] for k, v in (owner.get('titles') or {}).items()}},
     }
     # the whole candidate pool, for the editor and search: every story with its rank line (`live`: why Live shows it,
     # or null) and the level applied (`live` at the top)

@@ -448,6 +448,15 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .adm-by b { color: var(--text-2); font-weight: 650; }
 .adm-tx { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; font-size: var(--fs-small); line-height: 1.45; color: var(--text); }
 .adm-note[aria-expanded="true"] .adm-tx { display: block; -webkit-line-clamp: none; }
+/* the owner's comments with their answers (18/10) */
+.adm-help { margin-top: 2px; }
+.adm-c { position: relative; margin: 0 0 8px; padding: 10px 56px 10px 12px; border-radius: 12px; background: var(--fill); }
+.adm-c .adm-tx { -webkit-line-clamp: 6; }
+.adm-ans, .adm-wait { display: block; margin-top: 6px; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+.adm-ans { padding-left: 10px; border-left: 2px solid var(--line); }
+.adm-ans b { color: var(--text-2); font-weight: 650; }
+.adm-ans span { display: block; margin-top: 2px; font-size: var(--fs-small); color: var(--text); }
+.adm-del { position: absolute; top: 4px; right: 4px; min-width: 44px; min-height: 44px; font-size: var(--fs-meta); color: var(--text-3); }
 
 /* ------------------------------------------------------------ motion: quiet, short, only where it explains */
 @keyframes rise { from { opacity: 0; transform: translateY(7px); } }
@@ -590,6 +599,30 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* every button in the owner's sheet spans the sheet (the general .wide.soft is narrower and indented) */
 .owner .wide, .owner .wide.soft { width: 100%; margin: 0; }
 .owner .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* the owner's sheet, cleaned up (18/10): what is held on top (its kind and where, then its words), the main actions as one
+   row of icon buttons, each choice under a small heading as the app's segment with the current one marked, removal last
+   in red; a comment or a headline is written in place, the keyboard keeping the sheet above it */
+.owner p.os-k { display: block; margin: 0 4px 4px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owner .os-h { margin: 8px 4px -2px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-3); }
+.owner .os-main { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.owner .os-main button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 0; min-height: 64px;
+  border-radius: var(--r-btn); background: var(--fill); font-size: var(--fs-small); font-weight: 650; color: var(--text); }
+.owner .os-main svg { width: 22px; height: 22px; }
+.owner .os-main button:active { transform: scale(.98); background: var(--fill-2); }
+.owner .seg { margin: 0; }
+.owner .seg button[aria-checked="false"]:active { background: var(--fill-2); }
+.owner .seg.warn button { color: #c0392b; }
+.owner .os-text { display: block; width: 100%; min-height: 112px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-btn);
+  background: var(--fill); color: var(--text); font-family: inherit; font-size: max(16px, var(--fs-body)); line-height: 1.45; resize: none; }
+.owner .os-text.os-title { min-height: 88px; font-weight: 650; }
+.owner .os-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.owner .os-quick button { min-height: 36px; padding: 0 12px; border-radius: 18px; background: var(--fill); font-size: var(--fs-small); color: var(--text-2); }
+.owner .os-quick button:active { background: var(--fill-2); }
+.owner p.os-hint { display: block; margin: 0 4px; font-size: var(--fs-small); font-weight: 400; line-height: 1.45; color: var(--text-3); }
+/* in admin every element may be held: reading text is not selected (its sheet copies it) */
+html.admin :is(.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht),
+html.admin :is(.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht) * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 
 /* an app, not a page: a long press never selects text or pops up a menu (except where one types) */
 html, body, body *:not(input):not(textarea) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iPhone wants it on every element */

@@ -128,7 +128,7 @@ SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*
 KEEP_WORD = 'keep'
 FEEDS = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json')
+                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json', 'owner.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
@@ -140,6 +140,13 @@ EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør', 'økonom
 # last day's own text (input --audit), keeps the fejlbog – rules drawn from the editors' mistakes, which every input shows
 # at its top (lessons.json) – and writes the owner a short morning report (report.json, shown in the owner's admin block)
 LESSONS_MAX, LESSON_TEXT, REPORT_TEXT = 40, 320, 4000
+# the owner's comments (18/10, the owner: 'Giv mig også et felt hvor jeg kan skrive en kommentar til elementet til
+# redaktørerne … alle elementer burde kunne holdes nede og få en "kommentar" valgmulighed'): the radar keeps them in
+# removed.json `notes` on the data branch; the inputs list the open ones of the last OWNER_OPEN days, every editor may
+# answer one (`owner_notes` in an update) and the answers are kept OWNER_KEEP days in owner.json on the digest branch,
+# which the owner reads in his admin block. A comment on the answers or the wiki is not the editors' to act on (the
+# owner's builder takes it), one on the Økonomi page the economy editor's, one on the calendar either's
+OWNER_REPLY, OWNER_KEEP, OWNER_OPEN, OWNER_TITLES = 600, 14, 7, 12
 LESSON_ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,60}$')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
 CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
@@ -600,11 +607,167 @@ def headed_ids(titles):
     headline that breaks the rules covers none (it is written again)."""
     out = set()
     for k, v in (titles or {}).items():
-        if isinstance(v, dict) and not good_title(v.get('title')):
+        if isinstance(v, dict) and not v.get('owner') and not good_title(v.get('title')):
             continue
         out.add(k)
         out.update((v or {}).get('members') or [] if isinstance(v, dict) else [])
     return out
+
+
+def owner_state(args):
+    """The owner's hand from the app as the radar keeps it (removed.json on the data branch)."""
+    st = read(args, 'origin/data', 'removed.json', {})
+    return st if isinstance(st, dict) else {}
+
+
+def headlines_of(args):
+    """The editors' headlines (summaries.json `titles`) with the owner's own over them (removed.json `titles`, 18/10: 'giv
+    også en funktion der lader mig edit overskrifter direkte') – his words win in the app, the notifications and the
+    archive, and a story he titled is no headline to write."""
+    out = dict(summaries_of(args).get('titles') or {})
+    for k, v in (owner_state(args).get('titles') or {}).items():
+        if isinstance(v, dict) and v.get('t') and not k.startswith('ev:'):
+            out[k] = {'title': v['t'], 'at': v.get('at'), 'owner': True}
+    return out
+
+
+def note_scope(ref):
+    """Whose a comment is: 'okonomi' (the economy editor), 'kalender' (either), 'udvikler' (the answers and the wiki: no
+    editor's) or 'redaktion' (the front-page and senior editors)."""
+    r = str(ref or '')
+    if r.startswith(('oko:', 'side:okonomi')):
+        return 'okonomi'
+    if r.startswith(('kal:', 'side:kalender')):
+        return 'kalender'
+    if r.startswith(('svar:', 'begreb:', 'side:analyses', 'side:svar', 'side:begreb')):
+        return 'udvikler'
+    return 'redaktion'
+
+
+def owner_answers(args):
+    a = read(args, 'origin/digest', 'owner.json', {'items': {}})
+    return dict(a.get('items') or {}) if isinstance(a, dict) else {}
+
+
+def open_notes(args, now, scopes):
+    """The owner's comments of the last OWNER_OPEN days that no editor has answered, of the given scopes, oldest first."""
+    done = owner_answers(args)
+    out = []
+    for n in owner_state(args).get('notes') or []:
+        try:
+            fresh = now - ts(n['at']) < timedelta(days=OWNER_OPEN)
+        except (KeyError, TypeError, ValueError):
+            continue
+        if fresh and n.get('id') not in done and note_scope(n.get('ref')) in scopes:
+            out.append(n)
+    return sorted(out, key=lambda n: n['at'])
+
+
+def note_target(ref, find, pages):
+    """What a comment's reference names now, in a line for the editor (or '')."""
+    parts = str(ref or '').split(':')
+    if parts[0] == 'story' and len(parts) > 1:
+        i = find(parts[1])
+        return f"The story: [{parts[1]}] {clip(headline(i), 110)}" if i else f"The story [{parts[1]}] (no longer in the radar)"
+    if parts[0] == 'ev' and len(parts) > 1:
+        page = next((e for e in pages or [] if e.get('id') == parts[1]), None)
+        part = ' · '.join(parts[2:])
+        return (f"The event page {parts[1]}" + (f" ({clip(page.get('title'), 70)})" if page else ' (no longer kept)')
+                + (f" – its {part}" if part else ''))
+    if parts[0] == 'kal' and len(parts) > 1:
+        return f"The calendar entry {parts[1]} (yours when its id begins with ed-; another you correct with an entry of your own on its day)"
+    if parts[0] == 'oko':
+        return f"The Økonomi page – {' · '.join(parts[1:]) or 'the page'}"
+    return ''
+
+
+def note_lines(notes, find, pages):
+    """The input's open comments of the owner, with what each names now."""
+    if not notes:
+        return []
+    out = ["## The owner's comments – open: do what he asks, then answer each in `owner_notes`", '',
+           'He held an element in the app and wrote to you. Fix it in this update where you can – a headline, a summary, an',
+           "event page, the calendar, the front page, the Økonomi page's lines – within every rule (reality only, every number",
+           "from a cited story), and answer each comment in one or two plain Danish sentences: what you did (\"done\": true), or",
+           "why it cannot be done here (\"done\": false – the app's layout, the page's figures and the wiki are not yours to",
+           'change; say so plainly). What a comment teaches holds from now on: keep to it, and the chief editor writes it in the',
+           'fejlbog. Fields: [id] when · where he held it and what it showed', '']
+    for n in notes:
+        out.append(f"[{n['id']}] {dk(ts(n['at'])):%d.%m %H.%M} · {clip(n.get('ctx') or n.get('ref'), 300)}")
+        out.append(f"  The owner: {n.get('text')}")
+        what = note_target(n.get('ref'), find, pages)
+        if what:
+            out.append(f'  {what}')
+    return out + ['']
+
+
+def note_history(args, now, find, pages, hours=36):
+    """The chief editor's audit: every comment of the owner's of the last day and a half with the answer it got."""
+    done = owner_answers(args)
+    notes = [n for n in owner_state(args).get('notes') or [] if now - ts(n['at']) < timedelta(hours=hours)
+             and note_scope(n.get('ref')) != 'udvikler']
+    if not notes:
+        return []
+    out = ["## The owner's comments of the last day and a half, with the answers – draw the fejlbog's rules from them", '']
+    for n in sorted(notes, key=lambda n: n['at']):
+        a = done.get(n['id'])
+        out.append(f"[{n['id']}] {dk(ts(n['at'])):%d.%m %H.%M} · {clip(n.get('ctx') or n.get('ref'), 200)}")
+        out.append(f"  The owner: {n.get('text')}")
+        out.append(f"  Answer ({a.get('by')}, {'done' if a.get('done') else 'not done'}): {a.get('text')}" if a else '  Not answered yet')
+    return out + ['']
+
+
+def owner_title_lines(args):
+    """The owner's own headlines, newest first: his words win in the app; the editors learn his style from them."""
+    titles = sorted(((k, v) for k, v in (owner_state(args).get('titles') or {}).items() if isinstance(v, dict) and v.get('t')),
+                    key=lambda kv: kv[1].get('at') or '', reverse=True)[:OWNER_TITLES]
+    if not titles:
+        return []
+    out = ["## The owner's own headlines – his words win in the app: never write another for these; learn his style", '',
+           'Fields: the story id or event page · the headline the app showed → his', '']
+    for k, v in titles:
+        if k.startswith('ev:'):
+            out.append(f"- event page {k[3:]} · \"{v.get('was') or '?'}\" → \"{v['t']}\" (write his as the page's title when you next change it)")
+        else:
+            out.append(f"- [{k}] · \"{v.get('was') or '?'}\" → \"{v['t']}\"")
+    return out + ['']
+
+
+def owner_file(entries, current, notes, now, problems):
+    """owner.json as this update leaves it: the editors' answers to the owner's comments (`owner_notes`), each under its
+    comment's id, the last OWNER_KEEP days kept; None when the update answers none."""
+    if not entries:
+        return None
+    if not isinstance(entries, list):
+        problems.append("owner_notes: a list of {\"id\": …, \"by\": …, \"reply\": …, \"done\": true|false}")
+        return None
+    known = {n.get('id'): n for n in notes or [] if isinstance(n, dict)}
+    items = {}
+    for k, v in ((current or {}).get('items') or {}).items():
+        try:
+            if isinstance(v, dict) and now - ts(v['at']) < timedelta(days=OWNER_KEEP):
+                items[k] = v
+        except (KeyError, TypeError, ValueError):
+            continue
+    for x in entries:
+        if not isinstance(x, dict):
+            problems.append('owner_notes: each answer is {"id", "by", "reply", "done"}')
+            continue
+        nid, text = str(x.get('id') or ''), ' '.join(str(x.get('reply') or '').split())
+        if nid not in known:
+            problems.append(f"owner_notes {nid or '?'}: no comment of the owner's has this id – copy it as the input gives it")
+            continue
+        if x.get('by') not in EDITORS:
+            problems.append(f"owner_notes {nid}: 'by' is one of {', '.join(EDITORS)}")
+            continue
+        if not text:
+            problems.append(f'owner_notes {nid}: the reply is missing – one or two Danish sentences to the owner')
+            continue
+        if len(text) > OWNER_REPLY:
+            problems.append(f'owner_notes {nid}: {len(text)} characters – at most {OWNER_REPLY}')
+        items[nid] = {'by': x['by'], 'text': text[:OWNER_REPLY], 'done': x.get('done') is not False,
+                      'at': now.isoformat(timespec='seconds'), 'ref': known[nid].get('ref') or ''}
+    return {'items': dict(sorted(items.items(), key=lambda kv: kv[1]['at'], reverse=True))}
 
 
 def has_head(i, done):
@@ -763,7 +926,7 @@ def look(args, now):
     app = app_of(args)
     live = read(args, 'origin/digest', 'live.json', {})
     pool, known = admitted(data, app, now, live)
-    heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args)) if known else []
+    heads = to_head(pool, headlines_of(args), now, admitted_record(args)) if known else []
     level = day_level(live, now)
     line = the_line(data, app)
     lapse = None   # today's få or mange lapses to normal when live.json is not written for radar_level.STALE (06-24)
@@ -838,6 +1001,10 @@ def look(args, now):
         reasons.append(f"begivenhedssiden kan få nye tal fra artiklerne: {clip(page.get('title'), 60)} ({', '.join(nums[:4])})")
     for page, lacks in thin_pages[:1]:
         reasons.append(f"begivenhedssiden mangler {' og '.join(lacks)}: {clip(page.get('title'), 60)}")
+    waiting_notes = open_notes(args, now, ('redaktion', 'kalender'))
+    if waiting_notes:
+        reasons.append(f"{len(waiting_notes)} {'kommentar' if len(waiting_notes) == 1 else 'kommentarer'} fra ejeren: "
+                       f"{clip(waiting_notes[0].get('text'), 60)}")
     behind_now = behind_pages(pages, moves, now)[:1]
     for page, gaps in behind_now:
         reasons.append(f"begivenhedssidens tal er bagud for dens eget forløb: {clip(page.get('title'), 60)} ("
@@ -861,6 +1028,7 @@ def look(args, now):
     keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
     keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
     keys += [f"behind:{page['id']}:{','.join(str(g[2]) for g in gaps)}" for page, gaps in behind_now]
+    keys += [f"note:{n['id']}" for n in waiting_notes]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
@@ -1030,6 +1198,9 @@ def cmd_gate(args):
 TEMPLATE = {
     'memo': {'by': ' | '.join(EDITORS), 'text': '<optional – a note to your colleague: what you judged, changed and why, '
                                                    'what to keep or watch (at most 1500 characters)>'},
+    'owner_notes': [{'id': "<an open comment of the owner's, its id as the input gives it (n…)>", 'by': ' | '.join(EDITORS),
+                     'reply': '<one or two plain Danish sentences to the owner: what you did, or why it cannot be done here>',
+                     'done': True}],
     'lede': '<one Danish sentence of at most about 25 words: the day so far, its heaviest movements first – reality only; '
             'leave the field out (or "keep") to keep the lede on the front page>',
     'lede_ids': ['<optional: the story id each part of the lede opens on the front page, one per part in order (the parts '
@@ -1465,17 +1636,19 @@ def econ_input(args, now):
     out = [f'# Material for the economy update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
     out += lesson_lines(read(args, 'origin/digest', 'lessons.json', {}))
     out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
+    out += note_lines(open_notes(args, now, ('okonomi', 'kalender')), resolver(items).get,
+                      read(args, 'origin/digest', 'events.json', {}).get('items') or [])
     out += brain.section(stories[:TOP], noted['items'])
     cal_now, kal_now = read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {})
     out += econ.input_lines(read(args, 'origin/data', 'energy.json', {}), stories, read(args, 'origin/digest', 'okonomi.json', {}),
                             cal_now, kal_now, now, story_lines)
-    titles = summaries_of(args).get('titles')
+    titles = headlines_of(args)
     heads = [i for i in to_head(stories, titles, now) if i in stories]
     out += head_lines(heads, True, {i['id'] for i in stories})
     out += calendar_lines(cal_now, kal_now, now)
     heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (titles or {}).items()}
     out += news_dates(stories, cal_now, kal_now, now, heads_now)
-    template = {**econ.TEMPLATE, **{k: TEMPLATE[k] for k in ('titles', 'summaries', 'calendar', 'memo') if k in TEMPLATE}}
+    template = {**econ.TEMPLATE, **{k: TEMPLATE[k] for k in ('titles', 'summaries', 'calendar', 'memo', 'owner_notes') if k in TEMPLATE}}
     out += ['', '## Write /tmp/editor/update.json in exactly this shape (UTF-8 JSON)', '',
             json.dumps(template, ensure_ascii=False, indent=1)]
     WORK.mkdir(parents=True, exist_ok=True)
@@ -1506,8 +1679,12 @@ def cmd_input(args):
     out = [f'# Material for the {dk(now):%H.%M} update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
     out += lesson_lines(read(args, 'origin/digest', 'lessons.json', {}))
     out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
+    pages_now = read(args, 'origin/digest', 'events.json', {}).get('items') or []
+    out += note_lines(open_notes(args, now, ('redaktion', 'kalender')), resolver(items).get, pages_now)
+    out += owner_title_lines(args)
     if getattr(args, 'audit', False):
         out += audit_lines(args, now, resolver(items).get)
+        out += note_history(args, now, resolver(items).get, pages_now)
     out += brain.section(top, noted['items'])
     out += front_lines(notes, digest, by_id)
     today = dk(now).date().isoformat()
@@ -1566,7 +1743,7 @@ def cmd_input(args):
     pool, known = admitted(data, app, now, live)
     if not known:   # before the radar draws the line: the strongest stories of the day the app shows
         pool = [i for i in pool if in_24h(i, now)]
-    heads = to_head(pool, summaries_of(args).get('titles'), now, admitted_record(args))
+    heads = to_head(pool, headlines_of(args), now, admitted_record(args))
     out += head_lines(heads, known, listed)
     level, the_plan = day_level(live, now), active_plan(live, now)
     out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,
@@ -2537,6 +2714,8 @@ def cmd_publish(args):
     memo = memo_file(draft.get('memo'), read(args, 'origin/digest', 'memo.json', {}), now, problems)
     lessons = lessons_file(draft.get('lessons'), read(args, 'origin/digest', 'lessons.json', {}), now, problems)
     report = report_file(draft.get('report'), now, problems)
+    answered = owner_file(draft.get('owner_notes'), read(args, 'origin/digest', 'owner.json', {}),
+                          owner_state(args).get('notes') or [], now, problems)
     oko = econ.okonomi_file(draft.get('okonomi'), read(args, 'origin/digest', 'okonomi.json', {}), resolver(data.get('items', [])).get,
                             read(args, 'origin/data', 'calendar.json', {}), kal, now, problems, voice, titled_by(args, draft))
     if problems:
@@ -2580,6 +2759,8 @@ def cmd_publish(args):
         files['report.json'] = report
     if oko:
         files['okonomi.json'] = oko
+    if answered:
+        files['owner.json'] = answered
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again
@@ -2590,7 +2771,8 @@ def cmd_publish(args):
     pics = {}
     shutil.rmtree(out / ARCHIVE, ignore_errors=True)   # only this update's day goes into the archive
     if front:   # the day's front page, over the one the day's earlier update left: the last update of the day stays
-        snap, pics = front_snapshot(front, notes, pool, resolver(data.get('items', [])), checked, kept_sums, evt,
+        mine = {k: v for k, v in headlines_of(args).items() if isinstance(v, dict) and v.get('owner')}   # his own win
+        snap, pics = front_snapshot(front, notes, pool, resolver(data.get('items', [])), {**checked, **mine}, kept_sums, evt,
                                     days.get(dk(now).date().isoformat()),
                                     read(args, 'origin/data', 'places.json', {}).get('places') or {}, now)
         index = archive_index(read(args, 'origin/digest', f'{ARCHIVE}/index.json', {}), snap)
@@ -2619,7 +2801,7 @@ def cmd_publish(args):
     if not front and dk(now).hour >= QUIET_UNTIL:
         print('Note: the front page has no composition of today – the app shows its fixed page; compose one in "front" '
               'in the next update.')
-    unheaded = to_head(pool, checked, now) if known else []
+    unheaded = to_head(pool, {**checked, **{k: v for k, v in headlines_of(args).items() if isinstance(v, dict) and v.get('owner')}}, now) if known else []
     if unheaded:
         print(f'Note: {len(unheaded)} stories in Live still wait for your headline – they come first in the next input.')
 
@@ -2650,7 +2832,8 @@ def arch_story(i, titles, sums):
     ids = ids_of(i) | {a.get('id') for a in i.get('also') or [] if a.get('id')}
     ed = _first(*[(titles.get(k) or {}).get('title') for k in sorted(ids)],
                 *[(v or {}).get('title') for v in titles.values() if set((v or {}).get('members') or []) & ids])
-    ed = ed if ed and good_title(ed) else None
+    mine = next(((titles.get(k) or {}).get('title') for k in sorted(ids) if (titles.get(k) or {}).get('owner')), None)
+    ed = mine or (ed if ed and good_title(ed) else None)   # the owner's own headline is his: never refused
     lang, own = i.get('lang') or '', clean(i.get('title'))
     if ed:
         title, how = ed, 'ed'
@@ -2705,6 +2888,8 @@ def front_snapshot(front, notes, pool, find, titles, sums, events, day, places, 
             b['story'] = take(b.get('story'))
             if not b['story']:
                 continue
+            if (titles.get(b['story']) or {}).get('owner'):   # the owner's own headline over the front page's
+                b.pop('title', None)
             b['with'] = [s for s in map(take, b.get('with') or []) if s]
         elif b['kind'] == 'liste':
             b['stories'] = [s for s in map(take, b.get('stories') or []) if s]

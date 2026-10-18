@@ -213,6 +213,22 @@ da'wah.
   `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
   the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
   holds the days before it.
+- **The owner's comments, his headlines and the admin sheet** (18/10, the owner: 'Giv mig også et felt hvor jeg kan
+  skrive en kommentar til elementet til redaktørerne … alle elementer burde kunne holdes nede … giv også en funktion der
+  lader mig edit overskrifter direkte … ryd op i admin funktionerne'): in admin a long press on any element of any page
+  (`holdable`, `heldInfo` – a reference `ref` like 'story:<id>', 'ev:<id>:fakta:2', 'kal:<id>', 'forside:overblik',
+  'side:<page>:<block>', where it sits and its words `seen`; Økonomi's frame sends its own through `khabarOwnerHold`)
+  opens the owner's sheet (`openAct` for a story, `openHeld` for the rest, `openQuotes`): Kommentar · Ret overskrift ·
+  Kopiér tekst, the picture, Prioritet and Sektion as `.seg` segments, Dagens historie, removal last. A comment
+  (`noteView`, `sendNote`) is the signed action `note` (id = ref, why = the words, sec = where and what it showed, at = its
+  id 'n<ms>'); admin.py keeps it in removed.json `notes` (14 days, `unnote` removes); editor.py's inputs list the open ones
+  by scope (`note_scope`: oko → the economy editor, kal → either, svar/begreb → the builder, the rest the front-page and
+  senior editors; `noteScope` in app.js is the copy), the check's verdict holds while one waits, an update answers in
+  `owner_notes` → owner.json (digest branch, 14 days), shown under 'Dine kommentarer' (`commentsHtml`). His headline
+  (`titleView`, `saveTitle`; act `title`, removed.json `titles` – a story's 4 days, an event page's 'ev:<id>' 30) is
+  data.json/app.json `owner.titles`: `display` takes `ownerTitleOf` before the editor's, over a 'top' block's own title,
+  `events()` over an event's; run.py puts it over the editor's in the notifications, editor.py's `headlines_of` counts it
+  as written (`owner: True`, never refused) and the archive keeps it; the inputs list his pairs (`owner_title_lines`).
 - **The owner's picture choice** (18/10, the owner: 'vælge mellem 3 billeder når jeg holder nede på de store artikler
   … redaktøren vil også … lære af dette og forstå min smag for billedvalg'): `thumbs.large` keeps the best `CHOICES`
   (3) pictures of each strong story with their light copies as the card's `pics` [{k (pic_key), u, pf, pl}] (app.json
@@ -394,7 +410,8 @@ da'wah.
 - The owner wants it **fully automatic**: no feedback buttons. Adaptation comes from community
   sources, big stories and silent share/copy/open signals only.
 - The one exception is the owner's hidden admin (2026-10-11): hold the logo 1.5 s → admin code (own sheet, no prompt()); hold a story → remove
-  (irrelevant / not news / duplicate) or move. No visible button – the owner asked for a long press. Actions are
+  (irrelevant / not news / duplicate) or move – since 18/10 any element: a comment to the editors, his own headline, the
+  picture, priority, section, Dagens historie, removal. No visible button – the owner asked for a long press. Actions are
   HMAC-signed with ADMIN_KEY (`scripts/setup-admin.ps1` makes it; never ask for or handle the code), checked in
   `src/radar/admin.py`, kept in `state/removed.json`; the editor's input lists them.
 - Sharing is one action inside an opened story (Læs, Del, Kopiér), not the centre of the app. Motion stays quiet
@@ -687,6 +704,8 @@ da'wah.
   routine has no internet) and the answer reader shows it ('Svaret på engelsk') until the next build of `public/viden`.
   Whether that is within 'no full texts of the movement's answers in committed files' is the owner's call (open since
   2026-10-17): the alternative is to encrypt the text with a key the routine holds and show only the byline's 'Originalen'.
+- **`Path.write_text` on Windows writes CRLF** (text mode turns '\n' into '\r\n'): patch scripts write with
+  `write_bytes(s.encode('utf-8'))`; check `git diff --stat` for whole-file changes before committing.
 - **Heredocs through the agent's Bash tool lose backslashes** (a doubled backslash arrives single, so a regex's back-reference
   becomes a control character and a word boundary a backspace): write files with regular expressions through the Write
   or Edit tool, not cat or py heredocs, and scan for control characters after an edit.

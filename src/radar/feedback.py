@@ -49,8 +49,11 @@ def pull(since):
             want = body.get('want')   # the kinds the phone asked for (the app's three switches); missing: as before
             out.append({'kind': body['kind'], 'sub': body['sub'], 'at': msg.get('time'),
                         **({'want': [k for k in want if k in ('top', 'digest', 'svar')]} if isinstance(want, list) else {})})
-        elif body.get('kind') == 'admin':   # the owner removing or moving a story; admin.py checks the signature
-            out.append({'kind': 'admin', **{k: str(body.get(k, ''))[:80] for k in ('act', 'id', 'why', 'sec', 'at', 'sig')}})
+        elif body.get('kind') == 'admin':   # the owner's hand; admin.py checks the signature and each act's form
+            # a comment's words and what its element showed are longer than an action's codes (18/10); a field cut short
+            # breaks the signature, so a too long one is refused, not cut
+            out.append({'kind': 'admin', **{k: str(body.get(k, ''))[:n] for k, n in
+                                            (('act', 80), ('id', 160), ('why', 1000), ('sec', 500), ('at', 80), ('sig', 80))}})
         elif body.get('kind') == 'visit':   # the app was opened: counted for the owner's statistics (stats.py)
             tz, lang = str(body.get('tz', ''))[:40], str(body.get('lang', ''))[:8].lower()
             out.append({'kind': 'visit', 'app': body.get('app') in (1, True), 'first': body.get('first') in (1, True),

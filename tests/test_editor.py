@@ -645,7 +645,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
     assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'front.json',
-                                                                              'kalender.json', 'lessons.json', 'live.json', 'memo.json', 'moves.json', 'okonomi.json', 'other.json',
+                                                                              'kalender.json', 'lessons.json', 'live.json', 'memo.json', 'moves.json', 'okonomi.json', 'other.json', 'owner.json',
                                                                               'report.json', 'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'
@@ -832,3 +832,57 @@ def test_the_chief_editor_keeps_the_fejlbog_and_reports_to_the_owner():
     assert editor.lessons_file(None, first, now, []) is None
     assert editor.report_file('Godt i går.', now, [])['text'] == 'Godt i går.' and editor.report_file('', now, []) is None
     assert 'chefredaktør' in editor.EDITORS
+
+
+def test_the_owners_comments_reach_the_editors_and_get_their_answer(monkeypatch):
+    # 18/10, the owner: a comment on any element, to the editors – and the answer back in his admin block
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 18, 20, 0, tzinfo=timezone.utc)
+    notes = [{'id': 'n1760817600000', 'ref': 'ev:frankrig-uroligheder-2026-10:fakta:2', 'text': 'Tallet er forældet.',
+              'ctx': 'Begivenhed · Fakta · »Anholdte 412«', 'at': '2026-10-18T19:00:00+00:00'},
+             {'id': 'n1760817700000', 'ref': 'oko:oil:brent', 'text': 'Forklar Brent bedre.', 'ctx': 'Økonomi', 'at': '2026-10-18T19:10:00+00:00'},
+             {'id': 'n1760817800000', 'ref': 'svar:30600', 'text': 'Svaret mangler.', 'ctx': 'Et svar', 'at': '2026-10-18T19:20:00+00:00'},
+             {'id': 'n1760817900000', 'ref': 'kal:valg-usa', 'text': 'Datoen er forkert.', 'ctx': 'Kalender', 'at': '2026-10-18T19:30:00+00:00'},
+             {'id': 'n1', 'ref': 'story:aaaabbbbccccdddd', 'text': 'Gammel.', 'ctx': '', 'at': '2026-10-01T19:30:00+00:00'}]
+    monkeypatch.setattr(editor, 'owner_state', lambda args: {'notes': notes})
+    monkeypatch.setattr(editor, 'owner_answers', lambda args: {'n1760817900000': {'by': 'forsideredaktør', 'text': 'Rettet.'}})
+    assert [editor.note_scope(n['ref']) for n in notes] == ['redaktion', 'okonomi', 'udvikler', 'kalender', 'redaktion']
+    front = editor.open_notes(None, now, ('redaktion', 'kalender'))
+    assert [n['id'] for n in front] == ['n1760817600000']             # answered, too old, the economy's and the wiki's left out
+    assert [n['id'] for n in editor.open_notes(None, now, ('okonomi', 'kalender'))] == ['n1760817700000']
+    pages = [{'id': 'frankrig-uroligheder-2026-10', 'title': 'Store uroligheder i Frankrig'}]
+    lines = editor.note_lines(front, {}.get, pages)
+    assert lines[0].startswith("## The owner's comments – open")
+    assert '[n1760817600000] 18.10 21.00 · Begivenhed · Fakta · »Anholdte 412«' in lines
+    assert '  The owner: Tallet er forældet.' in lines
+    assert '  The event page frankrig-uroligheder-2026-10 (Store uroligheder i Frankrig) – its fakta · 2' in lines
+    problems = []
+    out = editor.owner_file([{'id': 'n1760817600000', 'by': 'begivenhedsredaktør', 'reply': 'Rettet til 997 fra ministeriet.'},
+                             {'id': 'n9', 'by': 'forsideredaktør', 'reply': 'x'},
+                             {'id': 'n1760817700000', 'by': 'nogen', 'reply': 'x'}],
+                            {'items': {'n0': {'by': 'chefredaktør', 'text': 'Gammelt svar.', 'at': '2026-10-01T00:00:00+00:00'}}},
+                            notes, now, problems)
+    assert out['items'] == {'n1760817600000': {'by': 'begivenhedsredaktør', 'text': 'Rettet til 997 fra ministeriet.', 'done': True,
+                                               'at': '2026-10-18T20:00:00+00:00', 'ref': 'ev:frankrig-uroligheder-2026-10:fakta:2'}}
+    assert len(problems) == 2 and 'no comment of the owner' in problems[0] and "'by' is one of" in problems[1]
+    assert editor.owner_file(None, None, notes, now, []) is None
+    assert 'owner.json' in editor.DIGEST_FILES and 'owner_notes' in editor.TEMPLATE
+
+
+def test_the_owners_own_headline_wins_and_teaches(monkeypatch):
+    # 18/10, the owner: 'giv også en funktion der lader mig edit overskrifter direkte'
+    sid = 'aaaabbbbccccdddd'
+    monkeypatch.setattr(editor, 'owner_state', lambda args: {'titles': {
+        sid: {'t': 'Hvorfor brænder Paris?', 'was': 'Uro i Paris', 'at': '2026-10-18T19:00:00+00:00'},
+        'ev:frankrig-uroligheder-2026-10': {'t': 'Urolighederne i Frankrig', 'was': 'Store uroligheder', 'at': '2026-10-18T18:00:00+00:00'}}})
+    monkeypatch.setattr(editor, 'summaries_of', lambda args: {'titles': {'bbbb': {'title': 'Redaktørens', 'at': '2026-10-18T19:00:00+00:00'}}})
+    heads = editor.headlines_of(None)
+    assert heads[sid] == {'title': 'Hvorfor brænder Paris?', 'at': '2026-10-18T19:00:00+00:00', 'owner': True}
+    assert 'ev:frankrig-uroligheder-2026-10' not in heads and 'bbbb' in heads
+    assert sid in editor.headed_ids(heads)        # his question is his: never refused, never a headline to write
+    lines = editor.owner_title_lines(None)
+    assert lines[0].startswith("## The owner's own headlines")
+    assert lines[4] == '- [aaaabbbbccccdddd] · "Uro i Paris" → "Hvorfor brænder Paris?"'
+    assert lines[5].startswith('- event page frankrig-uroligheder-2026-10 · "Store uroligheder" → "Urolighederne i Frankrig"')
+    shown = editor.arch_story({'id': sid, 'title': 'Uro i Paris', 'lang': 'da', 'source': 'DR', 'link': 'https://dr.test/a'}, heads, {})
+    assert shown['title'] == 'Hvorfor brænder Paris?'

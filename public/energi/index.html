@@ -1759,6 +1759,47 @@ dock();
 watch();
 foot();
 load();
+// The owner's long press (in the app's frame, admin only; the owner, 18/10: 'alle elementer burde kunne holdes nede og få
+// en "kommentar" valgmulighed … økonomi kalender osv.'): what is held – a figure, a line, a story, a date ahead, the
+// quote – goes to the app's own sheet (khabarOwnerHold) with a reference the economy editor can find it by
+function heldInfo(t) {
+  const sec = t.closest('.ec-sec'), T = sec && TOPIC[sec.dataset.t], id = T ? T.id : 'side';
+  const txt = el => String((el && el.innerText) || '').replace(/\s+/g, ' ').trim().slice(0, 220);
+  const where = ['Økonomi', ...(T ? [T.fly] : [])];
+  const story = t.closest('[data-story]');
+  if (story) return { story: story.dataset.story, ref: `oko:${id}:nyhed`, where, seen: txt(story.closest('.story') || story) };
+  const cal = t.closest('[data-cal]');
+  if (cal) return { ref: 'kal:' + cal.dataset.cal, where: [...where, 'Det kommer'], seen: txt(cal) };
+  const tile = t.closest('[data-tile]');
+  if (tile) return { ref: `oko:${id}:${tile.dataset.tile}`, where: [...where, txt(tile.querySelector('.ec-k'))], seen: txt(tile) };
+  const item = t.closest('.en-item[data-k]');
+  if (item) return { ref: `oko:${id}:${item.dataset.k}`, where, seen: txt(item.querySelector('.en-row') || item) };
+  if (t.closest('.ec-ctx')) return { ref: `oko:${id}:linje`, where: [...where, 'Redaktørens linje'], seen: txt(t.closest('.ec-ctx')) };
+  if (t.closest('.ec-quote')) return { ref: `oko:${id}:citat`, where: [...where, 'Dagens citat'], seen: txt(t.closest('.ec-quote')) };
+  if (t.closest('.ec-top')) return { ref: `oko:${id}:overskrift`, where, seen: txt(t.closest('.ec-top')) };
+  return { ref: `oko:${id}`, where, seen: txt(t.closest('p, li, h2, h3, button, a') || sec) };
+}
+(() => {
+  const owner = () => { try { return EMBED && parent.document.documentElement.classList.contains('admin') && appFn('khabarOwnerHold'); } catch (e) { return null; } };
+  let hold = null, held = false;
+  const stop = () => { if (hold) clearTimeout(hold.t); hold = null; };
+  document.addEventListener('pointerdown', e => {
+    const fn = e.button > 0 || e.target.closest('input, textarea') ? null : owner();
+    if (!fn) return;
+    const at = e.target;
+    stop();
+    hold = { x: e.clientX, y: e.clientY, t: setTimeout(() => {
+      hold = null; held = true; setTimeout(() => { held = false; }, 900);
+      if (navigator.vibrate) navigator.vibrate(12);
+      fn(heldInfo(at));
+    }, 550) };
+  });
+  document.addEventListener('pointermove', e => { if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) stop(); });
+  for (const ev of ['pointerup', 'pointercancel']) document.addEventListener(ev, stop);
+  // the tap that ends a hold opens nothing
+  document.addEventListener('click', e => { if (held) { held = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('contextmenu', e => { if (owner()) e.preventDefault(); });
+})();
 </script>
 </body>
 </html>
