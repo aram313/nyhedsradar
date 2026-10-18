@@ -2847,15 +2847,16 @@ function openRow(el, i) {
 // too, which doubled the app's own correction – the page leapt up, then crawled back down), and its smooth scrolling
 // is not used here (on iPhone it can crawl). A short motion of our own instead, which a finger on the page stops.
 let moveT = 0;
-function movePage(dy, ms = 240) {
+function movePage(dy, ms = 240, done = null) {
   const p = cur(), from = p.scrollTop, t0 = performance.now();
   cancelAnimationFrame(moveT);
-  if (reduceMotion || !dy) { p.scrollTop = from + dy; return; }
+  if (reduceMotion || !dy) { p.scrollTop = from + dy; if (done) done(); return; }
   const step = now => {
-    if (touching) return;
+    if (touching) { if (done) done(); return; }
     const k = Math.min(1, (now - t0) / ms);
     p.scrollTop = from + dy * (1 - Math.pow(1 - k, 3));
     if (k < 1) moveT = requestAnimationFrame(step);
+    else if (done) done();
   };
   moveT = requestAnimationFrame(step);
 }
@@ -2918,7 +2919,6 @@ function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = asShown(el);
   const pg = cur();
   if (!open && pg && pg.dataset.tab === 'nyhed') return;   // the 'Nyhed' page's story stays open: the bar's back closes it
-  if (open && pg && !pg.classList.contains('focus')) pg.focusY = pg.scrollTop;   // where one was, for when it closes
   if (open) foldOthers(el);
   if (open && i) {
     if (visit) visit.opened++;
@@ -2947,12 +2947,26 @@ function focusSync(pg = cur()) {
   for (const el of pg.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
   const open = pg.querySelector(OPENED), was = pg.classList.contains('focus');
   pg.classList.toggle('focus', !!open);
-  // while it is open the page stands still and only what is open scrolls, within its own box; closed, the page is back
-  // where one opened it (the owner, 18/10: 'man ikke kan scrolle væk fra den, kun i dens område, og når man lukker den
-  // igen er man tilbage til den position som da man åbnede den')
+  // closed, the story stays where it is on the screen and the page goes on from there (the owner, 18/10: 'if you
+  // scroll down while a story is open, and you close it it goes back to original position, it should anchor the main
+  // story position'); measured before the page lets go, and the room below stays until one scrolls up out of it, so the
+  // browser never pulls the page down under the story
+  const shut = !open && was ? (pg.focusEl && pg.focusEl.isConnected ? pg.focusEl
+    : pg.focusKey && pg.querySelector(pg.focusKey)) : null;   // drawn anew (an event closes by a redraw): by its id
+  const top = shut ? shut.getBoundingClientRect().top : 0;
+  // while it is open the page stands still and only what is open scrolls, within its own box (the owner, 18/10: 'man
+  // ikke kan scrolle væk fra den, kun i dens område')
+  if (shut) { cancelAnimationFrame(moveT); pg.classList.add('settling'); }
   pg.classList.toggle('locked', !!open);
   if (open && !was) pg.holdFrom = performance.now() + 450;   // after the app's own move into view (keepInView)
-  if (!open && was && pg.focusY != null) { cancelAnimationFrame(moveT); pg.scrollTop = pg.focusY; pg.focusY = null; }
+  if (shut) {
+    const d = shut.getBoundingClientRect().top - top;
+    if (Math.abs(d) >= 0.5) pg.scrollTop += d;
+    unsettle(pg);
+  }
+  const box = open && (open.closest('article.story, .ce') || open);
+  pg.focusEl = box || null;
+  pg.focusKey = !box ? null : box.id ? '#' + CSS.escape(box.id) : box.dataset.id ? `[data-id="${CSS.escape(box.dataset.id)}"]` : null;
   // the fade runs only as something opens: a row that scrolls into view later is dimmed already (a row out of sight is
   // drawn late – content-visibility – and a transition there showed it light for a moment, the owner 18/10)
   if (open && !was) { pg.classList.add('fading'); clearTimeout(pg.fadeT); pg.fadeT = setTimeout(() => pg.classList.remove('fading'), 260); }
@@ -3202,8 +3216,14 @@ function holdOpen(p) {
     if (d) movePage(d, 260);
   }, 140);
 }
+// the room kept below a closed story (focusSync) goes once the page no longer reaches into it
+function unsettle(p) {
+  if (!p.classList.contains('settling')) return;
+  const room = p.scrollHeight - p.clientHeight - p.scrollTop;
+  if (room >= (visualViewport ? visualViewport.height : innerHeight)) p.classList.remove('settling');
+}
 function onPageScroll() {
-  if (cur()) holdOpen(cur());
+  if (cur()) { holdOpen(cur()); unsettle(cur()); }
   const y = cur() ? cur().scrollTop : 0;
   if (y < 120 && !$('freshPill').hidden) $('freshPill').hidden = true;
   $('bar').classList.toggle('scrolled', y > 4);

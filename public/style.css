@@ -1278,7 +1278,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page.fading .dimmed { transition: opacity .2s ease-out; }   /* only as it opens */
 /* while a story or an event is open the page scrolls only as far as keeps it in view (app.js holdOpen); what is open
    fits between the bar and the dock and scrolls within itself when it is taller (18/10, the owner) */
-.page.locked::after { height: calc(var(--dock) + 28px + var(--vvh, 100dvh)); }   /* room below, so a story opened low can come fully into view */
+.page.locked::after, .page.settling::after { height: calc(var(--dock) + 28px + var(--vvh, 100dvh)); }   /* room below, so a story opened low can come fully into view (and kept while the page glides back, app.js focusSync) */
 .page.locked .lift { max-height: calc(var(--vvh, 100dvh) - var(--barh) - var(--dock) - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .page.locked .lift::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) { .page.fading .dimmed { transition: none; } }
