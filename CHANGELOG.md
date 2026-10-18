@@ -16,6 +16,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   media' in general as a source; the update's template shows `was` (the earlier figure) and `of` (a share's whole).
   Fixed: an outlet's name is no name of the state – 'Times of Israel', 'Israel Hayom' and 'Israel National News' stay
   as they are in the editor's text and the app, and a name set in quotes before is set back.
+  The quarter-hour check names a page under way that the tool would refuse now – no counts, no whole article, 'the
+  media' as its source – once per version of the page, so the editor brings it up to date.
 - **The editor gets the whole material of an event** (2026-10-18, the first page it built – Uroligheder i Frankrig –
   had no fact box and two thin paragraphs: the input gave one teaser, while the other outlets' headlines carried '1,200
   arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says'). For the great events and for

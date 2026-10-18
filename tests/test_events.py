@@ -158,7 +158,7 @@ def test_a_page_under_way_without_its_numbers_is_named_and_its_material_listed()
     page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
             'since': '2026-10-18', 'dek': '…', 'facts': [], 'stories': ['f1'], 'at': '2026-10-18T14:49:58+00:00'}
     find = {'f1': story}.get
-    assert events.thin([page], find) == [(page, ['1,200', '150', '1,800'])]
+    assert events.thin([page], find) == [(page, ['tal (1,200, 150, 1,800 i dens historier)'])]
     text = '\n'.join(events.lines({'items': [page]}, NOW, find, lambda i: i['title'], lambda i: ''))
     assert 'The Hindu: France protests: More than 1,800 arrested, Interior Minister says' in text
     assert 'Numbers in its stories: 1,200, 150, 1,800' in text and 'Bring each page under way up to date' in text

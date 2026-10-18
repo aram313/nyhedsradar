@@ -194,14 +194,24 @@ def material(it, head, teaser, most=10, indent='        '):
 
 
 def thin(items, find):
-    """The pages under way that hold fewer than two numbers while their stories carry two or more: (page, numbers)."""
+    """The pages under way that the tool would refuse now (events_file): fewer than two boxes while their stories carry
+    two counts or more, or fewer than three paragraphs while their stories hold six other outlets' headlines –
+    (page, what it lacks)."""
     out = []
     for e in items or []:
-        if e.get('status') != 'i gang' or len(e.get('facts') or []) >= 2:
+        if e.get('status') != 'i gang':
             continue
-        nums = numbers_in([it for it in (find(x) for x in e.get('stories') or []) if it])
-        if len(nums) >= 2:
-            out.append((e, nums))
+        told = [it for it in (find(x) for x in e.get('stories') or []) if it]
+        nums, heads = numbers_in(told), sum(len(it.get('also') or []) for it in told)
+        lacks = []
+        if len(e.get('facts') or []) < min(2, len(nums)):
+            lacks.append(f"tal ({', '.join(nums[:4])} i dens historier)")
+        if heads >= 6 and len(e.get('article') or []) < 3:
+            lacks.append(f"en hel artikel ({len(e.get('article') or [])} afsnit, {heads} overskrifter i dens historier)")
+        if any(MEDIA_SAY.search(str(a.get('text') or '')) for a in e.get('article') or [] if isinstance(a, dict)):
+            lacks.append('kilder ved navn (artiklen siger »medierne«)')
+        if lacks:
+            out.append((e, lacks))
     return out
 
 

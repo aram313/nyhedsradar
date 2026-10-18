@@ -769,8 +769,8 @@ def look(args, now):
                        f"{'historie' if len(great['items']) == 1 else 'historier'}, op til {great['outlets']} medier)")
     # a page under way without its numbers while its stories carry them (18/10: the first page had none)
     thin_pages = event_pages.thin(pages, resolver([*pool, *items]).get)
-    for page, nums in thin_pages[:1]:
-        reasons.append(f"begivenhedssiden mangler tal: {clip(page.get('title'), 60)} ({', '.join(nums[:4])} i dens historier)")
+    for page, lacks in thin_pages[:1]:
+        reasons.append(f"begivenhedssiden mangler {' og '.join(lacks)}: {clip(page.get('title'), 60)}")
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
     if great:
