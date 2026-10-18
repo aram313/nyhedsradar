@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Radar: a picture too dark to see is no picture** (2026-10-18, the front page's review: Dagens historie wore DR's
+  photo of Rubio at night). Measured on 60 cards' pictures: that one had a mean light of 18 of 255 and its brightest
+  tenth under 43; the next darkest 35 and 117. A picture under 28 and 80 (thumbs.too_dark) is set aside and another
+  outlet's picture of the story taken; one made before the rule is looked at once (pics.json 'lit').
 - **Forside: the service blocks in the page's two voices** (2026-10-18, the owner: 'Forbedrer forsiden yderligere … bare
   fortsæt forbedring'). Markederne is a small table of four, a paper's markets box – the lowest Danish petrol price
   first (what a Danish reader pays), then Brent, the S&P 500 and gold with their moves in the serif, 'Børserne:

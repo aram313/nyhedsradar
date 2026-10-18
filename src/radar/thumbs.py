@@ -75,6 +75,27 @@ def crop_box(size, target, at):
     return round(left), round(top), round(left + bw), round(top + bh)
 
 
+# a night shot in which almost nothing can be seen is no picture for a story (the front page's review, 18/10: Dagens
+# historie wore DR's photo of Rubio at night – its mean light 18 of 255, its brightest tenth under 43; among 60 cards'
+# pictures the next darkest had 35 and 117): another outlet's picture of the story is taken instead
+DARK_MEAN, DARK_P90 = 28, 80
+
+
+def too_dark(im):
+    """Whether a picture is too dark to show: its mean light under DARK_MEAN and its brightest tenth under DARK_P90."""
+    g = im.convert('L').resize((66, 60))
+    h = g.histogram()
+    n = sum(h) or 1
+    mean = sum(i * c for i, c in enumerate(h)) / n
+    acc, p90 = 0, 255
+    for i, c in enumerate(h):
+        acc += c
+        if acc >= .9 * n:
+            p90 = i
+            break
+    return mean < DARK_MEAN and p90 < DARK_P90
+
+
 def shrink(raw):
     """A JPEG cut around the picture's subject (a face when there is one, else a little above the middle, where
     news photos have it), or None for what is no photo: icons, logos, banners, unreadable files."""
@@ -87,6 +108,8 @@ def shrink(raw):
         im.draft('RGB', (SIZE[0] * 2, SIZE[1] * 2))   # JPEGs decode straight at a smaller size
         im = ImageOps.exif_transpose(im).convert('RGB')
         im = im.crop(crop_box(im.size, SIZE, focus(im) or (.5, .4))).resize(SIZE, Image.LANCZOS)
+        if too_dark(im):
+            return None
         out = io.BytesIO()
         im.save(out, 'JPEG', quality=70, optimize=True, progressive=True)
         return out.getvalue()
@@ -105,6 +128,21 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     bad = {k: v for k, v in memory.get('bad', {}).items() if v >= since}
     folder.mkdir(parents=True, exist_ok=True)
     have = {p.name for p in folder.glob('*.jpg')}
+    # a picture made before the darkness rule is looked at once (18/10): a too dark one is set aside as no picture
+    lit = dict(memory.get('lit', {}))
+
+    def bright(url):
+        name = name_of(url)
+        if name not in lit:
+            from PIL import Image
+            try:
+                with Image.open(folder / name) as im:
+                    lit[name] = not too_dark(im)
+            except Exception:  # noqa: BLE001 – an unreadable file is made again
+                lit[name] = False
+            if not lit[name]:
+                bad[url] = now.isoformat()
+        return lit[name]
 
     def own(it):   # the card and its other outlets, without unverified channels
         return [m for m in [it] + members_of.get(it['id'], []) if m['source'] not in unverified]
@@ -140,7 +178,8 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
         it.pop('thumb', None)
         it.pop('pic', None)
         opts = [o for o in options(it) if o not in bad]
-        ready = next((o for o in opts if isinstance(o, str) and name_of(o) in have), None)
+        ready = next((o for o in opts if isinstance(o, str) and name_of(o) in have and bright(o)), None)
+        opts = [o for o in opts if o not in bad]
         if ready:                        # a picture made in an earlier run stays, so cards do not flicker
             it['thumb'], it['pic'] = name_of(ready), ready   # pic: the original, for the big lead picture
         elif opts:
@@ -197,4 +236,4 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
     for p in folder.glob('*.jpg'):
         if p.name not in used:
             p.unlink()
-    return {'page': pages, 'bad': bad}
+    return {'page': pages, 'bad': bad, 'lit': {k: v for k, v in lit.items() if k in used}}

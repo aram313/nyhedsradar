@@ -102,3 +102,26 @@ def test_other_outlets_pages_when_the_lead_has_none(tmp_path, monkeypatch, photo
     for _ in range(3):   # a run looks at one page per card; the next run goes on to the next
         memory = thumbs.attach(cards, members, set(), tmp_path, memory)
     assert cards[0]['thumb'] == thumbs.name_of('https://dr.test/photo.jpg')   # another outlet's page gave one
+
+
+def test_a_picture_too_dark_to_see_is_no_picture(tmp_path, monkeypatch, photo):
+    # the front page's review, 18/10: Dagens historie wore a night shot in which almost nothing could be seen
+    Image = pytest.importorskip('PIL.Image')
+    jpg, _ = photo
+    night, dusk = io.BytesIO(), io.BytesIO()
+    Image.new('RGB', (640, 360), (14, 14, 18)).save(night, 'JPEG')
+    Image.new('RGB', (640, 360), (60, 60, 60)).save(dusk, 'JPEG')
+    assert thumbs.shrink(night.getvalue()) is None and thumbs.shrink(dusk.getvalue()) and thumbs.shrink(jpg)
+    monkeypatch.setattr(thumbs, 'get', lambda url, limit, accept, timeout=8: night.getvalue() if 'night' in url else jpg)
+    cards = [{'id': 'a', 'source': 'DR', 'link': 'https://news.google.com/a', 'img': 'https://img.test/night.jpg'}]
+    members = {'a': [{'id': 'a2', 'source': 'BBC', 'link': 'https://news.google.com/b', 'img': 'https://img.test/day.jpg'}]}
+    memory = thumbs.attach(cards, members, set(), tmp_path, {})
+    assert 'https://img.test/night.jpg' in memory['bad']
+    thumbs.attach(cards, members, set(), tmp_path, memory)            # the next run takes the other outlet's picture
+    assert cards[0]['thumb'] == thumbs.name_of('https://img.test/day.jpg')
+    # a picture made before the rule is looked at once and set aside when it is too dark
+    old = tmp_path / thumbs.name_of('https://img.test/old.jpg')
+    Image.new('RGB', (330, 300), (10, 10, 10)).save(old, 'JPEG')
+    cards = [{'id': 'b', 'source': 'DR', 'link': 'https://news.google.com/c', 'img': 'https://img.test/old.jpg'}]
+    memory = thumbs.attach(cards, {}, set(), tmp_path, {})
+    assert 'https://img.test/old.jpg' in memory['bad'] and not cards[0].get('thumb')
