@@ -1227,15 +1227,23 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .pkg.merged .dek { -webkit-line-clamp: 3; }   /* a standfirst is short: two lines, Dagens historie three */
 .page[data-tab="home"] .f-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
 .page[data-tab="home"] .story.open .f-pic img { filter: grayscale(.45) contrast(1.04); }
-/* the markets in one quiet line under its label, a way to Økonomi (app.js marketsLine) */
-.mk-line { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; min-height: 48px; padding: 6px 40px 4px 16px; color: var(--text);
-  font-size: var(--fs-body); text-decoration: none; }
-.mk-line .mk { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.mk-line .mk b { font-weight: 600; }
-.mk-line .mk em { font-style: normal; color: var(--text-2); }
-.mk-line > svg { position: absolute; right: 14px; top: 50%; width: 16px; height: 16px; margin-top: -8px; color: var(--text-3); }
-.mk-line .mk-t { flex-basis: 100%; font-size: var(--fs-meta); color: var(--text-3); }
-.mk-line:active { opacity: .6; }
+.f-svar-b .f-svar { margin-top: 6px; }   /* the movement's answer right under its label (app.js movementBlock) */
+/* the markets as a small table of four, two a row, each its name small over its figure (app.js marketsLine) */
+.mk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; margin: 2px 16px 0; color: var(--text); text-decoration: none; }
+.mk-grid .mk { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-top: 1px solid var(--line); }
+.mk-grid .mk:nth-child(-n+2) { border-top: 0; }
+.mk-n { font-size: var(--fs-meta); color: var(--text-3); }
+.mk-v { font-family: var(--display); font-size: var(--fs-lead); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mk-v em { font-family: var(--sans); font-style: normal; font-size: var(--fs-meta); font-weight: 500; color: var(--text-2); }
+.mk-grid:active { opacity: .6; }
+.mk-t { margin: 2px 16px 0; font-size: var(--fs-meta); color: var(--text-3); }
+/* the calendar on the front page in the page's two voices: the day in the serif, the kind of event without its colour */
+.page[data-tab="home"] .ce .cd b { font-family: var(--display); font-weight: 600; letter-spacing: 0; font-variation-settings: "opsz" 48; }
+.page[data-tab="home"] .ce .ck i, .page[data-tab="home"] .ce .ck-d { display: none; }
+/* the foot: one quiet line in the serif under a short rule – what Khabar read and chose */
+.page[data-tab="home"] .foot { position: relative; margin-top: 30px; padding-top: 22px; font-family: var(--display); font-style: italic;
+  font-size: var(--fs-small); color: var(--text-3); }
+.page[data-tab="home"] .foot::before { content: ""; position: absolute; top: 0; left: 50%; width: 32px; height: 1px; margin-left: -16px; background: var(--line); }
 /* the development under Dagens historie shows only with the story opened (app.js homeTop) */
 .pkg.merged > .of-main { display: none; }
 .pkg.merged:has(> .story.open) > .of-main { display: block; }

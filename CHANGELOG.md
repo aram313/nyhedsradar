@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: the service blocks in the page's two voices** (2026-10-18, the owner: 'Forbedrer forsiden yderligere … bare
+  fortsæt forbedring'). Markederne is a small table of four, a paper's markets box – the lowest Danish petrol price
+  first (what a Danish reader pays), then Brent, the S&P 500 and gold with their moves in the serif, 'Børserne:
+  lukkekurser fredag' when the exchanges are closed. The calendar's days in the serif, the kinds of event without
+  their coloured dots. The foot one quiet italic serif line under a short rule. The movement's answer right under
+  its label.
 - **Forside: its whole potential, by brevity** (2026-10-18, the owner: 'udnytter vi sidens fulde potentiale på forsiden?
   … er billederne for meget i centrum?' – 'gør det du vurderer er bedst'). Measured: 5 of the day's 48 stories (15 of
   them weighty) on the page, pictures 46 % of the first screen, nothing of Analyser or Økonomi. Now a picture only on

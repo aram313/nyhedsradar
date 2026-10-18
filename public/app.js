@@ -1322,22 +1322,30 @@ function movementBlock(used) {
   frontAns.add(a.nr);
   return `<section class="block f-svar-b">${blockHead('Analyser', moreLink('Alle', 'analyses'))}<div class="ans-ref f-svar">${answerLine(a)}</div></section>`;
 }
-// the markets in one quiet line, a way to Økonomi: oil, the S&P 500 and gold, each with its move since the close before
+// the markets as a small table, as a paper's markets box – a way to Økonomi: the Danish petrol price first (the
+// lowest a chain lists today: what a Danish reader pays), then oil, the S&P 500 and gold with their move since the close
+// before, and the closing day when it is not today's
 const MARKETS = [['brent', 'Brent', ' $'], ['spx', 'S&P 500', ''], ['gold', 'Guld', ' $']];
 function marketsLine() {
   const E = need('eco');
   if (!E || !E.s) return '';
-  const nf1 = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 1 }), parts = MARKETS.map(([k, name, u]) => {
+  const nf1 = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 1 }), nf2 = new Intl.NumberFormat('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const cell = (name, value, move = '') => `<span class="mk"><span class="mk-n">${esc(name)}</span><span class="mk-v">${value}${move}</span></span>`;
+  const cells = [];
+  const petrol = Math.min(...((E.pumps && E.pumps.chains) || []).map(c => c.p && c.p.benzin && c.p.benzin.v).filter(v => v > 0));
+  if (isFinite(petrol)) cells.push(cell('Benzin i Danmark', `${nf2.format(petrol)} kr.`));
+  for (const [k, name, u] of MARKETS) {
     const x = E.s[k];
-    if (!x || x.v == null) return '';
+    if (!x || x.v == null) continue;
     const ch = x.p ? (x.v - x.p) / x.p * 100 : null;
-    return `<span class="mk"><b>${esc(name)}</b> ${nf1.format(x.v)}${u}${ch == null ? '' : ` <em>${ch >= 0 ? '▲' : '▼'} ${nf1.format(Math.abs(ch))} %</em>`}</span>`;
-  }).filter(Boolean);
-  // when the newest of them is not today's (a weekend, a holiday): the closing day said, as Økonomi says it
+    cells.push(cell(name, `${nf1.format(x.v)}${u}`, ch == null ? '' : ` <em>${ch >= 0 ? '▲' : '▼'} ${nf1.format(Math.abs(ch))} %</em>`));
+    if (cells.length >= 4) break;
+  }
+  if (!cells.length) return '';
   const last = MARKETS.map(([k]) => E.s[k] && E.s[k].t).filter(Boolean).sort().pop();
-  const day = last && FMT.ymd.format(new Date(last)) !== FMT.ymd.format(new Date())
-    ? `<span class="mk-t">Lukkekurser ${FMT.wdl.format(new Date(last))}</span>` : '';
-  return parts.length ? `<section class="block mk-b">${blockHead('Markederne')}<a class="mk-line" href="?tab=okonomi" data-okonomi>${parts.join('')}${day}<svg aria-hidden="true"><use href="#i-chev"/></svg></a></section>` : '';
+  const day = last && FMT.ymd.format(new Date(last)) !== FMT.ymd.format(new Date()) ? `Børserne: lukkekurser ${FMT.wdl.format(new Date(last))}` : '';
+  return `<section class="block mk-b">${blockHead('Markederne', moreLink('Økonomi', 'okonomi'))}<a class="mk-grid" href="?tab=okonomi" data-okonomi>${cells.join('')}</a>`
+    + (day ? `<p class="mk-t">${esc(day)}</p>` : '') + '</section>';
 }
 // 'Følg udviklingen' on the front page: the developments that moved last (not the main story's own, which shows its
 // steps above); a tap opens one on the Udvikling page, where the recap and the earlier days are too
