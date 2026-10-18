@@ -744,8 +744,12 @@ const htLabel = (date, extra = '') => `<div class="ht-who"><b>Hizb ut-Tahrirs sv
 const htDate = date => date ? `<time class="ht-d">${esc(dSlash(date))}</time>` : '';
 // 'Hizb ut-Tahrirs svar: <title> · d/m/åååå' – one quiet line to the answer reader
 // (whose and when on the first row, so a long title or a large text size never cuts the date off)
-const answerLine = a => `<button class="ht-line" data-svar="${esc(a.nr)}"><span class="ht-tx"><span class="ht-k"><b>Hizb ut-Tahrirs svar</b>`
-  + ` · ${esc(dSlash(a.date))}</span><span class="ht ht-t">${esc(a.title)}</span></span><svg><use href="#i-chev"/></svg></button>`;
+// (with dek: a few lines of what the answer is about under its title – 'Svaret kort' when the answer is filed, else its
+// question; the front page's Analyser block, the owner, 18/10: 'må der gerne være den beskrivende tekst så den ikke ser så
+// tynd ud')
+const answerLine = (a, dek) => `<button class="ht-line" data-svar="${esc(a.nr)}"><span class="ht-tx"><span class="ht-k"><b>Hizb ut-Tahrirs svar</b>`
+  + ` · ${esc(dSlash(a.date))}</span><span class="ht ht-t">${esc(a.title)}</span>${dek && (a.note || a.q) ? `<span class="ht ht-q">${esc(a.note || a.q)}</span>` : ''}</span>`
+  + `<svg><use href="#i-chev"/></svg></button>`;
 // the line under a story: at once when the files are here, else a quiet place that is filled when they come
 function answerRef(i, extra = '', skip = '') {
   const a = V('bix') && V('mix') ? answerFor(i, extra) : null;
@@ -1404,7 +1408,7 @@ function movementBlock(used) {
   a = a || A.list.find(x => !frontAns.has(x.nr));
   if (!a) return '';
   frontAns.add(a.nr);
-  return `<section class="block f-svar-b">${blockHead('Analyser', moreLink('Alle', 'analyses'))}<div class="ans-ref f-svar">${answerLine(a)}</div></section>`;
+  return `<section class="block f-svar-b">${blockHead('Analyser', moreLink('Alle', 'analyses'))}<div class="ans-ref f-svar">${answerLine(a, true)}</div></section>`;
 }
 // the markets as a small table, as a paper's markets box – a way to Økonomi: the oil prices first, then the US diesel
 // price (the owner, 18/10: 'Olie priser i markedet er vigtigt, usa dieselpris vægter højere end danske' – the price the

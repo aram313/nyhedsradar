@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front page's Analyser block says what the answer is about** (2026-10-18, the owner: 'under analyser på forsiden
+  må der gerne være den beskrivende tekst så den ikke ser så tynd ud'): under the answer's title, up to four lines of
+  'Svaret kort' when the answer is filed, else its question, in the movement's own face.
+- **The senior editor takes 07, 12, 16 and 20 in place of the front-page editor** (2026-10-18, the owner: 'når
+  begivenheds redaktør kører erstatter den forside redaktør … kl 7 om morgenen i stedet for forside redaktøren, for at
+  give en oprisket morgen'): the event editor's routine (cron `0 6,11,15,19`) does the front-page editor's whole work at
+  its hours and more – event pages, the front page's review, a note every run – and makes the morning's front page anew at
+  07; the front-page editor runs the other hours (cron `0 5,7-10,12-14,16-18,20-22`).
 - **The event editor – and notes between the editors** (2026-10-18, the owner: 'Sæt begivenheds ekspert redaktøren
   op …' – four times a day – and 'Ekspert redaktøren må også gerne kigge på forsiden … hvis den finder forbedringer skal
   den lave det og give besked til khabar hjernes næste kørsel om vurdering. Begge redaktøre skal arbejde med thaqafa og

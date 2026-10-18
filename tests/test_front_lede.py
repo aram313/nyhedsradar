@@ -261,7 +261,7 @@ def test_the_front_page_uses_its_potential_by_brevity():
     more = fn('frontMore')
     assert "(weightOf(i) >= 2 || i.live === 'wide')" in more and '!used.has(i.id)' in more and '!same(i)' in more and 'brief.forEach(({ i }) => used.add(i.id))' in more and 'overlap(w, x.w) >= 2' in more
     assert "blockHead('Kort nyt'" in more and "svar ? '' : movementBlock(used)" in more and 'marketsLine()' in more
-    assert "blockHead('Analyser'" in fn('movementBlock') and 'answerLine(a)' in fn('movementBlock')
+    assert "blockHead('Analyser'" in fn('movementBlock') and 'answerLine(a, true)' in fn('movementBlock')   # with its describing text (18/10)
     assert "need('eco')" in fn('marketsLine') and 'data-okonomi' in fn('marketsLine')
     assert "eco: () => CFG.energyUrl" in CODE
     assert 'fpic' not in fn('fixedHome').split('Døgnets vigtigste')[1]
