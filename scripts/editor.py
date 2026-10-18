@@ -178,15 +178,21 @@ def kept(value):
 # the lede's parts, each of which opens its story on the front page (the owner, 17/10): cut where the clauses meet, a
 # part of fewer than three words joined to its neighbour – the app's `ledeParts` (public/app.js); keep the two alike
 LEDE_CUT = re.compile(r'(,\s+(?:og|mens)\s+|,\s+|;\s*|\s+–\s+|\s+mens\s+|\s+og\s+)')
+LEDE_OPEN = re.compile(r'mens|;|–|,\s+og\s')
 
 
 def lede_parts(text):
     """The lede's parts in order, as the app cuts them."""
     def words(s):
         return sum(1 for w in s.split() if re.search(r'[^\W_]', w))
-    bits, out = LEDE_CUT.split(str(text or '').strip()), []   # out: [text, the separator before it]
+    bits, out, held = LEDE_CUT.split(str(text or '').strip()), [], None   # out: [text, the separator before it]
     for k in range(0, len(bits), 2):
         part, sep = bits[k], bits[k - 1] if k else ''
+        if held:   # a short subject after a clause's opening word, joined to its clause (as the app's ledeParts)
+            part, sep, held = held[0] + sep + part, held[1], None
+        if k and words(part) < 3 and LEDE_OPEN.search(sep) and k + 2 < len(bits) and re.fullmatch(r'\s+og\s+', bits[k + 1]):
+            held = (part, sep)
+            continue
         if out and words(part) < 3:
             out[-1][0] += sep + part
         else:

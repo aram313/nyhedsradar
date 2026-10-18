@@ -1463,10 +1463,17 @@ function mainAnswer(i, extra, skip) {
 // story stays plain text. Keep `lede_parts` in scripts/editor.py alike.
 const LEDE_CUT = /(,\s+(?:og|mens)\s+|,\s+|;\s*|\s+–\s+|\s+mens\s+|\s+og\s+)/u;
 const ledeWords = s => s.split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+// a cut that opens a new clause (' mens ', ', og ', ';', ' – '): a short part right after it is that clause's subject,
+// so it joins the part after it when only an ' og ' lies between – 'mens houthierne og Saudi-Arabien udveksler angreb'
+// (the owner, 18/10: the headline ended '… 60 dage, mens houthierne')
+const LEDE_OPEN = /mens|;|–|,\s+og\s/u;
 function ledeParts(text) {
   const bits = String(text || '').trim().split(LEDE_CUT), out = [];
+  let held = null;
   for (let k = 0; k < bits.length; k += 2) {
     const p = { t: bits[k], sep: k ? bits[k - 1] : '' };
+    if (held) { p.t = held.t + p.sep + p.t; p.sep = held.sep; held = null; }
+    if (k && ledeWords(p.t) < 3 && LEDE_OPEN.test(p.sep) && k + 2 < bits.length && /^\s+og\s+$/u.test(bits[k + 1])) { held = p; continue; }
     if (out.length && ledeWords(p.t) < 3) out[out.length - 1].t += p.sep + p.t;
     else out.push(p);
   }
@@ -1542,14 +1549,18 @@ function ledeLinks(text, front, live, ids = null, byId = () => null, wiki = () =
 // outside the link
 function ledeHtml(lede, front, ids) {
   const wiki = t => scan(t).map(f => f.id).filter(id => !LINK_SKIP.has(id));
-  // the first part – the day's heaviest news – is the headline of the page; the rest runs on after it, a step quieter
-  // (the rest begins on its own line: without the word that joined it – ', ', ' mens ', ' og ' – and with a capital)
-  const parts = ledeLinks(lede, front, stories(), ids, findStory, wiki).map((p, n) => n === 1 ? { ...p, sep: '', t: cap(p.t.replace(/^[\s,;–-]+/u, '')) } : p).map(p => {
+  // the first clause – the day's heaviest news – is the headline of the page; the rest runs on after it, a step quieter
+  // (the rest begins on its own line: without the word that joined it – ', mens ', ', og ' – and with a capital). The
+  // headline ends where a new clause opens, not at a plain ' og ' or ', ' inside it ('sanktioner og told mod Rusland');
+  // a lede without such a cut ends it at its first part
+  const linked = ledeLinks(lede, front, stories(), ids, findStory, wiki);
+  const brk = Math.max(1, linked.findIndex((p, n) => n && LEDE_OPEN.test(p.sep)));
+  const parts = linked.map((p, n) => n === brk ? { ...p, sep: '', t: cap(p.t.replace(/^[\s,;–-]+/u, '')) } : p).map(p => {
     if (!p.id) return esc(p.sep + p.t);
     const [, words, stop] = p.t.match(/^([\s\S]*?)([.!?…]*)$/u);
     return `${esc(p.sep)}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-lede="${esc(p.id)}">${esc(words)}</a>${esc(stop)}`;
   });
-  return parts.length ? `<span class="lede-h">${parts[0]}</span>${parts.length > 1 ? `<span class="lede-r">${parts.slice(1).join('')}</span>` : ''}` : '';
+  return parts.length ? `<span class="lede-h">${parts.slice(0, brk).join('')}</span>${parts.length > brk ? `<span class="lede-r">${parts.slice(brk).join('')}</span>` : ''}` : '';
 }
 // a part of the lede tapped: its story on the front page opens in place, in view; one the page does not show opens in
 // Live, as a link with ?item= does

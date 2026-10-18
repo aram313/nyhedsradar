@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: the headline ends where a clause ends** (2026-10-18, the owner: 'Hvad er det for en overskrift?' – it read
+  '… varer 60 dage, mens houthierne' and the line under it began 'Saudi-Arabien udveksler angreb'). A short subject
+  after 'mens' (', og ', ';', ' – ') now joins its own clause across a plain ' og ' ('houthierne og Saudi-Arabien
+  udveksler angreb'), and the headline ends where a new clause opens, never at an ' og ' or ', ' inside one. The
+  editor's lede_parts cuts alike.
 - **Økonomi can no longer stay blank** (2026-10-18, the owner: 'Økonomi siden viser rn blank side?? Vi er live!!'):
   the page drew its topics in one go, so one topic the numbers could not draw stopped every topic after it and left a
   blank page until the next new numbers. Each topic is now drawn on its own (a quiet 'Kunne ikke vises lige nu' where

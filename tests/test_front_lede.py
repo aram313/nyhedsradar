@@ -25,7 +25,9 @@ PROMPT = (ROOT / 'docs' / 'hjerne' / 'routine-prompt.md').read_text(encoding='ut
 
 LEDE = ('Trump ophæver nye sanktioner og told mod Rusland, som Moskva kalder et historisk øjeblik, mens houthierne '
         'rammer Aden og Saudi-Arabien, og bosættere angriber landmænd på Vestbredden.')
-SAMPLES = [LEDE, 'Folketinget vedtager loven; Iran og USA mødes i Oman – og Hamas svarer.', 'Kort.',
+TODAY = ('Rubio: Trumps pause i sanktioner mod Rusland varer 60 dage, mens houthierne og Saudi-Arabien udveksler angreb, '
+         'og bosættere angriber europæiske diplomater på Vestbredden.')
+SAMPLES = [LEDE, TODAY, 'Folketinget vedtager loven; Iran og USA mødes i Oman – og Hamas svarer.', 'Kort.',
            'Israel og Iran, USA og Kina samt Rusland mødes i Genève, mens EU venter', '']
 
 
@@ -55,6 +57,25 @@ def test_the_lede_is_cut_where_its_clauses_meet_and_short_parts_join_a_neighbour
                                        'bosættere angriber landmænd på Vestbredden.']
     assert ''.join(p['sep'] + p['t'] for p in parts) == LEDE   # nothing lost: the paragraph reads as written
     assert [p['sep'] for p in parts] == ['', ' og ', ', ', ', mens ', ', og ']
+
+
+def test_a_short_subject_after_mens_joins_its_own_clause_not_the_headline():
+    # the owner, 18/10: the headline ended '… varer 60 dage, mens houthierne' and the rest began 'Saudi-Arabien …'
+    parts = run_js(f'ledeParts({json.dumps(TODAY)})')
+    assert [p['t'] for p in parts] == ['Rubio: Trumps pause i sanktioner mod Rusland varer 60 dage',
+                                       'houthierne og Saudi-Arabien udveksler angreb',
+                                       'bosættere angriber europæiske diplomater på Vestbredden.']
+    assert ''.join(p['sep'] + p['t'] for p in parts) == TODAY
+    assert editor.lede_parts(TODAY) == [p['t'] for p in parts]
+
+
+def test_the_headline_ends_where_a_new_clause_opens():
+    fnsrc = fn('ledeHtml')
+    assert 'LEDE_OPEN.test(p.sep)' in fnsrc and 'parts.slice(0, brk)' in fnsrc
+    # 'sanktioner og told mod Rusland, som …' stays one headline; the rest begins at ', mens '
+    seps = [p['sep'] for p in run_js(f'ledeParts({json.dumps(LEDE)})')]
+    brk = next(n for n, x in enumerate(seps) if n and re.search(r'mens|;|–|,\s+og\s', x))
+    assert brk == 3
 
 
 def test_the_editor_cuts_the_lede_as_the_app_does():
