@@ -103,6 +103,23 @@ COUNT_LABEL = {('anholdt', False): 'anholdte', ('anholdt', True): 'anholdte poli
          ('såret', True): 'sårede politifolk', ('dræbt', False): 'dræbte', ('dræbt', True): 'dræbte politifolk'}
 
 
+def article_behind(page, lines):
+    """The counts of the page's development higher than every count of their kind its article tells (18/10, the owner:
+    the boxes had the interior ministry's 2.397 while the article still told Lecornu's 1.200 and 'Bygger på' named the
+    old sources): [(what, the article's highest, count, line)] – only for a kind the article tells at all."""
+    told = {}
+    for para in page.get('article') or []:
+        for kind, police, n in counts_in(para.get('text') if isinstance(para, dict) else para):
+            told[(kind, police)] = max(told.get((kind, police), 0), n)
+    out = []
+    for line in lines:
+        for kind, police, n in counts_in(f"{line.get('who') or ''}: {line.get('text') or ''}"):
+            have = told.get((kind, police))
+            if have is not None and n > have and not any(x[2] == n and x[0] == COUNT_LABEL[(kind, police)] for x in out):
+                out.append((COUNT_LABEL[(kind, police)], have, n, line))
+    return out
+
+
 def behind(page, lines):
     """The counts of the page's development (lines: [{id, who, text}]) higher than every box of their kind – or of a
     kind the page shows no box for at all, when it shows that kind otherwise: [(what, box value or None, count, line)]."""
@@ -716,4 +733,8 @@ def lines(current, now, find=None, head=None, teaser=None, development=None):
                 out.append(f"    BEHIND: its development counts {n} {what} ([{line.get('id')}]), the boxes "
                            f"{have if have is not None else 'none'} – update the box (the old value as \"was\" only when the "
                            "same giver gave it), or the page contradicts itself")
+            for what, have, n, line in article_behind(e, dev):
+                out.append(f"    BEHIND (article): its development counts {n} {what} ([{line.get('id')}]), the article tells at "
+                           f"most {have} – tell the newest count in the article, with who gives it (cite the line's id); an "
+                           "earlier count stays only as the earlier one")
     return out + ['']

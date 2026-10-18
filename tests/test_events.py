@@ -297,3 +297,13 @@ def test_an_earlier_figure_names_a_time_never_another_source():
     find = {'a': {'id': 'a', 'title': 'Over 2.000 anholdt, mod 1.200 i går', 'source': 'Reuters', 'outlets': 3}}
     events.events_file([entry], {'items': []}, find, datetime(2026, 10, 18, 19, tzinfo=timezone.utc), date(2026, 10, 18), problems)
     assert any("'when' is a time" in p for p in problems)
+
+
+def test_the_article_keeps_up_with_the_pages_development_too():
+    # 18/10, the owner: 'er kilderne stadig rigtige på begivenhedssiden?' – the boxes had the ministry's figures, the
+    # article still told Lecornu's 1.200 and 150, and 'Bygger på' named the old sources
+    page = {'facts': [{'label': 'Anholdte', 'value': '2.397'}],
+            'article': [{'text': 'Premierminister Lecornu siger, at omkring 1.200 mennesker er anholdt, og at 150 politifolk er såret.'}]}
+    line = {'id': 'w1', 'who': 'Frankrigs indenrigsministerium', 'text': '2.397 mennesker er anholdt og 997 betjente såret.'}
+    assert events.behind(page, [line]) == []                                                   # the boxes are up to date
+    assert [(w, h, n) for w, h, n, _ in events.article_behind(page, [line])] == [('anholdte', 1200, 2397), ('sårede politifolk', 150, 997)]

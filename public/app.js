@@ -3705,7 +3705,8 @@ function evState(e) {
 // the outlets a box or an article cites, each once
 // the outlets a box, the article or a statement rests on, each once – as the editor filed them (src), else the stories'
 const evSources = parts => [...new Set((parts || []).flatMap(x => x.src && x.src.length ? x.src
-  : (x.ids || []).map(id => (find(id) || findStory(id) || {}).source)).filter(Boolean))];
+  : (x.ids || []).map(id => (find(id) || findStory(id) || {}).source)).filter(Boolean)
+  .map(s => String(s).replace(/\s+(?:breaking|urgent|live)$/i, '')))];   // the wire by its outlet: 'Al Jazeera'
 // A box's number as the news give it, drawn (the owner, 18/10: 'Gør gerne tallene … visuel interessant med professionelle
 // stilfulde widgets'): a share – '7 af 10', '68 %', or a value with its whole ('of') – as a ring; a number with the one
 // before ('was') as two bars and the change; else the number alone, large

@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The event page's article keeps up with its numbers too** (2026-10-18, the owner: 'er kilderne stadig rigtige på
+  begivenhedssiden? jeg bemærker det er samme kilder, selvom tallene kom fra al jazeera breaking'). The boxes had taken
+  the interior ministry's figures from the wire, but the article still told Lecornu's 1.200 and Global Times' count, so
+  'Bygger på' named the old sources. The check, the input and publish now hold the article to the page's development as
+  they hold the boxes (`events.article_behind`); the wire is credited as its outlet ('Al Jazeera', not the feed's
+  'Al Jazeera breaking'), and the check knows the wire's lines as a source a box may cite.
 - **No machine translation reaches a reader** (2026-10-18, the owner: 'nyheder med oversættelser fra arabisk eller andre
   sprog burde kun tages med når redaktørerne har gennemgået oversættelserne. i dag er de for svage'). A story in another
   language shows the editor's Danish headline, else a Danish outlet's own headline of it; with neither it is held back
