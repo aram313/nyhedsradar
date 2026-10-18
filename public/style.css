@@ -1350,6 +1350,10 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="begivenhed"] .ev-dot { background: var(--red); }
 .page[data-tab="begivenhed"] .ev-dot.main { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--red); }
 .ev-names { position: absolute; inset: 0; pointer-events: none; }
+/* a picture is never dragged out of the app, and a large one leaves the finger to what it lies in: on an iPhone a long
+   press on a picture starts dragging it, which ended the owner's long press on an event's picture (18/10) */
+img { -webkit-user-drag: none; }
+.ev-hero img { pointer-events: none; }
 .ev-names em { position: absolute; top: 0; left: 0; white-space: nowrap; font-style: normal; font-size: var(--fs-small); font-weight: 600;
   letter-spacing: .32em; text-transform: uppercase; color: var(--text-3); text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg); }
 .ev-names b { position: absolute; top: 0; left: 0; white-space: nowrap; font-size: var(--fs-meta); font-weight: 700; line-height: 1.2;

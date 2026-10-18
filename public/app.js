@@ -950,13 +950,14 @@ function picFallback(img, failed) {
 // A large picture with text on its bottom keeps its subject clear of the text (the owner, 18/10: 'Teksten dækker for
 // rubios ansigt, der skal vurderes om det er et godt nok billede til forside i sådanne tilfælde'): the radar finds where
 // a face sits (thumbs.subject: x, y, its shape, face or not); the picture is moved in its frame so the face comes about
-// a quarter from the top, above the dark fade – and where it cannot (the face low in a wide picture), the picture is no
-// picture for text: the headline goes under it instead
+// a quarter from the top, above the dark fade – and where it cannot (the face low in a wide picture), the face goes as
+// high as the frame lets it: the headline always lies on the picture (the owner, 18/10: 'teksten skal altid være i det
+// format at det ligger på billedet')
 const pfAttr = pf => Array.isArray(pf) && pf.length >= 3 ? ` data-pf="${pf.map(Number).join(',')}"` : '';
 // The whole face, not only its centre (18/10, the owner on Dagens historie: 'Ser ikke godt ud' – the headline still
 // covered Rubio's mouth): the face's height (pf[4]; a picture looked at before it was kept counts as a close portrait)
 // and the headline's real height on the picture decide; the face is set in the free band above the text, and where it
-// does not fit there the headline goes under the picture. What was decided is remembered by picture (picPlace), so a
+// does not fit there as high as it goes. What was decided is remembered by picture (picPlace), so a
 // redraw draws it so at once and a patch never undoes it.
 const picPlace = new Map();
 const picKey = (img, host) => (host && host.classList.contains('ev-hero') ? 'e|' : 's|') + (img.dataset.orig || img.getAttribute('src'));
@@ -976,8 +977,9 @@ function placePic(img) {
   const clampY = v => Math.min(0, Math.max(H - rh, v));
   let offY = clampY(face === 1 ? (top - 10) / 2 - fy * rh : H * 0.4 - fy * rh);   // no face: its subject a little above the middle
   const fTop = (fy - fh / 2) * rh + offY, fBot = (fy + fh / 2) * rh + offY;
-  const below = face === 1 && (fBot > top - 6 || fTop < -fh * rh * 0.2);   // the text would cover it, or it is cut at the top
-  if (below) offY = clampY(H / 2 - fy * rh);
+  // the text would cover it, or it is cut at the top: its top a little under the frame's, as much free as the frame gives
+  if (face === 1 && (fBot > top - 6 || fTop < -fh * rh * 0.2)) offY = clampY(8 - (fy - fh / 2) * rh);
+  const below = false;
   const offX = Math.min(0, Math.max(W - rw, W / 2 - fx * rw));
   const py = rh - H > 1 ? offY / (H - rh) : 0.5, px = rw - W > 1 ? offX / (W - rw) : 0.5;
   const pos = `${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%`;
@@ -1062,7 +1064,7 @@ function story(i, n, opts = {}) {
   const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(picSrc(opts.pic))}" data-orig="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="picFallback(this, leadPicFailed)"${pfAttr(i.pf)}${placed ? ` style="object-position:${placed.pos}"` : ''} onload="placePic(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}"${i.ark ? ` data-ark="${esc(i.ark)}"` : ''} data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}${opts.lead && opts.pic ? '' : `<span class="m">${meta(i, opts)}</span>`}</span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
 // the line under a block's headline on the front page, as a paper's standfirst (the owner, 18/10: 'stilfuldt og elegant
@@ -3816,6 +3818,21 @@ function evMapBox(e) {
   return `<section class="ev-sec ev-map-sec"><h2 class="ev-h2">Kort</h2><div class="ev-map" data-keep="${esc(keep)}" data-ev="${esc(e.id)}"`
     + ` role="img" aria-label="${esc('Kort: ' + pts.map(p => p.name).join(', '))}"></div><p class="ev-src">Kort: OpenFreeMap · OpenStreetMap</p></section>`;
 }
+// the look changed – the setting, or the phone's own at dusk – while a map stood drawn: it takes the new look in place
+// (the owner, 18/10: 'Kortet i begivenheder skal også følge farvetilstanden. i dag viser den et sort kort ved lys tilstand')
+function evMapsLook() {
+  const dark = kDarkNow(), mark = dark ? 'd' : 'l';
+  for (const box of document.querySelectorAll('.ev-map[data-keep]')) {
+    const keep = box.dataset.keep.replace(/:[dl]$/, ':' + mark);
+    if (keep === box.dataset.keep) continue;
+    const drawn = box.dataset.drawn === box.dataset.keep;
+    box.dataset.keep = keep;
+    if (!drawn || !box._map) continue;
+    box.dataset.drawn = keep;
+    evMapStyle(dark).then(st => { if (box._map && box.isConnected) box._map.setStyle(st); }).catch(() => {});
+  }
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => evMapsLook());
 function evMapStyle(dark) {   // the Kort tab's style without roads, buildings and names: land, water and borders
   return kStyle(dark).then(st => ({ ...st, layers: st.layers.filter(l => l.type !== 'symbol'
     && !/road|highway|bridge|tunnel|building|aeroway|rail|transit|poi|housenumber/.test(l.id)) }));
@@ -5364,7 +5381,7 @@ const cancelPress = () => { if (press) clearTimeout(press.t); press = null; };
 const READING = '.sum, .lede-t, .ht-box p.ht, .rd-q, .rd-reads p.ht, .rd-text .ht, .wk-lead p.ht, .wk-tl p.ht';   // text one may select (style.css)
 // every element can be held down by the owner (18/10: 'alle elementer burde kunne holdes nede og få en "kommentar"
 // valgmulighed'), on every page – reading text too: in admin it is not selected, its sheet copies it
-const holdable = t => adminKey && t.closest('.page') && !t.closest('input, textarea, .az-idx, .ev-map');
+const holdable = t => adminKey && t.closest('.page') && !t.closest('input, textarea, .az-idx');
 $('list').addEventListener('pointerdown', e => {
   if (e.button > 0 || !holdable(e.target)) return;
   const at = e.target;
@@ -5815,6 +5832,7 @@ function applyLook() {
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
   const cs = document.querySelector('meta[name="color-scheme"]');
   if (cs) cs.content = mode === 'light' ? 'light' : mode === 'dark' ? 'dark' : 'light dark';
+  evMapsLook();   // a drawn event map follows
 }
 $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { mode = b.dataset.v; store.set('mode', mode); applyLook(); } });
 if (!params.get('tone')) applyLook();

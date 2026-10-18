@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Large pictures keep their text on them; event pictures can be held; the event map follows the look** (2026-10-18, the
+  owner: 'man kan ikke holde begivenheds billederne nede. Når man skifter billedet på dagens historie kan teksten falde
+  under. teksten skal altid være i det format at det ligger på billedet, og lad os fjerne kilde tid og antal medier fra
+  billedet på dagens historie … Kortet i begivenheder skal også følge farvetilstanden. i dag viser den et sort kort ved lys
+  tilstand'). `placePic` never puts the headline under the picture: a face that would sit under the text goes as high as
+  the frame allows. Dagens historie's picture shows only its headline. An iPhone's long press on a picture started a drag
+  that ended the owner's hold: pictures are not draggable and an event's picture passes the finger to its frame; the map
+  can be held too. A drawn event map takes the new look in place (`evMapsLook`) when the setting or the phone's appearance
+  changes – it kept the look it was drawn in.
 - **The owner comments on any element, writes headlines himself, and the admin sheet is cleaned up** (2026-10-18, the
   owner: 'Giv mig også et felt hvor jeg kan skrive en kommentar til elementet til redaktørerne … alle elementer burde kunne
   holdes nede og få en "kommentar" valgmulighed … giv også en funktion der lader mig edit overskrifter direkte … til slut

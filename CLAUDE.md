@@ -144,7 +144,8 @@ da'wah.
   big ones (`fitness`: wide, sharp, light, a scene or a small high face; the face's height is `pf[4]`), keeps the best as
   the card's `pic` with its `pf` and a light copy `pl` (960 px, state/l/, kept per picture in pics.json `grade`); the app
   loads `LIGHT + pl` (`picSrc`), the original when the copy is gone (`picFallback`), and sets the face in the free band
-  above the measured headline, or the headline under the picture (`placePic`, `picPlace`).
+  above the measured headline, or – where it does not fit there – as high as the frame lets it: the headline always lies on
+  the picture (18/10, the owner: 'teksten skal altid være i det format at det ligger på billedet'; `placePic`, `picPlace`).
 - `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay. A notification
   (18/10, `run.push_note`): one story – its weight, its headline, one line of résumé (`push_line`) and `?item=`; several
   – their headlines as a list and `?nye=<ids>`, the 'Nye historier' page. The service worker shows nothing while the app
@@ -238,7 +239,11 @@ da'wah.
   pics.json: feature and outlet weights, `taste_bonus` ≤ ±2 on fitness).
 - **Faces in large pictures** (18/10): `thumbs.subject` keeps where a picture's face sits (`spot` in pics.json, card
   `pf`, app.json carries it); the app's `placePic` sets the picture so the face sits about a quarter from the top, and
-  where it would sit under the text, the headline goes under the picture (`tx-below`).
+  where it would sit under the text, it goes as high as it can and the headline stays on the picture (`tx-below` is no
+  longer set, 18/10). Dagens historie's picture carries its headline only – no outlet, time or count of outlets (the owner,
+  18/10: 'for at få mere plads til tekst der ikke dækker billedet'); the opened story names them. A picture is never
+  dragged (`-webkit-user-drag: none`) and an event's picture leaves the finger to its frame, so the owner can hold it. An
+  event page's map takes a new look in place when the setting or the phone's own changes (`evMapsLook`).
 - `src/radar/osint.py` (**shelved since 17/10** at the owner's wish: "Du skal kassere kortvisningen, eller gemme den, i
   hvert fald for nu, og ikke lave videre på den … den bidrager ikke til det store billede"): it wrote `map.json` for the
   Kort tab from data.json and the editor's headlines, placing violent events at the places of `config/map-places.json`.
