@@ -935,11 +935,12 @@ function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
   const w = opts.tick ? weightOf(i) : 1;   // Live's rows show their weight
-  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', opts.fl && 'fl', opts.fpic && 'fp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
-  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>` : '';
+  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>`
+    : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : thumb(i.source, i.thumb)}</div>
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? '' : thumb(i.source, i.thumb)}</div>
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
 // Live's rows carry the bookmark at their right (the owner, 17/10: "gør det samme for 'Live' oversigten"): saved
@@ -1338,6 +1339,9 @@ function composedHome(all, opts, f) {
   // the owner's own choice of the main story (held on the front page) leads the first main block
   const pin = owner().lead && findStory(owner().lead);
   let html = '', n = 0, filled = 0, tops = 0, drawn = 0, calPut = false;
+  // every subject once (the owner, 18/10: 'Ingen gentagelser'): the subjects the page has a block for already – the main
+  // story's development and the lists' titles – are not offered again under 'Følg udviklingen'
+  const onPage = new Set(), seen = t => overlap(stems(t), onPage) > 0, mark = t => { for (const w of stems(t)) onPage.add(w); };
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
@@ -1368,6 +1372,7 @@ function composedHome(all, opts, f) {
       // development's name helps find it only when the development is the story's own
       html += mainAnswer(i, tp ? tp.name : '', svarSet);
       if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
+      if (tp) mark(tp.name);
       for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true }); break; } }   // one more at most
       html += '</section>';
       filled++;
@@ -1384,12 +1389,17 @@ function composedHome(all, opts, f) {
       // section ('Danmark') does not say the section on every row, and a list of mostly one only on the other ones
       const big = b.style === 'billeder' ? list.find(i => i.pic) : null, tag = new Set(list.map(secOf)).size > 1;
       const msec = tag ? mainSec(list) : '';
+      // the paper's way (the owner, 18/10: 'Avisens typografi', 'Billeder med mening'): the block's first story as its
+      // headline in the serif, with the outlet's own picture large above it when it has one; the rest as plain lines,
+      // no small pictures and no outlet's initials in their place
+      mark(b.title || '');
+      const rows = list.filter(i => i !== big);
       html += `<section class="block f-list${unfolded.has(key) ? ' unf' : ''}">${blockHead(esc(b.title || ''), more)}`
         + (big ? story(big, n++, { ...opts, tag, msec, top: true, hero: true }) : '')
-        + list.filter(i => i !== big).map(i => story(i, n++, { ...opts, tag, msec, top: true })).join('') + '</section>';
+        + rows.map((i, k) => story(i, n++, { ...opts, tag, msec, top: true, plain: true, fl: !big && !k, fpic: !big && !k ? leadPic(i) : '' })).join('') + '</section>';
       filled++;
     } else if (b.kind === 'udvikling') {
-      const list = (b.topics || []).map(threadNamed).filter(Boolean).slice(0, 3);
+      const list = (b.topics || []).map(threadNamed).filter(t => t && !seen(t.name)).slice(0, 3);
       if (!moves && archiveState === 'idle') setTimeout(loadArchive, 0);   // the developments run across days
       if (list.length) html += folBlock(list);
     } else if (b.kind === 'citat') {

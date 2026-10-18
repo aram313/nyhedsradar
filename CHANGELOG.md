@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: a professional review – each subject once, the paper's typography, pictures with meaning** (2026-10-18,
+  the owner: 'vi skal have en professionel gennemgang af forsiden … den skal fange læseren være æstetisk på et højt
+  niveau'; of four proposals he chose three). Each subject once: 'Følg udviklingen' no longer offers a development
+  whose subject has a block on the page already (the main story's development, the lists' titles). Two voices: a
+  block's title is a small red label under its rule, as Økonomi's fly titles; a block's first story is its headline in
+  the serif. Pictures: the first story of a block wears the outlet's own picture large above it; the other rows are
+  plain lines – no small pictures and no outlet's initials in their place.
 - **Forside: the day's headline and Dagens historie are one** (2026-10-18, the owner: 'overskriften ser ud til at
   gentage dagens nyhed' – of three proposals he chose 'Slå dem sammen'). The lede's first clause is the big headline
   when it is about Dagens historie (else Dagens historie's own headline); the story's picture and its line follow

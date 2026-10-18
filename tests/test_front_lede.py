@@ -231,3 +231,13 @@ def test_a_line_of_ogsaa_i_dag_glides_to_its_row_and_lights_it():
     # the development under Dagens historie only with the story opened, and never dimmed by it
     assert '.pkg.merged > .of-main { display: none; }' in RULES and '.pkg.merged:has(> .story.open) > .of-main { display: block; }' in RULES
     assert "!sib.matches('.dim, .of-main')" in CODE
+
+
+def test_the_front_page_says_each_subject_once_in_the_papers_way():
+    # the owner, 18/10: 'Ingen gentagelser', 'Avisens typografi', 'Billeder med mening'
+    comp = fn('composedHome')
+    assert 'mark(b.title' in comp and 'mark(tp.name)' in comp and "filter(t => t && !seen(t.name))" in comp
+    assert 'plain: true, fl: !big && !k, fpic: !big && !k ? leadPic(i)' in comp
+    assert "opts.plain ? '' : thumb(i.source, i.thumb)" in CODE        # no small pictures, no outlet's initials
+    assert re.search(r'\.page\[data-tab="home"\] \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
+    assert re.search(r'\.page\[data-tab="home"\] \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)

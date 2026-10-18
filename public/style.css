@@ -1237,6 +1237,20 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* the block titles: a short red rule above, not a bar beside */
 .page[data-tab="home"] .block-h h2 { position: relative; padding-top: 9px; }
 .page[data-tab="home"] .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }
+/* the paper's way (the owner, 18/10: 'Avisens typografi', 'Billeder med mening'): two voices – the serif for headlines,
+   the sans for the rest. A block's title is a small red label under its rule (as Økonomi's fly titles); its first story
+   is its headline in the serif, with the outlet's own picture large above it when it has one; the other stories are
+   plain lines without small pictures (app.js composedHome) */
+.page[data-tab="home"] .block-h h2 { padding-top: 12px; font-size: var(--fs-cap); font-weight: 750; line-height: 1.2; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--red); }
+.page[data-tab="home"] .block-h { min-height: 40px; }
+.page[data-tab="home"] .story.fl .h { font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.24;
+  letter-spacing: -.01em; font-variation-settings: "opsz" 32; }
+.page[data-tab="home"] .story.fl .h b { font-weight: 700; }
+.story.fp .row { flex-wrap: wrap; }
+.f-pic { order: -1; flex: 0 0 100%; position: relative; display: block; aspect-ratio: 16 / 9; max-height: 34vh; margin-bottom: 2px;
+  border-radius: 12px; overflow: hidden; background: var(--fill-2); }
+.f-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: var(--press); }
 /* Dagens historie's headline on its picture in the same serif */
 .page[data-tab="home"] .story.lp .tx .h { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; font-variation-settings: "opsz" 48; }
 .page[data-tab="home"] .story.lp .tx .h b { font-weight: 700; }

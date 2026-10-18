@@ -368,7 +368,7 @@ def test_an_answer_can_be_saved_from_its_row():
 
 
 def test_a_live_story_can_be_saved_from_its_row():
-    assert "${opts.tick ? rowSave(i) : thumb(i.source, i.thumb)}" in CODE and 'class="st-save' in CODE
+    assert "${opts.tick ? rowSave(i) : opts.plain ? '' : thumb(i.source, i.thumb)}" in CODE and 'class="st-save' in CODE
     assert 'pointer-events: auto' in RULES.split('.story .row > .st-save {')[1].split('}')[0]
 
 
