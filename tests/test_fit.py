@@ -84,7 +84,9 @@ def test_the_level_admits_and_app_json_is_slim(tmp_path, monkeypatch):
     assert {i['id'] for i in app['items']} == {i['id'] for i in on}
     assert len(data['items']) == 13
     one = app['items'][0]
-    assert 'pct' not in one and 'tier' not in one and 'camps' not in one and one['live']
+    assert 'pct' not in one and 'camps' not in one and one['live']
+    # the books' tier goes along (18/10): the app's weight and 'Høj betydning' read it, as the radar's top_score does
+    assert all('tier' in i for i in app['items'])
     assert set(app) >= {'updated', 'sections', 'items', 'sources', 'owner', 'analyses', 'live'}
     assert (tmp_path / 'state' / 'app.json').stat().st_size < (tmp_path / 'state' / 'data.json').stat().st_size
 

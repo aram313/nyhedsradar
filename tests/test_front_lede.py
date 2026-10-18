@@ -229,7 +229,7 @@ def test_the_front_page_says_each_subject_once_in_the_papers_way():
     # the owner, 18/10: 'Ingen gentagelser', 'Avisens typografi', 'Billeder med mening'
     comp = fn('composedHome')
     assert 'mark(b.title' in comp and 'mark(tp.name)' in comp and "filter(t => t && !seen(t.name))" in comp
-    assert 'plain: true, fl: !big && !k, fpic: !big && !k ? leadPic(i)' in comp
+    assert 'plain: true, fl: !big && !k })' in comp and 'fpic' not in comp.split("b.kind === 'liste'")[1].split("b.kind === 'udvikling'")[0]
     assert "opts.plain ? '' : thumb(i.source, i.thumb)" in CODE        # no small pictures, no outlet's initials
     assert re.search(r'\.page\[data-tab="home"\] \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
     assert re.search(r'\.page\[data-tab="home"\] \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)
@@ -245,7 +245,19 @@ def test_dagens_historie_leads_by_its_headline_and_the_page_has_less_air():
 def test_the_front_page_has_the_economists_restraint():
     # the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'
     assert '${opts.fl && !open ? dek(i) : \'\'}' in CODE and "String((ed && ed.text) || i.summary || '')" in fn('dek')
-    for rule in ('.page[data-tab="home"] .story .h b { font-weight: inherit; }', '.page[data-tab="home"] .m .sec { display: none; }',
+    for rule in ('.page[data-tab="home"] .story .h b, .page[data-tab="home"] .now li b { font-weight: inherit; }', '.page[data-tab="home"] .m .sec { display: none; }',
                  '.page[data-tab="home"] .lede-d > span { color: var(--text-3); }'):
         assert rule in RULES, rule
     assert re.search(r'\.page\[data-tab="home"\] \.f-pic img \{ filter: grayscale\(\.62\)', RULES)
+
+
+def test_the_front_page_uses_its_potential_by_brevity():
+    # the owner, 18/10: 'udnytter vi sidens fulde potentiale på forsiden? … er billederne for meget i centrum?' – 'gør det
+    # du vurderer er bedst': a picture only on Dagens historie; the day in brief, the movement's answer, the markets
+    more = fn('frontMore')
+    assert "(weightOf(i) >= 2 || i.live === 'wide')" in more and '!used.has(i.id)' in more and '!same(i)' in more and 'brief.forEach(({ i }) => used.add(i.id))' in more and 'overlap(w, x.w) >= 2' in more
+    assert "blockHead('Kort nyt'" in more and "svar ? '' : movementBlock(used)" in more and 'marketsLine()' in more
+    assert "blockHead('Analyser'" in fn('movementBlock') and 'answerLine(a)' in fn('movementBlock')
+    assert "need('eco')" in fn('marketsLine') and 'data-okonomi' in fn('marketsLine')
+    assert "eco: () => CFG.energyUrl" in CODE
+    assert 'fpic' not in fn('fixedHome').split('Døgnets vigtigste')[1]

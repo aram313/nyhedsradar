@@ -301,7 +301,7 @@ def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_develop
     assert "if (w === 3 && !o.front) parts.unshift" in CODE   # no 'Høj betydning' on its rows: the title says it
     assert 'o.front ? FMT.mon.format(d) : FMT.wd.format(d)' in CODE   # its day says its month (it has no month bands)
     assert "moreLink('Alle', 'kalender')" in block and 'data-cal-go' in fn('calRow')
-    assert "(FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }" in fn('composedHome')
+    assert "(FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += frontMore(used, said, svarSet) + calBlock(); }" in fn('composedHome')
     fixed = fn('fixedHome')
     assert fixed.index("blockHead('Døgnets vigtigste'") < fixed.index('calBlock()') < fixed.index('followStrip(own)')
 

@@ -484,9 +484,11 @@ const VFILES = {
   // the Kalender tab: the radar's planned events (data branch) and the editor's own from the news (digest branch)
   cal: () => CFG.calendarUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'calendar.json'),
   kal: () => CFG.kalenderUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'kalender.json'),
+  // the front page's markets line: Økonomi's numbers (energy.json, 42 KB packed), asked for once the page is drawn
+  eco: () => CFG.energyUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'energy.json'),
 };
 // the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3 };
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
@@ -509,8 +511,8 @@ function vLoaded(k) {
   if (k === 'bix') lk = null;
   if (k === 'bix' || k === 'mix' || k === 'ans') fillAnswerRefs();
   // (search and Gemt too: a search's answers found through the wiki come with its whole file, a saved answer with the index)
-  const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['analyses', 'svar', 'begreb', 'search', 'gemt'],
-    ans: ['analyses', 'svar', 'begreb', 'search', 'gemt'], txt: ['analyses', 'svar'], mfull: ['svar'],
+  const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'],
+    ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], txt: ['analyses', 'svar'], mfull: ['svar'],
     bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'] }[k] || [];
   if (k === 'cal' || k === 'kal') calGen++;   // the merged calendar is worked out again
   if (k === 'bix' && busy) { redrawAfterLoad = true; return; }   // the news are on their way: their drawing takes the links along
@@ -1278,6 +1280,65 @@ function mainChoice(top) {
   return mainPackage(top);
 }
 const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(top); return pkg ? pkg.story : top.find(i => i.thumb) || top[0]; };
+// The front page's whole potential (the owner, 18/10: 'udnytter vi sidens fulde potentiale på forsiden?' – 'gør det du
+// vurderer er bedst'): breadth by brevity, as The Economist's 'The world in brief' – the pictures make room for it.
+// Under the editor's blocks, before the dates: 'Kort nyt', the day's other weighty stories as plain lines; the
+// movement's answer – one on a subject of the page, else the newest – as Khabar's own layer; the markets in one line.
+// used: the stories the page shows (Kort nyt adds its own, so Live's strip does not show them again); onPage: the
+// subjects of the page's blocks (Kort nyt does not repeat them); svar: an answer the editor set in a block of its own.
+const BRIEF_N = 5;
+function frontMore(used, onPage, svar) {
+  const same = i => onPage.size && overlap(stems([i.title, i.origTitle].join(' ')), onPage) >= 2;
+  // weighty (middle or high) or carried widely and weighty by the books (the radar's 'wide': Sisi's 2030 exit, Tunis),
+  // in the order the brain gives them: 'Høj betydning', the editor's picks and the books' wide stories, then a story many
+  // outlets carry, then the coverage; one subject once (two words in common), as on the rest of the page
+  const score = i => (topNow().has(i.id) ? 3 : 0) + (pickRank(i) < 99 ? 2 : 0) + (i.live === 'wide' ? 2 : 0) + (heavy(i) ? 1 : 0)
+    + (i.big ? 1 : 0) + Math.min(i.outlets || 1, 15) / 10;
+  const brief = [];
+  for (const i of stories().filter(i => !used.has(i.id) && hours(i) < 24 && i.confirmed !== 0 && i.kind !== 'kommentar'
+      && (weightOf(i) >= 2 || i.live === 'wide') && !same(i)).sort((a, b) => score(b) - score(a) || (b.rank || 0) - (a.rank || 0))) {
+    const w = stems([i.title, i.origTitle].join(' '));
+    if (brief.some(x => overlap(w, x.w) >= 2)) continue;
+    brief.push({ i, w });
+    if (brief.length >= BRIEF_N) break;
+  }
+  brief.forEach(({ i }) => used.add(i.id));
+  let html = brief.length ? `<section class="block f-list brief">${blockHead('Kort nyt', moreLink('Alle', 'latest'))}`
+    + brief.map(({ i }, n) => story(i, 200 + n, { home: true, tag: true, top: true, plain: true })).join('') + '</section>' : '';
+  html += svar ? '' : movementBlock(used);
+  return html + marketsLine();
+}
+// the movement's answer: one on a subject the page shows (Dagens historie's first), else its newest; never one the
+// page shows already; its text attributed as everywhere
+function movementBlock(used) {
+  need('mix'); need('ans');
+  const A = answers();
+  if (!A.list.length) return '';
+  const pageStories = [...used].map(id => find(id) || findStory(id)).filter(Boolean);
+  let a = null;
+  if (V('bix')) for (const i of pageStories) { const x = answerFor(i); if (x && !frontAns.has(x.nr)) { a = x; break; } }
+  a = a || A.list.find(x => !frontAns.has(x.nr));
+  if (!a) return '';
+  frontAns.add(a.nr);
+  return `<section class="block f-svar-b">${blockHead('Analyser', moreLink('Alle', 'analyses'))}<div class="ans-ref f-svar">${answerLine(a)}</div></section>`;
+}
+// the markets in one quiet line, a way to Økonomi: oil, the S&P 500 and gold, each with its move since the close before
+const MARKETS = [['brent', 'Brent', ' $'], ['spx', 'S&P 500', ''], ['gold', 'Guld', ' $']];
+function marketsLine() {
+  const E = need('eco');
+  if (!E || !E.s) return '';
+  const nf1 = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 1 }), parts = MARKETS.map(([k, name, u]) => {
+    const x = E.s[k];
+    if (!x || x.v == null) return '';
+    const ch = x.p ? (x.v - x.p) / x.p * 100 : null;
+    return `<span class="mk"><b>${esc(name)}</b> ${nf1.format(x.v)}${u}${ch == null ? '' : ` <em>${ch >= 0 ? '▲' : '▼'} ${nf1.format(Math.abs(ch))} %</em>`}</span>`;
+  }).filter(Boolean);
+  // when the newest of them is not today's (a weekend, a holiday): the closing day said, as Økonomi says it
+  const last = MARKETS.map(([k]) => E.s[k] && E.s[k].t).filter(Boolean).sort().pop();
+  const day = last && FMT.ymd.format(new Date(last)) !== FMT.ymd.format(new Date())
+    ? `<span class="mk-t">Lukkekurser ${FMT.wdl.format(new Date(last))}</span>` : '';
+  return parts.length ? `<section class="block mk-b">${blockHead('Markederne')}<a class="mk-line" href="?tab=okonomi" data-okonomi>${parts.join('')}${day}<svg aria-hidden="true"><use href="#i-chev"/></svg></a></section>` : '';
+}
 // 'Følg udviklingen' on the front page: the developments that moved last (not the main story's own, which shows its
 // steps above); a tap opens one on the Udvikling page, where the recap and the earlier days are too
 function followStrip(skip) {
@@ -1351,12 +1412,14 @@ function composedHome(all, opts, f) {
   let html = '', n = 0, filled = 0, tops = 0, drawn = 0, calPut = false;
   // every subject once (the owner, 18/10: 'Ingen gentagelser'): the subjects the page has a block for already – the main
   // story's development and the lists' titles – are not offered again under 'Følg udviklingen'
-  const onPage = new Set(), seen = t => overlap(stems(t), onPage) > 0, mark = t => { for (const w of stems(t)) onPage.add(w); };
+  const onPage = new Set(), seen = t => overlap(stems(t), onPage) > 0, mark = t => { for (const w of stems(t)) { onPage.add(w); said.add(w); } };
+  // and every word the page's stories say, for 'Kort nyt' (two words in common are one subject)
+  const said = new Set(), tell = t => { for (const w of stems(t)) said.add(w); };
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
   for (const b of frontOrder(f.blocks)) {
-    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += calBlock(); }   // before the developments
+    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += frontMore(used, said, svarSet) + calBlock(); }   // before the developments
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
     if (drawn >= FRONT_MAX) break;   // overskuelighed før fuldstændighed: at most six blocks, whatever the composition
     const before = html.length;
@@ -1383,6 +1446,7 @@ function composedHome(all, opts, f) {
       html += mainAnswer(i, tp ? tp.name : '', svarSet);
       if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
       if (tp) mark(tp.name);
+      tell(shown.title);
       for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true, plain: true }); break; } }   // one more at most
       html += '</section>';
       filled++;
@@ -1403,10 +1467,11 @@ function composedHome(all, opts, f) {
       // headline in the serif, with the outlet's own picture large above it when it has one; the rest as plain lines,
       // no small pictures and no outlet's initials in their place
       mark(b.title || '');
+      for (const i of list) tell(i.title);   // the stories' own words too: 'Kort nyt' never tells one of them again
       const rows = list.filter(i => i !== big);
       html += `<section class="block f-list${unfolded.has(key) ? ' unf' : ''}">${blockHead(esc(b.title || ''), more)}`
         + (big ? story(big, n++, { ...opts, tag, msec, top: true, hero: true }) : '')
-        + rows.map((i, k) => story(i, n++, { ...opts, tag, msec, top: true, plain: true, fl: !big && !k, fpic: !big && !k ? leadPic(i) : '' })).join('') + '</section>';
+        + rows.map((i, k) => story(i, n++, { ...opts, tag, msec, top: true, plain: true, fl: !big && !k })).join('') + '</section>';
       filled++;
     } else if (b.kind === 'udvikling') {
       const list = (b.topics || []).map(threadNamed).filter(t => t && !seen(t.name)).slice(0, 3);
@@ -1432,7 +1497,7 @@ function composedHome(all, opts, f) {
     }
     if (html.length > before) drawn++;
   }
-  if (!calPut && html) html += calBlock();
+  if (!calPut && html) html += frontMore(used, said, svarSet) + calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
     if (m) {
@@ -1667,14 +1732,14 @@ function fixedHome(all, opts) {
   if (!pq) html += quoteOfDay(pin);   // the day's quote right under Dagens historie (the owner, 17/10), when it had none
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
-    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true, plain: true, fl: !n, fpic: !n ? leadPic(i) : '' })).join('')}</section>`;
+    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true, plain: true, fl: !n })).join('')}</section>`;
   // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
   // strongest), and then its two strongest such stories not shown above
   const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
   const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
-  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, fl: !n, fpic: !n ? leadPic(i) : '' })).join('')}</section>`;
+  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, fl: !n })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
-  html += calBlock();   // 'Det sker snart' between the news and the developments
+  html += frontMore(onPage, new Set(), '') + calBlock();   // the day in brief, the movement, the markets; then the dates
   html += followStrip(own);   // not the main story's own development again
   html += nowStrip(3, onPage);
   return homeTop(notes().lede, html, notes().lede_ids) + homeFoot(all);

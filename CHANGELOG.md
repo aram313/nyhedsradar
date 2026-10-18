@@ -9,6 +9,17 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: its whole potential, by brevity** (2026-10-18, the owner: 'udnytter vi sidens fulde potentiale på forsiden?
+  … er billederne for meget i centrum?' – 'gør det du vurderer er bedst'). Measured: 5 of the day's 48 stories (15 of
+  them weighty) on the page, pictures 46 % of the first screen, nothing of Analyser or Økonomi. Now a picture only on
+  Dagens historie (the other blocks are text: label, serif headline, standfirst); 'Kort nyt' – five plain lines of the
+  day's other weighty or widely carried stories, ordered by the brain (Høj betydning, the editor's picks, the books'
+  wide stories, then the coverage), one subject once and none a block tells already (today Libanon, the Russian gas
+  proposal, Sisi, Tunis, France); 'Analyser' – the movement's answer on a subject of the page, else its newest, with
+  its date and attribution; 'Markederne' – Brent, S&P 500 and gold in one quiet line with their moves and the closing
+  day, a way to Økonomi (energy.json fetched once the page is drawn). No word bold in the front page's Live strip either.
+- **Radar: the app gets the books' tier** – app.json left `tier` out, so the phone's weights and 'Høj betydning'
+  (app.js heavy) never counted the heaviest tiers the radar's top_score does; it goes along now.
 - **Forside: the Economist's restraint** (2026-10-18, the owner: 'stilfuldt og elegant design. tænker mere economist ikke
   ekstrabladet' – he chose five of six proposals). A standfirst in the serif under each block's headline (the first
   sentence of the editor's summary, else of the outlet's teaser; two lines, Dagens historie three). No word bold in a
