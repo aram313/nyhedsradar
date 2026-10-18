@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An event page must be worth opening** (2026-10-18, the editor's second try at Uroligheder i Frankrig: two boxes,
+  the arrests' earlier figure in a note, 'Ifølge danske medier … Medierne omtaler situationen som …' and 'ifølge Times of
+  “israels” gengivelse'). The tool now refuses a page under way that holds fewer than two boxes while its stories carry
+  the counts, an article of fewer than three paragraphs while its stories hold six other outlets' headlines, and 'the
+  media' in general as a source; the update's template shows `was` (the earlier figure) and `of` (a share's whole).
+  Fixed: an outlet's name is no name of the state – 'Times of Israel', 'Israel Hayom' and 'Israel National News' stay
+  as they are in the editor's text and the app, and a name set in quotes before is set back.
 - **The editor gets the whole material of an event** (2026-10-18, the first page it built – Uroligheder i Frankrig –
   had no fact box and two thin paragraphs: the input gave one teaser, while the other outlets' headlines carried '1,200
   arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says'). For the great events and for

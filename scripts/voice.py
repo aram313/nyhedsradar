@@ -60,12 +60,16 @@ ISRAEL_NAMED = re.compile(r'\bisrael', re.I)
 # “israelske”, “israel”-Hamas-krigen. quote_israel() writes it so; it is idempotent, and a form the editor already set
 # in other quotes ('"Israel"', '»Israel«') becomes the house form. A link or an id is never touched.
 _ISRAEL_QUOTED = re.compile(r'[“"»„](israel\w*)[”"«“]', re.I)
-_ISRAEL_BARE = re.compile(r'(?<![\w“/.:#=])(israel\w*)(?![\w”/])', re.I)
+_ISRAEL_BARE = re.compile(r'(?<![\w“/.:#=])(?<!times of )(israel\w*)(?![\w”/])(?! hayom\b| national news\b)', re.I)
+# an outlet's name is no name of the state (18/10: 'ifølge Times of “israels” gengivelse' on the first event page) –
+# and a name set so before is set back
+_OUTLET_FIXED = re.compile(r'\b(times of) “(israel\w*)”|“(israel)”( hayom| national news)\b', re.I)
 
 
 def quote_israel(text):
     if not isinstance(text, str) or not ISRAEL_NAMED.search(text) or re.match(r'^https?://', text):
         return text
+    text = _OUTLET_FIXED.sub(lambda m: f'Times of {m.group(2).capitalize()}' if m.group(1) else 'Israel' + m.group(4), text)
     text = _ISRAEL_QUOTED.sub(lambda m: '“' + m.group(1).lower() + '”', text)
     return _ISRAEL_BARE.sub(lambda m: '“' + m.group(1).lower() + '”', text)
 HERO = re.compile(r'\b(?:helt(?:e|ene|enes|emodig\w*)|heltedåd\w*)\b', re.I)

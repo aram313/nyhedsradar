@@ -70,6 +70,11 @@ OPINION = re.compile(r'\b(det er (?:tydeligt|klart|åbenlyst|indlysende)|tydelig
                      r'chokerende|skandaløs\w*|bør|burde|må nødvendigvis|kan konkluderes|med andre ord|reelt set|'
                      r'vil (?:falde|sprede sig|stige|fortsætte|eskalere|vokse|brede sig|kollapse|true|lykkes|mislykkes|føre))\b',
                      re.I)
+# an article tells who gives each fact, never 'the media' in general (18/10: 'Ifølge danske medier … Medierne omtaler
+# situationen som …' on the first page)
+MEDIA_SAY = re.compile(r'\b(?:ifølge (?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)?|'
+                       r'(?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)? (?:omtaler|beskriver|skriver|'
+                       r'melder|rapporterer|kalder))\b', re.I)
 QUOTED = re.compile(r'»[^«»]*«|«[^«»]*»|"[^"]*"|“[^”]*”')
 
 
@@ -391,6 +396,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 if loose:
                     problems.append(f"{where} article {n}: {', '.join(loose)} stand in none of the stories it cites – the "
                                     'news\'s own numbers only')
+            meta = MEDIA_SAY.search(para)
+            if meta:
+                problems.append(f"{where} article {n}: '{meta.group(0)}' – name who gives each fact (the interior minister, "
+                                'the police, the outlet by name), never the media in general')
             said = opinion(para)
             if said:
                 problems.append(f"{where} article {n}: '{said}' is a judgement or a forecast – the article tells the event: "
@@ -400,6 +409,18 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 voice.check_reality(para, f'{where} article {n}', problems)
                 voice.check_forecast(para, f'{where} article {n}', problems)
             article.append({'text': para, 'ids': [it['id'] for it in cited], 'src': sources(cited)})
+        # a page under way holds the counts its stories carry, and is told from its material (18/10: the first page
+        # had two paragraphs and no box while its stories' headlines carried the arrests and the injured)
+        if status == 'i gang' and told:
+            nums = numbers_in(told)
+            if len(facts) < min(2, len(nums)):
+                problems.append(f"{where}: its stories carry {', '.join(nums[:6])} – give each count its box (label, the "
+                                'number, who gives it), the earlier figure as "was" when it has grown')
+            heads = sum(len(it.get('also') or []) for it in told)
+            if heads >= 6 and len(article) < 3:
+                problems.append(f'{where}: the article has {len(article)} paragraph(s) while its stories hold {heads} other '
+                                "outlets' headlines – tell what happened, where, the counts and what was said in three to "
+                                'six paragraphs')
         item = {'id': ident, 'title': title, 'kicker': kicker, 'status': status, 'dek': dek,
                 **({'since': since} if since and status != 'kommende' else {}), **({'date': day} if status == 'kommende' else {}),
                 **({'cal': text(e.get('cal'))} if e.get('cal') else {}), **({'topic': text(e.get('topic'), 80)} if e.get('topic') else {}),

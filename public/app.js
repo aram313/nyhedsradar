@@ -365,9 +365,12 @@ function teaserHead(text) {
 // “israelske”. The editor's text comes so from his tool (voice.quote_israel in scripts/voice.py – keep the two alike);
 // the app writes the Danish headlines and teasers of the outlets and the machine the same way. The outlet's original
 // headline in the credit line and Hizb ut-Tahrir's texts are quoted as they are.
-const ISR_Q = /[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, ISR_B = /(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu;
+// an outlet's name is no name of the state: 'Times of Israel', 'Israel Hayom' stay (and one set so before is set back)
+const ISR_Q = /[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, ISR_B = /(?<![\p{L}\p{N}_“/.:#=])(?<!times of )(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])(?! hayom\b| national news\b)/giu;
+const ISR_OUT = /\b(times of) “(israel[\p{L}\p{N}_]*)”|“(israel)”( hayom| national news)\b/giu;
 const quoteIsrael = t => (!t || typeof t !== 'string' || !/israel/i.test(t) || /^https?:\/\//.test(t) ? t
-  : t.replace(ISR_Q, (_, w) => `“${w.toLowerCase()}”`).replace(ISR_B, (_, w) => `“${w.toLowerCase()}”`));
+  : t.replace(ISR_OUT, (_, a, w, b, c) => a ? `Times of ${w[0].toUpperCase()}${w.slice(1)}` : `Israel${c}`)
+    .replace(ISR_Q, (_, w) => `“${w.toLowerCase()}”`).replace(ISR_B, (_, w) => `“${w.toLowerCase()}”`));
 // the editor's headline for a story: filed under any of its articles (its id, its members, its other outlets'); one of an
 // earlier round that is a curiosity headline itself ('Hvorfor …?', 'Analyse: …') gives way, until the editor writes it anew
 const edOk = t => (t && !curious(t) ? t : '');

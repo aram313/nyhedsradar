@@ -19,6 +19,9 @@ def test_every_form_of_the_name_is_quoted_in_lower_case():
     assert q('»Israel angriber«, siger han') == '»“israel” angriber«, siger han'   # a quotation keeps its marks
     assert q(q('Israel')) == '“israel”'                                       # idempotent
     assert q('https://example.com/israel-news') == 'https://example.com/israel-news'
+    # an outlet's name is no name of the state (18/10), and one set so before is set back
+    assert q('ifølge Times of Israel og Israel Hayom; Israel svarer') == 'ifølge Times of Israel og Israel Hayom; “israel” svarer'
+    assert q('ifølge Times of “israels” gengivelse') == 'ifølge Times of Israels gengivelse'
 
 
 def test_publish_quotes_text_but_never_ids_or_links():

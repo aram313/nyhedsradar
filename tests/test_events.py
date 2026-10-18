@@ -173,3 +173,20 @@ def test_one_outlets_word_marks_no_event():
     assert events.great_events([one], head)[0]['word'] is None
     two = {**one, 'also': one['also'] + [{'title': 'Russia steps up its war on the energy grid'}]}
     assert events.great_events([two], head)[0]['kind'] == 'krig'
+
+
+def test_a_page_under_way_holds_its_counts_is_told_whole_and_names_who_says_it():
+    # 18/10: the editor's first page had no box, two paragraphs and 'Ifølge danske medier … Medierne omtaler …'
+    rich = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+            'also': [{'source': f'S{k}', 'title': t} for k, t in enumerate(
+                ['1,200 arrested, 150 cops injured', 'More than 1,800 arrested, Interior Minister says', 'Riots in Paris',
+                 'Looting in Lyon', 'Yellow Vests return', 'UN flags concern over violence'])]}
+    page = {'id': 'frankrig-uro', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
+            'since': '2026-10-18', 'dek': 'Demonstrationer mod leveomkostningerne i flere franske byer.', 'stories': ['fx'],
+            'facts': [], 'article': [{'text': 'Ifølge danske medier har demonstranter stormet rådhuse.', 'ids': ['fx']}]}
+    problems = []
+    events.events_file([page], None, {'fx': rich}, NOW, TODAY, problems, voice)
+    text = ' | '.join(problems)
+    assert 'its stories carry 1,200, 150, 1,800 – give each count its box' in text
+    assert "the article has 1 paragraph(s) while its stories hold 6 other outlets' headlines" in text
+    assert "'Ifølge danske medier' – name who gives each fact" in text
