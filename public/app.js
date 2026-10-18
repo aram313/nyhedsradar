@@ -3666,7 +3666,8 @@ function evMaps(pg) {
       const land = evLand(e), names = document.createElement('div');
       names.className = 'ev-names';
       names.setAttribute('aria-hidden', 'true');
-      names.innerHTML = pts.map(p => `<b>${esc(p.name)}</b>`).join('') + (land ? `<em>${esc(land.name)}</em>` : '');
+      // the towns of Palestine under their names from before the occupation, as the Kort tab named them (ORIGINAL)
+      names.innerHTML = pts.map(p => `<b>${esc(ORIGINAL[p.name] || p.name)}</b>`).join('') + (land ? `<em>${esc(quoteIsrael(land.name))}</em>` : '');
       box.appendChild(names);
       const where = [...pts, ...(land ? [land] : [])];
       function place() {

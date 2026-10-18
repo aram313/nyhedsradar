@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The event map names the towns of Palestine as the Kort tab did** (2026-10-18, the first page on Israel's election
+  named 'Jerusalem'): a place in `ORIGINAL` is drawn under its name from before the occupation (al-Quds, Yafa …), and a
+  country named Israel in the house form.
 - **The front page's Analyser block says what the answer is about** (2026-10-18, the owner: 'under analyser på forsiden
   må der gerne være den beskrivende tekst så den ikke ser så tynd ud'): under the answer's title, up to four lines of
   'Svaret kort' when the answer is filed, else its question, in the movement's own face.
