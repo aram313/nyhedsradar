@@ -421,6 +421,23 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* settings: the two setup guides side by side; the colour palettes folded under 'Flere farver' */
 .guides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .guides .wide { margin: 0; }
+/* settings, cleaned up (18/10): a small label over a choice inside a section, the sources behind one row */
+.set-l { margin: 14px 0 6px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
+.sheet h3 + .set-l { margin-top: 4px; }
+.opt + .set-l { margin-top: 6px; }
+.src-tog { margin-bottom: 0; font-size: var(--fs-small); font-weight: 500; color: var(--text-2); }
+.src-tog b { color: var(--text); font-weight: 650; }
+.src-tog svg { transition: transform .25s var(--out); }
+.src-tog[aria-expanded="true"] svg { transform: rotate(90deg); }
+.lib-hint { margin-top: 12px; font-size: var(--fs-meta); color: var(--text-3); }
+/* the owner's block: one heading, then the chief editor's report, the editors' notes and the statistics */
+.adm-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 16px 0 6px; font-size: var(--fs-body); font-weight: 700; }
+.adm-h small { font-size: var(--fs-meta); font-weight: 500; color: var(--text-3); }
+.adm-note { display: block; width: 100%; margin: 0 0 8px; padding: 10px 12px; border-radius: 12px; background: var(--fill); text-align: left; color: inherit; }
+.adm-by { display: block; margin-bottom: 3px; font-size: var(--fs-meta); color: var(--text-3); }
+.adm-by b { color: var(--text-2); font-weight: 650; }
+.adm-tx { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; font-size: var(--fs-small); line-height: 1.45; color: var(--text); }
+.adm-note[aria-expanded="true"] .adm-tx { display: block; -webkit-line-clamp: none; }
 
 /* ------------------------------------------------------------ motion: quiet, short, only where it explains */
 @keyframes rise { from { opacity: 0; transform: translateY(7px); } }

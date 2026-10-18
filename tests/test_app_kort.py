@@ -100,7 +100,7 @@ def test_okonomi_is_the_fourth_tab_and_hosts_the_energy_page():
 def test_the_energy_links_lead_to_okonomi():
     assert 'href="energi/"' not in APP + INDEX
     assert 'data-priser' not in CODE + INDEX and '?tab=priser' not in CODE + INDEX
-    assert '<a class="wide row-link" href="?tab=okonomi" data-okonomi>' in INDEX
+    assert 'data-okonomi' not in INDEX   # the settings no longer repeat the tab (18/10: 'Ryd gerne op i indstillinger siden')
     assert 'href="?tab=okonomi" data-okonomi>' in CODE.split('const energyRow = ')[1].split('\n')[0]
     assert 'energyRow()' not in fn('homeFoot')
     assert "setTab('okonomi', { top: true })" in fn('openOkonomi')

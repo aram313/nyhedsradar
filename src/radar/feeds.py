@@ -134,6 +134,39 @@ def parse(xml_bytes, feed):
     return items
 
 
+def parse_sitemap(xml_bytes, feed):
+    """An outlet's own news sitemap (Google's news schema: <url> with <loc>, <news:title>, <news:publication_date> and
+    <image:loc>) where it offers no feed of its own – Reuters (18/10, the owner: 'Axios og reuters burde være nogle
+    primære kilder'): every article of the last hours with its headline, time and picture, minutes after it is out,
+    instead of Google News's late and partial search. Only the feed's language, and only the sections `path` (a
+    regular expression on the address's path) names – no sport, markets or the other languages' editions."""
+    root = ET.fromstring(xml_bytes)
+    keep = re.compile(feed['path']) if feed.get('path') else None
+    items = []
+    for u in root.iter():
+        if _local(u.tag) != 'url':
+            continue
+        loc, news = _text(u, 'loc'), _child(u, 'news')
+        if not loc or news is None:
+            continue
+        title = clean(_text(news, 'title'), 300)
+        pub = _child(news, 'publication')
+        lang = _text(pub, 'language') if pub is not None else ''
+        if not title or (feed.get('lang') and lang and lang != feed['lang']):
+            continue
+        if keep and not keep.search(urllib.parse.urlsplit(loc).path):
+            continue
+        date = parse_date(_text(news, 'publication_date'))
+        pic = _child(u, 'image')
+        pic = _text(pic, 'loc') if pic is not None else ''
+        items.append({
+            'id': hashlib.sha1(loc.encode()).hexdigest()[:16], 'title': title, 'summary': '', 'link': loc,
+            'source': feed['name'], 'lang': feed.get('lang', ''), 'published': date.isoformat() if date else None,
+            'img': pic if pic.startswith('http') else '',
+        })
+    return items
+
+
 TG_POST = re.compile(r'data-post="([\w]+/\d+)"')
 TG_TEXT = re.compile(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', re.S)
 PROMO = re.compile(r'(?:Join our|Follow us|Subscribe to|Read more:|📲|🔗\s*(?:WhatsApp|Telegram|Instagram|Website))', re.I)
@@ -307,17 +340,26 @@ def feed_url(feed):
     return feed['url']
 
 
+def _get(url, timeout):
+    req = urllib.request.Request(url, headers={'User-Agent': UA, 'Accept': 'application/rss+xml, application/xml, text/xml, text/html, */*'})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        data = r.read()
+    return gzip.decompress(data) if data[:2] == b'\x1f\x8b' else data   # some send gzip unasked (Middle East Eye)
+
+
 def fetch_one(feed, timeout=20):
-    req = urllib.request.Request(feed_url(feed), headers={'User-Agent': UA, 'Accept': 'application/rss+xml, application/xml, text/xml, text/html, */*'})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = r.read()
-        if data[:2] == b'\x1f\x8b':   # some servers send gzip whether asked or not (Middle East Eye)
-            data = gzip.decompress(data)
-        if feed.get('type') == 'telegram':
-            items = parse_telegram(data.decode('utf-8', 'replace'), feed)
+        if feed.get('type') == 'sitemap':
+            # the newest page and, with `pages`, the next ones (`&from=50` … – Reuters's pages of 50 articles)
+            step = int(feed.get('step') or 50)
+            items = []
+            for n in range(max(1, int(feed.get('pages') or 1))):
+                url = feed['url'] + (f"{'&' if '?' in feed['url'] else '?'}from={n * step}" if n else '')
+                items += parse_sitemap(_get(url, timeout), feed)
+        elif feed.get('type') == 'telegram':
+            items = parse_telegram(_get(feed_url(feed), timeout).decode('utf-8', 'replace'), feed)
         else:
-            items = parse(data, feed)
+            items = parse(_get(feed_url(feed), timeout), feed)
         if feed.get('type') == 'gnews':
             for it in items:
                 it['title'] = it['title'].rsplit(' - ', 1)[0] if ' - ' in it['title'] else it['title']

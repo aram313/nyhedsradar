@@ -9,6 +9,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Reuters straight from Reuters** (2026-10-18, the owner: 'Axios og reuters burde være nogle primære kilder, hvordan
+  får vi historier fra dem i dag?'). Reuters has no feed; until now its stories came from two Google News searches –
+  late, partial (Reuters's report of US officials at the Palestinian village never came) and without pictures. The
+  radar now reads Reuters's own news sitemap ('Reuters direkte', a new source type `sitemap` in feeds.py): every
+  article in English minutes after it is out, with its headline and picture, only the sections that matter (world,
+  legal, investigations, energy, defence, commodities – no sport or markets); the Google searches stay as the fallback.
+  Axios already comes from its own feed, every national story it publishes.
+- **The settings page cleaned up** (2026-10-18, the owner: 'Ryd gerne op i indstillinger siden'): five sections –
+  Notifikationer, Visning (text size and light/dark together), Sprog (Danish headlines and Arabic/Turkish together),
+  Kilder (one line with the count, the 128 names behind it) and 'Læg Khabar på telefonen'; the explanations under every
+  choice and the repeated Økonomi link are gone. **The owner's block** ('Kun for dig') shows the chief editor's report,
+  then the senior and chief editors' notes to each other (the owner: 'tilføj også redaktørernes bemærkninger Senior og
+  chef til admin der'; memo.json now keeps 20 notes), then the statistics.
 - **The front-page archive – one front page a day** (2026-10-18, the owner: 'Bliver forsider snapshottet og gemt?' –
   'ja lav et arkiv, men kun ved dagens sidste opdatering. så vi får et om dagen'). Every publish with a composition
   writes the Danish day's front page to `arkiv/<date>.json` on the digest branch over the one the day's earlier update

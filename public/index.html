@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
 <!-- the front page's headline face (the owner, 17/10: "pænere skrift", "mere elegant", "Se til the Economist"): Source Serif 4 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=fallback">
-<link rel="stylesheet" href="style.css?v=20261018fa">
+<link rel="stylesheet" href="style.css?v=20261018fb">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -180,47 +180,42 @@
     </div>
     <button class="wide soft-btn" id="disablePush" hidden>Slå notifikationer fra</button>
 
-    <h3>Tekststørrelse</h3>
-    <div class="seg four" id="sizeSeg" role="radiogroup" aria-label="Tekststørrelse">
+    <h3>Visning</h3>
+    <p class="set-l" id="sizeL">Tekststørrelse</p>
+    <div class="seg four" id="sizeSeg" role="radiogroup" aria-labelledby="sizeL">
       <button role="radio" data-v="auto">Som telefonen</button>
       <button role="radio" data-v="1">Normal</button>
       <button role="radio" data-v="1.15">Større</button>
       <button role="radio" data-v="1.3">Størst</button>
     </div>
-    <p class="hint">»Som telefonen« følger telefonens egen tekststørrelse.</p>
+    <p class="set-l" id="modeL">Lys eller mørk</p>
+    <div class="seg" id="modeSeg" role="radiogroup" aria-labelledby="modeL">
+      <button role="radio" data-v="auto">Som telefonen</button>
+      <button role="radio" data-v="light">Lys</button>
+      <button role="radio" data-v="dark">Mørk</button>
+    </div>
 
     <h3>Sprog</h3>
-    <label class="opt"><span>Vis og del på dansk<small>Overskrifterne vises på dansk – skrevet af redaktøren, ellers maskinoversat. Originalen står i historien, når du åbner den.</small></span><input type="checkbox" id="danish" class="switch"></label>
-
-    <h3>Arabisk og tyrkisk</h3>
-    <div class="seg" id="foreignSeg" role="radiogroup" aria-label="Arabisk og tyrkisk">
+    <label class="opt"><span>Vis og del på dansk<small>Redaktørens danske overskrifter, ellers maskinoversat. Originalen står i historien.</small></span><input type="checkbox" id="danish" class="switch"></label>
+    <p class="set-l" id="foreignL">Arabisk og tyrkisk</p>
+    <div class="seg" id="foreignSeg" role="radiogroup" aria-labelledby="foreignL">
       <button role="radio" data-v="translate">Oversæt</button>
       <button role="radio" data-v="hide">Skjul</button>
       <button role="radio" data-v="original">Original</button>
     </div>
-    <p class="hint">Findes historien også på dansk eller engelsk, vises den version altid.</p>
-
-    <h3>Udseende</h3>
-    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Lys eller mørk">
-      <button role="radio" data-v="auto">Automatisk</button>
-      <button role="radio" data-v="light">Lys</button>
-      <button role="radio" data-v="dark">Mørk</button>
-    </div>
-    <p class="hint">Automatisk følger telefonens lys/mørk-indstilling.</p>
 
     <h3>Kilder</h3>
-    <div class="sources" id="sources"></div>
+    <button class="wide row-link src-tog" id="srcTog" aria-expanded="false" aria-controls="sources"><span id="srcSum">Kilderne</span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>
+    <div class="sources" id="sources" hidden></div>
 
-    <h3>Mere</h3>
-    <a class="wide row-link" href="?tab=okonomi" data-okonomi><span>Økonomi – olie, brændstof og markeder</span><svg aria-hidden="true"><use href="#i-chev"/></svg></a>
-    <p class="tones-label">Læg Khabar på telefonen</p>
+    <h3>Læg Khabar på telefonen</h3>
     <div class="guides"><a class="wide" href="guide.html#iphone">iPhone</a><a class="wide" href="guide.html#android">Android</a></div>
-    <p class="hint" id="libHint" hidden></p>
+    <p class="hint lib-hint" id="libHint" hidden></p>
   </div>
   <button class="wide sheet-done" id="closeSheet">Færdig</button>
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261018fa"></script>
+<script src="app.js?v=20261018fb"></script>
 </body>
 </html>

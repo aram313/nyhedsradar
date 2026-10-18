@@ -313,6 +313,20 @@
   "fit": 1.2
  },
  {
+  "name": "Reuters direkte",
+  "label": "Reuters",
+  "outlet": "Reuters",
+  "lang": "en",
+  "type": "sitemap",
+  "url": "https://www.reuters.com/arc/outboundfeeds/news-sitemap/?outputType=xml",
+  "pages": 2,
+  "path": "^/(?:world|legal|investigations)/|^/business/(?:energy|aerospace-defense)/|^/markets/commodities/",
+  "group": "west",
+  "sec": "world",
+  "camp": "uk",
+  "fit": 1.15
+ },
+ {
   "name": "Reuters",
   "lang": "en",
   "type": "gnews",

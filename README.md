@@ -50,8 +50,8 @@ with one tap (no code to send).
 ## How it works
 
 1. **Every 5 minutes** (often 10–20 in practice) a GitHub Actions job (`.github/workflows/radar.yml`)
-   fetches every source in `config/feeds.json`: RSS feeds, Google News searches for sites without
-   a feed, public Telegram channels and YouTube channels.
+   fetches every source in `config/feeds.json`: RSS feeds, an outlet's own news sitemap where it has no
+   feed (Reuters), Google News searches for sites without either, public Telegram channels and YouTube channels.
 2. Each new headline is turned into a meaning vector by a small multilingual language model
    (Danish, English, Arabic, Turkish). It is then compared with the **profile**: about 6,500 links
    the group has shared, plus what the radar has taught itself (see below).

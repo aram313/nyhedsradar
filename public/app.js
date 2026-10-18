@@ -5081,6 +5081,11 @@ function openSheet() {
   });
   $('sources').innerHTML = GROUP_ORDER.filter(g => by[g]).map(g => `<h4>${GROUPS[g]}</h4><ul>` + by[g].sort((a, b) => a[0].localeCompare(b[0], 'da'))
     .map(([n, v]) => `<li class="${v.bad ? 'bad' : ''}">${esc(n)}</li>`).join('') + '</ul>').join('');
+  // the sources: one line with how many and whether some do not answer, the list behind it (the owner, 18/10: 'Ryd gerne
+  // op i indstillinger siden' – the 140 names were the page's longest part)
+  const all = Object.values(named), bad = all.filter(x => x[1].bad).length;
+  $('srcSum').innerHTML = `<b>${all.length} kilder</b>${bad ? ` · ${bad} svarer ikke lige nu` : ' fra hele verden'}`;
+  srcOpen(false);
   $('adminStats').hidden = !adminKey;
   if (adminKey) showStats();
   // the library on the phone: the answers and the wiki, once both whole files have come
@@ -5093,6 +5098,11 @@ function openSheet() {
   $('sheet').classList.add('on'); $('scrim').classList.add('on');
   refreshPushInfo();
 }
+function srcOpen(on) {
+  $('sources').hidden = !on;
+  $('srcTog').setAttribute('aria-expanded', String(on));
+}
+$('srcTog').addEventListener('click', () => srcOpen($('sources').hidden));
 // ---------------------------------------------------------------- the owner's statistics (in the settings, admin only)
 // The radar keeps the counts encrypted with a key made from the admin code (stats.py); only this phone can read them.
 const ZONES = { 'Europe/Copenhagen': 'Danmark', 'Atlantic/Faroe': 'Færøerne', 'America/Nuuk': 'Grønland', 'America/Godthab': 'Grønland',
@@ -5133,16 +5143,36 @@ async function reportHtml() {
     if (!r.ok) return '';
     const rep = await r.json();
     if (!rep || !rep.text) return '';
-    return `<h3>Chefredaktørens rapport · ${esc(stamp(rep.at))}</h3>`
+    return `<h4 class="adm-h">Chefredaktørens rapport<small>${esc(stamp(rep.at))}</small></h4>`
       + String(rep.text).split(/\n\s*\n|\n/).filter(x => x.trim()).map(x => `<p class="hint adm-rep">${esc(x.trim())}</p>`).join('');
   } catch { return ''; }
 }
+// the editors' notes to each other (memo.json on the digest branch, the owner, 18/10: 'tilføj også redaktørernes
+// bemærkninger Senior og chef til admin der'): the senior editor's and the chief editor's, newest first, each a few
+// lines that open whole at a tap
+const NOTE_BY = { 'begivenhedsredaktør': 'Seniorredaktøren', 'chefredaktør': 'Chefredaktøren' };
+const NOTES_SHOWN = 6;
+async function notesHtml() {
+  try {
+    const url = CFG.memoUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'memo.json');
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) return '';
+    const list = ((await r.json()).items || []).filter(m => m && NOTE_BY[m.by] && m.text).slice(0, NOTES_SHOWN);
+    if (!list.length) return '';
+    return '<h4 class="adm-h">Redaktørernes noter</h4>' + list.map(m => `<button class="adm-note" aria-expanded="false">`
+      + `<span class="adm-by"><b>${NOTE_BY[m.by]}</b> · ${esc(stamp(m.at))}</span><span class="adm-tx">${esc(m.text)}</span></button>`).join('');
+  } catch { return ''; }
+}
+$('adminStats').addEventListener('click', e => {
+  const b = e.target.closest('.adm-note');
+  if (b) b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
+});
 async function showStats() {
-  const box = $('adminStats');
-  box.innerHTML = '<h3>Statistik · kun for dig</h3><p class="hint">Henter …</p>';
-  const rep = reportHtml();
-  try { box.innerHTML = (await rep) + statsHtml(await loadStats()); } catch (e) {
-    box.innerHTML = (await rep) + '<h3>Statistik · kun for dig</h3><p class="hint">' + (e.message === 'key'
+  const box = $('adminStats'), head = '<h3>Kun for dig</h3>';
+  box.innerHTML = head + '<p class="hint">Henter …</p>';
+  const rep = reportHtml(), notes = notesHtml(), top = async () => head + (await rep) + (await notes);
+  try { const st = await loadStats(); box.innerHTML = (await top()) + statsHtml(st); } catch (e) {
+    box.innerHTML = (await top()) + '<h4 class="adm-h">Statistik</h4><p class="hint">' + (e.message === 'key'
       ? 'Statistikken kunne ikke låses op med din admin-kode.'
       : e.message === 'none' ? 'Ingen statistik endnu – den kommer med radarens næste kørsel efter de første besøg.'
       : 'Kunne ikke hente statistikken lige nu.') + '</p>';
@@ -5162,7 +5192,7 @@ function statsHtml(st) {
     + `<em><i style="width:${of ? Math.round(100 * v / of) : 0}%"></i></em></div>`).join('');
   const ranked = (obj, name, k = 6) => Object.entries(Object.entries(obj).reduce((a, [key, v]) => { const l = name(key); a[l] = (a[l] || 0) + v; return a; }, {}))
     .sort((a, b) => b[1] - a[1]).slice(0, k);
-  let h = '<h3>Statistik · kun for dig</h3>';
+  let h = '<h4 class="adm-h">Statistik</h4>';
   if (!all.length) return h + '<p class="hint">Ingen åbninger talt endnu. De kommer, når radaren har kørt efter de første besøg (hvert 5. minut).</p>';
   const wOpens = sum(w, 'opens');
   h += `<div class="st-big"><div><b>${n(today.opens)}</b><span>åbninger i dag</span></div><div><b>${n(wOpens)}</b><span>7 dage</span></div>`

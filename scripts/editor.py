@@ -129,8 +129,9 @@ DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', '
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
-# editor calls for an update
-MEMOS, MEMO_HOURS, MEMO_TEXT = 8, 12, 1500
+# editor calls for an update; the owner reads the senior and chief editors' notes in his admin block (18/10), so a couple
+# of days of them are kept
+MEMOS, MEMO_HOURS, MEMO_TEXT = 20, 12, 1500
 EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør')
 # the chief editor (the owner, 18/10: one editor once a day on the highest setting – 'ja sæt den op kl 5'): it reads the
 # last day's own text (input --audit), keeps the fejlbog – rules drawn from the editors' mistakes, which every input shows

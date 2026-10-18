@@ -64,3 +64,34 @@ def test_a_scout_keeps_the_outlet_google_names():
     src = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
     scouts = [f for f in src if f.get('scout')]
     assert len(scouts) >= 4 and all(f['type'] == 'gnews' and f.get('scale') is False and 'when:1d' in f['query'] for f in scouts)
+
+
+def test_an_outlets_news_sitemap_gives_its_newest_articles_of_the_sections_we_follow():
+    # 18/10, the owner: 'Axios og reuters burde være nogle primære kilder' – Reuters has no feed; its news sitemap lists
+    # every article minutes after it is out, with its headline, time and picture
+    xml = (b'<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+           b'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'
+           b'<url><loc>https://www.reuters.com/world/middle-east/us-officials-visit-village-2026-10-18/</loc><news:news>'
+           b'<news:publication><news:name>Reuters</news:name><news:language>en</news:language></news:publication>'
+           b'<news:publication_date>2026-10-18T15:40:00.000Z</news:publication_date>'
+           b'<news:title>US officials visit Palestinian village after settler attacks on diplomats</news:title></news:news>'
+           b'<image:image><image:loc>https://www.reuters.com/resizer/v2/abc.jpg?width=1200</image:loc></image:image></url>'
+           b'<url><loc>https://www.reuters.com/sports/soccer/arsenal-2026-10-18/</loc><news:news><news:publication>'
+           b'<news:language>en</news:language></news:publication><news:title>Arsenal make patience pay</news:title></news:news></url>'
+           b'<url><loc>https://www.reuters.com/world/fr/macron-2026-10-18/</loc><news:news><news:publication>'
+           b'<news:language>fr</news:language></news:publication><news:title>Macron d\xc3\xa9nonce la violence</news:title></news:news></url>'
+           b'</urlset>')
+    feed = {'name': 'Reuters direkte', 'lang': 'en', 'type': 'sitemap', 'path': '^/(?:world|legal)/'}
+    got = feeds.parse_sitemap(xml, feed)
+    assert len(got) == 1, got                                     # no sport, no other language's edition
+    a = got[0]
+    assert a['title'] == 'US officials visit Palestinian village after settler attacks on diplomats'
+    assert a['link'] == 'https://www.reuters.com/world/middle-east/us-officials-visit-village-2026-10-18/'
+    assert a['published'] == '2026-10-18T15:40:00+00:00' and a['img'] == 'https://www.reuters.com/resizer/v2/abc.jpg?width=1200'
+    assert a['source'] == 'Reuters direkte' and a['summary'] == ''
+    import json
+    src = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
+    names = [f['name'] for f in src]
+    own = src[names.index('Reuters direkte')]
+    assert own['type'] == 'sitemap' and own['outlet'] == 'Reuters' and own['label'] == 'Reuters'
+    assert names.index('Reuters direkte') < names.index('Reuters')   # its headline wins over Google's copy of it

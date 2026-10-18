@@ -44,7 +44,13 @@ da'wah.
 
 ## Architecture
 
-- `src/radar/feeds.py` fetches and parses every source type (rss, gnews, telegram, youtube). Stdlib only.
+- `src/radar/feeds.py` fetches and parses every source type (rss, gnews, telegram, youtube, sitemap). Stdlib only.
+  `sitemap` (18/10, the owner: 'Axios og reuters burde være nogle primære kilder'): an outlet's own Google news sitemap
+  where it has no feed (`parse_sitemap`: headline, time and picture of every article minutes after it is out; `pages`
+  pages of `step` articles, `&from=…`; only the feed's language and the sections its `path` regex names) – 'Reuters
+  direkte' (world, legal, investigations, energy, aerospace-defense, commodities; fit 1.15), listed before the two Google
+  News searches on Reuters so its own headline wins the dedupe; those stay as the fallback. Axios comes from its own RSS
+  (api.axios.com/feed/: every national story it publishes; its news sitemap adds only Axios Local and Pro).
 - `src/radar/run.py` is one radar run: dedupe → embed → self-learn → score → cluster (+ second look at cards)
   → sections and rank (+ the lead by fit) → show/important/big → Live's level (level.py) → translate → notify → write
   state, `data.json`, `app.json` and `search.json`.
@@ -590,8 +596,12 @@ da'wah.
     answer, without the lead's own; a shared answer or page carries the label too. A–Å:
     six groups as one chip row (Stater · Aktører – magt, gruppe, organisation – · Steder · Sager – sag, proces – ·
     Begreber · Aftaler: every page in one), the most used pages, a state's issue under it, the letters sticky. Tabs: Analyser stays selected on
-    its side pages; a tap on the tab of a side page goes back to its list. Settings: notifications with three switches,
-    'Mere' (Økonomi, the install guides, the offline library's line). Accessibility: tab panels, the pages not in view
+    its side pages; a tap on the tab of a side page goes back to its list. Settings (cleaned up 18/10, the owner: 'Ryd
+    gerne op i indstillinger siden'): the owner's block first ('Kun for dig': the chief editor's report, the senior and
+    chief editors' notes from memo.json – four lines each, whole at a tap, `notesHtml` –, the statistics), then
+    Notifikationer (three switches), Visning (text size; light or dark), Sprog (Danish headlines; Arabic and Turkish),
+    Kilder (one row – 'N kilder', how many do not answer – that unfolds the list) and 'Læg Khabar på telefonen' with the
+    offline library's line; no repeated link to the Økonomi tab. Accessibility: tab panels, the pages not in view
     `aria-hidden`, a row's label read once, headings for days, years, letters and sections.
   - **New functions:** Gem (`localStorage 'saved'`, ≤ 200, written in idle time, nothing sent anywhere: a story's
     snapshot – so it opens offline and after it left Live –, an answer's number, a page's id; the side page 'Gemt',
