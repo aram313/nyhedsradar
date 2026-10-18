@@ -1487,8 +1487,12 @@ function goFigure(k) {
   const t = HOME[k];
   if (!t) return;
   const T = TOPIC[t], tile = (T.tiles || []).some(q => q[0] === k) || (t === 'ai' && AI_TILES.includes(k));
+  // opened as a tap opens it (the owner, 18/10: from Lige nu 'den så åbner, så dæmpes resten af siden ikke'): one thing
+  // open – what else is open closes – and the rest of the page dims
+  sole(t);
   if (tile) openTile[t] = k; else { folds.add(t); open.add(k); }
   fill(T);
+  focusSync();
   jump(t, tile ? null : secEl(t).querySelector(`.en-item[data-k="${k}"]`));
 }
 

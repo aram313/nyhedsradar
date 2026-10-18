@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi: a figure opened from Lige nu dims the page** (2026-10-18, the owner: 'Når man trykker på en af de der
+  links som er på "lige nu" … og den så åbner, så dæmpes resten af siden ikke'). A row of Lige nu now opens its figure
+  as a tap on it would: what else is open closes, the rest of the page dims, a tap outside closes it.
 - **Forside: every block alike, 'Også i dag' gone** (2026-10-18, the owner: 'øverste kort ser ikke særlig godt ud' –
   then '"Også i dag" er unødvendig og bør fjernes. alle kort skal se ens ud'). Dagens historie is now a block like the
   others – no card, the small red label, the picture large with rounded corners, the headline in the serif under it,

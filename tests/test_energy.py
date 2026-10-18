@@ -474,3 +474,9 @@ def test_a_story_on_the_economy_page_unfolds_in_place():
         assert where in PAGE, where
     app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
     assert 'window.khabarStoryData = id =>' in app and 'window.khabarStoryAct = async (id, act) =>' in app
+
+
+def test_a_figure_opened_from_lige_nu_dims_the_page_like_a_tap():
+    # the owner, 18/10: 'Når man trykker på en af de der links som er på "lige nu" … så dæmpes resten af siden ikke'
+    go = PAGE.split('function goFigure(k) {')[1].split('\n}')[0]
+    assert go.index('sole(t);') < go.index('fill(T);') < go.index('focusSync();') < go.index('jump(t')
