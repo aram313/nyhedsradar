@@ -334,6 +334,13 @@ da'wah.
     docs/hjerne/routine-event-prompt.md (the weighing guide kept private). Both editors work from the thaqafah and the
     brain's understanding of the world, and Khabar's understanding is an ordinary da'wah carrier's (no quotation marks
     of distance, `voice.check_distance`).
+  - `trig_0173anatkjQydMipc98PpqZG` **the chief editor** (Khabar · chefredaktør, 18/10, the owner: 'ja sæt den op kl 5'):
+    claude-opus-5-5, cron `0 4 * * *` = 05 Danish winter time. It reads the last day's own text (`editor.py input
+    --audit`), corrects what falls short, keeps the fejlbog (`lessons.json` on the digest branch, `lessons` in an update,
+    ≤ 40 rules; every input shows it first), leaves the 07 senior editor a memo and writes the owner a morning report
+    (`report`, report.json, shown first in the owner's admin block). Public prompt: docs/hjerne/routine-chief-prompt.md.
+    The senior editor (`trig_019VrGU5HBU66UxcDjqEavok`, cron `0 6,11,15,19`) takes 07, 12, 16 and 20 in place of the
+    front-page editor (`trig_01B5p6DmEx8pz9cDLZzwxbHj`, cron `0 5,7-10,12-14,16-18,20-22`).
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub, want} to the relay; `push.py` keeps them in

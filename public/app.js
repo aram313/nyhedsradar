@@ -4966,11 +4966,25 @@ async function loadStats() {
   try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, key, raw.slice(12)); } catch { throw new Error('key'); }
   return JSON.parse(new TextDecoder().decode(plain));
 }
+// the chief editor's morning report (report.json on the digest branch, the owner, 18/10: one editor once a day on the
+// highest setting that reviews the day, keeps the fejlbog and tells the owner what went well and what went wrong)
+async function reportHtml() {
+  try {
+    const url = CFG.reportUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'report.json');
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) return '';
+    const rep = await r.json();
+    if (!rep || !rep.text) return '';
+    return `<h3>Chefredaktørens rapport · ${esc(stamp(rep.at))}</h3>`
+      + String(rep.text).split(/\n\s*\n|\n/).filter(x => x.trim()).map(x => `<p class="hint adm-rep">${esc(x.trim())}</p>`).join('');
+  } catch { return ''; }
+}
 async function showStats() {
   const box = $('adminStats');
   box.innerHTML = '<h3>Statistik · kun for dig</h3><p class="hint">Henter …</p>';
-  try { box.innerHTML = statsHtml(await loadStats()); } catch (e) {
-    box.innerHTML = '<h3>Statistik · kun for dig</h3><p class="hint">' + (e.message === 'key'
+  const rep = reportHtml();
+  try { box.innerHTML = (await rep) + statsHtml(await loadStats()); } catch (e) {
+    box.innerHTML = (await rep) + '<h3>Statistik · kun for dig</h3><p class="hint">' + (e.message === 'key'
       ? 'Statistikken kunne ikke låses op med din admin-kode.'
       : e.message === 'none' ? 'Ingen statistik endnu – den kommer med radarens næste kørsel efter de første besøg.'
       : 'Kunne ikke hente statistikken lige nu.') + '</p>';

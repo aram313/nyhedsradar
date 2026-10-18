@@ -645,8 +645,8 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
     assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'front.json',
-                                                                              'kalender.json', 'live.json', 'memo.json', 'moves.json', 'other.json',
-                                                                              'summaries.json'])
+                                                                              'kalender.json', 'lessons.json', 'live.json', 'memo.json', 'moves.json', 'other.json',
+                                                                              'report.json', 'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'
 
@@ -813,3 +813,22 @@ def test_the_editors_leave_each_other_notes():
     bad = []
     editor.memo_file({'by': 'nogen', 'text': 'x'}, None, now, bad)
     assert bad and editor.memo_file(None, None, now, []) is None
+
+
+def test_the_chief_editor_keeps_the_fejlbog_and_reports_to_the_owner():
+    # the owner, 18/10: one editor once a day on the highest setting – 'ja sæt den op kl 5'
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 19, 3, 0, tzinfo=timezone.utc)
+    problems = []
+    first = editor.lessons_file([{'id': 'ingen-afstand', 'rule': 'Ingen anførselstegn om et ord, ingen siger.', 'why': '"fejlslagen"'},
+                                 {'id': 'BAD id', 'rule': 'x'}], None, now, problems)
+    assert [x['id'] for x in first['items']] == ['ingen-afstand'] and first['items'][0]['since'] == '2026-10-19'
+    assert problems == ['lessons 2: id – lowercase letters, digits and hyphens']
+    later = editor.lessons_file([{'id': 'ingen-afstand', 'remove': True}, {'id': 'byer-paa-kortet', 'rule': 'Alle byer på kortet.'}],
+                                first, now, [])
+    assert [x['id'] for x in later['items']] == ['byer-paa-kortet']
+    lines = editor.lesson_lines(first)
+    assert lines[0].startswith('## Fejlbogen') and lines[2] == '- [ingen-afstand] Ingen anførselstegn om et ord, ingen siger. ("fejlslagen")'
+    assert editor.lessons_file(None, first, now, []) is None
+    assert editor.report_file('Godt i går.', now, [])['text'] == 'Godt i går.' and editor.report_file('', now, []) is None
+    assert 'chefredaktør' in editor.EDITORS

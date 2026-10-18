@@ -123,13 +123,18 @@ NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json', 'memo.json')
+                'events.json', 'memo.json', 'lessons.json', 'report.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
 # editor calls for an update
 MEMOS, MEMO_HOURS, MEMO_TEXT = 8, 12, 1500
-EDITORS = ('begivenhedsredaktør', 'forsideredaktør')
+EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør')
+# the chief editor (the owner, 18/10: one editor once a day on the highest setting – 'ja sæt den op kl 5'): it reads the
+# last day's own text (input --audit), keeps the fejlbog – rules drawn from the editors' mistakes, which every input shows
+# at its top (lessons.json) – and writes the owner a short morning report (report.json, shown in the owner's admin block)
+LESSONS_MAX, LESSON_TEXT, REPORT_TEXT = 40, 320, 4000
+LESSON_ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,60}$')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
 CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
 CAL_AHEAD = 30      # days of the calendar the input lists
@@ -1037,6 +1042,13 @@ TEMPLATE = {
                   'why': '<one factual line: why it matters – never a forecast>', 'link': '<the source, optional with ids>',
                   'ids': ['<the story ids it comes from>']}],
 }
+CHIEF_TEMPLATE = {
+    'lessons': [{'id': '<lowercase-with-hyphens; the same id changes a rule, {"id": …, "remove": true} takes it away>',
+                 'rule': '<one plain rule the editors follow from now on, drawn from a mistake you found>',
+                 'why': '<optional: the mistake it comes from, in a few words>'}],
+    'report': '<the morning report to the owner, in Danish: what went well, what went wrong and what you changed; '
+              'a few short paragraphs>',
+}
 ANSWER_TEMPLATE = {'answer': {
     'nr': "<the answer's number, as given>", 'date': 'YYYY-MM-DD',
     'title_da': '<the title in Danish, as the movement titles it: "Svar på spørgsmål: …">',
@@ -1093,6 +1105,74 @@ def memo_file(entry, current, now, problems):
         problems.append(f'memo: {len(text)} characters – at most {MEMO_TEXT}')
     items = [m for m in (current or {}).get('items') or [] if isinstance(m, dict)]
     return {'items': [{'at': now.isoformat(timespec='seconds'), 'by': entry['by'], 'text': text[:MEMO_TEXT]}, *items][:MEMOS]}
+
+
+def lessons_file(entries, current, now, problems):
+    """lessons.json as this update leaves it: the fejlbog's rules added, changed (same id) or removed ({id, remove}), at
+    most LESSONS_MAX; None when the update names none."""
+    if entries is None:
+        return None
+    items = {x['id']: x for x in (current or {}).get('items') or [] if isinstance(x, dict) and x.get('id')}
+    if not isinstance(entries, list):
+        problems.append('lessons: a list of {id, rule, why} – or leave it out')
+        return None
+    for k, x in enumerate(entries, 1):
+        if not isinstance(x, dict) or not LESSON_ID.match(str(x.get('id') or '')):
+            problems.append(f'lessons {k}: id – lowercase letters, digits and hyphens')
+            continue
+        if x.get('remove'):
+            items.pop(x['id'], None)
+            continue
+        rule = re.sub(r'\s+', ' ', str(x.get('rule') or '')).strip()
+        if not rule or len(rule) > LESSON_TEXT:
+            problems.append(f"lessons {k} ({x['id']}): rule – one plain sentence or two (at most {LESSON_TEXT} characters)")
+            continue
+        old = items.get(x['id'], {})
+        items[x['id']] = {'id': x['id'], 'rule': rule, **({'why': re.sub(r'\s+', ' ', str(x['why'])).strip()[:LESSON_TEXT]} if x.get('why') else {}),
+                          'since': old.get('since') or dk(now).date().isoformat()}
+    if len(items) > LESSONS_MAX:
+        problems.append(f'lessons: {len(items)} rules – at most {LESSONS_MAX}: fold or remove the old ones')
+    return {'updated': now.isoformat(timespec='seconds'), 'items': list(items.values())[:LESSONS_MAX]}
+
+
+def lesson_lines(lessons):
+    """The input's fejlbog: the chief editor's rules, which every editor follows."""
+    items = (lessons or {}).get('items') or []
+    if not items:
+        return []
+    out = ["## Fejlbogen – the chief editor's rules from earlier mistakes: follow every one", '']
+    out += [f"- [{x['id']}] {x['rule']}" + (f" ({x['why']})" if x.get('why') else '') for x in items]
+    return out + ['']
+
+
+def report_file(text, now, problems):
+    """report.json: the chief editor's morning report to the owner, or None."""
+    if not text:
+        return None
+    t = str(text).strip()
+    if len(t) > REPORT_TEXT:
+        problems.append(f'report: {len(t)} characters – at most {REPORT_TEXT}')
+    return {'at': now.isoformat(timespec='seconds'), 'text': t[:REPORT_TEXT]}
+
+
+def audit_lines(args, now, find):
+    """The last day's own text, for the chief editor's review: the headlines and summaries written, the outlet's own
+    headline beside each."""
+    s = summaries_of(args)
+    since = now - timedelta(hours=26)
+    titles = sorted(((k, v) for k, v in (s.get('titles') or {}).items() if isinstance(v, dict) and ts(v.get('at')) >= since),
+                    key=lambda kv: kv[1].get('at') or '', reverse=True)[:120]
+    sums = sorted(((k, v) for k, v in (s.get('items') or {}).items() if isinstance(v, dict) and ts(v.get('at')) >= since),
+                  key=lambda kv: kv[1].get('at') or '', reverse=True)[:60]
+    out = ['## Audit: the last day\'s own text (for your review)', '',
+           f'### Headlines written ({len(titles)}) – yours ← the outlet\'s', '']
+    for k, v in titles:
+        it = find(k)
+        own = headline(it) if it else ''
+        out.append(f"[{k}] {dk(ts(v['at'])):%d.%m %H.%M} · {v['title']}" + (f"  ← {it.get('source')}: {own}" if it else ''))
+    out += ['', f'### Summaries written ({len(sums)})', '']
+    out += [f"[{k}] {dk(ts(v['at'])):%d.%m %H.%M} · {v.get('text')}" for k, v in sums]
+    return out + ['']
 
 
 def memo_lines(memo, now):
@@ -1313,7 +1393,10 @@ def cmd_input(args):
     wire = uncovered(lines, moves)
     noted = answers_of(args)
     out = [f'# Material for the {dk(now):%H.%M} update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
+    out += lesson_lines(read(args, 'origin/digest', 'lessons.json', {}))
     out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
+    if getattr(args, 'audit', False):
+        out += audit_lines(args, now, resolver(items).get)
     out += brain.section(top, noted['items'])
     out += front_lines(notes, digest, by_id)
     today = dk(now).date().isoformat()
@@ -1392,6 +1475,8 @@ def cmd_input(args):
         out.append(f"[{v['i']}] {dk(ts(v['p'])):%d.%m %H.%M} · {v['t']}  ({v.get('tr') or '–'})")
     queue = waiting(args, noted)
     template = dict(TEMPLATE)
+    if getattr(args, 'audit', False):
+        template.update(CHIEF_TEMPLATE)
     if queue:
         out += [''] + answer_lines(queue[0], brain.known_ids() | used_ids(noted))
         template.update(ANSWER_TEMPLATE)
@@ -2325,6 +2410,8 @@ def cmd_publish(args):
     kal = calendar_file(draft.get('calendar'), quoted(read(args, 'origin/digest', 'kalender.json', {'items': []})),
                         resolver(data.get('items', [])), now, problems)
     memo = memo_file(draft.get('memo'), read(args, 'origin/digest', 'memo.json', {}), now, problems)
+    lessons = lessons_file(draft.get('lessons'), read(args, 'origin/digest', 'lessons.json', {}), now, problems)
+    report = report_file(draft.get('report'), now, problems)
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))
@@ -2360,6 +2447,10 @@ def cmd_publish(args):
         files['front.json'] = front
     if memo:
         files['memo.json'] = memo
+    if lessons:
+        files['lessons.json'] = lessons
+    if report:
+        files['report.json'] = report
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again
@@ -2427,6 +2518,7 @@ def main(argv=None):
     p.add_argument('--out', help='write the files here (default /tmp/editor/out)')
     p.add_argument('--push', action='store_true', help='commit the files to the digest branch')
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')
+    p.add_argument('--audit', action='store_true', help="input: the last day's own text and the chief editor's fields")
     p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'], help=argparse.SUPPRESS)
     args = p.parse_args(argv)
     {'check': cmd_check, 'gate': cmd_gate, 'input': cmd_input, 'publish': cmd_publish}[args.command](args)

@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The chief editor – the fejlbog and a morning report** (2026-10-18, the owner: one more editor once a day on the
+  highest setting – 'ja sæt den op kl 5'). A third Claude routine, 'Khabar · chefredaktør' (claude-opus-5-5, 05 Danish
+  winter time, cron `0 4 * * *`; public prompt docs/hjerne/routine-chief-prompt.md), reviews the last day's work of the
+  two editors (`editor.py input --audit`: every headline written beside the outlet's own, every summary), corrects what
+  falls short (headlines, summaries, event pages, the calendar – never the front page's composition), keeps the
+  fejlbog – `lessons.json` on the digest branch, at most 40 rules drawn from the editors' mistakes, shown at the top of
+  every input –, leaves the 07 senior editor a note on the day ahead and writes the owner a short morning report
+  (`report.json`, shown first in the owner's admin block).
 - **The event map names the towns of Palestine as the Kort tab did** (2026-10-18, the first page on Israel's election
   named 'Jerusalem'): a place in `ORIGINAL` is drawn under its name from before the occupation (al-Quds, Yafa …), and a
   country named Israel in the house form.
