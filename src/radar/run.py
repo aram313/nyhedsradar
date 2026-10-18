@@ -335,6 +335,42 @@ def editor_titles(summaries):
     return out
 
 
+def push_line(it, sums):
+    """A notification's one line of résumé under a story's headline (the owner, 18/10: 'Det er bedre hvis man får et
+    kort resume af nye historier'): the first sentence of the editor's summary of the story or one of its articles,
+    else of the outlet's teaser; at most about 140 characters, or nothing."""
+    ids = [it['id'], *(it.get('members') or [])]
+    ed = next((v.get('text') for i in ids for v in [(sums or {}).get(i)] if isinstance(v, dict) and v.get('text')), '')
+    head = it.get('title_da') or it.get('title_tr') or it.get('title') or ''
+    text = ed or clean_teaser(it.get('summary_da') or it.get('summary_tr') or it.get('summary') or '', head)
+    first = re.split(r'(?<=[.!?])\s+', str(text or '').strip(), maxsplit=1)[0] if text else ''
+    if len(first) < 25 or curious(first):
+        return ''
+    return first if len(first) <= 140 else first[:138].rsplit(' ', 1)[0] + ' …'
+
+
+def push_note(batch, items, titles, sums, tops, label_of):
+    """The notification for the stories in a batch (the strongest first): one story – its weight, its headline and a
+    line of résumé, and the link opens it; several – how many, their headlines as a short list, and the link opens a
+    page of exactly those stories (?nye=…), never only the front page (the owner, 18/10: 'den sender bare en til
+    forsiden')."""
+    lead = items[batch[0]['id']]
+    if len(batch) == 1:
+        where = ' i Danmark' if lead.get('sec') == 'dk' else ''
+        # 'Høj betydning' only where the app says it too (its five of the day); another big story is 'Vigtig nyhed'
+        title = (f"{'Høj betydning' if lead['id'] in tops else 'Vigtig nyhed'}{where} · {lead['outlets']} medier" if lead['big']
+                 else label_of.get(lead['source'], lead['source']))
+        line = push_line(lead, sums)
+        body = push_headline(lead, titles) + (f'\n{line}' if line else '')
+        return {'title': title, 'body': body, 'url': f"./?item={lead['id']}&n=1", 'tag': lead['id']}
+    shown = [items[p['id']] for p in batch[:3]]
+    body = '\n'.join(f'• {push_headline(it, titles)}' for it in shown)
+    if len(batch) > 3:
+        body += f'\n+ {len(batch) - 3} mere'
+    ids = ','.join(p['id'] for p in batch[:8])
+    return {'title': f'{len(batch)} nye vigtige historier', 'body': body, 'url': f'./?nye={ids}&n=1', 'tag': 'nye'}
+
+
 def push_headline(it, titles):
     """A notification says the news as the app shows it (the owner's headline rule of 2026-10-17): the editor's
     headline for the story or one of its articles, else the Danish, the English translation, the outlet's own; a
@@ -408,7 +444,8 @@ def main():
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
     live_plan = load(os.environ.get('RADAR_LIVE', CACHE / 'live.json'), {})    # the editor's level for Live (level.py)
     # the editor's headlines (summaries.json on the digest branch): a notification says what the app shows
-    ed_titles = editor_titles(load(os.environ.get('RADAR_SUMMARIES', CACHE / 'summaries.json'), {}))
+    ed_file = load(os.environ.get('RADAR_SUMMARIES', CACHE / 'summaries.json'), {})
+    ed_titles, ed_sums = editor_titles(ed_file), (ed_file.get('items') or {}) if isinstance(ed_file, dict) else {}
     admitted = load(STATE / 'admitted.json', {})    # member id -> when its story was first admitted to Live
     phones = push.load_phones(STATE / 'phones.bin', os.environ.get('PROFILE_KEY', ''))   # signed up in the app
     owner = admin.load(STATE / 'removed.json')      # what the owner removed or moved with a long press in the app
@@ -944,19 +981,7 @@ def main():
     gap_ok = last is None or NOW - last >= timedelta(minutes=s['notify_min_gap_minutes'])
     if pending and gap_ok and not in_quiet_hours(s) and len(sent_today) < s['notify_max_per_day']:
         batch = sorted(pending, key=lambda p: (p['why'] != 'big', -items[p['id']]['pct']))
-        lead = items[batch[0]['id']]
-        headline = push_headline(lead, ed_titles)
-        if len(batch) == 1:
-            where = ' i Danmark' if lead.get('sec') == 'dk' else ''
-            # 'Høj betydning' (the app's term since 18/10, before 'Topnyhed') only where the app says it too (its five of the day); another big story is 'Vigtig nyhed'
-            title = (f"{'Høj betydning' if lead['id'] in tops else 'Vigtig nyhed'}{where} · {lead['outlets']} medier" if lead['big']
-                     else label_of.get(lead['source'], lead['source']))
-            body = headline
-        else:
-            title = f'{len(batch)} vigtige nyheder'
-            body = f"{headline}  (+{len(batch) - 1} mere)"
-        result = push.send({'title': title, 'body': body, 'url': f"./?item={lead['id']}&n=1", 'tag': lead['id']},
-                           push.everyone(phones, 'top'))
+        result = push.send(push_note(batch, items, ed_titles, ed_sums, tops, label_of), push.everyone(phones, 'top'))
         print('push:', result)
         gone.update(result.get('gone') or [])
         if result.get('sent'):
@@ -1012,7 +1037,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'kw', 'kw_tr', 'kw_da',
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pf', 'pl', 'kw', 'kw_tr', 'kw_da',
                      'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live', 'kind')
     app_fields = ('id', 'title', 'summary', 'link', 'lang', 'published', 'found', 'rank', 'sec', 'secs', 'big', 'important',
                   'outlets', 'confirmed', 'cover', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb',
@@ -1021,7 +1046,9 @@ def main():
                   # out until 18/10, so the phone never weighed the heaviest tiers the radar did
                   'tier',
                   # where the large picture's subject sits (thumbs.subject): the app keeps a face clear of the text on it
-                  'pf')
+                  'pf',
+                  # its light copy (thumbs.large, state/l/): the app loads it instead of the outlet's original
+                  'pl')
     also_fields = ('id', 'source', 'title', 'link', 'lang', 'group', 'title_tr')
 
     def slim(d, keys):   # empty values left out (the app reads a missing field as empty); 0 stays (confirmed: 0)

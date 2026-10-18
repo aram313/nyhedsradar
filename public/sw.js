@@ -54,21 +54,38 @@ self.addEventListener('fetch', e => {
   }).catch(() => caches.match(e.request, { ignoreSearch: true })));
 });
 
+// No notification while the reader is in the app (the owner, 18/10: 'ingen notifikation når man er på siden'): the page
+// in view is told to fetch the news, and nothing is shown – Chrome asks for no notification while a page of the site is
+// in view; Safari takes away the permission after a few pushes that show nothing, so there one is shown silently and
+// closed at once.
+const QUIET_OK = /Chrome\//.test(self.navigator.userAgent) && !/iPhone|iPad|Macintosh/.test(self.navigator.userAgent);
 self.addEventListener('push', e => {
   let p = {};
   try { p = e.data.json(); } catch { p = { title: 'Khabar', body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(p.title || 'Khabar', {
+  const note = {
     // badge: the small one-colour icon Android shows in the status bar; a new note with the same tag (the overview's
     // next update) replaces the old one and still makes a sound
     body: p.body || '', tag: p.tag, renotify: Boolean(p.tag), icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
     data: { url: p.url || './' },
+  };
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async list => {
+    const here = list.filter(c => c.visibilityState === 'visible');
+    if (!here.length) return self.registration.showNotification(p.title || 'Khabar', note);
+    here.forEach(c => c.postMessage({ type: 'news' }));
+    if (QUIET_OK) return;
+    const tag = `here-${Date.now()}`;
+    await self.registration.showNotification(p.title || 'Khabar', { ...note, tag, renotify: false, silent: true });
+    (await self.registration.getNotifications({ tag })).forEach(n => n.close());
   }));
 });
+// a tap opens what the notification is about – the story, the new stories, the answer – in the app that is open (told by
+// a message, so it opens in place, also on the iPhone where a page cannot be sent elsewhere), else in a new window
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const target = new URL(e.notification.data.url || './', self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) { if ('navigate' in c) return c.navigate(target).then(w => w && w.focus()); }
+    const c = list.find(x => x.visibilityState === 'visible') || list[0];
+    if (c) { c.postMessage({ type: 'open', url: target }); return c.focus(); }
     return self.clients.openWindow(target);
   }));
 });

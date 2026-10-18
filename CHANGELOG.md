@@ -9,6 +9,23 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Notifications that tell the news and lead to it** (2026-10-18, the owner: 'Notifikationerne er forvirrende … den
+  sender ikke en til historierne … på telefonen er der en begrænset tekst … den sender bare en til forsiden. Det er
+  bedre hvis man får et kort resume af nye historier. Og ingen notifikation når man er på siden'). One story: its
+  weight, its headline and one line of résumé (the editor's summary's first sentence, else the teaser's), and a tap
+  opens it. Several: '3 nye vigtige historier' with their headlines as a short list, and a tap opens 'Nye historier' – a
+  page of exactly those stories (`?nye=…`). A tap while the app is open opens it there, in place (the service worker
+  tells the page; before, the iPhone opened the app where it was). While the app is in view a push shows nothing – the
+  page fetches the news instead (Safari, which takes the permission away after pushes that show nothing, gets a silent
+  one closed at once) – and the 'N nye historier' pill on the page, which only scrolled up, is gone.
+- **Better and lighter large pictures** (2026-10-18, the owner: 'Er det ikke bedre at finde billeder der passer bedre
+  til dagens historie frem for at fjerne teksten fra billedet?' and 'Billederne tager alt for lang tid at loade. Næsten et
+  sekund ved opstart' – an outlet's original weighed 1.6 MB). For the 18 strongest stories in Live and the big ones the
+  radar grades every outlet's picture of the story (`thumbs.fitness`: wide, sharp, light enough, a scene or a small face
+  high up – a close portrait leaves no room for the headline) and keeps the best as the story's large picture, with a
+  light copy 960 px wide (`thumbs.large`, state/l/ on the data branch, about a twentieth of the original). The app
+  loads the copy for Dagens historie and the event pictures (`picSrc`), the original when the copy is gone; the
+  headline goes under a picture only when no picture of the story fits. An event page follows its story's picture.
 - **Times of Israel only when there is no other source** (2026-10-18, the owner: 'Brug kun times of israel som kilde
   hvis der ikke er andre'). `"last": true` in config/feeds.json marks a source of last resort: the radar lets it lead a
   story only when no other outlet can (the story keeps it among its other outlets); on an event page a box or a

@@ -23,6 +23,15 @@ STAND_IN = re.compile(r'/(?:brands?|logos?)/|[/_-](?:logo|share|default|placehol
 
 
 SPOT_AGAIN = 8   # pictures made before the subject was kept, looked at again in a run (18/10)
+# The large pictures (18/10, the owner: 'Er det ikke bedre at finde billeder der passer bedre til dagens historie frem
+# for at fjerne teksten fra billedet?' – and 'Billederne tager alt for lang tid at loade. Næsten et sekund ved opstart':
+# the outlets' originals weigh up to a few MB): for the stories the app may show large, every outlet's picture of the
+# story is graded for a headline on its lower part, and the best is kept as a light copy (state/l/, LARGE_W wide)
+LARGE_W = 960        # px: sharp across a phone's width at 2-3x, about a twentieth of an outlet's original
+LARGE_CARDS = 18     # the strongest stories in Live (and the big ones) whose pictures are graded
+LARGE_BUDGET = 14    # originals graded in a run (the rest the next runs)
+LARGE_PAGES = 16     # article pages looked at in a run for their share pictures
+LARGE_SECONDS = 20
 CUT = 'face1'   # change it when pictures are cut differently: every card then gets a freshly made one
 
 
@@ -140,6 +149,53 @@ def shrink(raw):
         out = io.BytesIO()
         im.save(out, 'JPEG', quality=70, optimize=True, progressive=True)
         return out.getvalue()
+    except Exception:  # noqa: BLE001 – a broken picture is no picture
+        return None
+
+
+def fitness(w, h, mean, pf):
+    """How well a picture carries a headline on its lower part, as the app sets it: wide, sharp, light enough, and its
+    subject a scene or a face small and high – a close portrait leaves no room for the text (pf: subject's [x, y, ar,
+    face, face height])."""
+    ar, s = w / h, 0.0
+    s += 2 if 1.3 <= ar <= 2.1 else 0 if ar >= 1.0 else -3
+    s += 1 if min(w, h) >= 700 else -2 if w < 600 else 0
+    s -= 1.5 if mean < 45 else 0
+    face, fy, fh = pf[3], pf[1], pf[4] if len(pf) > 4 else 0
+    if not face:
+        s += 1
+    elif fh <= 0.22:
+        s += 1 + (0.5 if fy <= 0.5 else 0)
+    elif fh <= 0.35:
+        s -= 1
+    else:
+        s -= 3
+    return round(s, 2)
+
+
+def grade(raw):
+    """A picture for a large frame: (its fitness, where its subject sits, a light JPEG copy LARGE_W wide), or None for
+    one that is too small, too narrow, too dark or unreadable."""
+    from PIL import Image, ImageOps
+    try:
+        im = Image.open(io.BytesIO(raw))
+        w, h = im.size
+        if min(w, h) < 300 or max(w, h) > 2.6 * min(w, h):
+            return None
+        im.draft('RGB', (LARGE_W * 2, LARGE_W * 2))
+        im = ImageOps.exif_transpose(im).convert('RGB')
+        if too_dark(im):
+            return None
+        g = im.convert('L').resize((64, 64))
+        mean = sum(g.getdata()) / 4096
+        box = face_box(im)
+        x, y, fh = box or (.5, .4, 0)
+        pf = [round(x, 3), round(y, 3), round(w / h, 3), 1 if box else 0, round(fh, 3)]
+        if im.width > LARGE_W:
+            im = im.resize((LARGE_W, round(im.height * LARGE_W / im.width)), Image.LANCZOS)
+        out = io.BytesIO()
+        im.save(out, 'JPEG', quality=68, optimize=True, progressive=True)
+        return fitness(w, h, mean, pf), pf, out.getvalue()
     except Exception:  # noqa: BLE001 – a broken picture is no picture
         return None
 
@@ -282,10 +338,75 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
         if it.get('pic') in spot:
             it['pf'] = spot[it['pic']]
 
+    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now, look)
+
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):
         if p.name not in used:
             p.unlink()
     shown = {it.get('pic') for it in cards}
     return {'page': pages, 'bad': bad, 'lit': {k: v for k, v in lit.items() if k in used},
-            'spot': {k: v for k, v in spot.items() if k in shown}}
+            'spot': {k: v for k, v in spot.items() if k in shown}, 'grade': graded}
+
+
+def large(cards, options, pages, bad, graded, light, now, look):
+    """For the strongest stories: every outlet's picture graded (fitness), the best kept as the story's large picture
+    (card 'pic' its original, 'pf' its subject, 'pl' the light copy in `light`). graded: {url: [fitness, pf, file] or
+    0}, kept between runs. Returns graded, pruned to the pictures still in question."""
+    start = time.monotonic()
+    wide = [it for it in sorted(cards, key=lambda c: -(c.get('rank') or 0)) if it.get('live') or it.get('big')][:LARGE_CARDS]
+    if not wide:   # no story in question: no copy kept
+        for f in light.glob('*.jpg') if light.exists() else []:
+            f.unlink()
+        return {}
+    light.mkdir(parents=True, exist_ok=True)
+    cand = {it['id']: options(it) for it in wide}
+    links = list(dict.fromkeys(o[1] for us in cand.values() for o in us if isinstance(o, tuple) and o[1] not in pages))
+    with ThreadPoolExecutor(8) as pool:
+        for link, url in pool.map(look, links[:LARGE_PAGES]):
+            if url is not None:
+                pages[link] = [url, now.isoformat()]
+
+    def usable(u):
+        return isinstance(u, str) and u.startswith('http') and u not in bad and not STAND_IN.search(u)
+    for k, us in cand.items():
+        flat = [pages.get(u[1], [''])[0] if isinstance(u, tuple) else u for u in us]
+        cand[k] = [u for u in dict.fromkeys(flat) if usable(u)]
+    for u, g in list(graded.items()):   # a light copy that is gone is made again
+        if g and not (light / g[2]).exists():
+            del graded[u]
+
+    def grade_one(url):
+        if time.monotonic() - start > LARGE_SECONDS:
+            return url, None
+        try:
+            return url, grade(get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8')) or 0
+        except Exception:  # noqa: BLE001 – no picture from this address
+            return url, 0
+    need = list(dict.fromkeys(u for us in cand.values() for u in us if u not in graded))[:LARGE_BUDGET]
+    with ThreadPoolExecutor(6) as pool:
+        for url, g in pool.map(grade_one, need):
+            if g is None:
+                continue                  # out of time: the next run
+            if not g:
+                graded[url] = 0
+                continue
+            name = 'l' + name_of(url)
+            (light / name).write_bytes(g[2])
+            graded[url] = [g[0], g[1], name]
+    for it in wide:
+        best = None
+        for n, u in enumerate(cand.get(it['id']) or []):
+            g = graded.get(u)
+            if g:
+                score = g[0] + (0.5 if n == 0 else 0)   # the lead's own picture, by a little, when they are alike
+                if best is None or score > best[0]:
+                    best = (score, u, g)
+        if best:
+            it['pic'], it['pf'], it['pl'] = best[1], best[2][1], best[2][2]
+    keep = {it['pl'] for it in cards if it.get('pl')}
+    for p in light.glob('*.jpg'):
+        if p.name not in keep:
+            p.unlink()
+    asked = {u for us in cand.values() for u in us}
+    return {u: g for u, g in graded.items() if u in asked}

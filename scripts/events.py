@@ -454,6 +454,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
         first = next((it for it in told if str(it.get('pic') or '').startswith('http')), None)
         pic = (first or {}).get('pic') or old.get('pic', '')
         pf = (first or {}).get('pf') if first else old.get('pf')
+        pl = (first or {}).get('pl') if first else old.get('pl')
         article = []
         raw = e.get('article') or []
         if not isinstance(raw, list) or len(raw) > PARAS:
@@ -510,13 +511,21 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 **({'since': since} if since and status != 'kommende' else {}), **({'date': day} if status == 'kommende' else {}),
                 **({'cal': text(e.get('cal'))} if e.get('cal') else {}), **({'topic': text(e.get('topic'), 80)} if e.get('topic') else {}),
                 'facts': facts, 'places': places[:PLACES], 'quotes': quotes, 'stories': stories,
-                **({'article': article} if article else {}), **({'pic': pic} if pic else {}), **({'pf': pf} if pic and pf else {}), 'at': stamp}
+                **({'article': article} if article else {}), **({'pic': pic} if pic else {}), **({'pf': pf} if pic and pf else {}), **({'pl': pl} if pic and pl else {}), 'at': stamp}
         items[ident] = item
     # the outlets under the pages this update leaves as they are follow their stories too (the news grow)
     changed = {text(x.get('id')) for x in entries or [] if isinstance(x, dict)}
     for ident, e in items.items():
         if ident in changed:
             continue
+        first = next((it for it in (find.get(str(i)) for i in e.get('stories') or []) if it and str(it.get('pic') or '').startswith('http')), None)
+        if first:
+            e['pic'] = first['pic']
+            for k in ('pf', 'pl'):
+                if first.get(k):
+                    e[k] = first[k]
+                else:
+                    e.pop(k, None)
         for part, said in [*((f, f.get('value')) for f in e.get('facts') or []), *((a, a.get('text')) for a in e.get('article') or [])]:
             cited = [it for it in (find.get(str(i)) for i in part.get('ids') or []) if it]
             if cited:

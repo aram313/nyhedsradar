@@ -139,7 +139,8 @@ def test_dagens_historie_has_its_own_picture_with_the_headline_on_it():
     assert 'i.pic' in lead and 'badPics.has(x)' in lead and 'thumb' not in lead.split('\n')[0]   # never the small copy
     assert 'badPics.add(' in fn('leadPicFailed') and "classList.remove('lp')" in fn('leadPicFailed')
     st = fn('story')
-    assert 'onerror="leadPicFailed(this)"' in st and 'loading="lazy"' not in st.split('const lp =')[1].split('\n')[0]
+    # since 18/10 the light copy first (thumbs.large), the original when it fails, then the failure
+    assert 'onerror="picFallback(this, leadPicFailed)"' in st and 'src="${esc(picSrc(opts.pic))}" data-orig=' in st and 'loading="lazy"' not in st.split('const lp =')[1].split('\n')[0]
     assert 'first || b.picture !== false ? leadPic(i)' in fn('composedHome') and 'pic: leadPic(lead)' in fn('fixedHome')
     assert re.search(r'\.lead-pic \{[^}]*aspect-ratio: 16 / 9; max-height: 40vh;', RULES)                     # colour, text on a fade
     assert re.search(r'\.lead-pic::after \{[^}]*linear-gradient\(to top, rgba\(0, 0, 0, \.9\)', RULES)

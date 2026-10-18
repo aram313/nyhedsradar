@@ -124,7 +124,16 @@ da'wah.
   which app.json carries and Dagens historie shows large since 2026-10-17),
   shrunk with Pillow to a 144 px JPEG in `state/t/` (served from the data branch); unverified Telegram channels
   never lend one. `state/pics.json` remembers page images and failed pictures for 3 days.
-- `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay.
+- **The large pictures** (18/10): `thumbs.large` grades every outlet's picture of the 18 strongest stories in Live and the
+  big ones (`fitness`: wide, sharp, light, a scene or a small high face; the face's height is `pf[4]`), keeps the best as
+  the card's `pic` with its `pf` and a light copy `pl` (960 px, state/l/, kept per picture in pics.json `grade`); the app
+  loads `LIGHT + pl` (`picSrc`), the original when the copy is gone (`picFallback`), and sets the face in the free band
+  above the measured headline, or the headline under the picture (`placePic`, `picPlace`).
+- `src/radar/push.py` sends Web Push; `src/radar/feedback.py` reads copy taps from the ntfy.sh relay. A notification
+  (18/10, `run.push_note`): one story – its weight, its headline, one line of résumé (`push_line`) and `?item=`; several
+  – their headlines as a list and `?nye=<ids>`, the 'Nye historier' page. The service worker shows nothing while the app
+  is in view (it tells the page to fetch; Safari gets a silent one closed at once) and a tap opens the link in the open
+  app by a message (`routeLink`); the page has no 'nye historier' pill.
 - `src/radar/stats.py` keeps the owner's statistics (2026-10-11): the app posts `visit` (home screen or browser, iPhone/Android/other, time zone, language, how it came; `first` on 'Kom i gang') and `leave` (seconds, tabs, stories opened) to the relay; read/share signals give the most read stories (the owner's own carry `me` and are not counted). Counts per Danish day in `state/stats.enc`, AES-GCM with a key from ADMIN_KEY (sha256('khabar-stats|' + code)); the app decrypts it in the admin-only block at the top of Indstillinger. Nothing is stored on phones and no id follows a person – the owner declined anonymous ids for unique visitors (2026-10-11: consent rules) and wants no consent prompt or button, so place in Denmark is not collected (it would need a permission prompt or an IP lookup); country comes from the time zone.
 - `scripts/editor.py` is the Claude editor's tool (gate / check / input / publish, see its docstring). `check` is the
   quarter-hour look (≤ ~40 lines: the radar's last pass, the stories of weight – a story is new only when its first

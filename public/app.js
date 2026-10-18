@@ -42,6 +42,9 @@ const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonom
 let dockTab = '';
 // the small pictures live next to data.json on the data branch
 const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/');
+// the large pictures' light copies (the radar's thumbs.large, state/l/ on the data branch – the owner, 18/10: 'Billederne
+// tager alt for lang tid at loade'): about a twentieth of an outlet's original, the original kept as the fallback
+const LIGHT = THUMBS.replace(/t\/$/, 'l/');
 
 const RAW = { news: rawOf('lastData'), digest: rawOf('lastDigest'), sums: rawOf('lastSummaries'), front: rawOf('lastFront'), moves: rawOf('lastMoves') };
 idle(() => { try { localStorage.removeItem('lastSums'); localStorage.removeItem('lastTitles'); } catch { /* nothing kept */ } });   // the old copies (before 17/10)
@@ -887,6 +890,24 @@ function picFailed(img, fallback) {
 // picture (`pic`: the feed's or the outlet's og:image, else another outlet's – the radar never takes one from an
 // unverified channel), never the small copy blown up and never an initials tile; none, or one that failed: the text lead
 const leadPic = i => [i.pic].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
+// a large picture's address: its light copy when the radar made one, else the outlet's original (the original stays the
+// picture's name everywhere – a failed copy falls back to it, picFallback)
+let lightVer = -1, lightOf = new Map();
+function picSrc(url) {
+  if (lightVer !== ver) {
+    lightOf = new Map();
+    for (const i of (data && data.items) || []) if (i.pl && i.pic) lightOf.set(i.pic, LIGHT + i.pl);
+    for (const e of events()) if (e.pl && e.pic && !lightOf.has(e.pic)) lightOf.set(e.pic, LIGHT + e.pl);
+    lightVer = ver;
+  }
+  return lightOf.get(url) || url;
+}
+// a light copy that is gone (its story left the strongest): the original instead; the original failing is a failure
+function picFallback(img, failed) {
+  const orig = img.dataset.orig;
+  if (orig && img.getAttribute('src') !== orig) { img.src = orig; return; }
+  failed(img);
+}
 // A large picture with text on its bottom keeps its subject clear of the text (the owner, 18/10: 'Teksten dækker for
 // rubios ansigt, der skal vurderes om det er et godt nok billede til forside i sådanne tilfælde'): the radar finds where
 // a face sits (thumbs.subject: x, y, its shape, face or not); the picture is moved in its frame so the face comes about
@@ -899,7 +920,7 @@ const pfAttr = pf => Array.isArray(pf) && pf.length >= 3 ? ` data-pf="${pf.map(N
 // does not fit there the headline goes under the picture. What was decided is remembered by picture (picPlace), so a
 // redraw draws it so at once and a patch never undoes it.
 const picPlace = new Map();
-const picKey = (img, host) => (host && host.classList.contains('ev-hero') ? 'e|' : 's|') + img.getAttribute('src');
+const picKey = (img, host) => (host && host.classList.contains('ev-hero') ? 'e|' : 's|') + (img.dataset.orig || img.getAttribute('src'));
 function placePic(img) {
   const pf = String(img.dataset.pf || '').split(',').map(Number);
   if (pf.length < 3 || pf.slice(0, 4).some(n => !isFinite(n))) return;
@@ -931,7 +952,7 @@ const placeAll = () => document.querySelectorAll('img[data-pf]').forEach(i => { 
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeAll);
 addEventListener('resize', (() => { let t; return () => { clearTimeout(t); t = setTimeout(placeAll, 200); }; })());
 function leadPicFailed(img) {
-  badPics.add(img.getAttribute('src'));   // remembered: a reload draws the text lead
+  badPics.add(img.dataset.orig || img.getAttribute('src'));   // remembered: a reload draws the text lead
   const art = img.closest('.story'), box = img.closest('.lead-pic'), sec = img.closest('.block.top');
   if (box) box.remove();
   if (art) art.classList.remove('lp');
@@ -999,7 +1020,7 @@ function story(i, n, opts = {}) {
   const placed = opts.lead && opts.pic ? placedPic('s|', opts.pic) : null;
   const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', placed && placed.below && 'tx-below', opts.fl && 'fl', opts.fpic && 'fp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
-  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"${pfAttr(i.pf)}${placed ? ` style="object-position:${placed.pos}"` : ''} onload="placePic(this)"></span>`
+  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(picSrc(opts.pic))}" data-orig="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="picFallback(this, leadPicFailed)"${pfAttr(i.pf)}${placed ? ` style="object-position:${placed.pos}"` : ''} onload="placePic(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
     <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
@@ -2953,14 +2974,11 @@ function render(opts = {}) {
   drawSoon();
   if (!data) return;
   const all = stories();
-  // new stories that arrived while the user was scrolled down: offer a pill instead of jumping
+  // new stories: read aloud for a screen reader, never shown on the page (the owner, 18/10: the pill 'nye historier'
+  // only scrolled up – 'ingen notifikation når man er på siden'); Live shows them first, each with its dot
   const fresh = opts.fresh && shownIds.size ? all.filter(i => !shownIds.has(i.id)).length : 0;
   shownIds = new Set(all.map(i => i.id));
-  if (fresh && cur().scrollTop > 240 && (tab === 'home' || tab === 'latest')) {   // the news pages only
-    $('freshPill').querySelector('span').textContent = `${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`;
-    $('freshPill').hidden = false;
-  }
-  if (fresh) say(`${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`);   // read aloud, never shown
+  if (fresh) say(`${fresh} ${fresh === 1 ? 'ny historie' : 'nye historier'}`);
   renderDots(all);
   hintSeen();
   if (focusId) openFocus(all);
@@ -3097,7 +3115,7 @@ function openInLive(id) {
 function toggle(el) {
   const id = el.dataset.id, open = !el.classList.contains('open'), i = asShown(el);
   const pg = cur();
-  if (!open && pg && pg.dataset.tab === 'nyhed') return;   // the 'Nyhed' page's story stays open: the bar's back closes it
+  if (!open && pg && pg.dataset.tab === 'nyhed' && !String(nyhedId).includes(',')) return;   // the 'Nyhed' page's story stays open: the bar's back closes it
   if (open) foldOthers(el);
   if (open && i) {
     if (visit) visit.opened++;
@@ -3478,6 +3496,13 @@ function openStory(id) {
   openSide('nyhed', id);
 }
 function nyhedPage() {
+  const ids = String(nyhedId || '').split(',').filter(Boolean);
+  if (ids.length > 1) {   // a notification's new stories (?nye=…): exactly those, the strongest first, each opened by a tap
+    const list = ids.map(id => find(id) || findStory(id)).filter(Boolean);
+    if (!list.length) return stateBlock('gone', 'Historierne er ikke længere i Live.', [['Til Live', 'data-go="latest"']]);
+    return `<div class="nyhed-list">${list.map((i, k) => story(i, 400 + k, { tick: true })).join('')}</div>`
+      + `<button class="qrow nyhed-live" data-go="latest"><span>Alle nyheder i Live</span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>`;
+  }
   const i = find(nyhedId) || findStory(nyhedId);
   if (!i) return stateBlock('gone', 'Historien er ikke længere i Live.', [['Til Live', 'data-go="latest"']]);
   expanded.add(i.id);
@@ -3574,7 +3599,7 @@ const evPic = e => [e.pic, ...(e.stories || []).map(id => (find(id) || findStory
 // a picture large with the event's state and title on a dark fade at its bottom (the card and the page's head)
 const evHero = (e, tag = 'span', title = 'span') => {
   const pic = evPic(e), live = e.status === 'i gang', placed = pic ? placedPic('e|', pic) : null;
-  return pic ? `<${tag} class="ev-hero${placed && placed.below ? ' tx-below' : ''}"><img src="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer"${placed ? ` style="object-position:${placed.pos}"` : ''} onerror="this.parentNode.classList.add('nopic')"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
+  return pic ? `<${tag} class="ev-hero${placed && placed.below ? ' tx-below' : ''}"><img src="${esc(picSrc(pic))}" data-orig="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer"${placed ? ` style="object-position:${placed.pos}"` : ''} onerror="picFallback(this, i => i.parentNode.classList.add('nopic'))"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
     + `<span class="ev-over"><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span>`
     + `<${title} class="ev-ct">${esc(e.title)}</${title}></span></${tag}>` : '';
 };
@@ -4387,7 +4412,8 @@ let sideDepth = 0, unwinding = false;
 // the address names the page in view: ?svar=, ?begreb=, ?forlob= (a development), ?digest=1 (Udvikling), ?gemt=1
 const sideUrl = (t, arg) => {
   const q = t === 'svar' ? `svar=${encodeURIComponent(arg)}` : t === 'begreb' ? `begreb=${encodeURIComponent(arg)}`
-    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1' : t === 'nyhed' ? `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}`
+    : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1'
+    : t === 'nyhed' ? (String(arg).includes(',') ? `nye=${encodeURIComponent(arg)}` : `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}`)
     : t === 'begivenhed' ? `begivenhed=${encodeURIComponent(arg)}` : '';
   return q ? BASE + (BASE.includes('?') ? '&' : '?') + q : BASE;
 };
@@ -4403,7 +4429,7 @@ function openSide(t, arg = '') {
   if (t === 'begivenhed') { evId = arg; need('evt'); }
   if (t === 'svar') svarNr = arg; else if (t === 'begreb') begrebId = arg; else if (t === 'threads') { udFocus = arg; if (arg) { udOpen.add(arg); pendingThr = arg; } }
   try { history.pushState({ khabar: 'side', t, arg }, '', sideUrl(t, arg)); sideDepth++; } catch {}
-  if (t === tab) { render({ view: true }); if (!pendingThr) cur().scrollTop = 0; } else setTab(t, { top: true });
+  if (t === tab) { render({ view: true }); showTitle(t); if (!pendingThr) cur().scrollTop = 0; } else setTab(t, { top: true });
 }
 // the logo's back mark: one step back in the browser's history when the side page is a step there, else at once
 function goBack() {
@@ -4469,8 +4495,10 @@ for (const ev of ['touchend', 'touchcancel']) addEventListener(ev, () => {
 // the tab that is selected: the page in view, or the tab a side page belongs to (an answer, a page, A–Å: Analyser)
 const tabOf = t => (SIDE.has(t) ? HOME_OF[t] : t);
 const markTabs = t => document.querySelectorAll('.tabs [data-tab]').forEach(x => { const on = String(x.dataset.tab === tabOf(t)); if (x.getAttribute('aria-selected') !== on) x.setAttribute('aria-selected', on); });
+// the 'Nyhed' page with a notification's several new stories is 'Nye historier'
+const titleOf = t => (t === 'nyhed' && String(nyhedId).includes(',') ? 'Nye historier' : TITLES[t] || SECTIONS[t]);
 const showTitle = t => {
-  const s = TITLES[t] || SECTIONS[t];
+  const s = titleOf(t);
   if ($('title').textContent !== s) $('title').textContent = s;
   markTabs(t);
 };
@@ -4526,7 +4554,7 @@ function setTab(next, opts = {}) {
   fadeCatchUp();
   if (focusMissing && tab !== 'latest') focusMissing = '';
   placePill(tab, true);
-  $('title').textContent = TITLES[tab] || SECTIONS[tab];
+  $('title').textContent = titleOf(tab);
   // a swipe has its own motion; a tap lets the new title come up (opacity and transform only, no forced layout)
   if (!opts.swipe && !reduceMotion) $('title').animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.16, 1, .3, 1)' });
   $('searchbar').hidden = tab !== 'search';
@@ -5327,6 +5355,24 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rese
 // an app, not a web page: no pinch zoom (iPhone ignores the viewport setting for pinching; CSS stops double-tap zoom)
 ['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+// a notification tapped while the app is open opens what it is about here, in place; a push while the app is in view
+// shows nothing and fetches the news (sw.js)
+function routeLink(url) {
+  let p;
+  try { p = new URL(url, location.href).searchParams; } catch { return; }
+  if (p.get('nye')) openSide('nyhed', p.get('nye'));
+  else if (p.get('item')) { focusId = p.get('item'); if (SIDE.has(tab) || tab === 'search') setTab('home', { top: true }); else render(); }
+  else if (p.get('svar')) openSide('svar', p.get('svar'));
+  else if (p.get('begivenhed')) openSide('begivenhed', p.get('begivenhed'));
+  else if (p.has('digest')) openSide('threads');
+  else if (p.get('kalender')) location.assign(url);
+  else setTab('home', { top: true });
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => {
+  const d = e.data || {};
+  if (d.type === 'open' && d.url) routeLink(d.url);
+  else if (d.type === 'news' && typeof load === 'function') load();
+});
 // links into the app: the old section tabs (?tab=dk|me|world, from notifications and shortcuts) open Live; a wiki page or
 // an answer opens over the front page
 // the shelved map's ?tab=kort opens the front page; ?kalender=<id> opens the Kalender tab at that event
@@ -5335,7 +5381,8 @@ const startTab = params.get('kalender') ? 'kalender' : START[params.get('tab')];
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 takeMove();   // a 'Flyt til en anden telefon' link: its saves added to this phone's
 addEventListener('hashchange', () => { if (location.hash.startsWith('#flyt=')) { takeMove(); openSide('gemt'); } });   // one opened in a running app
-if (params.get('begivenhed')) openSide('begivenhed', params.get('begivenhed'));
+if (params.get('nye')) openSide('nyhed', params.get('nye'));   // a notification about several new stories
+else if (params.get('begivenhed')) openSide('begivenhed', params.get('begivenhed'));
 else if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (params.get('forlob')) { goOverview = false; openSide('threads', params.get('forlob')); }   // a shared development
@@ -5347,7 +5394,7 @@ load();
 setTimeout(() => need('ans'), 700);   // the editor's filed answers
 // a link into the app (a shared story, answer, page or development, a notification) skips the intro (index.html); a
 // first visitor who came that way has seen the app when they leave it, and is counted at once
-const DEEP = ['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender'].some(k => params.has(k));
+const DEEP = ['item', 'nye', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender', 'begivenhed'].some(k => params.has(k));
 if (store.get('introSeen', false)) setTimeout(() => countVisit(cameVia()), 1500);   // a first visit counts at 'Kom i gang'
 else if (DEEP) {
   setTimeout(() => countVisit(cameVia(), true), 1500);

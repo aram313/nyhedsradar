@@ -125,3 +125,43 @@ def test_a_picture_too_dark_to_see_is_no_picture(tmp_path, monkeypatch, photo):
     cards = [{'id': 'b', 'source': 'DR', 'link': 'https://news.google.com/c', 'img': 'https://img.test/old.jpg'}]
     memory = thumbs.attach(cards, {}, set(), tmp_path, {})
     assert 'https://img.test/old.jpg' in memory['bad'] and not cards[0].get('thumb')
+
+
+def test_a_picture_for_a_headline_on_it():
+    # 18/10, the owner: 'Er det ikke bedre at finde billeder der passer bedre til dagens historie' – wide, sharp, light
+    # enough, a scene or a small face high up; a close portrait leaves no room for the headline
+    scene = thumbs.fitness(1600, 900, 120, [.5, .4, 1.78, 0, 0])
+    small_face = thumbs.fitness(1600, 900, 120, [.5, .3, 1.78, 1, .15])
+    portrait = thumbs.fitness(1600, 900, 120, [.45, .45, 1.78, 1, .45])
+    upright = thumbs.fitness(800, 1200, 120, [.5, .4, .67, 0, 0])
+    small = thumbs.fitness(500, 300, 120, [.5, .4, 1.67, 0, 0])
+    night = thumbs.fitness(1600, 900, 30, [.5, .4, 1.78, 0, 0])
+    assert small_face > scene > portrait and scene > upright and scene > small and scene > night
+
+
+def test_the_best_picture_of_a_story_is_kept_as_a_light_copy(tmp_path, monkeypatch):
+    # and 'Billederne tager alt for lang tid at loade': the outlets' originals weigh up to a few MB
+    Image = pytest.importorskip('PIL.Image')
+    wide, narrow = io.BytesIO(), io.BytesIO()
+    Image.new('RGB', (2400, 1350), (180, 160, 140)).save(wide, 'JPEG', quality=95)
+    Image.new('RGB', (420, 700), (180, 160, 140)).save(narrow, 'JPEG')
+    pics = {'https://img.test/wide.jpg': wide.getvalue(), 'https://img.test/narrow.jpg': narrow.getvalue()}
+    monkeypatch.setattr(thumbs, 'get', lambda url, limit, accept, timeout=8: pics[url])
+    cards = [{'id': 'a', 'source': 'DR', 'link': 'https://news.google.com/a', 'img': 'https://img.test/narrow.jpg',
+              'rank': 120, 'live': 'rank'}]
+    members = {'a': [{'id': 'a2', 'source': 'BBC', 'link': 'https://news.google.com/b', 'img': 'https://img.test/wide.jpg'}]}
+    folder = tmp_path / 't'
+    memory = thumbs.attach(cards, members, set(), folder, {})
+    card = cards[0]
+    assert card['pic'] == 'https://img.test/wide.jpg' and card['pl']          # the wide one, though the lead's is narrow
+    light = (tmp_path / 'l' / card['pl']).read_bytes()
+    with Image.open(io.BytesIO(light)) as im:
+        assert im.width == thumbs.LARGE_W
+    assert len(light) < len(pics['https://img.test/wide.jpg']) / 3
+    assert memory['grade']['https://img.test/wide.jpg'][2] == card['pl']
+    # the next run grades nothing again, and a story that left takes its copy with it
+    monkeypatch.setattr(thumbs, 'get', lambda *a, **k: (_ for _ in ()).throw(AssertionError('fetched again')))
+    thumbs.attach(cards, members, set(), folder, memory)
+    assert cards[0]['pl'] == card['pl']
+    thumbs.attach([], {}, set(), folder, memory)
+    assert not list((tmp_path / 'l').glob('*.jpg'))
