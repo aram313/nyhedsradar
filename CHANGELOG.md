@@ -9,6 +9,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The event card's figures keep one line** (2026-10-18, 'over 1.800' broke over two lines in the card's narrow
+  column): a qualifier ('over', 'mere end', 'omkring' …) is set small above the figure.
 - **The editor reads what the articles say in numbers** (2026-10-18, the owner on DR's overview of France's riots: 'Se
   kilderne her, hvorfor kan vi ikke bruge de samme?' – DR gave 550.000 according to the authorities, 800.000 according to
   the organisers and 110 marches, citing Reuters, the interior ministry, the government and the CGT, while Khabar's

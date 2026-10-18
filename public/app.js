@@ -3643,6 +3643,9 @@ function eventText(e) {
   return `*${e.title}* – ${evState(e).toLowerCase()}\n${e.dek || ''}\n${facts ? facts + '\n' : ''}\nvia khabar.nu/?begivenhed=${encodeURIComponent(e.id)}`;
 }
 // the front page's modules: an event's card with its key numbers, one number large, the days to an event ahead
+// a number in the card's narrow column: 'over 1.800' as a small 'over' over the figure, so the figure keeps one line
+const QUAL = /^(over|mere end|omkring|cirka|ca\.|næsten|op mod|mindst|under)\s+/i;
+const numHtml = v => { const m = String(v || '').match(QUAL); return m ? `<em class="ev-qual">${esc(m[1])}</em><b>${esc(String(v).slice(m[0].length))}</b>` : `<b>${esc(v)}</b>`; };
 function eventCard(e) {
   const live = e.status === 'i gang';
   const nums = (e.facts || []).slice(0, 3);
@@ -3650,7 +3653,7 @@ function eventCard(e) {
   return `<section class="block ev-b">${blockHead(esc(e.kicker || 'Begivenhed'))}<button class="ev-card${hero ? ' pic' : ''}" data-event="${esc(e.id)}">`
     + (hero || `<span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span><span class="ev-ct">${esc(e.title)}</span>`)
     + (e.dek ? `<span class="ev-cdek">${esc(e.dek)}</span>` : '')
-    + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num"><b>${esc(f.value)}</b><small>${esc(f.label)}</small></span>`).join('')}</span>` : '')
+    + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num">${numHtml(f.value)}<small>${esc(f.label)}</small></span>`).join('')}</span>` : '')
     + `<span class="ev-go">Følg begivenheden<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button></section>`;
 }
 function numberBlock(e, n = 1) {
