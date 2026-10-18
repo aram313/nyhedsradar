@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: the Economist's restraint** (2026-10-18, the owner: 'stilfuldt og elegant design. tænker mere economist ikke
+  ekstrabladet' – he chose five of six proposals). A standfirst in the serif under each block's headline (the first
+  sentence of the editor's summary, else of the outlet's teaser; two lines, Dagens historie three). No word bold in a
+  front-page headline (Live and the other pages keep their bold keywords). A quiet grey line under it without the
+  section's coloured dot. Red only for the short rule and the block's label: the date, 'Alle ›', the calendar's
+  countdown and the developments' first step are grey. The photographs calmer: a little colour, soft contrast.
 - **Forside: Dagens historie the way in, less air** (2026-10-18, the owner chose two of four proposals: 'Dagens historie
   større' and 'Strammere luft'). Dagens historie is built as every block, its headline in the title size – the one
   difference; the first block sits close under the date and the blocks a fifth closer (28 → 22 px).

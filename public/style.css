@@ -1154,14 +1154,14 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    block's title, the newest step of a development, the ways on ('Alle ›', 'Hele udviklingen ›') and the day's quote –
    and the panels take more than one shade: Dagens historie the panel's, the developments a step deeper, the quote a
    red tint. Only on the front page; Live and Analyser keep their quiet */
-.page[data-tab="home"] .lede-d > span { color: var(--red); }
+.page[data-tab="home"] .lede-d > span { color: var(--text-3); }   /* red only as the accent (18/10) */
 .page[data-tab="home"] .block-h h2::before { content: ""; flex: none; align-self: center; width: 4px; height: .8em; margin-right: -2px;
   border-radius: 2px; background: var(--red); }
-.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all { color: var(--red); }
-.page[data-tab="home"] .follow li:first-child::before, .page[data-tab="home"] .pkg .follow li:first-child::before { background: var(--red); border-color: var(--red); }
-.page[data-tab="home"] .follow li:first-child time { color: var(--red); }
+.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all { color: var(--text-2); }
+.page[data-tab="home"] .follow li:first-child::before, .page[data-tab="home"] .pkg .follow li:first-child::before { background: var(--text); border-color: var(--text); }
+.page[data-tab="home"] .follow li:first-child time { color: var(--text); }
 .page[data-tab="home"] .fol { background: var(--fill); }   /* a step deeper than Dagens historie's panel */
-.page[data-tab="home"] .fol-row:first-child .fol-m { color: var(--red); }   /* the development that moved last */
+.page[data-tab="home"] .fol-row:first-child .fol-m { color: var(--text-2); }   /* the development that moved last */
 .page[data-tab="home"] .qday .quote { background: var(--pulse-soft); }
 .page[data-tab="home"] .qday .quote::before { background: var(--red); }
 .page[data-tab="home"] .qday .quote q::before { content: "»"; display: block; height: .6em; margin: -4px 0 6px; font-size: var(--fs-title); font-style: normal;
@@ -1215,6 +1215,18 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="home"] .block.top .row, .page[data-tab="home"] .block.top .x-in { padding-left: var(--s4); padding-right: var(--s4); }
 .page[data-tab="home"] .block.top .story.open { border-radius: 0; }
 .page[data-tab="home"] .block.top .story + .story::before { left: 16px; right: 16px; }
+/* the Economist's restraint (the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'):
+   red only for the short rule and the block's label; no word set bold in a headline; a quiet grey line under it
+   without the section's coloured dot; a standfirst in the serif under a block's headline; the photographs calm – a
+   little colour, soft contrast, no grain */
+.page[data-tab="home"] .story .h b { font-weight: inherit; }
+.page[data-tab="home"] .m .sec { display: none; }
+.page[data-tab="home"] .m .src { font-weight: 500; }
+.dek { display: block; margin-top: 5px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.4; color: var(--text-2);
+  text-wrap: pretty; font-variation-settings: "opsz" 20; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.pkg.merged .dek { -webkit-line-clamp: 3; }   /* a standfirst is short: two lines, Dagens historie three */
+.page[data-tab="home"] .f-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
+.page[data-tab="home"] .story.open .f-pic img { filter: grayscale(.45) contrast(1.04); }
 /* the development under Dagens historie shows only with the story opened (app.js homeTop) */
 .pkg.merged > .of-main { display: none; }
 .pkg.merged:has(> .story.open) > .of-main { display: block; }
@@ -1299,7 +1311,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cal-none { margin: 2px 16px 0 72px; font-size: var(--fs-small); color: var(--text-3); }
 .cal-past { margin-top: var(--s5); }
 .cal-pb small { font-weight: 500; color: var(--text-3); }
-.page[data-tab="home"] .ce .cw { color: var(--red); font-weight: 750; }
+.page[data-tab="home"] .ce .cw { color: var(--text-2); font-weight: 700; }
 
 /* the answer reader's and a wiki page's sections (18/10, the owner: 'bedre opdeling især under begreber, så måske at
    overskrifter skrives med rødt'): red, with more room above, so each part stands apart */

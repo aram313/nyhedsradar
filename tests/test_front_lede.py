@@ -240,3 +240,12 @@ def test_dagens_historie_leads_by_its_headline_and_the_page_has_less_air():
     assert re.search(r'\.page\[data-tab="home"\] \.pkg\.merged \.story\.fl \.h \{[^}]*font-size: var\(--fs-title\)', RULES)
     assert '.page[data-tab="home"] .block { margin-top: 22px; }' in RULES
     assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{ margin: 8px 0 0;', RULES)
+
+
+def test_the_front_page_has_the_economists_restraint():
+    # the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'
+    assert '${opts.fl && !open ? dek(i) : \'\'}' in CODE and "String((ed && ed.text) || i.summary || '')" in fn('dek')
+    for rule in ('.page[data-tab="home"] .story .h b { font-weight: inherit; }', '.page[data-tab="home"] .m .sec { display: none; }',
+                 '.page[data-tab="home"] .lede-d > span { color: var(--text-3); }'):
+        assert rule in RULES, rule
+    assert re.search(r'\.page\[data-tab="home"\] \.f-pic img \{ filter: grayscale\(\.62\)', RULES)

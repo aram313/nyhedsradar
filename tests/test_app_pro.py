@@ -342,9 +342,12 @@ def test_no_ids_no_prompts_and_no_claude():
 
 
 def test_the_front_page_has_its_red_accents_in_a_readable_red():
-    for sel in ('.page[data-tab="home"] .lede-d > span', '.page[data-tab="home"] .block-h h2::before',
-                '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
+    # since 18/10 (the owner: 'tænker mere economist ikke ekstrabladet' – 'Rød kun som accent') only the short rule and
+    # the block's label are red; the date and the links are grey
+    for sel in ('.page[data-tab="home"] .block-h h2::before', '.page[data-tab="home"] .block-h h2'):
         assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
+    for sel in ('.page[data-tab="home"] .lede-d > span', '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
+        assert not re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
     # the readable red only on the front page, the chosen tab's icon (17/10) and the Kalender tab's Economist accents (its
     # fly title, its block titles' rule and the dot of an event in the next 48 hours)
     # and since 18/10 Live's weights, as the calendar's (a red edge on high, a short red mark on middle)

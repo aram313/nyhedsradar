@@ -940,8 +940,18 @@ function story(i, n, opts = {}) {
   const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
-    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span><span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? '' : thumb(i.source, i.thumb)}</div>
+    <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? '' : thumb(i.source, i.thumb)}</div>
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
+}
+// the line under a block's headline on the front page, as a paper's standfirst (the owner, 18/10: 'stilfuldt og elegant
+// … tænker mere economist' – 'Underrubrik'): the first sentence of the editor's summary, else of the outlet's own
+// teaser (what the opened story shows then too); opened, the whole summary says it
+function dek(i) {
+  const ed = sumOf(i), t = String((ed && ed.text) || i.summary || '').trim();
+  if (!t) return '';
+  const first = (t.match(/^[\s\S]*?[.!?](?=\s|$)/u) || [t])[0];
+  const line = first.length > 180 ? first.slice(0, 177).replace(/\s+\S*$/u, '') + ' …' : first;
+  return `<span class="dek" dir="auto">${esc(line)}</span>`;
 }
 // Live's rows carry the bookmark at their right (the owner, 17/10: "gør det samme for 'Live' oversigten"): saved
 // without opening the story, and one sees which are saved; it sits beside the row's button, never inside it
