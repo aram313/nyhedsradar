@@ -47,8 +47,15 @@ def get(url, limit, accept, timeout=8):
 
 
 def focus(im):
-    """Where the picture's subject is: the centre of its biggest face as fractions (x, y), or None. Uses OpenCV's
-    built-in face finder when it is installed (it is in the cloud); without it every picture is cut as before."""
+    """Where the picture's subject is: the centre of its biggest face as fractions (x, y), or None."""
+    box = face_box(im)
+    return box[:2] if box else None
+
+
+def face_box(im):
+    """The picture's biggest face: (x, y, height) as fractions of the picture – its centre and its height – or None.
+    Uses OpenCV's built-in face finder when it is installed (it is in the cloud); without it every picture is cut as
+    before."""
     try:
         import cv2
         import numpy as np
@@ -63,23 +70,24 @@ def focus(im):
     if len(faces) == 0:
         return None
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
-    return (x + w / 2) / gray.shape[1], (y + h / 2) / gray.shape[0]
+    return (x + w / 2) / gray.shape[1], (y + h / 2) / gray.shape[0], h / gray.shape[0]
 
 
 def subject(raw):
     """Where a picture's subject sits and its shape, for the app's large pictures with text on them (the owner, 18/10:
     'Teksten dækker for rubios ansigt, der skal vurderes om det er et godt nok billede til forside i sådanne tilfælde'):
-    [x, y, width/height, 1 for a face or 0] – the centre of its biggest face as fractions, else the middle a little above
-    its centre; None for no picture."""
+    [x, y, width/height, 1 for a face or 0, the face's height] – the centre of its biggest face as fractions, else the
+    middle a little above its centre; None for no picture. The face's height (18/10: the text still covered Rubio's
+    mouth – the app knew only where the face's centre sat) lets the app keep the whole face clear of the text."""
     from PIL import Image, ImageOps
     try:
         im = Image.open(io.BytesIO(raw))
         im.draft('RGB', (960, 960))
         im = ImageOps.exif_transpose(im).convert('RGB')
         w, h = im.size
-        at = focus(im)
-        x, y = at or (.5, .4)
-        return [round(x, 3), round(y, 3), round(w / h, 3), 1 if at else 0]
+        at = face_box(im)
+        x, y, fh = at or (.5, .4, 0)
+        return [round(x, 3), round(y, 3), round(w / h, 3), 1 if at else 0, round(fh, 3)]
     except Exception:  # noqa: BLE001 – a broken picture is no picture
         return None
 
@@ -265,7 +273,7 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
             return url, subject(get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8'))
         except Exception:  # noqa: BLE001
             return url, None
-    again = list(dict.fromkeys(it['pic'] for it in cards if it.get('pic') and it['pic'] not in spot))[:SPOT_AGAIN]
+    again = list(dict.fromkeys(it['pic'] for it in cards if it.get('pic') and len(spot.get(it['pic']) or []) < 5))[:SPOT_AGAIN]
     with ThreadPoolExecutor(4) as pool:
         for url, where in pool.map(look_again, again):
             if where:

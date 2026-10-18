@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The whole face clear of the headline, not only its centre** (2026-10-18, the owner on Dagens historie with Rubio's
+  portrait: 'Ser ikke godt ud' – the headline covered his mouth and chin). The radar now keeps the face's height too
+  (`thumbs.face_box`, the fifth number of `pf`; the pictures looked at before are looked at again, eight a run), and the
+  app measures where the headline really begins on the picture: the face is set in the free band above it, and where it
+  does not fit there – a close portrait under a three-line headline – the headline goes under the picture, which then
+  shows the face whole. What was decided is remembered by picture, so a redraw draws it at once, and the pictures are
+  placed again when the fonts arrive or the phone turns. A picture without a face keeps its subject near the middle.
 - **A box credits the outlet that gave its number** (2026-10-18, the first real page said 'Kilder: BT' for the arrests
   The Hindu and Times of Israel gave): a box's and a paragraph's sources are the outlets whose own headline or teaser
   carries its numbers (else the cited stories' own outlets), and they follow the stories on the pages an update leaves as

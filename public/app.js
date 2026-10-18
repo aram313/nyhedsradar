@@ -893,19 +893,43 @@ const leadPic = i => [i.pic].find(x => x && /^https?:\/\//.test(x) && !badPics.h
 // a quarter from the top, above the dark fade – and where it cannot (the face low in a wide picture), the picture is no
 // picture for text: the headline goes under it instead
 const pfAttr = pf => Array.isArray(pf) && pf.length >= 3 ? ` data-pf="${pf.map(Number).join(',')}"` : '';
+// The whole face, not only its centre (18/10, the owner on Dagens historie: 'Ser ikke godt ud' – the headline still
+// covered Rubio's mouth): the face's height (pf[4]; a picture looked at before it was kept counts as a close portrait)
+// and the headline's real height on the picture decide; the face is set in the free band above the text, and where it
+// does not fit there the headline goes under the picture. What was decided is remembered by picture (picPlace), so a
+// redraw draws it so at once and a patch never undoes it.
+const picPlace = new Map();
+const picKey = (img, host) => (host && host.classList.contains('ev-hero') ? 'e|' : 's|') + img.getAttribute('src');
 function placePic(img) {
   const pf = String(img.dataset.pf || '').split(',').map(Number);
-  if (pf.length < 3 || pf.some(n => !isFinite(n))) return;
-  const box = img.parentNode.getBoundingClientRect(), W = box.width, H = box.height, w = img.naturalWidth, h = img.naturalHeight;
-  if (!W || !H || !w || !h) return;
+  if (pf.length < 3 || pf.slice(0, 4).some(n => !isFinite(n))) return;
+  const host = img.closest('.story.lp') || img.closest('.ev-hero'), frame = img.parentNode;
+  const box = frame.getBoundingClientRect(), W = box.width, H = box.height, w = img.naturalWidth, h = img.naturalHeight;
+  if (!host || !W || !H || !w || !h) return;
   const k = Math.max(W / w, H / h), rw = w * k, rh = h * k, [fx, fy, , face] = pf;
-  const offY = Math.min(0, Math.max(H - rh, H * 0.26 - fy * rh)), offX = Math.min(0, Math.max(W - rw, W / 2 - fx * rw));
+  const fh = face === 1 ? (pf[4] > 0 ? pf[4] : 0.34) : 0;
+  const tx = host.querySelector('.row > .tx') || host.querySelector('.ev-over');
+  const below0 = host.classList.contains('tx-below');
+  const t = tx ? tx.getBoundingClientRect() : null;
+  // where the text begins on the picture: measured when it lies on it, else from its height and the usual 16 px
+  const top = !t ? H : below0 ? H - 16 - (t.height - 10) : t.top - box.top;
+  const clampY = v => Math.min(0, Math.max(H - rh, v));
+  let offY = clampY(face === 1 ? (top - 10) / 2 - fy * rh : H * 0.4 - fy * rh);   // no face: its subject a little above the middle
+  const fTop = (fy - fh / 2) * rh + offY, fBot = (fy + fh / 2) * rh + offY;
+  const below = face === 1 && (fBot > top - 6 || fTop < -fh * rh * 0.2);   // the text would cover it, or it is cut at the top
+  if (below) offY = clampY(H / 2 - fy * rh);
+  const offX = Math.min(0, Math.max(W - rw, W / 2 - fx * rw));
   const py = rh - H > 1 ? offY / (H - rh) : 0.5, px = rw - W > 1 ? offX / (W - rw) : 0.5;
-  img.style.objectPosition = `${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%`;
-  const low = face === 1 && (offY + fy * rh) / H > 0.5;   // the face would be under the text
-  const host = img.closest('.story.lp') || img.closest('.ev-hero');
-  if (host) host.classList.toggle('tx-below', low);
+  const pos = `${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%`;
+  img.style.objectPosition = pos;
+  host.classList.toggle('tx-below', below);
+  picPlace.set(picKey(img, host), { pos, below });
 }
+const placedPic = (key, src) => picPlace.get(key + src);
+// a font that comes late or a turned phone moves the text: place the pictures again
+const placeAll = () => document.querySelectorAll('img[data-pf]').forEach(i => { if (i.complete && i.naturalWidth) placePic(i); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeAll);
+addEventListener('resize', (() => { let t; return () => { clearTimeout(t); t = setTimeout(placeAll, 200); }; })());
 function leadPicFailed(img) {
   badPics.add(img.getAttribute('src'));   // remembered: a reload draws the text lead
   const art = img.closest('.story'), box = img.closest('.lead-pic'), sec = img.closest('.block.top');
@@ -972,9 +996,10 @@ function story(i, n, opts = {}) {
   const open = expanded.has(i.id);
   if (opts.hero) return heroStory(i, n, opts);
   const w = opts.tick ? weightOf(i) : 1;   // Live's rows show their weight
-  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', opts.fl && 'fl', opts.fpic && 'fp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
+  const placed = opts.lead && opts.pic ? placedPic('s|', opts.pic) : null;
+  const cls = ['story', opts.tick ? 'tick' : 'pic', opts.lead && 'lead', opts.lead && opts.pic && 'lp', placed && placed.below && 'tx-below', opts.fl && 'fl', opts.fpic && 'fp', i.important && 'imp', w > 1 && 'w' + w, open && 'open', isNew(i) && 'new'].filter(Boolean).join(' ');
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
-  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"${pfAttr(i.pf)} onload="placePic(this)"></span>`
+  const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="leadPicFailed(this)"${pfAttr(i.pf)}${placed ? ` style="object-position:${placed.pos}"` : ''} onload="placePic(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
   return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
     <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
@@ -3548,8 +3573,8 @@ function factBoxes(e, n = 6) {
 const evPic = e => [e.pic, ...(e.stories || []).map(id => (find(id) || findStory(id) || {}).pic)].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
 // a picture large with the event's state and title on a dark fade at its bottom (the card and the page's head)
 const evHero = (e, tag = 'span', title = 'span') => {
-  const pic = evPic(e), live = e.status === 'i gang';
-  return pic ? `<${tag} class="ev-hero"><img src="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nopic')"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
+  const pic = evPic(e), live = e.status === 'i gang', placed = pic ? placedPic('e|', pic) : null;
+  return pic ? `<${tag} class="ev-hero${placed && placed.below ? ' tx-below' : ''}"><img src="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer"${placed ? ` style="object-position:${placed.pos}"` : ''} onerror="this.parentNode.classList.add('nopic')"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
     + `<span class="ev-over"><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span>`
     + `<${title} class="ev-ct">${esc(e.title)}</${title}></span></${tag}>` : '';
 };
