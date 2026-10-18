@@ -1007,8 +1007,11 @@ TEMPLATE = {
                 'places': ['<the places it happens in: Paris>'],
                 'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish>', 'ids': ['<story id>']}],
                 'stories': ['<its story ids in Live, the weightiest first>'], 'topic': '<a recap topic name: its timeline>',
-                'article': [{'text': '<one paragraph told objectively: what happened, who, where, when, the numbers and what '
-                                     'was said – facts, never opinion or forecast>', 'ids': ['<the stories it tells>']}]}],
+                'article': [{'text': '<one paragraph told objectively, as a news agency tells it: what happened, who, where, '
+                                     'when, the numbers and what was said, each fact with its first source – e.g. "Mere end '
+                                     '1.800 mennesker er anholdt, oplyser Frankrigs indenrigsminister. Demonstranter stormede '
+                                     'rådhuse i flere byer, og politiet satte tåregas ind." – never "X skriver"; facts, '
+                                     'never opinion or forecast>', 'ids': ['<the stories it tells>']}]}],
     'calendar': [{'date': 'YYYY-MM-DD (or YYYY-MM with "approx": true)', 'title': '<what happens, in Danish: reality only>',
                   'kind': ' | '.join(CAL_KINDS), 'place': '<the country or city, optional>',
                   'why': '<one factual line: why it matters – never a forecast>', 'link': '<the source, optional with ids>',

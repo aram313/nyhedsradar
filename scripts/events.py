@@ -75,6 +75,8 @@ OPINION = re.compile(r'\b(det er (?:tydeligt|klart|åbenlyst|indlysende)|tydelig
 MEDIA_SAY = re.compile(r'\b(?:ifølge (?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)?|'
                        r'(?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)? (?:omtaler|beskriver|skriver|'
                        r'melder|rapporterer|kalder))\b', re.I)
+OUTLET_SAY = re.compile(r'\b(?:skriver|skrev|omtaler|omtalte|melder|meldte|rapporterer|rapporterede|beretter|'
+                        r'bragte|bringer)\b', re.I)
 QUOTED = re.compile(r'»[^«»]*«|«[^«»]*»|"[^"]*"|“[^”]*”')
 
 
@@ -210,6 +212,11 @@ def thin(items, find):
             lacks.append(f"en hel artikel ({len(e.get('article') or [])} afsnit, {heads} overskrifter i dens historier)")
         if any(MEDIA_SAY.search(str(a.get('text') or '')) for a in e.get('article') or [] if isinstance(a, dict)):
             lacks.append('kilder ved navn (artiklen siger »medierne«)')
+        if sum(len(OUTLET_SAY.findall(str(a.get('text') or ''))) for a in e.get('article') or [] if isinstance(a, dict)) >= 3:
+            lacks.append('en artikel om selve begivenheden (den gengiver, hvad medierne skriver)')
+        if any(digits(NOT_A_COUNT.sub(' ', str(f.get('note') or ''))) and not f.get('was')
+               for f in e.get('facts') or [] if isinstance(f, dict)):
+            lacks.append('det tidligere tal i grafikken (det står i en note)')
         if lacks:
             out.append((e, lacks))
     return out
@@ -342,6 +349,9 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                                 'news only (their headline, teaser or another outlet\'s headline), or leave the box out')
             if len(note) > NOTE:
                 problems.append(f'{where} fact {n}: note – who says it, at most {NOTE} characters')
+            if digits(NOT_A_COUNT.sub(' ', note)) and not f.get('was'):
+                problems.append(f"{where} fact {n}: the note {note!r} holds a number – a note says who gives the count; "
+                                'an earlier count goes in "was": {"value": …, "when": …, "ids": […]} (the app draws both)')
             if voice and note:
                 voice.check_voice(note, f'{where} fact {n} note', problems)
             box = {'label': label, 'value': value, **({'note': note} if note else {}),
@@ -431,6 +441,11 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 problems.append(f'{where}: the article has {len(article)} paragraph(s) while its stories hold {heads} other '
                                 "outlets' headlines – tell what happened, where, the counts and what was said in three to "
                                 'six paragraphs')
+        wrote = sum(len(OUTLET_SAY.findall(a['text'])) for a in article)
+        if wrote >= 3:
+            problems.append(f"{where}: the article says {wrote} times what an outlet writes ('BT skriver', 'DR omtaler') – tell "
+                            'the event itself, each fact with its first source (oplyser indenrigsministeren, siger politiet); '
+                            'an outlet by name only where the news give no other')
         item = {'id': ident, 'title': title, 'kicker': kicker, 'status': status, 'dek': dek,
                 **({'since': since} if since and status != 'kommende' else {}), **({'date': day} if status == 'kommende' else {}),
                 **({'cal': text(e.get('cal'))} if e.get('cal') else {}), **({'topic': text(e.get('topic'), 80)} if e.get('topic') else {}),

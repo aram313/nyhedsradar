@@ -130,8 +130,10 @@ plain Danish without "Ifølge …".
      streets, a war, a strike, a coup, a disaster or a vote gets its page in this update, built from the group's
      stories – their teasers and the numbers they carry are listed –, unless one of your pages holds it already (then
      add its stories there); a decision, a statement, a single attack or an analysis gets none. A new page is the one
-     exception to keeping an update small: write it whole, as a news agency would – each fact with who gives it (the
-     interior minister, the police, an outlet by name), never 'the media say' –; the boxes hold every count the
+     exception to keeping an update small: write it whole, as a news agency would – each fact with its first source
+     (the interior minister, the police, the UN; an outlet by name only where the news give no other), never 'the
+     media say' and never a row of 'X skriver' –; places: the cities the headlines name; a statement when one is
+     quoted; the boxes hold every count the
      stories carry (marching, arrested, injured, dead), the earlier figure as `was` when it has grown; the article
      tells what happened, where, the counts and what was said, in four to six paragraphs when the material holds it.
      Name in your last line the page you made, or why none. At

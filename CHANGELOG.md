@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An event page tells the event, not the press review** (2026-10-18, the editor's third try: 'BT skriver, at … DR
+  omtaler situationen som … The Hindu skriver, at …', and the arrests' earlier figure in a note). The tool refuses an
+  article that says three times what an outlet writes – each fact with its first source ('oplyser indenrigsministeren'),
+  an outlet only where the news give no other – and a note holding a number (an earlier count goes in `was`, which the
+  app draws); the template shows a paragraph in that voice, the prompt asks for the cities the headlines name and a
+  statement when one is quoted, and the check names a page that falls short so the editor rewrites it.
 - **An event page must be worth opening** (2026-10-18, the editor's second try at Uroligheder i Frankrig: two boxes,
   the arrests' earlier figure in a note, 'Ifølge danske medier … Medierne omtaler situationen som …' and 'ifølge Times of
   “israels” gengivelse'). The tool now refuses a page under way that holds fewer than two boxes while its stories carry

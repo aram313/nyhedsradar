@@ -190,3 +190,29 @@ def test_a_page_under_way_holds_its_counts_is_told_whole_and_names_who_says_it()
     assert 'its stories carry 1,200, 150, 1,800 – give each count its box' in text
     assert "the article has 1 paragraph(s) while its stories hold 6 other outlets' headlines" in text
     assert "'Ifølge danske medier' – name who gives each fact" in text
+
+
+def test_the_article_tells_the_event_not_what_the_outlets_write():
+    # 18/10, the editor's third try: 'BT skriver, at … DR omtaler situationen som … Times of Israel skrev, at … The Hindu
+    # skriver, at …', and the earlier count of the arrests in a note ('tidligere meldt 1.200')
+    story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+             'also': [{'title': '1,200 arrested, 150 cops injured'}, {'title': 'More than 1,800 arrested, minister says'}]}
+    page = {'id': 'frankrig-uro', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
+            'since': '2026-10-18', 'dek': 'Demonstrationer mod leveomkostningerne i flere franske byer.', 'stories': ['fx'],
+            'facts': [{'label': 'Anholdte', 'value': '1.800', 'note': 'tidligere meldt 1.200', 'ids': ['fx']},
+                      {'label': 'Sårede politifolk', 'value': '150', 'ids': ['fx']}],
+            'article': [{'text': 'BT skriver, at demonstranter har stormet rådhuse.', 'ids': ['fx']},
+                        {'text': 'DR omtaler situationen som store uroligheder.', 'ids': ['fx']},
+                        {'text': 'The Hindu skriver, at mere end 1.800 er anholdt.', 'ids': ['fx']}]}
+    problems = []
+    events.events_file([page], None, {'fx': story}, NOW, TODAY, problems, voice)
+    text = ' | '.join(problems)
+    assert "the note 'tidligere meldt 1.200' holds a number" in text
+    assert "the article says 3 times what an outlet writes" in text
+    good = {**page, 'facts': [{**page['facts'][0], 'note': 'ifølge indenrigsministeren',
+                               'was': {'value': '1.200', 'when': 'fredag', 'ids': ['fx']}}, page['facts'][1]],
+            'article': [{'text': 'Mere end 1.800 er anholdt, oplyser indenrigsministeren.', 'ids': ['fx']},
+                        {'text': 'Demonstranter stormede rådhuse i flere byer.', 'ids': ['fx']}]}
+    problems = []
+    events.events_file([good], None, {'fx': story}, NOW, TODAY, problems, voice)
+    assert problems == [], problems
