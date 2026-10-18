@@ -154,7 +154,7 @@ plain Danish without "Ifølge …".
 
 5. Finish with one line: the time, the lede (new or kept), the picks (changed or kept), the recap lines, the
    summaries, the headlines written, the level (and stories taken in or out), the front page (new or kept), the
-   calendar entries added or removed, and the answer noted, if any.
+   calendar entries added or removed, the event pages made or changed, and the answer noted, if any.
 
 The rules for everything you write: Israel's name always in lower case inside curly quotes, every form – “israel”, “israels”,
 “israelske”, “israel”-Hamas-krigen (the owner's house style; the tool writes it so too) – in your own voice (the movement's
