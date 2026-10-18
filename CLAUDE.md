@@ -214,6 +214,12 @@ da'wah.
   `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
   the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
   holds the days before it.
+- **The runs** (19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og
+  andre automationer kører'): the admin block's 'Kørsler' (`RUNS`, `runsHtml` in app.js) shows every editor and automation
+  with its clock in Danish time (from the UTC hours; summer/winter handled), its last and next run and an editor's last
+  update from runs.json (digest branch; `editor.runner` names the editor – its memo or answers, the report, the economy
+  day, else the hour's – and `run_note` what it did; 120 kept). **When a routine's cron changes, change `SCHEDULE` in
+  editor.py and `RUNS` in app.js too** (tests/test_editor.py keeps them alike).
 - **The owner's comments, his headlines and the admin sheet** (18/10, the owner: 'Giv mig også et felt hvor jeg kan
   skrive en kommentar til elementet til redaktørerne … alle elementer burde kunne holdes nede … giv også en funktion der
   lader mig edit overskrifter direkte … ryd op i admin funktionerne'): in admin a long press on any element of any page

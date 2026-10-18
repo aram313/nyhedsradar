@@ -646,7 +646,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     editor.push(out, 'Opdatering 10.10 22.01')
     assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'front.json',
                                                                               'kalender.json', 'lessons.json', 'live.json', 'memo.json', 'moves.json', 'okonomi.json', 'other.json', 'owner.json',
-                                                                              'report.json', 'summaries.json'])
+                                                                              'report.json', 'runs.json', 'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'
 
@@ -886,3 +886,27 @@ def test_the_owners_own_headline_wins_and_teaches(monkeypatch):
     assert lines[5].startswith('- event page frankrig-uroligheder-2026-10 · "Store uroligheder" → "Urolighederne i Frankrig"')
     shown = editor.arch_story({'id': sid, 'title': 'Uro i Paris', 'lang': 'da', 'source': 'DR', 'link': 'https://dr.test/a'}, heads, {})
     assert shown['title'] == 'Hvorfor brænder Paris?'
+
+
+def test_every_update_leaves_a_line_of_who_when_and_what():
+    # 19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og andre
+    # automationer kører'
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 19, 6, 4, tzinfo=timezone.utc)
+    assert editor.runner({'memo': {'by': 'begivenhedsredaktør', 'text': 'x'}}, now) == 'begivenhedsredaktør'
+    assert editor.runner({'report': 'Godt.'}, now) == 'chefredaktør'
+    assert editor.runner({'okonomi': {'dag': {}}}, now) == 'økonomiredaktør'
+    assert editor.runner({'titles': []}, now) == 'begivenhedsredaktør'                    # 06 UTC is the senior's hour
+    assert editor.runner({}, now.replace(hour=13)) == 'forsideredaktør'
+    did = editor.run_note({'lede': 'Ny.', 'front': {'blocks': []}, 'titles': [{'id': 'a'}, {'id': 'b'}],
+                           'topics': [{'name': 'x', 'lines': [{}, {}, {}]}], 'events': [{'id': 'e'}], 'owner_notes': [{}]})
+    assert did == 'ny lede, forsiden, 2 overskrifter, 3 linjer i udviklingen, begivenheder, svar til dig'
+    assert editor.run_note({'lede': 'keep'}) == 'små rettelser'
+    out = editor.runs_file({'items': [{'by': 'chefredaktør', 'at': '2026-10-19T04:10:00+00:00', 'did': 'rapporten'}]},
+                           'begivenhedsredaktør', did, now)
+    assert [x['by'] for x in out['items']] == ['begivenhedsredaktør', 'chefredaktør'] and out['items'][0]['at'] == '2026-10-19T06:04:00+00:00'
+    assert 'runs.json' in editor.DIGEST_FILES
+    # the app's clocks are the routines' (public/app.js RUNS)
+    app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
+    for by, hours in editor.SCHEDULE.items():
+        assert f"by: '{by}'" in app and f"utc: [{', '.join(map(str, hours))}]" in app, by

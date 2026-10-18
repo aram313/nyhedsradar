@@ -128,7 +128,7 @@ SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*
 KEEP_WORD = 'keep'
 FEEDS = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json', 'owner.json')
+                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json', 'owner.json', 'runs.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
@@ -147,6 +147,13 @@ LESSONS_MAX, LESSON_TEXT, REPORT_TEXT = 40, 320, 4000
 # which the owner reads in his admin block. A comment on the answers or the wiki is not the editors' to act on (the
 # owner's builder takes it), one on the Økonomi page the economy editor's, one on the calendar either's
 OWNER_REPLY, OWNER_KEEP, OWNER_OPEN, OWNER_TITLES = 600, 14, 7, 12
+# the editors' clocks in UTC hours, as their routines keep them (claude.ai/code/routines; the app's RUNS shows them in
+# Danish time – keep the two alike): which editor an update comes from when it does not say, and the owner's overview of
+# the runs (19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og andre
+# automationer kører') – every update leaves a line in runs.json on the digest branch (who, when, what it did)
+SCHEDULE = {'forsideredaktør': (5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22), 'begivenhedsredaktør': (6, 11, 19),
+            'økonomiredaktør': (15,), 'chefredaktør': (4,)}
+RUNS_KEPT = 120
 LESSON_ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,60}$')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
 CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
@@ -768,6 +775,48 @@ def owner_file(entries, current, notes, now, problems):
         items[nid] = {'by': x['by'], 'text': text[:OWNER_REPLY], 'done': x.get('done') is not False,
                       'at': now.isoformat(timespec='seconds'), 'ref': known[nid].get('ref') or ''}
     return {'items': dict(sorted(items.items(), key=lambda kv: kv[1]['at'], reverse=True))}
+
+
+def runner(draft, now):
+    """Which editor wrote an update: the one its memo or its answers to the owner name; the chief editor's report and
+    fejlbog, the economy editor's day; else the editor whose hour it is (UTC, SCHEDULE)."""
+    named = [(draft.get('memo') or {}).get('by') if isinstance(draft.get('memo'), dict) else None,
+             *[x.get('by') for x in draft.get('owner_notes') or [] if isinstance(x, dict)]]
+    by = next((b for b in named if b in EDITORS), None)
+    if by:
+        return by
+    if draft.get('report') or draft.get('lessons'):
+        return 'chefredaktør'
+    if draft.get('okonomi'):
+        return 'økonomiredaktør'
+    return next((b for b, hours in SCHEDULE.items() if now.hour in hours), 'forsideredaktør')
+
+
+def run_note(draft):
+    """What an update did, in a few Danish words for the owner's overview."""
+    n = lambda k: len([x for x in draft.get(k) or [] if x]) if isinstance(draft.get(k), list) else 0  # noqa: E731
+    lines = sum(len(t.get('lines') or []) for t in draft.get('topics') or [] if isinstance(t, dict))
+    parts = []
+    if draft.get('lede') and not kept(draft.get('lede')):
+        parts.append('ny lede')
+    if draft.get('front') and not kept(draft.get('front')):
+        parts.append('forsiden')
+    for k, one, many in (('titles', 'overskrift', 'overskrifter'), ('summaries', 'resumé', 'resuméer')):
+        if n(k):
+            parts.append(f"{n(k)} {one if n(k) == 1 else many}")
+    if lines:
+        parts.append(f"{lines} {'linje' if lines == 1 else 'linjer'} i udviklingen")
+    for k, word in (('events', 'begivenheder'), ('calendar', 'kalenderen'), ('okonomi', 'Økonomi'), ('lessons', 'fejlbogen'),
+                    ('report', 'rapporten'), ('owner_notes', 'svar til dig')):
+        if draft.get(k):
+            parts.append(word)
+    return ', '.join(parts) or 'små rettelser'
+
+
+def runs_file(current, by, did, now):
+    """runs.json as this update leaves it: its line first, the last RUNS_KEPT kept."""
+    items = [x for x in (current or {}).get('items') or [] if isinstance(x, dict)]
+    return {'items': [{'by': by, 'at': now.isoformat(timespec='seconds'), 'did': did}, *items][:RUNS_KEPT]}
 
 
 def has_head(i, done):
@@ -2762,6 +2811,7 @@ def cmd_publish(args):
         files['okonomi.json'] = oko
     if answered:
         files['owner.json'] = answered
+    files['runs.json'] = runs_file(read(args, 'origin/digest', 'runs.json', {}), runner(draft, now), run_note(draft), now)
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again

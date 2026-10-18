@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The runs in the owner's admin block** (2026-10-19, the owner: 'kan du lægge en widget på indstillinger for admin så jeg
+  kan se hvad tid forskellige redaktører og andre automationer kører'): under Kun for dig, 'Kørsler' lists the radar, the
+  four editors, the vagtmester, the economy figures, the calendar, the answers' check and the evening notification, each
+  with its clock in Danish time for the day (worked out from UTC, so summer and winter time are right), its last and next
+  run, and for an editor its last update with what it did; an editor who always updates and left none after its last hour,
+  or a radar silent for 20 minutes, says so. Every update now leaves a line in runs.json on the digest branch (`runner`,
+  `run_note`, `runs_file`; the app's `RUNS` and editor.py's `SCHEDULE` hold the same clocks, a test keeps them alike).
 - **Large pictures keep their text on them; event pictures can be held; the event map follows the look** (2026-10-18, the
   owner: 'man kan ikke holde begivenheds billederne nede. Når man skifter billedet på dagens historie kan teksten falde
   under. teksten skal altid være i det format at det ligger på billedet, og lad os fjerne kilde tid og antal medier fra

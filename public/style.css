@@ -456,6 +456,15 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 .adm-ans { padding-left: 10px; border-left: 2px solid var(--line); }
 .adm-ans b { color: var(--text-2); font-weight: 650; }
 .adm-ans span { display: block; margin-top: 2px; font-size: var(--fs-small); color: var(--text); }
+/* the runs (19/10): each editor and automation, its clock, its last and next run – quiet rows, the name bold */
+.ar-list { margin: 0 0 8px; border-top: 1px solid var(--line); }
+.ar { display: flex; flex-direction: column; gap: 2px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.ar-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: var(--fs-small); }
+.ar-h b { font-weight: 650; color: var(--text); }
+.ar-h span { flex: none; font-size: var(--fs-meta); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.ar-w, .ar-l { font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+.ar-l { color: var(--text-2); }
+.ar-l.warn { font-weight: 650; color: var(--text); }
 .adm-del { position: absolute; top: 4px; right: 4px; min-width: 44px; min-height: 44px; font-size: var(--fs-meta); color: var(--text-3); }
 
 /* ------------------------------------------------------------ motion: quiet, short, only where it explains */

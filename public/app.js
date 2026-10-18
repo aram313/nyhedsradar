@@ -156,6 +156,8 @@ const FMT = {
   my: new Intl.DateTimeFormat('da-DK', { month: 'long', year: 'numeric' }),   // the calendar's months
   mon: new Intl.DateTimeFormat('da-DK', { month: 'short' }),
   dk: (() => { try { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Copenhagen' }); } catch { return new Intl.DateTimeFormat('sv-SE'); } })(),
+  dkt: (() => { try { return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Copenhagen', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); }
+    catch { return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); } })(),   // 07:00 in Denmark
   num: new Intl.NumberFormat('da-DK'),
 };
 const clock = iso => FMT.time.format(new Date(iso));
@@ -5249,11 +5251,85 @@ $('adminStats').addEventListener('click', async e => {
   const b = e.target.closest('.adm-note');
   if (b) b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
 });
+// ---------------------------------------------------------------- the runs (admin; 19/10, the owner: 'en widget på
+// indstillinger for admin så jeg kan se hvad tid forskellige redaktører og andre automationer kører')
+// Every editor and automation with its clock in Danish time for the day (summer or winter: worked out from UTC, as the
+// routines and radar.yml keep their clocks – keep `utc` alike with editor.SCHEDULE and the routines' own
+// settings), its last run – the radar's pass, each editor's last update from runs.json (the editors'
+// notes before that file had their line) – and its next. An editor who always updates (senior, economy, chief) and left
+// no update after its last hour says so; the front-page editor may rightly let an hour pass.
+const RUNS = [
+  { name: 'Radaren', what: 'henter og vejer nyhederne, laver billeder, notifikationer og statistik', every: 'hvert 5. minut',
+    last: () => data && data.updated, stale: 20 },
+  { name: 'Forsideredaktøren', by: 'forsideredaktør', what: 'forsiden, overskrifter, resuméer og Live – kun når der er noget at rette',
+    utc: [5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22] },
+  { name: 'Seniorredaktøren', by: 'begivenhedsredaktør', what: 'begivenhedssiderne og hele forsiden', utc: [6, 11, 19], always: true },
+  { name: 'Økonomiredaktøren', by: 'økonomiredaktør', what: 'Økonomi-siden og kalenderen', utc: [15], always: true },
+  { name: 'Chefredaktøren', by: 'chefredaktør', what: 'gennemgår døgnet, fører fejlbogen og skriver rapporten til dig', utc: [4], always: true },
+  { name: 'Vagtmesteren', what: 'retter kilder, der holder op med at svare', utc: [4], min: 30 },
+  { name: 'Økonomi-tallene', what: 'priser, kurser og gæld – hver kilde i sit eget tempo', every: 'i hver radarkørsel',
+    last: () => (V('eco') || {}).updated },
+  { name: 'Kalenderen', what: 'valg, topmøder og rentemøder', every: 'i radarens kørsler, hver kilde én gang i døgnet',
+    last: () => (V('cal') || {}).updated },
+  { name: 'Hizb ut-Tahrirs svar', what: 'ser efter nye svar', every: 'hver 3. time, i radarens kørsel' },
+  { name: 'Aftenens notifikation', what: 'dagens resumé til telefonerne', every: 'ved første opdatering efter kl. 21' },
+];
+const dkClock = t => FMT.dkt.format(t).replace(':', '.');
+// the day's runs of a clock: each UTC hour of today as a moment, in order
+const runTimes = (r, day = new Date()) => r.utc.map(h => { const t = new Date(day); t.setUTCHours(h, r.min || 0, 0, 0); return t; });
+function runHours(r) {   // 'kl. 07, 09–12, 14–16' – the hours in Danish time, runs of hours as one span
+  const hs = runTimes(r).map(t => dkClock(t));
+  if (r.min) return 'kl. ' + hs.join(', ');
+  const h = hs.map(x => +x.slice(0, 2)), out = [];
+  for (let k = 0; k < h.length; k++) {
+    let j = k;
+    while (j + 1 < h.length && h[j + 1] === (h[j] + 1) % 24) j++;
+    out.push(j > k ? `${hs[k].slice(0, 2)}–${hs[j].slice(0, 2)}` : hs[k].slice(0, 2));
+    k = j;
+  }
+  return 'kl. ' + out.join(', ');
+}
+function runNext(r) {
+  const now = Date.now(), today = runTimes(r), next = today.find(t => t > now) || runTimes(r, new Date(now + 864e5))[0];
+  return (FMT.dk.format(next) === FMT.dk.format(new Date()) ? '' : 'i morgen ') + 'kl. ' + dkClock(next);
+}
+function runLast(r) {   // the clock's last moment before now (yesterday's last when today's first is ahead)
+  const now = Date.now(), past = [...runTimes(r, new Date(now - 864e5)), ...runTimes(r)].filter(t => t <= now);
+  return past[past.length - 1] || null;
+}
+async function runsHtml() {
+  const dig = (CFG.digestUrl || '').replace(/digest\.json$/, '');
+  const [runs, memo] = await Promise.all([getJson(dig + 'runs.json'), getJson(CFG.memoUrl || dig + 'memo.json')]);
+  const done = [...((runs && runs.items) || []), ...((memo && memo.items) || []).map(m => ({ by: m.by, at: m.at, did: '' }))]
+    .filter(x => x && x.by && x.at).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  const rows = RUNS.map(r => {
+    let right = '', last = '', warn = '';
+    if (r.utc) {
+      right = 'næste ' + runNext(r);
+      const mine = r.by && done.find(x => x.by === r.by);
+      if (r.by) last = mine ? `Senest ${stamp(mine.at)}${mine.did ? ': ' + mine.did : ''}` : 'Ingen opdatering endnu';
+      const slot = runLast(r);
+      if (r.always && mine && slot && Date.now() - slot > 50 * 60e3 && Date.parse(mine.at) < slot - 5 * 60e3)
+        warn = `Ingen opdatering ved kørslen kl. ${dkClock(slot)}`;
+    } else {
+      const at = r.last && r.last();
+      if (at) {
+        right = 'senest ' + stamp(at);
+        if (r.stale && Date.now() - Date.parse(at) > r.stale * 60e3) warn = `Har ikke kørt i ${Math.round((Date.now() - Date.parse(at)) / 60e3)} min`;
+      }
+    }
+    return `<div class="ar"><div class="ar-h"><b>${esc(r.name)}</b>${right ? `<span>${esc(right)}</span>` : ''}</div>`
+      + `<span class="ar-w">${esc(r.utc ? runHours(r) : r.every)} · ${esc(r.what)}</span>`
+      + (last ? `<span class="ar-l">${esc(last)}</span>` : '') + (warn ? `<span class="ar-l warn">${esc(warn)}</span>` : '') + '</div>';
+  }).join('');
+  return `<h4 class="adm-h">Kørsler<small>dansk tid</small></h4><div class="ar-list">${rows}</div>`;
+}
 async function showStats() {
   const box = $('adminStats'), head = '<h3>Kun for dig</h3><p class="hint adm-help">Hold et element nede – en historie, et tal, en dato, '
     + 'en linje på Økonomi – for at skrive en kommentar til redaktørerne, rette overskriften, vælge billede, flytte eller fjerne det.</p>';
   box.innerHTML = head + '<p class="hint">Henter …</p>';
-  const rep = reportHtml(), mine = commentsHtml(), notes = notesHtml(), top = async () => head + (await rep) + (await mine) + (await notes);
+  const rep = reportHtml(), mine = commentsHtml(), runs = runsHtml().catch(() => ''), notes = notesHtml();
+  const top = async () => head + (await rep) + (await mine) + (await runs) + (await notes);
   try { const st = await loadStats(); box.innerHTML = (await top()) + statsHtml(st); } catch (e) {
     box.innerHTML = (await top()) + '<h4 class="adm-h">Statistik</h4><p class="hint">' + (e.message === 'key'
       ? 'Statistikken kunne ikke låses op med din admin-kode.'
