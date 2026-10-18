@@ -116,3 +116,34 @@ def test_a_box_can_be_a_share_or_a_change_and_both_are_grounded():
     problems = []
     events.events_file([bad], None, stories, NOW, TODAY, problems, voice)
     assert any("of '12' stands in none" in p for p in problems) and any("was '300' stands in none" in p for p in problems), problems
+
+
+def test_the_great_events_are_grouped_by_event_and_the_events_come_first():
+    # 18/10: the editor's first run with event pages passed France's riots by – it weighed only the most widely carried
+    # story (a decision) and the riots came as two stories
+    head = lambda i: i['title']   # noqa: E731
+    pool = [
+        {'id': 'ru', 'outlets': 41, 'title': 'Trump suspenderer nye sanktioner og told mod Rusland'},
+        {'id': 'f1', 'outlets': 23, 'title': 'Demonstranter stormer rådhuse og turistkontor står i flammer i Frankrig',
+         'summary': 'Omkring 1.200 anholdt, 150 politifolk såret den 17. oktober'},
+        {'id': 'f2', 'outlets': 22, 'title': 'Store uroligheder i Frankrig'},
+        {'id': 'ws', 'outlets': 23, 'title': 'Europæiske diplomater angrebet af israelske bosættere',
+         'also': [{'title': 'Israeli strikes on Gaza kill one'}]},
+        {'id': 'an', 'outlets': 14, 'kind': 'kommentar', 'title': 'Analyse: krigen i Ukraine og Trumps nye linje'},
+    ]
+    groups = events.great_events(pool, head)
+    assert [i['id'] for i in groups[0]['items']] == ['f1', 'f2'] and groups[0]['kind'] == 'uro'
+    assert all(g['word'] is None for g in groups[1:])   # a decision and an attack ('strike' is also a raid): not marked
+    assert 'an' not in {i['id'] for g in groups for i in g['items']}   # an analysis is no event
+    text = '\n'.join(events.great_lines(groups, head, lambda i: i.get('summary', '')))
+    assert "[A] EVENT – uro ('demonstr') · 2 stories · up to 23 outlets" in text
+    assert 'Numbers in its stories: 1.200, 150' in text and '17' not in text.split('Numbers in its stories:')[1].split('\n')[0]
+    # two stories sharing one word only are one event when they are the same kind, never otherwise
+    a = {'id': 'a', 'outlets': 12, 'title': 'Krigen i Sudan: hæren rykker frem mod Khartoum'}
+    b = {'id': 'b', 'outlets': 10, 'title': 'Valget i Sudan udskudt igen'}
+    assert len(events.great_events([a, b], head)) == 2
+
+
+def test_an_english_date_is_no_count():
+    assert events.ungrounded('Den 17. oktober og October 17 og 17 October gik 550.000 på gaden.',
+                             [{'title': '550,000 marched'}]) == []

@@ -125,8 +125,13 @@ plain Danish without "Ifølge …".
      calendar as it is. Entries stay until two days after their day.
    - `events`: a page of its own (Begivenheder) for a great event – a people in the streets across a country, a war
      widening, a coup, a vote or a summit ahead that can move the balance of the powers – when a story or two a day no
-     longer carry it. The input lists the pages now and the great stories without one. At most five pages under way or
-     ahead; most updates change only a page's numbers and stories. Each: `id`, `title`, `kicker` (where or what),
+     longer carry it. The input lists the pages now and, under 'Great events without a page', the widely carried
+     stories grouped by event, each group marked EVENT or not. Decide on every group marked EVENT: a people in the
+     streets, a war, a strike, a coup, a disaster or a vote gets its page in this update, built from the group's
+     stories – their teasers and the numbers they carry are listed –, unless one of your pages holds it already (then
+     add its stories there); a decision, a statement, a single attack or an analysis gets none. A new page is the one
+     exception to keeping an update small: write it whole. Name in your last line the page you made, or why none. At
+     most five pages under way or ahead; most later updates change only a page's numbers and stories. Each: `id`, `title`, `kicker` (where or what),
      `status` (i gang | kommende | afsluttet), `since` (the day it began) or `date` (the day it happens, kommende),
      `dek` (one factual line), `facts` (at most six boxes: `label`, `value`, `note` – who says it, `ids`), `places`,
      `quotes`, `stories` (its story ids in Live, the weightiest first), `topic` (a recap topic: its timeline) and

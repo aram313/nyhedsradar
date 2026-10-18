@@ -448,6 +448,19 @@ def headline(i):
     return clean(i.get('title_da') or i.get('title_tr') or i.get('title'))
 
 
+def teaser_of(i):
+    return clean(i.get('summary_da') or i.get('summary_tr') or i.get('summary') or '')
+
+
+def great_groups(pool, pages, now):
+    """The widely carried stories of the last 36 hours that no event page holds, grouped by event (events.great_events)."""
+    paged = {s for e in pages or [] for s in e.get('stories') or []}
+    wide = [i for i in pool if (i.get('outlets') or 1) >= GREAT_OUTLETS and i['id'] not in paged
+            and not set(i.get('members') or []) & paged
+            and now - ts(i.get('published') or i.get('found')) < timedelta(hours=36)]
+    return event_pages.great_events(wide, headline, GREAT_SHOWN)
+
+
 # ------------------------------------------------------------------ Live: the admitted stories, their headlines, the level
 
 def resolver(items):
@@ -745,22 +758,28 @@ def look(args, now):
         out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
     reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads, lapse)
-    # a great event and no event page yet (Begivenheder, 18/10): the first one is never missed; once pages are kept, the
-    # update's input names the great stories without one
+    # a great event without its page (Begivenheder, 18/10): the widely carried stories grouped by event, and a group
+    # whose words tell an event – not a decision or a statement – calls for an update, once
     pages = read(args, 'origin/digest', 'events.json', {}).get('items') or []
-    great = None if pages else max((i for i in pool if (i.get('outlets') or 1) >= GREAT_FIRST
-                                    and now - ts(i.get('published') or i.get('found')) < timedelta(hours=36)),
-                                   key=lambda i: i.get('outlets') or 1, default=None)
+    great = next((g for g in great_groups(pool, pages, now) if g['word'] and g['outlets'] >= GREAT_FIRST), None)
     out.append(f"Event pages: {len(pages)}" + (f" · {sum(1 for e in pages if e.get('status') == 'i gang')} under way" if pages else ''))
     if great:
-        reasons.append(f"stor begivenhed uden egen side: {clip(headline(great), 80)} ({great.get('outlets')} medier)")
+        lead = great['items'][0]
+        reasons.append(f"stor begivenhed uden egen side: {clip(headline(lead), 80)} ({len(great['items'])} "
+                       f"{'historie' if len(great['items']) == 1 else 'historier'}, op til {great['outlets']} medier)")
     out.append(('OPDATÉR: ' + '; '.join(reasons)) if reasons else 'INTET NYT AF VÆGT')
     seen = first_seen(args)
+    if great:
+        facts_great = f"event:{story_key(great['items'][0], seen)}"
+    else:
+        facts_great = None
     keys = [f"big:{story_key(r[0], seen)}" for r in rows if weighty_big(r) and r[0]['id'] not in picked and r[0]['id'] not in recapped]
     keys += [f"tier:{story_key(r[0], seen)}" for r in rows if r[1] is not None and r[1] <= 3 and (r[0].get('outlets') or 1) >= 2
              and not r[0].get('big') and r[0]['id'] not in picked and r[0]['id'] not in recapped]
     if answer:
         keys.append(f"answer:{answer['id']}")
+    if facts_great:
+        keys.append(facts_great)
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
@@ -1308,15 +1327,7 @@ def cmd_input(args):
     out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
     evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
     out += event_pages.lines(evt_now, now)
-    paged = {s for e in evt_now.get('items') or [] for s in e.get('stories') or []}
-    great = sorted((i for i in pool if (i.get('outlets') or 1) >= GREAT_OUTLETS and i['id'] not in paged
-                    and now - ts(i.get('published') or i.get('found')) < timedelta(hours=36)),
-                   key=lambda i: -(i.get('outlets') or 1))[:GREAT_SHOWN]
-    if great:
-        out += [f'## Great stories without an event page – {len(great)} (many outlets, the last 36 hours)', '',
-                'A great event – a people in the streets, a war widening, a vote ahead – gets a page under "events": fact '
-                'boxes with the news\'s own numbers, an objective article, its places, its stories. Not every big story:', '']
-        out += [f"[{i['id']}] {i.get('outlets')} outlets · {headline(i)}" for i in great] + ['']
+    out += event_pages.great_lines(great_groups(pool, evt_now.get('items') or [], now), headline, teaser_of)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
     for v in wire:

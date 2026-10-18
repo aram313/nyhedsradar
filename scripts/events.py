@@ -56,8 +56,10 @@ def story_text(it):
 
 
 MONTHS = 'januar|februar|marts|april|maj|juni|juli|august|september|oktober|november|december'
+EN_MONTHS = 'january|february|march|april|may|june|july|august|september|october|november|december'
 NOT_A_COUNT = re.compile(r'\b\d{1,2}\.\s*(?:' + MONTHS + r')\b|\b\d{1,2}/\d{1,2}\b|\b(?:19|20)\d{2}\b'
-                         r'|\bkl\.\s*\d{1,2}[.:]\d{2}\b', re.I)
+                         r'|\bkl\.\s*\d{1,2}[.:]\d{2}\b|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:' + EN_MONTHS + r')\b'
+                         r'|\b(?:' + EN_MONTHS + r')\s+\d{1,2}\b', re.I)
 
 
 # the article holds to the event (the owner, 18/10: 'objektive til selve begivenheden … ikke meninger … men fakta'):
@@ -89,6 +91,98 @@ def grounded(value, stories):
     need = digits(value)
     have = set().union(*(digits(story_text(it)) for it in stories)) if stories else set()
     return bool(need) and need <= have
+
+
+# the input's great events (18/10: the editor's first run with event pages passed France's riots by – it weighed only the
+# most widely carried story, a decision, and the riots came as two stories): the widely carried stories grouped by what
+# their headlines share, a group marked when its words tell an event – a people in the streets, a war, a strike, a
+# coup, a disaster, a vote – from a decision or a statement
+EVENT_KINDS = {
+    'uro': r'urolighed|optøj|protest|demonstr|strejk|oprør|\briots?\b|unrest|uprising|walkout',   # 'strike' is also a raid
+    'krig': r'\bkrig(?:en)?\b|invasion|offensiv|belejr|massakre|\bwar\b|offensive|siege|massacre',
+    'kup': r'\bkup\b|kuppet|militærkup|\bcoup\b',
+    'katastrofe': r'jordskælv|oversvøm|orkan|cyklon|tsunami|skovbrand|naturkatastrof|earthquake|flood|hurricane|cyclone|'
+                  r'wildfire',
+    'valg': r'folkeafstemning|\bvalget\b|valgkamp|(?:parlaments|præsident|folketings|kommunal|lokal|regions|midtvejs|del|'
+            r'nyt?)valg(?:et)?\b|referendum|election',
+}
+EVENTISH = re.compile('|'.join(f'(?P<{k}>{v})' for k, v in EVENT_KINDS.items()), re.I)
+STEM_STOP = set('''efter over under store stort flere mere siger sagde have blev bliver være skal ville også ikke første
+mens hvor eller deres sine denne dette disse mellem uden igen mange hele andre anden andet nogle alle siden omkring
+ifølge imod fordi kunne skulle gennem mandag tirsdag onsdag torsdag fredag lørdag søndag efterhånden blandt
+after with from that this says said will have their about into amid against more than first what when where been were
+they them would could should other some also just only over'''.split())
+
+
+def stems(headline):
+    """A headline's distinctive words, by their first five letters."""
+    return {w[:5] for w in re.findall(r'[^\W\d_]{4,}', str(headline or '').lower()) if w not in STEM_STOP}
+
+
+def eventish(it):
+    """(the word that marks a story as an event – its headlines and teasers –, its kind), or (None, None)."""
+    hit = EVENTISH.search(story_text(it))
+    return (hit.group(0).lower(), hit.lastgroup) if hit else (None, None)
+
+
+def great_events(stories, head, most=6):
+    """The widely carried stories (strongest first, commentary left out) as groups: two stories are one event when their
+    headlines share two distinctive words, or one when both are marked as the same kind of event. Each group: {'items',
+    'word' – the event's word or None, 'kind', 'outlets' – its most widely carried story's}; the marked groups first,
+    the most widely carried first."""
+    groups = []
+    for it in sorted(stories, key=lambda i: -(i.get('outlets') or 1)):
+        if it.get('kind') == 'kommentar':
+            continue
+        s, (word, kind) = stems(head(it)), eventish(it)
+        for g in groups:
+            shared = s & g['stems']
+            if len(shared) >= 2 or (shared and kind and kind == g['kind']):
+                g['items'].append(it)
+                g['stems'] |= s
+                if not g['word']:
+                    g['word'], g['kind'] = word, kind
+                break
+        else:
+            groups.append({'items': [it], 'stems': s, 'word': word, 'kind': kind, 'outlets': it.get('outlets') or 1})
+    groups.sort(key=lambda g: (not g['word'], -g['outlets'], -len(g['items'])))
+    return groups[:most]
+
+
+def numbers_in(stories, most=14):
+    """The counts the stories carry, as they are written ('550.000', '1.800'), each once – the material a fact box may
+    use (a date, a year or a clock time is no count; a single digit is left out)."""
+    out, seen = [], set()
+    for it in stories:
+        for m in NUMBER.findall(NOT_A_COUNT.sub(' ', story_text(it))):
+            d = re.sub(r'\D', '', m)
+            if len(d) >= 2 and d not in seen:
+                seen.add(d)
+                out.append(m.strip())
+    return out[:most]
+
+
+def great_lines(groups, head, teaser):
+    """The input's section on the great events without a page."""
+    if not groups:
+        return []
+    out = [f'## Great events without a page – {len(groups)} (many outlets, the last 36 hours): decide on each', '',
+           'Stories that share their subject are one group. A group marked EVENT (a people in the streets, a war, a '
+           'strike, a coup, a disaster, a vote) gets its page in this update under "events", built from these stories: '
+           'their teasers and the numbers they carry are below. A decision, a statement, a single attack or an analysis '
+           'gets none.', '']
+    for k, g in enumerate(groups):
+        tag = f"EVENT – {g['kind']} ('{g['word']}')" if g['word'] else 'not marked – a page only when it is an event all the same'
+        out.append(f"[{chr(65 + k)}] {tag} · {len(g['items'])} {'story' if len(g['items']) == 1 else 'stories'} · "
+                   f"up to {g['outlets']} outlets")
+        for it in g['items']:
+            out.append(f"    [{it['id']}] {it.get('outlets') or 1} outlets · {head(it)}")
+            if g['word'] and teaser(it):
+                out.append(f"        Teaser: {text(teaser(it), 300)}")
+        if g['word']:
+            nums = numbers_in(g['items'])
+            out.append(f"    Numbers in its stories: {', '.join(nums) if nums else 'none – the page gets no fact box yet'}")
+    return out + ['']
 
 
 def sources(stories):

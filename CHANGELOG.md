@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The editor sees the great events as events** (2026-10-18, its first run with event pages made none: it weighed only
+  the most widely carried story – Trump's pause of the sanctions on Russia, a decision – while France's riots came as
+  two stories of 23 and 22 outlets). The input's 'Great events without a page' groups the widely carried stories by
+  event (two headlines sharing two words, or one word and the same kind of event), marks a group EVENT by its words – a
+  people in the streets, a war, a coup, a disaster, a vote (an English 'strike' is also a raid and marks nothing) –,
+  leaves commentary out, puts the most widely carried event first and gives each event's teasers and the numbers its
+  stories carry. The check calls for an update once for the strongest event without a page, also when other pages
+  exist, and the prompt asks the editor to decide on every EVENT group and build its page in that update.
 - **Begivenheder: a page of its own for a great event, with fact boxes and an objective article** (2026-10-18, the
   owner: 'Lige nu sker der kæmpe store optøjer i Frankrig. Men ser man på vores side føles det som en fodnote … lav
   undersider hvor vi følger med i begivenheder med faktabokse', and 'artikler til store begivenheder, hvor vi holder os
