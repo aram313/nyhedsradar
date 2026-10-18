@@ -50,10 +50,12 @@ def digits(text):
 
 def story_text(it):
     """What a story carries: its headlines (the outlet's, the translations, the other outlets') and its teasers."""
-    parts = [it.get(k) for k in ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')]
-    parts += [a.get(k) for a in it.get('also') or [] if isinstance(a, dict) for k in ('title', 'title_tr')]
+    own = it.get('source') not in NO_CITE
+    parts = [it.get(k) for k in ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')] if own else []
+    parts += [a.get(k) for a in it.get('also') or [] if isinstance(a, dict) and a.get('source') not in NO_CITE
+              for k in ('title', 'title_tr')]
     # the sentences with counts the radar read in its outlets' articles (radar/reader.py, 18/10)
-    parts += [x.get('t') for x in it.get('said') or [] if isinstance(x, dict)]
+    parts += [x.get('t') for x in it.get('said') or [] if isinstance(x, dict) and x.get('s') not in NO_CITE]
     return ' · '.join(str(p) for p in parts if p)
 
 
@@ -189,12 +191,14 @@ def material(it, head, teaser, most=10, indent='        '):
     out = []
     if teaser(it):
         out.append(f"{indent}Teaser: {text(teaser(it), 300)}")
-    for a in sorted((x for x in it.get('also') or [] if isinstance(x, dict)), key=lambda x: x.get('source') in LAST)[:most]:
+    for a in sorted((x for x in it.get('also') or [] if isinstance(x, dict) and x.get('source') not in NO_CITE),
+                    key=lambda x: x.get('source') in LAST)[:most]:
         t = a.get('title') if LATIN.match(str(a.get('title') or '')) else a.get('title_tr') or a.get('title')
         if t:
             out.append(f"{indent}{a.get('source') or '?'}: {text(t, 160)}")
     # what the outlets' articles say in numbers (radar/reader.py): who gives each count is in the sentence
-    said = sorted((x for x in it.get('said') or [] if isinstance(x, dict) and x.get('t')), key=lambda x: x.get('s') in LAST)
+    said = sorted((x for x in it.get('said') or [] if isinstance(x, dict) and x.get('t') and x.get('s') not in NO_CITE),
+                  key=lambda x: x.get('s') in LAST)
     for x in said[:most + 2]:
         out.append(f"{indent}In {x.get('s') or '?'}'s article: {text(x['t'], 300)}")
     return out
@@ -215,6 +219,12 @@ def thin(items, find):
             lacks.append(f"tal ({', '.join(nums[:4])} i dens historier)")
         if heads >= 6 and len(e.get('article') or []) < 3:
             lacks.append(f"en hel artikel ({len(e.get('article') or [])} afsnit, {heads} overskrifter i dens historier)")
+        loose = [f.get('value') for f in e.get('facts') or [] if isinstance(f, dict) and f.get('value')
+                 and not grounded(f['value'], [it for it in (find(x) for x in f.get('ids') or []) if it])]
+        loose += [n for a in e.get('article') or [] if isinstance(a, dict)
+                  for n in ungrounded(str(a.get('text') or ''), [it for it in (find(x) for x in a.get('ids') or []) if it])]
+        if loose:
+            lacks.append(f"en kilde, vi bruger, for {', '.join(dict.fromkeys(map(str, loose)))}")
         if any(MEDIA_SAY.search(str(a.get('text') or '')) for a in e.get('article') or [] if isinstance(a, dict)):
             lacks.append('kilder ved navn (artiklen siger »medierne«)')
         if sum(len(OUTLET_SAY.findall(str(a.get('text') or ''))) for a in e.get('article') or [] if isinstance(a, dict)) >= 3:
@@ -279,19 +289,23 @@ def great_lines(groups, head, teaser):
 OWN = ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')
 
 
-def _last_resort():
-    """The sources of last resort in config/feeds.json ("last": true): a source only when no other outlet carries the
-    fact (the owner, 18/10: 'Brug kun times of israel som kilde hvis der ikke er andre')."""
+def _marked(key, value, fallback):
+    """The sources config/feeds.json marks so (their names and labels)."""
     import json
     from pathlib import Path
     try:
         feeds = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
-        return {str(n) for f in feeds if isinstance(f, dict) and f.get('last') for n in (f.get('name'), f.get('label')) if n}
+        return {str(n) for f in feeds if isinstance(f, dict) and f.get(key) is value for n in (f.get('name'), f.get('label')) if n}
     except (OSError, ValueError):
-        return {'Times of Israel'}
+        return set(fallback)
 
 
-LAST = _last_resort()
+# a source of last resort ("last": true): a source only when no other outlet carries the fact (the owner, 18/10: 'Brug
+# kun times of israel som kilde hvis der ikke er andre')
+LAST = _marked('last', True, {'Times of Israel'})
+# a source never cited on Khabar's pages ("cite": false – the owner, 18/10: 'The hindu skal også ud'): its headlines and
+# its articles' sentences are no material, ground no number and are credited for nothing
+NO_CITE = _marked('cite', False, {'The Hindu'})
 
 
 def carriers(stories, number):
@@ -299,13 +313,14 @@ def carriers(stories, number):
     outlet of it by its headline."""
     out = []
     for it in stories:
-        if number in digits(' · '.join(str(it.get(k) or '') for k in OWN)) and it.get('source'):
+        if number in digits(' · '.join(str(it.get(k) or '') for k in OWN)) and it.get('source') and it['source'] not in NO_CITE:
             out.append(str(it['source']))
         for a in it.get('also') or []:
-            if isinstance(a, dict) and a.get('source') and number in digits(f"{a.get('title') or ''} · {a.get('title_tr') or ''}"):
+            if isinstance(a, dict) and a.get('source') and a['source'] not in NO_CITE and \
+                    number in digits(f"{a.get('title') or ''} · {a.get('title_tr') or ''}"):
                 out.append(str(a['source']))
         for x in it.get('said') or []:   # a sentence of an outlet's article
-            if isinstance(x, dict) and x.get('s') and number in digits(NOT_A_COUNT.sub(' ', str(x.get('t') or ''))):
+            if isinstance(x, dict) and x.get('s') and x['s'] not in NO_CITE and number in digits(NOT_A_COUNT.sub(' ', str(x.get('t') or ''))):
                 out.append(str(x['s']))
     return out
 
@@ -320,7 +335,7 @@ def sources(stories, said=None):
         by = carriers(stories, n)
         got += [o for o in by if o not in LAST] or by      # a source of last resort only for a number no other carries
     got = list(dict.fromkeys(got))
-    own = list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source')))
+    own = list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source') and it['source'] not in NO_CITE))
     return got or [o for o in own if o not in LAST] or own
 
 

@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The Hindu is no source** (2026-10-18, the owner: 'The hindu skal også ud'). `"cite": false` in config/feeds.json:
+  its headlines and its articles' sentences are no material for the editor, ground no number on an event page and are
+  credited for nothing, and (with `"last": true`) it leads a story only when no other outlet carries it. The check names
+  a page that holds a number no source we cite carries (the France page's 'over 1.800' rested on The Hindu alone), so
+  the editor replaces it.
 - **The event card's figures keep one line** (2026-10-18, 'over 1.800' broke over two lines in the card's narrow
   column): a qualifier ('over', 'mere end', 'omkring' …) is set small above the figure.
 - **The editor reads what the articles say in numbers** (2026-10-18, the owner on DR's overview of France's riots: 'Se

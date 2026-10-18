@@ -700,7 +700,9 @@
   "camp": "in",
   "sec": "world",
   "scale": false,
-  "fit": 1.0
+  "fit": 1.0,
+  "last": true,
+  "cite": false
  },
  {
   "name": "India MEA",

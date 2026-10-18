@@ -154,13 +154,13 @@ def test_a_page_under_way_without_its_numbers_is_named_and_its_material_listed()
     # headlines carried '1,200 arrested, 150 cops injured' and 'More than 1,800 arrested, Interior Minister says'
     story = {'id': 'f1', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
              'also': [{'source': 'Times of Israel', 'title': 'Mass protests in France; 1,200 arrested, 150 cops injured'},
-                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+                      {'source': 'DW', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
     page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
             'since': '2026-10-18', 'dek': '…', 'facts': [], 'stories': ['f1'], 'at': '2026-10-18T14:49:58+00:00'}
     find = {'f1': story}.get
     assert events.thin([page], find) == [(page, ['tal (1,200, 150, 1,800 i dens historier)'])]
     text = '\n'.join(events.lines({'items': [page]}, NOW, find, lambda i: i['title'], lambda i: ''))
-    assert 'The Hindu: France protests: More than 1,800 arrested, Interior Minister says' in text
+    assert 'DW: France protests: More than 1,800 arrested, Interior Minister says' in text
     assert 'Numbers in its stories: 1,200, 150, 1,800' in text and 'Bring each page under way up to date' in text
     # a page with its numbers is not thin
     assert events.thin([{**page, 'facts': [{}, {}]}], find) == []
@@ -222,16 +222,16 @@ def test_a_box_credits_the_outlets_that_carry_its_number():
     # 18/10: the first page credited BT (the story's own outlet) for the arrests The Hindu and Times of Israel gave
     story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
              'also': [{'source': 'Times of Israel', 'title': 'Mass protests in France; 1,200 arrested, 150 cops injured'},
-                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
-    assert events.sources([story], 'over 1.800') == ['The Hindu']
-    assert events.sources([story], 'Mere end 1.800 er anholdt; tidligere 1.200.') == ['Times of Israel', 'The Hindu']
+                      {'source': 'DW', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+    assert events.sources([story], 'over 1.800') == ['DW']
+    assert events.sources([story], 'Mere end 1.800 er anholdt; tidligere 1.200.') == ['Times of Israel', 'DW']
     assert events.sources([story], 'Demonstranter stormede rådhuse.') == ['BT']
     # and a page the update leaves as it is follows its stories
     page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang', 'since': '2026-10-18',
             'dek': '…', 'stories': ['fx'], 'at': '2026-10-18T08:00:00+00:00',
             'facts': [{'label': 'Anholdte', 'value': '1.800', 'note': 'mere end, ifølge indenrigsministeren', 'ids': ['fx'], 'src': ['BT']}]}
     out = events.events_file([], {'items': [page]}, {'fx': story}, NOW, TODAY, [], voice)
-    assert out['items'][0]['facts'][0]['src'] == ['The Hindu']
+    assert out['items'][0]['facts'][0]['src'] == ['DW']
     assert any('»over …«' in w for _, lacks in events.thin(out['items'], {'fx': story}.get) for w in lacks)
 
 
@@ -240,11 +240,11 @@ def test_times_of_israel_is_a_source_only_when_no_other_carries_the_fact():
     assert 'Times of Israel' in events.LAST
     story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
              'also': [{'source': 'Times of Israel', 'title': '1,800 arrested and 150 cops injured in France'},
-                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
-    assert events.sources([story], '1.800') == ['The Hindu']
+                      {'source': 'DW', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+    assert events.sources([story], '1.800') == ['DW']
     assert events.sources([story], '150') == ['Times of Israel']        # no other carries it
     assert events.last_named('ifølge Times of Israel', [story]) is None
-    assert events.last_named('1.800 er anholdt, skriver Times of Israel', [story]) == ('Times of Israel', ['The Hindu'])
+    assert events.last_named('1.800 er anholdt, skriver Times of Israel', [story]) == ('Times of Israel', ['DW'])
     lines = events.material(story, lambda i: i['title'], lambda i: '')
     assert lines[-1].strip().startswith('Times of Israel:')            # listed after the others
     page = {'id': 'frankrig-uro', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
@@ -253,6 +253,22 @@ def test_times_of_israel_is_a_source_only_when_no_other_carries_the_fact():
                       {'label': 'Sårede politifolk', 'value': '150', 'note': 'ifølge Times of Israel', 'ids': ['fx']}]}
     problems = []
     events.events_file([page], None, {'fx': story}, NOW, TODAY, problems, voice)
-    assert any('fact 1: Times of Israel is a source only when no other outlet carries the number – The Hindu carry it' in p
+    assert any('fact 1: Times of Israel is a source only when no other outlet carries the number – DW carry it' in p
                for p in problems), problems
     assert not any('fact 2:' in p for p in problems), problems
+
+
+def test_the_hindu_is_never_a_source():
+    # the owner, 18/10: 'The hindu skal også ud' ("cite": false in config/feeds.json)
+    assert 'The Hindu' in events.NO_CITE
+    story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+             'also': [{'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'},
+                      {'source': 'DW', 'title': 'Some 1,200 arrested and 150 police injured, Lecornu says'}],
+             'said': [{'s': 'The Hindu', 't': 'More than 6,800 people have been detained since the start of the protests.'}]}
+    assert not events.grounded('1.800', [story]) and not events.grounded('6.800', [story])
+    assert events.grounded('1.200', [story]) and events.sources([story], '1.200') == ['DW']
+    text = '\n'.join(events.material(story, lambda i: i['title'], lambda i: ''))
+    assert 'The Hindu' not in text and 'DW: Some 1,200 arrested' in text
+    page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang', 'stories': ['fx'],
+            'facts': [{'label': 'Anholdte', 'value': 'over 1.800', 'ids': ['fx']}, {'label': 'Sårede politifolk', 'value': '150', 'ids': ['fx']}]}
+    assert any('en kilde, vi bruger, for over 1.800' in w for _, lacks in events.thin([page], {'fx': story}.get) for w in lacks)
