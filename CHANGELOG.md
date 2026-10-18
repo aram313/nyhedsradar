@@ -9,6 +9,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: the standfirst is not said twice** (2026-10-18, the front page's review): an opened story showed its
+  standfirst and, under it, the summary beginning with the same sentence; opened, the standfirst steps aside.
 - **Radar: a picture too dark to see is no picture** (2026-10-18, the front page's review: Dagens historie wore DR's
   photo of Rubio at night). Measured on 60 cards' pictures: that one had a mean light of 18 of 255 and its brightest
   tenth under 43; the next darkest 35 and 117. A picture under 28 and 80 (thumbs.too_dark) is set aside and another

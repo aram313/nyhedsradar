@@ -245,6 +245,7 @@ def test_dagens_historie_leads_by_its_headline_and_the_page_has_less_air():
 def test_the_front_page_has_the_economists_restraint():
     # the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'
     assert '${opts.fl && !open ? dek(i) : \'\'}' in CODE and "String((ed && ed.text) || i.summary || '')" in fn('dek')
+    assert '.story.open .dek { display: none; }' in RULES   # opened, the summary says it: never twice
     for rule in ('.page[data-tab="home"] .story .h b, .page[data-tab="home"] .now li b { font-weight: inherit; }', '.page[data-tab="home"] .m .sec { display: none; }',
                  '.page[data-tab="home"] .lede-d > span { color: var(--text-3); }'):
         assert rule in RULES, rule

@@ -1225,6 +1225,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .dek { display: block; margin-top: 5px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.4; color: var(--text-2);
   text-wrap: pretty; font-variation-settings: "opsz" 20; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .pkg.merged .dek { -webkit-line-clamp: 3; }   /* a standfirst is short: two lines, Dagens historie three */
+.story.open .dek { display: none; }   /* opened, the summary says it whole – never the same sentence twice */
 .page[data-tab="home"] .f-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
 .page[data-tab="home"] .story.open .f-pic img { filter: grayscale(.45) contrast(1.04); }
 .f-svar-b .f-svar { margin-top: 6px; }   /* the movement's answer right under its label (app.js movementBlock) */
