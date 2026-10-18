@@ -86,6 +86,13 @@
   .ec-fly { display: block; margin: 0; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; color: var(--red); }
   /* 'Finans og økonomi': under its headline line – the newest story – that story's outlet and time, the way to it */
   .ec-lead-m { margin: 6px 16px 4px; font-size: var(--fs-meta); color: var(--text-3); }
+  /* the very biggest economic news, at the top under Lige nu (bigNews) */
+  .ec-big { display: grid; gap: 12px; margin: 12px 16px 10px; }
+  .ec-big a { display: block; padding: 1px 0 1px 12px; border-left: 3px solid var(--red); color: inherit; text-decoration: none; }
+  .ec-big a:active { opacity: .6; }
+  .ec-big-k { display: block; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--red); }
+  .ec-big-h { display: block; margin-top: 3px; font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.22; }
+  .ec-big-m { display: block; margin-top: 4px; font-size: var(--fs-meta); color: var(--text-3); }
   .ec-lead-m a { color: inherit; text-decoration: none; font-weight: 600; }
   /* one thing open, the rest dimmed (18/10): only opacity moves */
   .dimmed { opacity: .28; }
@@ -556,11 +563,6 @@ const AIX_TXT = {
 // sources, said once in its foot line
 const TOPICS = [
   { id: 'nu', tab: 'Lige nu', fly: 'Lige nu', h: 'nu', src: 'Yahoo Finance' },
-  // the economic crises in the news (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser")
-  // 'Finans og økonomi' since 18/10 (the owner turned down 'Økonomiske kriser' and 'Uro i økonomien'): the news of
-  // states' borrowing, central banks, tariffs, sanctions and ratings; its headline line is its newest story, as a
-  // paper's section opens on its lead, and the list under it holds the rest
-  { id: 'kris', tab: 'Nyheder', fly: 'Finans og økonomi', h: 'nyheder', src: 'Khabars nyheder' },
   { id: 'fuel', tab: 'Brændstof', fly: 'Brændstof', h: 'braendstof', src: 'Circle K, Q8, EIA og EU-Kommissionen',
     more: [['Selve råvaren', ['rbob_kr', 'ulsd_kr', 'brent_kr']]] },
   { id: 'oil', tab: 'Olie', fly: 'Olie og gas', h: 'olie', src: 'Yahoo Finance (ICE, NYMEX) og EIA',
@@ -575,6 +577,13 @@ const TOPICS = [
   { id: 'debt', tab: 'Gæld', fly: 'Gæld', h: 'gaeld', src: 'det amerikanske finansministerium og IMF' },
   { id: 'raw', tab: 'Råvarer', fly: 'Råvarer', h: 'raavarer', src: 'Yahoo Finance (COMEX, CBOT)',
     tiles: [['gold', '$/oz'], ['copper', '$/lb'], ['wheat', '¢/bu'], ['btc', '$']] },
+  // the economic crises in the news (the owner, 17/10: "der skal også være økonomi nyheder, primært kriser")
+  // 'Finans og økonomi' since 18/10 (the owner turned down 'Økonomiske kriser' and 'Uro i økonomien'): the news of
+  // states' borrowing, central banks, tariffs, sanctions and ratings; its headline line is its newest story, as a
+  // paper's section opens on its lead, and the list under it holds the rest. Last on the page (the owner, 18/10:
+  // 'nyheder på økonomi skal være i bunden … medmindre det er kæmpe store overskrifter, så kommer de op' – those
+  // stand at the top, under Lige nu: hugeNews)
+  { id: 'kris', tab: 'Nyheder', fly: 'Finans og økonomi', h: 'nyheder', src: 'Khabars nyheder' },
 ];
 const TOPIC = Object.fromEntries(TOPICS.map(T => [T.id, T]));
 const HASH = Object.fromEntries(TOPICS.map(T => [T.h, T.id]));
@@ -1277,13 +1286,22 @@ function meta(T, base) {
   parts.push((/,| og /.test(T.src) ? 'kilder: ' : 'kilde: ') + T.src);
   return `<p class="ec-meta">${esc(parts.join(' · '))}</p>`;
 }
+// the very biggest economic news of the last day stand at the top of the page, under Lige nu (the owner, 18/10: 'medmindre
+// det er kæmpe store overskrifter, så kommer de op'): a story many outlets carry (the radar's big, eight outlets or
+// more), at most two; the rest of the news sits last on the page
+const hugeNews = () => (D.crisis || []).filter(n => n.big && (n.n || 0) >= 8 && Date.now() - new Date(n.p) < 864e5).slice(0, 2);
+function bigNews() {
+  const list = hugeNews();
+  return list.length ? `<div class="ec-big">${list.map(n => `<a href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>`
+    + `<span class="ec-big-h">${esc(newsTidy(newsPick(n)[0]))}</span><span class="ec-big-m">${esc(n.s)} · ${esc(when(n.p))} · ${n.n} medier</span></a>`).join('')}</div>` : '';
+}
 function topicHtml(T) {
   let h = `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p><h2 class="ec-head">${esc(head(T.id))}</h2></header>`;
   let base;
   if (T.id === 'nu') {
     const list = topMoves();
     base = baseOf(list.map(moveFig));
-    h += nowRows(list, base);
+    h += bigNews() + nowRows(list, base);
   } else if (T.id === 'kris') {
     // the newest story is the headline line above: its source and time under it, then the rest
     const [lead, ...rest] = D.crisis || [];

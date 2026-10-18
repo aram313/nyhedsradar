@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi: the news last, the very biggest at the top** (2026-10-18, the owner: 'nyheder på økonomi skal være i
+  bunden på økonomi siden, medmindre det er kæmpe store overskrifter, så kommer de op'). 'Finans og økonomi' moved from
+  second to last place (the dock follows). A story of the last 24 hours that many outlets carry (the radar's big, eight
+  outlets or more; at most two) stands at the top under Lige nu as 'Stor nyhed' – a red rule, the headline in the
+  serif, its outlet, time and count – and opens in Khabar like every story.
 - **Økonomi · AI-boblen: the AI build-out, total and against what the business earns** (2026-10-18, the owner:
   'findes der en årlig underskud for ai boblen … eller måske en investering vs overskud sammenligning' – 'begge men det
   skal ikke være i år, det skal være total'). A running counter 'Investeret i AI-opbygningen siden 2023' (Microsoft,

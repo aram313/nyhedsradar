@@ -258,8 +258,9 @@ def test_the_page_knows_every_series_the_file_carries():
         assert f'\n  {k}: [' in PAGE, k                     # every debt bar has its Danish name and note
 
 
-TOPIC_ORDER = (('nu', 'Lige nu'), ('kris', 'Nyheder'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
-               ('raw', 'Råvarer'))
+# the news last (the owner, 18/10: 'nyheder på økonomi skal være i bunden … medmindre det er kæmpe store overskrifter')
+TOPIC_ORDER = (('nu', 'Lige nu'), ('fuel', 'Brændstof'), ('oil', 'Olie'), ('mkt', 'Markeder'), ('ai', 'AI'), ('debt', 'Gæld'),
+               ('raw', 'Råvarer'), ('kris', 'Nyheder'))
 
 
 def test_the_page_is_one_long_page_of_eight_topics_in_a_fixed_order():
@@ -452,3 +453,10 @@ def test_a_quarter_is_read_from_the_year_so_far_and_the_four_giants_add_up():
 def test_the_ai_build_out_counter_is_on_the_economy_page():
     assert "data-tile=\"ai:cap\"" in PAGE and 'id="aicapNow"' in PAGE and "data-chart=\"aicap\"" in PAGE
     assert "out = [aicapTile(), aiwTile()" in PAGE and "Investeret i AI-opbygningen siden 2023" in PAGE
+
+
+def test_the_very_biggest_economic_news_stand_at_the_top():
+    assert "h += bigNews() + nowRows(list, base);" in PAGE
+    rule = PAGE.split('const hugeNews = () =>')[1].split('\n')[0]
+    assert 'n.big' in rule and '>= 8' in rule and '864e5' in rule and '.slice(0, 2)' in rule
+    assert 'data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>' in PAGE      # opens in Khabar, as every story
