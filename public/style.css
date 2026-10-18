@@ -1308,8 +1308,8 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .ev-go { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-body); font-weight: 650; }
 .ev-go svg { width: 16px; height: 16px; }
 /* one number large, as a paper's 'number of the day' */
-.tal.kfacts { display: block; width: calc(100% - 32px); text-align: left; color: var(--text); }
-.tal.kfacts .kf-lead { padding-top: 10px; }
+.tal.kfacts { display: block; width: calc(100% - 32px); border-top: 0; text-align: left; color: var(--text); }
+.tal.kfacts .kf-lead { padding-top: 2px; }
 .tal-go { display: flex; align-items: center; gap: 4px; padding: 12px 0 2px; font-size: var(--fs-small); font-weight: 650; color: var(--text-2); }
 .tal-go svg { width: 14px; height: 14px; }
 .tal:active { opacity: .6; }
