@@ -539,6 +539,13 @@ const AIW_TXT = {
   what: 'Hvor stor en del af S&P 500 AI-giganterne i indekset udgør tilsammen, målt på SPY-fondens beholdning. TSMC er ikke med i indekset.',
   why: 'Jo større andelen er, jo mere af et bredt aktieindeks – og af mange pensioner, også danske – hviler på få selskaber.',
   up: 'Endnu mere af markedet hviler på AI-giganterne.', down: 'Markedet bliver mindre afhængigt af dem – fordi de falder, eller fordi resten stiger.' };
+// the AI build-out (the owner, 18/10: 'en investering vs overskud sammenligning … det skal være total'): the four
+// giants' spending on data centres and equipment against the cash their business brings in, from their own filings
+const AICAP_TXT = {
+  what: 'Det, Microsoft, Alphabet, Amazon og Meta har brugt på datacentre, chips, servere og bygninger (investeringer), lagt sammen kvartal for kvartal siden 2023 – og de penge, deres forretning bragte ind i samme kvartaler (pengestrømmen fra driften). Tallene står i selskabernes egne regnskaber; en del af investeringerne går til andet end AI, men langt det meste går i dag til AI.',
+  why: 'Når investeringerne nærmer sig alt, hvad forretningen tjener, må resten komme fra opsparing og lån. Det er det, man kalder boblens kerne: pengene bliver brugt nu, mens indtjeningen fra AI skal komme senere.',
+  up: 'Selskaberne satser endnu mere på, at AI betaler sig – og har mindre tilbage til udbytte, opkøb af egne aktier eller dårlige tider.',
+  down: 'Selskaberne holder igen med investeringerne – et tegn på, at de tvivler på afkastet, eller at de mangler chips og strøm.' };
 const AIX_TXT = {
   what: 'Nvidia, Microsoft, Apple, Alphabet, Amazon, Broadcom, Meta og TSMC som én kurv, hvor hvert selskab tæller lige meget – sat til 100 ved periodens start og sammenlignet med S&P 500.',
   why: 'Viser, om AI-aktierne trækker fra resten af markedet eller halter efter. Store udsving i kurven slår igennem i brede indeks og pensioner.',
@@ -849,6 +856,10 @@ function drawCharts(root = document) {
       return chart(box, [{ pts: dated(pts.map(([t, b]) => [t, euL(b)])) }], { d: 2, dots: pts.length < 8, fmt: v => nf(v, 2) + ' kr.' });
     }
     if (k === 'aiidx') return aiChart(box);
+    if (k === 'aicap') {
+      const q = D.aicap.q, pts = j => q.map(x => [x[0], x[j] / 1e9, qName(x[0]), qName(x[0], true)]);
+      return chart(box, [{ pts: pts(1), name: 'Investeret', cls: 'red' }, { pts: pts(2), name: 'Tjent', cls: 'two' }], { d: 0, dots: true, fmt: v => nf(v, 0) + ' mia. $' });
+    }
     if (k === 'aiw') return chart(box, [{ pts: dated(D.spy.h) }], { d: 1, dots: D.spy.h.length < 8, fmt: v => nf(v, 1) + ' %' });
     if (k === 'debt') {
       const { pts } = cut('debt', 'd', D.debt.h);
@@ -925,6 +936,28 @@ function aiIdxTile() {
   return { k: 'ai:idx', n: 'AI-kurven · ' + s.r[1], v: signed(a, 1), u: '%', mv: { cls: '', text: `S&P 500 ${signed(b, 1)} %` },
     sp: s.ai.map(p => p[1]), tc: tclass('nvda', D.s.nvda), tt: D.s.nvda.t, ts: stamp('nvda', D.s.nvda) };
 }
+// the AI build-out's counter: the giants' filed quarters since 2023 plus the newest quarter's pace since its last day
+const aicapStart = () => new Date(D.aicap.t + 'T23:59:59Z').getTime();
+const aicapNow = () => D.aicap.total + (D.aicap.pace || 0) * Math.max(0, Date.now() - aicapStart()) / 864e5;
+const qName = (e, long) => { const m = +e.slice(5, 7), y = e.slice(0, 4); return long ? `${Math.ceil(m / 3)}. kvartal ${y}` : `K${Math.ceil(m / 3)} ${y.slice(2)}`; };
+function aicapTile() {
+  const A = D.aicap;
+  if (!A || !A.total) return null;
+  const isOpen = openTile.ai === 'ai:cap';
+  return { k: 'ai:cap', wide: true,
+    html: `<div class="ec-span" role="group" aria-label="Investeret i AI-opbygningen, skøn"><button class="ec-tile ec-debt" data-tile="ai:cap" aria-expanded="${isOpen}"><span class="ec-k"><span>Investeret i AI-opbygningen siden 2023</span><span class="ec-est">Skøn</span></span>
+      <span class="ec-count" id="aicapNow">${whole(aicapNow())} $</span>
+      <span class="ec-l">Microsoft, Alphabet, Amazon og Meta. Regnskaberne til og med ${esc(dm(A.t))} plus det seneste kvartals tempo, <b>${nf(A.pace / 1e9, 1)} mia. $ om dagen</b>${A.share ? ` – ${nf(A.share, 0)} % af det, deres forretning tjente` : ''}.</span></button></div>` };
+}
+function aicapPanel() {
+  const A = D.aicap, last = A.q[A.q.length - 1], co = Object.entries(A.co || {}).sort((a, b) => b[1][0] / b[1][1] - a[1][0] / a[1][1]);
+  const bn = v => nf(v / 1e9, 0);
+  return `<div class="en-chart" data-chart="aicap"></div>
+    <div class="ec-legend"><span><i class="red"></i>Investeret</span><span><i class="two"></i>Tjent i driften</span></div>
+    <p class="en-hl">${esc(qName(last[0], true))}: investeret <b>${bn(last[1])} mia. $</b> – ${nf(100 * last[1] / last[2], 0)} % af de ${bn(last[2])} mia. $, forretningen tjente. I 1. kvartal 2023 var det ${nf(100 * A.q[0][1] / A.q[0][2], 0)} %.</p>
+    <ul class="ec-pts">${co.map(([n, [c, k]]) => `<li><b>${esc(n)}</b> investerede ${bn(c)} af ${bn(k)} mia. $ (${nf(100 * c / k, 0)} %)${c > k ? ' – mere, end forretningen tjente' : ''}.</li>`).join('')}</ul>
+    ${explain(AICAP_TXT)}<p class="en-src">Selskabernes regnskaber hos det amerikanske finanstilsyn (SEC) · kvartalsvis · til og med ${esc(dm(A.t))}</p>`;
+}
 // the debt counter's tile: an estimate between the Treasury's daily figures, and it says so
 const debtStart = () => new Date(D.debt.t + 'T16:00:00-04:00').getTime();
 const debtNow = () => D.debt.v + (D.debt.g || 0) * Math.max(0, Date.now() - debtStart()) / 864e5;
@@ -942,7 +975,7 @@ function tilesOf(t) {
   let out = [];
   if (T.tiles) out = T.tiles.map(([k, u]) => sTile(k, u));
   else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile('us_gas'), usTile('us_diesel')];
-  else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];
+  else if (t === 'ai') out = [aicapTile(), aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];
   else if (t === 'debt') out = [debtTile()];
   return out.filter(Boolean);
 }
@@ -975,6 +1008,7 @@ function panel(k) {
   if (k === 'ai:w') return aiwPanel();
   if (k === 'ai:idx') return aiIdxPanel();
   if (k === 'debt') return debtPanel();
+  if (k === 'ai:cap') return aicapPanel();
   if (k === 'us_gas' || k === 'us_diesel') {
     const x = D.s[k];
     return more(k, `<p class="en-hl">${nf(x.v, 3)} $ pr. gallon = <b>${nf(perL(x.v), 2)} kr. pr. liter</b> med dollarkursen (${nf(D.s.usddkk.v, 2)} kr.); 1 gallon = 3,785 liter. Skatten på brændstof er langt lavere i USA end i Danmark.</p>`);
@@ -1160,7 +1194,7 @@ function aiFold(T, base) {
   return `<h3 class="ec-sub">${esc(T.more[0][0])}</h3><div class="en-rows">${list || WAIT}</div>
     <h3 class="ec-sub">Hvorfor taler man om en boble?</h3><ul class="ec-pts">
     <li><b>Prisen.</b> Aktierne handles til mange gange selskabernes årlige overskud. Prisen bygger på den indtjening, investorerne venter fra AI i fremtiden.</li>
-    <li><b>Investeringerne.</b> De store tech-selskaber bruger tilsammen hundredvis af milliarder dollar om året på datacentre, chips og strøm – mere, end AI indtil videre tjener ind.</li>
+    <li><b>Investeringerne.</b> ${D.aicap && D.aicap.share ? `Microsoft, Alphabet, Amazon og Meta brugte i ${esc(qName(D.aicap.t, true))} ${nf(D.aicap.q[D.aicap.q.length - 1][1] / 1e9, 0)} mia. dollar på datacentre, chips og udstyr – ${nf(D.aicap.share, 0)} % af det, deres forretning tjente. Indtil videre tjener AI langt mindre ind, end der bliver investeret.` : 'De store tech-selskaber bruger tilsammen hundredvis af milliarder dollar om året på datacentre, chips og strøm – mere, end AI indtil videre tjener ind.'}</li>
     <li><b>Koncentrationen.</b> ${esc(conc)}</li>
     <li><b>Kredsløbet.</b> Chipleverandører investerer i deres egne kunder, som så køber deres chips, og meget af væksten hviler på få kunder.</li>
     <li><b>Modargumentet.</b> I modsætning til dotcom-boblen i 2000 tjener selskaberne store penge i dag. Om der er en boble, ved man først bagefter – ingen kan sige, om eller hvornår kurserne vender.</li></ul>`;
@@ -1297,7 +1331,7 @@ function fill(T) {
   el.innerHTML = topicHtml(T);
   drawCharts(el);
   if (again) { const b = el.querySelector(again); if (b) b.focus({ preventScroll: true }); }
-  if (T.id === 'debt') tick();
+  if (T.id === 'debt' || T.id === 'ai') tick();
 }
 // all topics (new numbers): the topic in view keeps its place on the screen
 // each topic on its own: numbers one topic cannot draw leave a quiet line there, never a blank page (the owner, 17/10:
@@ -1403,14 +1437,17 @@ function goFigure(k) {
   jump(t, tile ? null : secEl(t).querySelector(`.en-item[data-k="${k}"]`));
 }
 
-// the debt counter ticks only while it is on screen and the page is in view
+// the counters (the debt, the AI build-out) tick only while they are on screen and the page is in view
 let ticker = null;
 function tick() {
   clearInterval(ticker); ticker = null;
-  const el = $('#debtNow');
-  if (!el || !D || !D.debt || !D.debt.g) return;
-  ticker = setInterval(() => { if (!document.hidden && el.isConnected) el.textContent = whole(debtNow()) + ' $'; else if (!el.isConnected) clearInterval(ticker); },
-    calm() ? 1000 : 250);
+  const run = [['#debtNow', () => D.debt && D.debt.g, debtNow], ['#aicapNow', () => D.aicap && D.aicap.pace, aicapNow]]
+    .map(([id, on, now]) => [$(id), on, now]).filter(([el, on]) => el && D && on());
+  if (!run.length) return;
+  ticker = setInterval(() => {
+    if (!run.some(([el]) => el.isConnected)) { clearInterval(ticker); return; }
+    if (!document.hidden) for (const [el, , now] of run) if (el.isConnected) el.textContent = whole(now()) + ' $';
+  }, calm() ? 1000 : 250);
 }
 
 // ---- touch -----------------------------------------------------------------------------------------------------------

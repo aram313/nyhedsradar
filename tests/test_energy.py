@@ -106,7 +106,8 @@ def offline(monkeypatch, **fns):
     """Every source answers nothing (or as given): no test reaches the network."""
     base = {'fetch_markets': lambda: {}, 'fetch_curves': lambda fronts: {}, 'fetch_fred': lambda: {},
             'fetch_pumps': lambda: (None, []), 'fetch_usfuel': lambda: {}, 'fetch_eu': lambda: None,
-            'fetch_spy': lambda: None, 'fetch_debt': lambda: None, 'fetch_imf': lambda: None, 'fetch_dkh': lambda: None}
+            'fetch_spy': lambda: None, 'fetch_debt': lambda: None, 'fetch_imf': lambda: None, 'fetch_dkh': lambda: None,
+            'fetch_aicap': lambda: None}
     for name, fn in {**base, **fns}.items():
         monkeypatch.setattr(energy, name, fn)
 
@@ -141,7 +142,7 @@ def test_a_run_keeps_the_last_good_numbers_when_every_source_fails(tmp_path, mon
     assert out['s']['us_gas']['v'] == 4.33
     assert all(out[k] == old[k] for k in ('debt', 'imf', 'eu', 'spy'))
     assert out['ok'] == {}                                   # nothing new: every source is tried again after RETRY
-    assert set(out['tried']) == {'markets', 'curve', 'fred', 'pumps', 'usfuel', 'eu', 'spy', 'debt', 'imf', 'dkh'}
+    assert set(out['tried']) == {'markets', 'curve', 'fred', 'pumps', 'usfuel', 'eu', 'spy', 'debt', 'imf', 'dkh', 'aicap'}
 
 
 def test_each_source_keeps_its_own_clock(tmp_path, monkeypatch):
@@ -310,7 +311,7 @@ def test_each_topic_shows_a_few_tiles_and_folds_the_rest_away():
     # Danish pump prices and the US average in dollars a gallon (the owner, 17/10); the chains' table is gone
     assert "else if (t === 'fuel') out = [pumpTile('benzin'), pumpTile('diesel'), usTile('us_gas'), usTile('us_diesel')];" in PAGE
     assert "'$/gal.'" in PAGE and 'Kæderne i dag' not in PAGE
-    assert "else if (t === 'ai') out = [aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];" in PAGE
+    assert "else if (t === 'ai') out = [aicapTile(), aiwTile(), aiIdxTile(), ...AI_TILES.map(k => sTile(k, '$'))];" in PAGE
     # one quiet 'Flere tal' row per topic, unfolded in place; its contents are made only when unfolded
     assert '<button class="ec-fold" data-fold aria-expanded="${on}" aria-controls="more-${T.id}">Flere tal${CHEV}</button>' in PAGE
     assert "<div class=\"ec-folded\" id=\"more-${T.id}\"${on ? '' : ' hidden'}>${on ? foldHtml(T, base) : ''}</div>" in PAGE
@@ -429,3 +430,25 @@ def test_the_economy_page_has_a_quote_of_the_day(tmp_path):
     assert q == {'who': 'IMF-chefen', 'text': 'Frankrig må få styr på økonomien.', 'u': 'l', 'ed': True}   # the editor's first
     assert energy.econ_quote([], digest=str(tmp_path / 'none.json'), t=t) is None
     assert "'Dagens citat' : 'Seneste citat'" in PAGE
+
+
+def test_a_quarter_is_read_from_the_year_so_far_and_the_four_giants_add_up():
+    # the owner, 18/10: 'en investering vs overskud sammenligning … det skal være total'
+    facts = [{'start': '2026-01-01', 'end': '2026-03-31', 'val': 35}, {'start': '2026-01-01', 'end': '2026-06-30', 'val': 80},
+             {'start': '2025-07-01', 'end': '2026-03-31', 'val': 80}, {'start': '2025-07-01', 'end': '2026-06-30', 'val': 116},
+             {'start': '2026-04-01', 'end': '2026-06-30', 'val': 45}]
+    q = energy.quarters(facts)
+    assert q['2026-03-31'] == 35 and q['2026-06-30'] == 45       # a three-month figure, else six months less three
+    assert energy.quarters([facts[0], facts[1]])['2026-06-30'] == 45
+    cos = {'A': ({'2026-03-31': 30, '2026-06-30': 40}, {'2026-03-31': 60, '2026-06-30': 50}),
+           'B': ({'2026-03-31': 10, '2026-06-30': 20, '2026-09-30': 25}, {'2026-03-31': 20, '2026-06-30': 30, '2026-09-30': 31})}
+    a = energy.ai_build(cos, since='2026-01-01')
+    assert a['q'] == [['2026-03-31', 40, 80], ['2026-06-30', 60, 80]]   # only the quarters all of them reported
+    assert a['total'] == 100 and a['t'] == '2026-06-30' and a['share'] == 75.0
+    assert a['pace'] == round(60 / 91) and a['co'] == {'A': [40, 50], 'B': [20, 30]}
+    assert energy.ai_build({'A': ({}, {})}) is None
+
+
+def test_the_ai_build_out_counter_is_on_the_economy_page():
+    assert "data-tile=\"ai:cap\"" in PAGE and 'id="aicapNow"' in PAGE and "data-chart=\"aicap\"" in PAGE
+    assert "out = [aicapTile(), aiwTile()" in PAGE and "Investeret i AI-opbygningen siden 2023" in PAGE

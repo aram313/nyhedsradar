@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi · AI-boblen: the AI build-out, total and against what the business earns** (2026-10-18, the owner:
+  'findes der en årlig underskud for ai boblen … eller måske en investering vs overskud sammenligning' – 'begge men det
+  skal ikke være i år, det skal være total'). A running counter 'Investeret i AI-opbygningen siden 2023' (Microsoft,
+  Alphabet, Amazon and Meta: their filed quarters plus the newest quarter's pace, said as an estimate like the debt
+  counter) and, opened, a chart of each quarter's investment against the cash their business brought in, the newest
+  quarter's share (96 % in Q2 2026, 51 % in Q1 2023) and each company's (Amazon and Alphabet invest more than they
+  earn). From the companies' own filings with the SEC (XBRL, data.sec.gov), read once a day (energy.py fetch_aicap).
+  No AI 'deficit' is shown: the companies do not report AI's revenue on its own.
 - **A closed story stays where it is on the screen** (2026-10-18, the owner: a story opened low in Live, and on
   closing 'hopper siden og man bliver lidt forvirret'; then: 'if you scroll down while a story is open, and you close
   it it goes back to original position, it should anchor the main story position' – 'kalender er et godt eksempel',

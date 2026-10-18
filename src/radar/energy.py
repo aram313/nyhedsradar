@@ -48,7 +48,7 @@ GAL_BBL = 42        # gallons in a barrel
 
 # seconds between fetches of each source (the radar runs every ~5 minutes)
 EVERY = {'markets': 4 * 60, 'curve': 30 * 60, 'fred': 3 * 3600, 'pumps': 20 * 60, 'usfuel': 6 * 3600,
-         'eu': 12 * 3600, 'spy': 6 * 3600, 'debt': 3 * 3600, 'imf': 24 * 3600, 'dkh': 24 * 3600}
+         'eu': 12 * 3600, 'spy': 6 * 3600, 'debt': 3 * 3600, 'imf': 24 * 3600, 'dkh': 24 * 3600, 'aicap': 24 * 3600}
 RETRY = 30 * 60     # a source that failed is asked again after half an hour, so a dead one never slows every pass
 
 YAHOO = {               # key -> symbol; prices in the exchange's unit
@@ -83,6 +83,16 @@ EU_URL = 'https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-
 # the economy page's chart (18/10, the owner: 'grafer på danske benzin og dieselpriser som vi har på amerikanske')
 DKH_URL = 'https://energy.ec.europa.eu/document/download/906e60ca-8b6a-44e7-8589-652854d2fd3f_en'
 DKH_WEEKS = 104
+# the AI build-out (the owner, 18/10: 'findes der en årlig underskud for ai boblen … eller måske en investering vs
+# overskud sammenligning' – then 'det skal ikke være i år, det skal være total'): what the four giants spend on data
+# centres and equipment (capital expenditure) against the cash their business brings in, quarter by quarter, from
+# their own filings with the SEC (XBRL, data.sec.gov – free, official); the total since 2023, when the race began
+AICAP_URL = 'https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/us-gaap/{concept}.json'
+AICAP_UA = 'Khabar news radar (khabar.nu)'   # the SEC asks every caller to name itself
+AICAP_FROM = '2023-01-01'
+AICAP_COS = [('Microsoft', '0000789019'), ('Alphabet', '0001652044'), ('Amazon', '0001018724'), ('Meta', '0001326801')]
+AICAP_CAPEX = ['PaymentsToAcquirePropertyPlantAndEquipment', 'PaymentsToAcquireProductiveAssets']
+AICAP_CASH = ['NetCashProvidedByUsedInOperatingActivities']
 EU_LAND = {'EU': 'EUR27', 'DE': 'Germany', 'SE': 'Sweden', 'FR': 'France', 'NL': 'Netherlands', 'DK': 'Denmark',
            'IT': 'Italy', 'PL': 'Poland', 'ES': 'Spain'}
 SPY_URL = 'https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx'
@@ -430,6 +440,62 @@ def dk_history(rows, weeks=DKH_WEEKS):
 
 def fetch_dkh():
     return dk_history(xlsx_rows(get(DKH_URL, timeout=60)))
+
+
+def quarters(facts):
+    """{quarter's last day: value} from a company's cash-flow facts: a filing gives the year so far (three, six, nine
+    months, the year), so a quarter is a three-month figure when one is given, else the difference of two figures of
+    the same start three months apart."""
+    span = {}
+    for f in facts:
+        if f.get('start') and f.get('end') and f.get('val') is not None:
+            span[(f['start'], f['end'])] = f['val']
+    days = lambda a, b: (date.fromisoformat(b) - date.fromisoformat(a)).days
+    out = {e: v for (a, e), v in span.items() if 80 <= days(a, e) <= 100}
+    for (a, e), v in span.items():
+        for (a2, e2), v2 in span.items():
+            if a2 == a and e2 > e and 80 <= days(e, e2) <= 100 and e2 not in out:
+                out[e2] = v2 - v
+    return out
+
+
+def ai_build(cos, since=AICAP_FROM):
+    """The four giants' quarters side by side: [[last day, capex, cash from operations], …] for the quarters every one
+    of them has reported since `since`, the total spent, the pace of the newest quarter (dollars a day), its share of
+    the cash, and each company's newest quarter. cos: {name: (capex quarters, cash quarters)}."""
+    if not cos or any(not c or not k for c, k in cos.values()):
+        return None
+    ends = sorted(set.intersection(*(set(c) & set(k) for c, k in cos.values())))
+    ends = [e for e in ends if e >= since]
+    if not ends:
+        return None
+    q = [[e, round(sum(c[e] for c, _ in cos.values())), round(sum(k[e] for _, k in cos.values()))] for e in ends]
+    last = q[-1]
+    prev_end = (date.fromisoformat(ends[-2]) if len(ends) > 1 else date.fromisoformat(last[0]) - timedelta(days=91))
+    span = (date.fromisoformat(last[0]) - prev_end).days or 91
+    return {'q': q, 'since': since, 't': last[0], 'total': sum(x[1] for x in q), 'pace': round(last[1] / span),
+            'share': round(100 * last[1] / last[2], 1) if last[2] else None,
+            'co': {n: [round(c[last[0]]), round(k[last[0]])] for n, (c, k) in cos.items()}}
+
+
+def fetch_aicap():
+    def concept(cik, names):
+        # a company may have changed its tag over the years (Amazon's capex: ProductiveAssets since 2017): every tag
+        # is read, the one with the newest quarters wins where two give one quarter
+        found = []
+        for name in names:
+            try:
+                d = json.loads(get(AICAP_URL.format(cik=cik, concept=name), headers={'User-Agent': AICAP_UA}, timeout=30))
+            except Exception:
+                continue
+            got = quarters(d.get('units', {}).get('USD') or [])
+            if got:
+                found.append(got)
+        out = {}
+        for got in sorted(found, key=max):
+            out.update(got)
+        return out
+    return ai_build({n: (concept(cik, AICAP_CAPEX), concept(cik, AICAP_CASH)) for n, cik in AICAP_COS})
 
 
 def eu_merge(prev, got):
@@ -838,7 +904,8 @@ def run(state):
             return None
 
     # the slow, rarely asked sources side by side, so a hanging one never holds up the others
-    slow = {'usfuel': fetch_usfuel, 'eu': fetch_eu, 'spy': fetch_spy, 'debt': fetch_debt, 'imf': fetch_imf, 'dkh': fetch_dkh}
+    slow = {'usfuel': fetch_usfuel, 'eu': fetch_eu, 'spy': fetch_spy, 'debt': fetch_debt, 'imf': fetch_imf, 'dkh': fetch_dkh,
+            'aicap': fetch_aicap}
     slow = {k: fn for k, fn in slow.items() if due(prev, k, t)}
     with ThreadPoolExecutor(max(1, len(slow))) as ex:
         pending = {k: ex.submit(ask, fn) for k, fn in slow.items()}
@@ -861,6 +928,7 @@ def run(state):
     debt = answers.get('debt') or prev.get('debt')
     imf = answers.get('imf') or prev.get('imf')
     dkh = answers.get('dkh') or prev.get('dkh')   # Denmark's weekly pump prices, two years
+    aicap = answers.get('aicap') or prev.get('aicap')   # the AI build-out: the giants' quarters, from their filings
     if due(prev, 'curve', t):
         fronts = {k: int(datetime.fromisoformat(raw[k]['t']).timestamp()) for k in CURVES if raw.get(k)}
         got = fetch_curves(fronts)
@@ -902,6 +970,7 @@ def run(state):
         'debt': debt,
         'imf': imf,
         'dkh': dkh,
+        'aicap': aicap,
         'news': energy_news(state),
         # the economy page's 'Uro i økonomien', with its memory of 30 days and the backward fill
         'crisis': (crisis := crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t)),
