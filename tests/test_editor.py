@@ -774,3 +774,23 @@ def test_the_editors_lines_topic_names_and_picks_are_reality_and_a_movement_line
     assert 'topic 1 (den førende stat) name' in out.lower()
     assert "'mellemmagt' is a reading or judgement word" in out and 'picks: s1 why' in out
     assert 'an attack said to be staged or sponsored' in out
+
+
+def test_one_event_is_one_calendar_entry():
+    # the owner, 18/10: 'Libanon historien i kalender vises dobbelt?' – two updates named the same talks under two ids
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 18, 9, 0, tzinfo=timezone.utc)
+    talks = {'date': '2026-10-20', 'title': 'Libanon deltager i USA-støttede trilaterale samtaler med “israel”',
+             'kind': 'forhandling', 'place': 'Florida, USA', 'why': 'Samtalerne føres med USA som vært.', 'link': 'https://aa.test/a'}
+    held = {'items': [{**talks, 'id': 'ed-2026-10-20-libanon', 'title': talks['title'] + ' i Florida', 'at': '2026-10-17T20:00:00+00:00'},
+                      {**talks, 'id': 'libanon-samtaler-2026-10-20', 'link': 'https://aa.test/b', 'at': '2026-10-18T06:00:00+00:00'},
+                      {**talks, 'id': 'valg-brasilien', 'date': '2026-10-25', 'title': 'Præsidentvalg i Brasilien (2. runde)', 'link': ''},
+                      {**talks, 'id': 'valg-bulgarien', 'date': '2026-10-25', 'title': 'Præsidentvalg i Bulgarien', 'link': ''}]}
+    problems = []
+    out = editor.calendar_file(None, held, {}, now, problems)
+    ids = [e['id'] for e in out['items']]
+    assert 'libanon-samtaler-2026-10-20' in ids and 'ed-2026-10-20-libanon' not in ids   # the newest of the two stays
+    assert 'valg-brasilien' in ids and 'valg-bulgarien' in ids                           # two elections, one day
+    # an update naming the same event under a new id replaces it
+    out = editor.calendar_file([{**talks, 'id': 'libanon-florida', 'link': 'https://aa.test/a'}], out, {}, now, problems)
+    assert [e['id'] for e in out['items'] if e['date'] == '2026-10-20'] == ['libanon-florida'] and not problems, problems

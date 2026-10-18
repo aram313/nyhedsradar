@@ -1922,6 +1922,22 @@ def cal_slug(text):
     return re.sub(r'[^a-z0-9]+', '-', t).strip('-')[:40].strip('-')
 
 
+def cal_words(title):
+    t = str(title or '').lower().translate(str.maketrans({'“': ' ', '”': ' '}))
+    return {w for w in re.split(r'[^\w]+', t) if len(w) >= 4}
+
+
+def cal_same(a, b):
+    """Two calendar entries for one event: the same day, and the same source or nearly the same title (four fifths of
+    the shorter title's words in the other) – 'Libanon deltager i … samtaler med “israel”' and the same '… i Florida'."""
+    if str(a.get('date')) != str(b.get('date')):
+        return False
+    if a.get('link') and a.get('link') == b.get('link'):
+        return True
+    x, y = cal_words(a.get('title')), cal_words(b.get('title'))
+    return bool(x and y) and len(x & y) >= 0.8 * min(len(x), len(y))
+
+
 def calendar_file(entries, current, find, now, problems):
     """kalender.json as this update leaves it: the earlier entries still ahead (or at most CAL_KEEP days past), with the
     update's own added, changed (the same id) or removed ({"id": …, "remove": true}). An entry is a planned event the news
@@ -1930,6 +1946,11 @@ def calendar_file(entries, current, find, now, problems):
     today = dk(now).date()
     stamp = now.isoformat(timespec='seconds')
     items = {e['id']: e for e in (current or {}).get('items') or [] if isinstance(e, dict) and e.get('id')}
+    # what the file holds twice already (two updates, one event) is one entry again: the newest stays
+    for e in sorted(items.values(), key=lambda e: str(e.get('at') or ''), reverse=True):
+        if e['id'] in items:
+            for other in [o for o in items.values() if o['id'] != e['id'] and cal_same(o, e)]:
+                items.pop(other['id'])
     if entries is not None and not isinstance(entries, list):
         problems.append('calendar: a list of planned events – or leave "calendar" out to keep the calendar as it is')
         entries = []
@@ -1997,6 +2018,11 @@ def calendar_file(entries, current, find, now, problems):
                 'title': title, 'kind': kind, **({'place': place} if place else {}), 'why': why,
                 'link': link or (stories[0].get('link') if stories else ''), **({'ids': ids} if ids else {}),
                 'at': stamp, 'src': 'ed'}
+        # one event once (the owner, 18/10: 'Libanon historien i kalender vises dobbelt?' – two updates named the same
+        # talks under two ids): an entry on the same day with the same source or nearly the same title is the same
+        # event, and this update's version replaces it
+        for other in [e for e in items.values() if e['id'] != ident and cal_same(e, item)]:
+            items.pop(other['id'])
         items[ident] = item
     keep = [e for e in items.values() if (cal_last_day(e) or today) >= today - timedelta(days=CAL_KEEP)]
     keep.sort(key=lambda e: (str(e.get('date')), e['id']))

@@ -3571,7 +3571,15 @@ function calItems() {
   const ed = ((V('kal') || {}).items || []).filter(calOk).map(e => ({ ...e, ed: true }));
   const mine = new Set(ed.map(e => e.date + '|' + calNorm(e.title))), ids = new Set(ed.map(e => e.id));
   const src = ((V('cal') || {}).items || []).filter(e => calOk(e) && !ids.has(e.id) && !mine.has(e.date + '|' + calNorm(e.title)));
-  const list = [...src, ...ed].map(e => ({ ...e, kind: CAL_KINDS[e.kind] ? e.kind : 'andet', title: quoteIsrael(String(e.title)),
+  // one event once (the owner, 18/10: 'Libanon historien i kalender vises dobbelt?'): on the same day the same source or
+  // nearly the same title is the same event – the editor's newest entry stays (as calendar_file in scripts/editor.py)
+  const words = t => new Set(calNorm(t).split(' ').filter(w => w.length >= 4));
+  const same = (a, b) => { if (a.date !== b.date) return false; if (a.link && a.link === b.link) return true;
+    const x = words(a.title), y = words(b.title); let n = 0; for (const w of x) if (y.has(w)) n++;
+    return x.size > 0 && y.size > 0 && n >= 0.8 * Math.min(x.size, y.size); };
+  const one = [];
+  for (const e of [...ed].sort((a, b) => String(b.at || '').localeCompare(String(a.at || ''))).concat(src)) if (!one.some(o => same(o, e))) one.push(e);
+  const list = one.map(e => ({ ...e, kind: CAL_KINDS[e.kind] ? e.kind : 'andet', title: quoteIsrael(String(e.title)),
     why: quoteIsrael(String(e.why || '')), place: quoteIsrael(String(e.place || '')) })).sort((a, b) => calKey(a) - calKey(b));
   calMemo = { gen: calGen, day, list };
   return list;

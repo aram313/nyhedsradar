@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Kalender: one event once** (2026-10-18, the owner: 'Libanon historien i kalender vises dobbelt?'). Two editor updates
+  had named the Lebanon talks of 20/10 under two ids ('… med “israel”' and '… med “israel” i Florida'). On the same day,
+  the same source or nearly the same title (four fifths of the shorter title's words) is now the same event: the app
+  shows it once (the editor's newest entry, the radar's beside it too), and the editor's calendar_file keeps one –
+  what the file holds twice already is made one again, and an update naming an event the calendar has replaces it
+  (editor.cal_same). Two elections on one day stay two.
 - **No 'breaking' before a headline** (2026-10-18, the owner: 'Fjern alle "breaking" tekster fra titler i live'). An alarm
   word before a headline – 'BREAKING …', 'NEW: …', 'Urgent |', 'Just in:', 'Update:', 'Haster:', 'عاجل |' and the alarm
   emoji with them – is taken off at intake for every source (headlines.unalarm in feeds.tidy, also for what earlier runs
