@@ -114,3 +114,19 @@ def test_the_page_shows_the_day_the_lines_the_stories_and_the_dates():
     assert 'Bygger på' in PAGE and "appFn('khabarOpenCal')" in PAGE
     assert 'window.khabarOpenCal = id =>' in APP                          # the app's calendar opens at the date
     assert 'git show FETCH_HEAD:okonomi.json > .cache/okonomi.json' in FLOW and 'RADAR_OKONOMI: .cache/okonomi.json' in FLOW
+
+
+def test_the_radar_finds_the_workflows_cache_files_from_its_working_directory(tmp_path, monkeypatch):
+    # RADAR_OKONOMI and RADAR_SUMMARIES are '.cache/…' from the job's folder, not the state's (18/10: the page got none)
+    state = tmp_path / 'state'
+    (tmp_path / '.cache').mkdir()
+    state.mkdir()
+    (state / 'data.json').write_text(json.dumps({'items': [OIL]}), encoding='utf-8')
+    day = {'at': datetime.now(timezone.utc).isoformat(), 'emner': {'oil': {'text': 'Olien.', 'stories': ['o1']}}}
+    (tmp_path / '.cache' / 'okonomi.json').write_text(json.dumps(day), encoding='utf-8')
+    (tmp_path / '.cache' / 'summaries.json').write_text(json.dumps({'titles': {'o1': {'title': 'Redaktørens overskrift', 'at': NOW}}}), encoding='utf-8')
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv('RADAR_OKONOMI', '.cache/okonomi.json')
+    monkeypatch.setenv('RADAR_SUMMARIES', '.cache/summaries.json')
+    layer = energy.editor_layer(state)
+    assert layer['emner']['oil']['news'][0]['ed'] == 'Redaktørens overskrift'

@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Fixed: the economy page never had the editors' headlines** (2026-10-18). The radar's energy step read the
+  workflow's `.cache/summaries.json` (and now `.cache/okonomi.json`) as a file of the state folder, so it found neither:
+  the page's news fell back to Danish outlets' own headlines and the economy editor's first day did not show. It now
+  reads them from the job's folder (`energy._where`).
 - **An economy editor for the Økonomi page, once a day** (2026-10-18, the owner: 'kan vi erstatte en af senior
   kørslerne i løbet af dagen som kan kigge på økonomi og kalender siden? tilføje kontekst forbedre layout og gøre det
   mere livligt. en gang om dagen er nok til det. dette er dog primært til økonomi siden'). The senior editor's 16

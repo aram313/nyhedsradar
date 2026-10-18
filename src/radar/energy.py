@@ -757,6 +757,14 @@ def editor_titles(summaries):
     return out
 
 
+def _where(state, name):
+    """A file the step reads: an absolute path, a path from the working directory (the workflow's .cache/summaries.json
+    and .cache/okonomi.json – read as state/.cache/… until 18/10, so the editor's headlines never reached the page), else
+    a file of the state."""
+    p = Path(str(name))
+    return p if p.is_absolute() or p.exists() else state / p
+
+
 def news_rec(it, ed):
     """A story as the page's lists draw it: every version of its headline the app knows (the page picks by the reader's
     language setting, as the app does), the editor's first."""
@@ -777,7 +785,7 @@ ED_HOURS = 30
 def editor_layer(state, path=None, summaries=None, t=None):
     def load(name):
         try:
-            return json.loads(Path(name if os.path.isabs(str(name)) else state / name).read_text(encoding='utf-8'))
+            return json.loads(_where(state, name).read_text(encoding='utf-8'))
         except Exception:
             return {}
 
@@ -815,7 +823,7 @@ def energy_news(state, hours=72, limit=16, summaries=None, pattern=None):
     """Stories about oil, fuel and gas, newest first: those with the editor's headline and Danish outlets' own."""
     def load(name):
         try:
-            return json.loads(Path(name if os.path.isabs(str(name)) else state / name).read_text(encoding='utf-8'))
+            return json.loads(_where(state, name).read_text(encoding='utf-8'))
         except Exception:
             return {}
 
