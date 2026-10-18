@@ -1704,6 +1704,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             elif len(text) > MAX_TEXT or len(who) > 80:
                 problems.append(f'{label} is too long ({len(text)} characters) – one short sentence')
             voice.check_voice(f'{who}: {text}', label, problems)
+            voice.check_distance(text, label, problems)
             voice.check_reality(text, label, problems)
             if not story and not ids:
                 problems.append(f'{label} has neither a story id nor wire ids')
@@ -1751,6 +1752,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
         if not lede or len(lede) > 220:
             problems.append('lede: one sentence of the day so far is needed (at most about 25 words)')
         voice.check_voice(lede, 'lede', problems)
+        voice.check_distance(lede, 'lede', problems)
         voice.check_reality(lede, 'lede', problems)
     picks, quotes = [], []
     if kept(draft.get('picks')):
@@ -1828,6 +1830,7 @@ def build(draft, data, lines, moves, now, previous=None, extra=None):
             problems.append(f"summaries: {x['id']} paywall must be true or false")
         else:
             voice.check_voice(text, f"summaries: {x['id']}", problems)
+            voice.check_distance(text, f"summaries: {x['id']}", problems)
             voice.check_reality(text, f"summaries: {x['id']}", problems)
             sums.append({'id': by_id[x['id']]['id'], 'text': text, 'paywall': bool(x.get('paywall'))})
     quotes = [{**q, 'id': f'q{k}'} for k, q in enumerate(quotes, 1)]   # a front page's 'citat' names one by its id

@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Khabar's understanding is an ordinary da'wah carrier's – no quotation marks of distance** (2026-10-18, the owner:
+  'Samfundmodellen er fejlslagen, det skal ikke stå i anførselstegn. Dette er en generel regel at khabars forståelse skal
+  være til en almindelig dawahbærer' – the France page said 'en "fejlslagen" samfundsmodel'). `voice.check_distance`
+  refuses a word or a few in quotation marks that no one is said to say (a statement in quotation marks names who says
+  it; Israel's house form is no such distance) in the lede, the summaries, the recap lines and an event page's line and
+  article; the check names a page that keeps such a distance, and the editors' prompts carry the rule.
 - **A map on every event page with places** (2026-10-18, the owner: 'Lad os lave kortet … Er tænkeligt at dette kan
   lade sig gøre automatisk i fremtiden?' – DR's overview of France's riots shows its cities as red dots on France). The
   radar looks up every place the editor names on an event page once in OpenStreetMap's Nominatim (`src/radar/places.py`:

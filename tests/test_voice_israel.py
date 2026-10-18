@@ -39,3 +39,17 @@ def test_the_app_writes_the_outlets_danish_headlines_the_same_way():
     assert 'esc(quoteIsrael(e.t))' in app                                         # the map's events
     energi = (Path(__file__).resolve().parents[1] / 'public' / 'energi' / 'index.html').read_text(encoding='utf-8')
     assert 'n.ed ? [qi(n.ed), n.kd]' in energi
+
+
+def test_khabar_keeps_no_distance_with_quotation_marks():
+    # the owner, 18/10: 'Samfundmodellen er fejlslagen, det skal ikke stå i anførselstegn. Dette er en generel regel at
+    # khabars forståelse skal være til en almindelig dawahbærer'
+    def refused(text):
+        problems = []
+        voice.check_distance(text, 'x', problems)
+        return bool(problems)
+    assert refused('Demonstrationer mod høje leveomkostninger og en "fejlslagen" samfundsmodel.')
+    assert refused('Regeringen kalder det en “reform”, men lønnen falder.') is False   # someone's word, said to be so
+    assert not refused('Han sagde: "Vi giver aldrig op".') and not refused('Macron: "Der er ingen plads til vold"')
+    assert not refused('“israelske” styrker angreb') and not refused('Demonstranterne råbte "Macron ud"')
+    assert refused('Den såkaldte "terrorliste" blev udvidet.')

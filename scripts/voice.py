@@ -179,6 +179,29 @@ QUOTE = re.compile(r'»([^«»]*)«|«([^«»]*)»|"([^"]*)"|“([^”]*)”')
 QUOTE_MAX = 60
 
 
+# Khabar keeps no distance (the owner, 18/10: 'Samfundmodellen er fejlslagen, det skal ikke stå i anførselstegn. Dette er
+# en generel regel at khabars forståelse skal være til en almindelig dawahbærer'): a word or a few in quotation marks
+# that no one is said to say is a distance an ordinary carrier of the da'wah does not keep – it is written plainly ('mod
+# høje leveomkostninger og en fejlslagen samfundsmodel'); a statement in quotation marks names who says it. The house
+# form of Israel's name (“israel”) is no such distance.
+DISTANCE = re.compile(r'["“]([^"“”\n]{1,48})["”]')
+SPEAKS = re.compile(r'(?:\b(?:siger|sagde|kalder|kaldte|kaldes|kaldet|betegner|betegnede|skriver|skrev|lyder|lød|omtaler|omtalte|'
+                    r'beskriver|beskrev|udtaler|udtalte|erklærer|erklærede|citerer|citeret|med ordene|ordene|titlen|'
+                    r'mærkatet|sloganet|råbte|råber|krævede|kræver)\b[^.!?]{0,40}|:\s*)$', re.I)
+
+
+def check_distance(text, where, problems):
+    for m in DISTANCE.finditer(text or ''):
+        inner = m.group(1).strip()
+        if not inner or ISRAEL_NAMED.fullmatch(inner) or re.fullmatch(r'israel\w*', inner, re.I) or len(inner.split()) > 4:
+            continue
+        if SPEAKS.search((text or '')[max(0, m.start() - 60):m.start()]):
+            continue   # someone's own words, said to be so
+        problems.append(f"{where}: {m.group(0)} – Khabar keeps no distance with quotation marks: write it plainly (the "
+                        "understanding of an ordinary carrier of the da'wah – the owner, 18/10); a statement in quotation "
+                        "marks names who says it")
+
+
 def check_voice(text, where, problems):
     for rx, why in VOICE_BANNED:
         hit = rx.search(text or '')

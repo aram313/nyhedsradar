@@ -204,6 +204,18 @@ def material(it, head, teaser, most=10, indent='        '):
     return out
 
 
+def voice_distance(e):
+    """The first quotation marks of distance in a page's line or article (voice.check_distance), or ''."""
+    try:
+        import voice
+    except ImportError:
+        return ''
+    found = []
+    for t in [e.get('dek'), *(a.get('text') for a in e.get('article') or [] if isinstance(a, dict))]:
+        voice.check_distance(str(t or ''), '', found)
+    return found[0].split(' – ')[0].lstrip(': ') if found else ''
+
+
 def thin(items, find):
     """The pages under way that the tool would refuse now (events_file): fewer than two boxes while their stories carry
     two counts or more, or fewer than three paragraphs while their stories hold six other outlets' headlines –
@@ -225,6 +237,8 @@ def thin(items, find):
                   for n in ungrounded(str(a.get('text') or ''), [it for it in (find(x) for x in a.get('ids') or []) if it])]
         if loose:
             lacks.append(f"en kilde, vi bruger, for {', '.join(dict.fromkeys(map(str, loose)))}")
+        if voice_distance(e):
+            lacks.append('ord uden anførselstegn – Khabar tager ikke afstand (' + voice_distance(e) + ')')
         if any(MEDIA_SAY.search(str(a.get('text') or '')) for a in e.get('article') or [] if isinstance(a, dict)):
             lacks.append('kilder ved navn (artiklen siger »medierne«)')
         if sum(len(OUTLET_SAY.findall(str(a.get('text') or ''))) for a in e.get('article') or [] if isinstance(a, dict)) >= 3:
@@ -412,6 +426,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                     voice.check_headline(val, f'{where} {field}', problems)
             if dek:
                 voice.check_voice(dek, f'{where} dek', problems)
+                voice.check_distance(dek, f'{where} dek', problems)
                 voice.check_reality(dek, f'{where} dek', problems)
                 voice.check_forecast(dek, f'{where} dek', problems)
 
@@ -535,6 +550,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                                 'what happened, who, where, when, the numbers and what was said')
             if voice:
                 voice.check_voice(para, f'{where} article {n}', problems)
+                voice.check_distance(para, f'{where} article {n}', problems)
                 voice.check_reality(para, f'{where} article {n}', problems)
                 voice.check_forecast(para, f'{where} article {n}', problems)
             article.append({'text': para, 'ids': [it['id'] for it in cited], 'src': sources(cited, para)})
