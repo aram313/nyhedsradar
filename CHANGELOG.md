@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: Dagens historie the way in, less air** (2026-10-18, the owner chose two of four proposals: 'Dagens historie
+  større' and 'Strammere luft'). Dagens historie is built as every block, its headline in the title size – the one
+  difference; the first block sits close under the date and the blocks a fifth closer (28 → 22 px).
 - **Økonomi: a figure opened from Lige nu dims the page** (2026-10-18, the owner: 'Når man trykker på en af de der
   links som er på "lige nu" … og den så åbner, så dæmpes resten af siden ikke'). A row of Lige nu now opens its figure
   as a tap on it would: what else is open closes, the rest of the page dims, a tap outside closes it.

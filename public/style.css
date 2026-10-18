@@ -1203,7 +1203,14 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    main blocks without a card of their own – the small red label, the picture large, the serif headline under it, as
    the lists (app.js homeTop, composedHome) */
 .lede.merged { padding-bottom: 0; }
-.page[data-tab="home"] .block.top { margin: 22px 0 0; padding: 0; border-radius: 0; background: none; }
+.page[data-tab="home"] .block.top { margin: 8px 0 0; padding: 0; border-radius: 0; background: none; }
+/* less air (the owner, 18/10: 'Strammere luft'): the first block close under the date, the blocks a fifth closer */
+.page[data-tab="home"] .block { margin-top: 22px; }
+.page[data-tab="home"] .lede.merged { padding-top: 10px; }
+/* Dagens historie the way in (the owner, 18/10: 'Dagens historie større'): built as every block, its headline larger –
+   the one difference */
+.page[data-tab="home"] .pkg.merged .story.fl .h { font-size: var(--fs-title); line-height: 1.14; font-weight: 700; letter-spacing: -.012em;
+  font-variation-settings: "opsz" 60; }
 .page[data-tab="home"] .block.top .block-h { padding-left: 16px; }
 .page[data-tab="home"] .block.top .row, .page[data-tab="home"] .block.top .x-in { padding-left: var(--s4); padding-right: var(--s4); }
 .page[data-tab="home"] .block.top .story.open { border-radius: 0; }

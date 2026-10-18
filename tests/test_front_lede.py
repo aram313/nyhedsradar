@@ -233,3 +233,10 @@ def test_the_front_page_says_each_subject_once_in_the_papers_way():
     assert "opts.plain ? '' : thumb(i.source, i.thumb)" in CODE        # no small pictures, no outlet's initials
     assert re.search(r'\.page\[data-tab="home"\] \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
     assert re.search(r'\.page\[data-tab="home"\] \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)
+
+
+def test_dagens_historie_leads_by_its_headline_and_the_page_has_less_air():
+    # the owner, 18/10: 'Dagens historie større', 'Strammere luft'
+    assert re.search(r'\.page\[data-tab="home"\] \.pkg\.merged \.story\.fl \.h \{[^}]*font-size: var\(--fs-title\)', RULES)
+    assert '.page[data-tab="home"] .block { margin-top: 22px; }' in RULES
+    assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{ margin: 8px 0 0;', RULES)
