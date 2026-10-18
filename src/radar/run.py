@@ -341,8 +341,9 @@ def push_line(it, sums):
     else of the outlet's teaser; at most about 140 characters, or nothing."""
     ids = [it['id'], *(it.get('members') or [])]
     ed = next((v.get('text') for i in ids for v in [(sums or {}).get(i)] if isinstance(v, dict) and v.get('text')), '')
-    head = it.get('title_da') or it.get('title_tr') or it.get('title') or ''
-    text = ed or clean_teaser(it.get('summary_da') or it.get('summary_tr') or it.get('summary') or '', head)
+    head = it.get('title') or ''
+    # never the machine's translation (the owner, 18/10): the editor's summary, else a Danish outlet's own teaser
+    text = ed or (clean_teaser(it.get('summary') or '', head) if it.get('lang') == 'da' else '')
     first = re.split(r'(?<=[.!?])\s+', str(text or '').strip(), maxsplit=1)[0] if text else ''
     if len(first) < 25 or curious(first):
         return ''
@@ -373,15 +374,18 @@ def push_note(batch, items, titles, sums, tops, label_of):
 
 def push_headline(it, titles):
     """A notification says the news as the app shows it (the owner's headline rule of 2026-10-17): the editor's
-    headline for the story or one of its articles, else the Danish, the English translation, the outlet's own; a
-    curiosity headline gives way to its teaser's first sentence."""
+    headline for the story or one of its articles, else the outlet's own Danish one – a Danish outlet's of a story in
+    another language –; never the machine's translation (the owner, 18/10: 'i dag er de for svage'), so a story with
+    neither has none yet ('') and waits; a curiosity headline gives way to its teaser's first sentence."""
     ids = [it['id'], *(it.get('members') or []), *(a.get('id') for a in it.get('also') or [])]
     ed = next((titles[i] for i in ids if titles.get(i) and not curious(titles[i])), '')
     if ed:
         return ed
-    head = it.get('title_da') or it.get('title_tr') or it['title']
+    if it.get('lang') != 'da':
+        return next((a['title'] for a in it.get('also') or [] if a.get('lang') == 'da' and a.get('title') and not curious(a['title'])), '')
+    head = it['title']
     if curious(head):
-        teaser = clean_teaser(it.get('summary_da') or it.get('summary_tr') or it.get('summary') or '', head)
+        teaser = clean_teaser(it.get('summary') or '', head)
         first = re.split(r'(?<=[.!?])\s+', teaser, maxsplit=1)[0].rstrip('.') if teaser else ''
         if len(first) >= 25 and not curious(first):
             return first if len(first) <= 140 else first[:138].rsplit(' ', 1)[0] + ' …'
@@ -994,15 +998,18 @@ def main():
     sent_today = [x for x in pushes['sent'] if ts(x) >= NOW - timedelta(hours=24)]
     last = max((ts(x) for x in pushes['sent']), default=None)
     gap_ok = last is None or NOW - last >= timedelta(minutes=s['notify_min_gap_minutes'])
-    if pending and gap_ok and not in_quiet_hours(s) and len(sent_today) < s['notify_max_per_day']:
-        batch = sorted(pending, key=lambda p: (p['why'] != 'big', -items[p['id']]['pct']))
+    # a story waits in 'pending' (three hours at most) until it has a headline a reader may see: the editor's, or a
+    # Danish outlet's own – never the machine's translation (the owner, 18/10)
+    ready = [p for p in pending if push_headline(items[p['id']], ed_titles)]
+    if ready and gap_ok and not in_quiet_hours(s) and len(sent_today) < s['notify_max_per_day']:
+        batch = sorted(ready, key=lambda p: (p['why'] != 'big', -items[p['id']]['pct']))
         result = push.send(push_note(batch, items, ed_titles, ed_sums, tops, label_of), push.everyone(phones, 'top'))
         print('push:', result)
         gone.update(result.get('gone') or [])
         if result.get('sent'):
             pushes['sent'].append(NOW.isoformat())
             notified += [{'id': p['id'], 'at': NOW.isoformat()} for p in batch]
-            pending = []
+            pending = [p for p in pending if p not in batch]
     # each update of the editor's overview of the day gets its own notification as soon as it appears
     if digest.get('created') and digest['created'] > pushes.get('digest_sent', '') and in_quiet_hours(s):
         pushes['digest_sent'] = digest['created']  # written at night (e.g. a test run): show it, never buzz about it

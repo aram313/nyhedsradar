@@ -635,6 +635,13 @@ da'wah.
     reading text – a summary, the lede, the movement's texts (`READING` in app.js = the rule in style.css) – never a row
     or a button, and the owner's long press skips it. Waiting (the owner's call): following a topic, picture share cards,
     
+- **No machine translation reaches a reader** (18/10, the owner: '… burde kun tages med når redaktørerne har
+  gennemgået oversættelserne. i dag er de for svage'): `display` shows a story in another language with the editor's
+  headline, else a Danish outlet's own headline (`also`, lang da), else marks it `held` and `stories()` leaves it out
+  until the editor writes one; no machine teaser as a summary; the coverage list and search show the outlets' own words;
+  Økonomi's `reviewed`; `run.push_headline` returns '' for such a story and the notification waits in `pending`; the
+  economy editor's stories need a Danish headline (`okonomi_file(titled=…)`). The radar still translates – for the
+  editors' input and the matching – and a reader who chose the originals sees them.
 - Danish politics must never be buried **in Live and the radar**: keep the Danish lift (`rank_core_dk`), `protect_dk`
   and the dk-section rules when tuning the rank. The front page is another matter since 17/10: Denmark there only when
   it matters (a big Danish story, Danish policy on Islam and Muslims, Denmark's place in a great power's plan – the

@@ -370,7 +370,7 @@ def test_economic_crises_are_news_of_their_own():
     assert energy.CRISIS.search('Egypt seeks IMF bailout as pound plunges') and energy.CRISIS.search('Ny straftold mod Kina')
     assert not energy.CRISIS.search('Sisi: I have told Netanyahu many times') and not energy.CRISIS.search('Plane crash in Nepal')
     assert "'crisis': (crisis := crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS)" in (Path(energy.__file__).read_text(encoding='utf-8'))
-    assert "const [lead, ...rest] = D.crisis || [];" in PAGE and 'newsTidy(newsPick(n)[0])' in PAGE   # its headline: the newest story
+    assert "const [lead, ...rest] = (D.crisis || []).filter(reviewed);" in PAGE and 'newsTidy(newsPick(n)[0])' in PAGE   # its headline: the newest story
 
 
 def test_embedded_the_topics_are_the_apps_dock():

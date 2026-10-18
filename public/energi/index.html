@@ -1106,7 +1106,7 @@ function head(id) {
   const s = D.s, low = lowest();
   try {
     if (id === 'nu') { const m = topMoves()[0]; if (m) return phrase(m.k); }
-    if (id === 'kris') { const n = (D.crisis || [])[0]; return n ? newsTidy(newsPick(n)[0]) : 'Ingen nye nyheder om finans og økonomi'; }
+    if (id === 'kris') { const n = (D.crisis || []).filter(reviewed)[0]; return n ? newsTidy(newsPick(n)[0]) : 'Ingen nye nyheder om finans og økonomi'; }
     if (id === 'fuel' && low.benzin && low.diesel) return `Benzin ${nf(low.benzin.v, 2)} kr. – diesel ${nf(low.diesel.v, 2)} kr.`;
     if (id === 'oil' && s.brent) return phrase('brent');
     if (id === 'mkt' && s.spx) return phrase('spx');
@@ -1277,8 +1277,10 @@ const readableText = t => !/[؀-ۿ]/.test(t || '');
 const qi = t => (t || '').replace(/[“"»„](israel[\p{L}\p{N}_]*)[”"«“]/giu, (_, w) => `“${w.toLowerCase()}”`)
   .replace(/(?<![\p{L}\p{N}_“/.:#=])(israel[\p{L}\p{N}_]*)(?![\p{L}\p{N}_”/])/giu, (_, w) => `“${w.toLowerCase()}”`);
 // the editor's headline, else a Danish outlet's own (the radar sends only those: the machine's Danish read badly)
-const newsPick = n => { const danish = store.get('danish', true);
-  return n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : danish && n.da ? [qi(n.da), n.kd] : readableText(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd]; };
+// never the machine's translation (the owner, 18/10: 'i dag er de for svage'): the editor's headline, a Danish outlet's
+// own, or – for a reader who chose the originals – the outlet's own words; a story with none of them waits (reviewed)
+const newsPick = n => n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : [n.o, n.k];
+const reviewed = n => !!(n && (n.ed || n.l === 'da' || !store.get('danish', true)));
 const newsTidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
   .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
 // a story opened here unfolds in place, as everywhere in Khabar (the owner, 18/10: 'når man åbner nyheder på økonomi må
@@ -1309,7 +1311,8 @@ document.addEventListener('click', async e => {
   }
 });
 function news(list = D.news || [], empty = 'Ingen nyheder om olie og brændstof de seneste tre døgn.', all = newsAll, more = 'newsMore') {
-  if (!list.length) return `<p class="en-note">${esc(empty)}</p>`;
+  list = list.filter(reviewed);
+  if (!list.length) return empty ? `<p class="en-note">${esc(empty)}</p>` : '';
   const pick = newsPick, tidy = newsTidy;
   const words = (t, k) => {   // the app's bold: who and where
     let out = esc(t);
@@ -1349,7 +1352,7 @@ function meta(T, base) {
 // the very biggest economic news of the last day stand at the top of the page, under Lige nu (the owner, 18/10: 'medmindre
 // det er kæmpe store overskrifter, så kommer de op'): a story many outlets carry (the radar's big, eight outlets or
 // more), at most two; the rest of the news sits last on the page
-const hugeNews = () => (D.crisis || []).filter(n => n.big && (n.n || 0) >= 8 && Date.now() - new Date(n.p) < 864e5).slice(0, 2);
+const hugeNews = () => (D.crisis || []).filter(n => reviewed(n) && n.big && (n.n || 0) >= 8 && Date.now() - new Date(n.p) < 864e5).slice(0, 2);
 function bigNews() {
   const list = hugeNews();
   return list.length ? `<div class="ec-big">${list.map(n => `<div class="ec-bigi${openNews.has(n.i) ? ' open' : ''}"><a href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>`
@@ -1368,7 +1371,7 @@ function edLine(id) {
     + ((x.src || []).length ? `<p class="ec-ctx-src">Bygger på ${esc(x.src.join(', '))}</p>` : '') + '</div>';
 }
 function edNews(id) {
-  const list = (((ED() || {}).emner || {})[id] || {}).news || [];
+  const list = ((((ED() || {}).emner || {})[id] || {}).news || []).filter(reviewed);
   return list.length ? `<h3 class="ec-sub">I nyhederne</h3>${news(list, '', true)}` : '';
 }
 const ymdToday = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Copenhagen' });
@@ -1400,7 +1403,7 @@ function topicHtml(T) {
     h += bigNews() + nowRows(list, base) + coming();
   } else if (T.id === 'kris') {
     // the newest story is the headline line above: its source and time under it, then the rest
-    const [lead, ...rest] = D.crisis || [];
+    const [lead, ...rest] = (D.crisis || []).filter(reviewed);
     if (lead) h += `<p class="ec-lead-m"><a href="${esc(lead.u)}" target="_blank" rel="noopener" data-story="${esc(lead.i)}">${esc(lead.s)} · ${esc(when(lead.p))} ›</a></p>`
       + (openNews.has(lead.i) ? storyX(lead, ' lead') : '');
     // 'Dagens citat' (the owner, 18/10: 'Lad os tilføje en dagens citat under økonomi også'): the editor's economic

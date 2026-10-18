@@ -1437,6 +1437,14 @@ def econ_stories(items, now, hours=36):
 ECON_STORIES = 40
 
 
+def titled_by(args, draft):
+    """Whether a story has the editor's Danish headline – kept, or given in this update (by any of its articles)."""
+    kept = summaries_of(args).get('titles') or {}
+    have = set(kept) | {m for v in kept.values() if isinstance(v, dict) for m in v.get('members') or []}
+    have |= {str(x.get('id')) for x in draft.get('titles') or [] if isinstance(x, dict) and x.get('id')}
+    return lambda it: bool({it['id'], *(it.get('members') or []), *(a.get('id') for a in it.get('also') or [] if a.get('id'))} & have)
+
+
 def econ_input(args, now):
     """The economy editor's input (input --okonomi): the fejlbog and the notes, the brain, the page's figures, the
     economic news, the stories among them still without a headline, the fortnight ahead in the calendar and the dates
@@ -2518,7 +2526,7 @@ def cmd_publish(args):
     lessons = lessons_file(draft.get('lessons'), read(args, 'origin/digest', 'lessons.json', {}), now, problems)
     report = report_file(draft.get('report'), now, problems)
     oko = econ.okonomi_file(draft.get('okonomi'), read(args, 'origin/digest', 'okonomi.json', {}), resolver(data.get('items', [])).get,
-                            read(args, 'origin/data', 'calendar.json', {}), kal, now, problems, voice)
+                            read(args, 'origin/data', 'calendar.json', {}), kal, now, problems, voice, titled_by(args, draft))
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))

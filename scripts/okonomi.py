@@ -159,7 +159,7 @@ def check_text(text, cited, where, problems, voice, limit):
         voice.check_distance(text, where, problems)
 
 
-def okonomi_file(entry, current, find, cal, kal, now, problems, voice=None):
+def okonomi_file(entry, current, find, cal, kal, now, problems, voice=None, titled=None):
     """okonomi.json as this update leaves it (the whole day written anew), or None when the update has none."""
     if not entry:
         return None
@@ -201,6 +201,11 @@ def okonomi_file(entry, current, find, cal, kal, now, problems, voice=None):
             check_text(text, cited, where, problems, voice, TOPIC_TEXT)
             box.update(text=text, ids=[it['id'] for it in cited], src=credit(cited))
         shown = stories_of((v.get('stories') or [])[:STORIES + 1], f'{where} stories')
+        # the page shows no machine translation (the owner, 18/10): a story in another language needs its Danish headline
+        for it in shown if titled else []:
+            if it.get('lang') != 'da' and not titled(it):
+                problems.append(f"{where} stories: {it['id']} is in another language and has no Danish headline of yours – "
+                                "write it under titles (the page shows no machine translation)")
         if len(v.get('stories') or []) > STORIES:
             problems.append(f'{where}: stories – at most {STORIES}')
         if shown:

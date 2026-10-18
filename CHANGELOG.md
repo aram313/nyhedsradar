@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **No machine translation reaches a reader** (2026-10-18, the owner: 'nyheder med oversættelser fra arabisk eller andre
+  sprog burde kun tages med når redaktørerne har gennemgået oversættelserne. i dag er de for svage'). A story in another
+  language shows the editor's Danish headline, else a Danish outlet's own headline of it; with neither it is held back
+  until the editor has written one (Live, the front page, the event pages, Økonomi). The machine's Danish teaser is never
+  shown as a summary (the editor's summary, or none), other outlets' headlines show in their own words or as 'overskrift
+  på arabisk', search shows the outlets' own headlines, and a notification waits (up to three hours) for a reviewed
+  headline. The economy editor must write the Danish headline of every story in another language it shows. A reader who
+  chose the originals still sees them.
 - **An event page lists each story once** (2026-10-18, the owner: 'nogle historier på begivenheder bliver vist
   dobbelt' – BT's story on the France page): the app joins an id given twice, and two articles the radar has since put
   in one story, into one row; the tool keeps each story once when it writes a page.

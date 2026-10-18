@@ -386,18 +386,22 @@ const edTitle = i => edOk(titles[i.id]) || (i.members || []).map(m => edOk(title
 // the machine's, where the phone shows Danish; a plain curiosity headline gives way to its teaser's first sentence.
 // `how` says where the headline came from: 'ed' the editor, 'mt' the machine's translation, '' the outlet's own;
 // `teased` that the teaser stands in for a curiosity headline.
+// No machine translation is shown (the owner, 18/10: 'nyheder med oversættelser fra arabisk eller andre sprog burde kun
+// tages med når redaktørerne har gennemgået oversættelserne. i dag er de for svage'): a story in another language shows
+// the editor's Danish headline, else a Danish outlet's own headline of it; with neither it is held back (`held`) until
+// the editor has written one. Its teaser is not translated either – the editor's summary, or none. A reader who chose
+// the originals (Arabic and Turkish as 'Original', or English with Danish off) sees the outlet's own words.
 function display(i) {
   let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [], how: '', teased: false, kind: i.kind || (isComment(i) ? 'kommentar' : '') };
   const keepOrig = i.foreign && foreignMode === 'original';
-  if (i.foreign && !keepOrig && i.title_tr) {
-    d = { ...d, title: i.title_tr, summary: i.summary_tr || '', from: i.lang, to: 'en', kw: i.kw_tr || [], how: 'mt' };
-  }
   const ed = edTitle(i);
   if (ed && (danish || i.lang === 'da') && !keepOrig) {
     const kw = i.lang === 'da' ? d.kw : [...new Set([...(i.kw_da || []), ...(i.kw || [])])];
-    d = { ...d, title: ed, summary: i.lang === 'da' ? i.summary : danish ? i.summary_da || '' : d.summary, from: i.lang, to: 'da', kw, how: 'ed' };
-  } else if (danish && i.title_da && !keepOrig) {
-    d = { ...d, title: i.title_da, summary: i.summary_da || '', from: d.from || i.lang, to: 'da', kw: i.kw_da || [], how: 'mt' };
+    d = { ...d, title: ed, summary: i.lang === 'da' || (!danish && !i.foreign) ? i.summary : '', from: i.lang, to: 'da', kw, how: 'ed' };
+  } else if (i.lang !== 'da' && !keepOrig && (danish || i.foreign)) {
+    const dk = (i.also || []).find(a => a.lang === 'da' && a.title && !curious(tidy(a.title)));
+    d = dk ? { ...d, title: tidy(dk.title), origTitle: dk.title, source: dk.source || d.source, link: dk.link || d.link, summary: '', kw: [], to: 'da' }
+      : { ...d, held: true };
   }
   d.title = tidy(d.title);
   d.summary = cleanTeaser(d.summary, d.title);   // no call to action, link or picture caption (the phone's older copies)
@@ -860,7 +864,7 @@ function stories() {
   if (!data) return [];
   const mode = foreignMode + danish + titlesVer;
   if (cache && cache.src === data && cache.mode === mode) return cache.list;
-  const items = data.items.filter(visible).map(display);
+  const items = data.items.filter(visible).map(display).filter(d => !d.held);   // a translation waits for the editor
   if (cache && cache.src !== data) carryOver(cache.list, items);
   cache = { src: data, mode, list: items, byId: new Map(items.map(i => [i.id, i])) };
   return items;
@@ -1133,9 +1137,8 @@ function coverage(i) {
   const by = {};
   also.forEach(a => (by[a.group || 'west'] ||= []).push(a));
   const rows = GROUP_ORDER.filter(g => by[g]).map(g => `<div class="cov-g">${GROUPS[g]}</div>` + by[g].map(a => {
-    const own = foreignMode === 'original' || readable(a.title);
-    const title = own ? `<span dir="auto">${esc(tidy(a.title))}</span>`
-      : a.title_tr ? `<span>${esc(tidy(a.title_tr))}</span> <i>oversat</i>` : `<i>overskrift på ${LANG[a.lang] || 'arabisk'}</i>`;
+    const own = foreignMode === 'original' || readable(a.title);   // its own words, never the machine's translation
+    const title = own ? `<span dir="auto">${esc(tidy(a.title))}</span>` : `<i>overskrift på ${LANG[a.lang] || 'arabisk'}</i>`;
     return `<a href="${esc(a.link)}" target="_blank" rel="noopener"><b>${esc(a.source)}</b>${title}</a>`;
   }).join('')).join('');
   const sum = coverSummary(i.cover), more = (i.outlets || 1) - 1 - also.length;
@@ -2192,7 +2195,7 @@ function searchPage(all) {
       if (others.length) {
         found += others.length;
         const ok = 'search|others', shownN = unfolded.has(ok) ? 60 : 10;
-        html += `<h2 class="grp">Andre nyheder · ${others.length}</h2>` + others.slice(0, shownN).map(({ x, n }) => { const t = danish && x.da ? x.da : x.t;
+        html += `<h2 class="grp">Andre nyheder · ${others.length}</h2>` + others.slice(0, shownN).map(({ x, n }) => { const t = x.t;   // the outlet's own headline, not the machine's Danish
           return `<a class="hit" href="${esc(x.u)}" target="_blank" rel="noopener"><b dir="auto">${mark(t, terms)}</b><span>${esc(x.s)} · ${stamp(x.p)}${n > 1 ? ` · ${n} medier` : ''}</span></a>`; }).join('')
           + (others.length > shownN && shownN < 60 ? `<button class="qbtn" data-unfold="${ok}">Vis flere (${others.length - shownN})</button>` : '');
       }
