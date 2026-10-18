@@ -121,3 +121,20 @@ def test_live_never_loses_a_story_it_showed(tmp_path, monkeypatch):
     app = read(tmp_path, 'app.json')
     assert shown <= {i['id'] for i in app['items']}, 'a story Live showed stays while its rank holds'
     assert json.loads((tmp_path / 'state' / 'admitted.json').read_text(encoding='utf-8'))
+
+
+def test_times_of_israel_leads_only_a_story_no_other_outlet_carries(tmp_path, monkeypatch):
+    # the owner, 18/10: 'Brug kun times of israel som kilde hvis der ikke er andre' ("last": true in config/feeds.json)
+    run = _setup(tmp_path, monkeypatch, show_percentile=0, rank_floor=-100)
+    items = [
+        make_item(1, 'Israel strikes Gaza again overnight as talks stall in Cairo', 'Times of Israel', lang='en'),
+        make_item(2, 'Israel strikes Gaza again overnight as talks stall in Cairo, officials say', 'Al Jazeera', lang='en'),
+        make_item(5, 'Knesset votes on a bill to dissolve itself before the winter session', 'Times of Israel', lang='en'),
+    ]
+    monkeypatch.setattr(run, 'fetch_all', lambda f: (items, {}))
+    run.main()
+    data = read(tmp_path, 'data.json')
+    gaza = next(i for i in data['items'] if 'Gaza' in i['title'])
+    assert gaza['source'] == 'Al Jazeera' and gaza['outlets'] == 2, gaza
+    alone = next(i for i in data['items'] if 'Knesset' in i['title'])
+    assert alone['source'] == 'Times of Israel'   # no other outlet: it is the source

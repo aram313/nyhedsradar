@@ -187,9 +187,7 @@ def material(it, head, teaser, most=10, indent='        '):
     out = []
     if teaser(it):
         out.append(f"{indent}Teaser: {text(teaser(it), 300)}")
-    for a in (it.get('also') or [])[:most]:
-        if not isinstance(a, dict):
-            continue
+    for a in sorted((x for x in it.get('also') or [] if isinstance(x, dict)), key=lambda x: x.get('source') in LAST)[:most]:
         t = a.get('title') if LATIN.match(str(a.get('title') or '')) else a.get('title_tr') or a.get('title')
         if t:
             out.append(f"{indent}{a.get('source') or '?'}: {text(t, 160)}")
@@ -251,6 +249,21 @@ def great_lines(groups, head, teaser):
 OWN = ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')
 
 
+def _last_resort():
+    """The sources of last resort in config/feeds.json ("last": true): a source only when no other outlet carries the
+    fact (the owner, 18/10: 'Brug kun times of israel som kilde hvis der ikke er andre')."""
+    import json
+    from pathlib import Path
+    try:
+        feeds = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
+        return {str(n) for f in feeds if isinstance(f, dict) and f.get('last') for n in (f.get('name'), f.get('label')) if n}
+    except (OSError, ValueError):
+        return {'Times of Israel'}
+
+
+LAST = _last_resort()
+
+
 def carriers(stories, number):
     """The outlets whose own headline or teaser carries a number (its digits): the story's own outlet, or another
     outlet of it by its headline."""
@@ -269,8 +282,22 @@ def sources(stories, said=None):
     story has left Live. With the text it says (a box's value, a paragraph), the outlets that carry its numbers (18/10:
     the first page credited BT for the arrests The Hindu and Times of Israel gave); else, or none found, the cited
     stories' own outlets."""
-    got = [o for n in sorted(digits(NOT_A_COUNT.sub(' ', said or ''))) for o in carriers(stories, n)]
-    return list(dict.fromkeys(got)) or list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source')))
+    got = []
+    for n in sorted(digits(NOT_A_COUNT.sub(' ', said or ''))):
+        by = carriers(stories, n)
+        got += [o for o in by if o not in LAST] or by      # a source of last resort only for a number no other carries
+    got = list(dict.fromkeys(got))
+    own = list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source')))
+    return got or [o for o in own if o not in LAST] or own
+
+
+def last_named(said, stories):
+    """(the source of last resort a text names, the other outlets that carry its numbers) when others do, else None."""
+    named = next((o for o in LAST if o.lower() in str(said or '').lower()), None)
+    if not named:
+        return None
+    others = [o for n in sorted(digits(NOT_A_COUNT.sub(' ', said or ''))) for o in carriers(stories, n) if o not in LAST]
+    return (named, list(dict.fromkeys(others))) if others else None
 
 
 def text(x, limit=None):
@@ -371,6 +398,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                                 'news only (their headline, teaser or another outlet\'s headline), or leave the box out')
             if len(note) > NOTE:
                 problems.append(f'{where} fact {n}: note – who says it, at most {NOTE} characters')
+            hit = last_named(f"{note} {value}", cited) if note else None
+            if hit:
+                problems.append(f"{where} fact {n}: {hit[0]} is a source only when no other outlet carries the number – "
+                                f"{', '.join(hit[1])} carry it")
             if HOW_MUCH.match(note):
                 problems.append(f"{where} fact {n}: the note {note!r} begins with how much – put it in the value ('over "
                                 f"{value}'); the note says who gives the count")
@@ -441,6 +472,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 if loose:
                     problems.append(f"{where} article {n}: {', '.join(loose)} stand in none of the stories it cites – the "
                                     'news\'s own numbers only')
+            hit = last_named(para, cited)
+            if hit:
+                problems.append(f"{where} article {n}: {hit[0]} is a source only when no other outlet carries the fact – "
+                                f"{', '.join(hit[1])} carry its numbers")
             meta = MEDIA_SAY.search(para)
             if meta:
                 problems.append(f"{where} article {n}: '{meta.group(0)}' – name who gives each fact (the interior minister, "

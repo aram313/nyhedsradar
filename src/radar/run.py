@@ -378,6 +378,9 @@ def main():
     # another outlet carries; governments' own channels (group 'official') never lead one either
     movement = {f['name'] for f in feeds if 'bevægelsen' in (f.get('camp'), f.get('group'))}
     official = {f['name'] for f in feeds if f.get('group') == 'official'}
+    # a source of last resort ("last": true – the owner, 18/10: 'Brug kun times of israel som kilde hvis der ikke er
+    # andre') leads a story only when no other outlet can
+    last_resort = {f['name'] for f in feeds if f.get('last')}
     # sources added for their camp's view (scale: false) are ranked against the established sources' scale and
     # never move it: not the taste percentiles, not a section's bar, not the outlet count of the rank or a big story
     # off the scale: the sources added for their camp, and every outlet a scout brings that is no source of ours (a
@@ -590,7 +593,8 @@ def main():
         group's taste."""
         lead = max(members, key=lambda x: (x.get('lang') in READABLE, x['source'] not in movement,
                                            x['source'] not in official, x['source'] not in off_scale,
-                                           x['source'] not in channel, lead_quality(x), x['pct'], x['score']))
+                                           x['source'] not in channel, x['source'] not in last_resort, lead_quality(x),
+                                           x['pct'], x['score']))
         outlets = lambda ms: len({outlet_of.get(m['source'], m['source']) for m in ms})
         counted = [m for m in members if m['source'] not in movement]
         n_out = outlets(counted) or 1

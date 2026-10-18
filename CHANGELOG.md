@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Times of Israel only when there is no other source** (2026-10-18, the owner: 'Brug kun times of israel som kilde
+  hvis der ikke er andre'). `"last": true` in config/feeds.json marks a source of last resort: the radar lets it lead a
+  story only when no other outlet can (the story keeps it among its other outlets); on an event page a box or a
+  paragraph credits it only for a number no other outlet carries, the tool refuses a note or a paragraph that names it
+  when another outlet carries the same number, and the editor's material lists its headlines after the others'. Times
+  of Israel is the one source so marked.
 - **The whole face clear of the headline, not only its centre** (2026-10-18, the owner on Dagens historie with Rubio's
   portrait: 'Ser ikke godt ud' – the headline covered his mouth and chin). The radar now keeps the face's height too
   (`thumbs.face_box`, the fifth number of `pf`; the pictures looked at before are looked at again, eight a run), and the

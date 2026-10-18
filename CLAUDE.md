@@ -53,7 +53,9 @@ da'wah.
   Every source in `config/feeds.json` has a media `group` (dk, west, mena, il, east, official, channel, bevægelsen), a
   `camp` (the state or bloc whose view it carries) and some a section hint `sec`;
   `label` is the readable name the app shows, `official` marks a news outlet's own Telegram channel (not an
-  unverified channel) and `wire` a one-line statement feed (Al Jazeera urgent: counts as an outlet, feeds
+  unverified channel) and `last` a source of last resort (Times of Israel, the owner 18/10: 'Brug kun times of israel som kilde hvis der
+  ikke er andre': it leads a story only when no other outlet can, and an event page credits it only for a number no
+  other outlet carries) and `wire` a one-line statement feed (Al Jazeera urgent: counts as an outlet, feeds
   `lines.json` and the Bevægelser briefing, never a card of its own). `"scout": true` (18/10) marks a Google News
   search on a subject across outlets (states' borrowing stress, central banks, deadlines, Danish deadlines): its items
   keep the outlet Google names, and an outlet that is no source of ours is off the scale (`run.OffScale`). A scout's new item is looked up before it enters (`radar/fresh.py`: Google's link resolved, the address's month and the page's own date read); one older than `scout_max_age_days` (2) is left out – Google dates an old page anew when its outlet touches it. `"scale": false` marks a source added for its

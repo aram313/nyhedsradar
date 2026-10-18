@@ -233,3 +233,26 @@ def test_a_box_credits_the_outlets_that_carry_its_number():
     out = events.events_file([], {'items': [page]}, {'fx': story}, NOW, TODAY, [], voice)
     assert out['items'][0]['facts'][0]['src'] == ['The Hindu']
     assert any('»over …«' in w for _, lacks in events.thin(out['items'], {'fx': story}.get) for w in lacks)
+
+
+def test_times_of_israel_is_a_source_only_when_no_other_carries_the_fact():
+    # the owner, 18/10: 'Brug kun times of israel som kilde hvis der ikke er andre'
+    assert 'Times of Israel' in events.LAST
+    story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+             'also': [{'source': 'Times of Israel', 'title': '1,800 arrested and 150 cops injured in France'},
+                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+    assert events.sources([story], '1.800') == ['The Hindu']
+    assert events.sources([story], '150') == ['Times of Israel']        # no other carries it
+    assert events.last_named('ifølge Times of Israel', [story]) is None
+    assert events.last_named('1.800 er anholdt, skriver Times of Israel', [story]) == ('Times of Israel', ['The Hindu'])
+    lines = events.material(story, lambda i: i['title'], lambda i: '')
+    assert lines[-1].strip().startswith('Times of Israel:')            # listed after the others
+    page = {'id': 'frankrig-uro', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
+            'since': '2026-10-18', 'dek': 'Demonstrationer mod leveomkostningerne.', 'stories': ['fx'],
+            'facts': [{'label': 'Anholdte', 'value': '1.800', 'note': 'ifølge Times of Israel', 'ids': ['fx']},
+                      {'label': 'Sårede politifolk', 'value': '150', 'note': 'ifølge Times of Israel', 'ids': ['fx']}]}
+    problems = []
+    events.events_file([page], None, {'fx': story}, NOW, TODAY, problems, voice)
+    assert any('fact 1: Times of Israel is a source only when no other outlet carries the number – The Hindu carry it' in p
+               for p in problems), problems
+    assert not any('fact 2:' in p for p in problems), problems
