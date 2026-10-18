@@ -1278,11 +1278,17 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="begivenhed"] .ev-h2::before { background: var(--red); }
 .ev-src { margin: 8px 16px 0; font-size: var(--fs-meta); color: var(--text-3); }
 .ev-art p { margin: 0 16px 14px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.6; color: var(--text); text-wrap: pretty; }
-.ev-places { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px; }
-.ev-places span { padding: 6px 12px; border-radius: 999px; background: var(--fill); font-size: var(--fs-small); font-weight: 560; }
-.ev-q { margin: 0 16px 14px; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); }
-.ev-q blockquote { margin: 0; font-family: var(--display); font-size: var(--fs-lead); line-height: 1.4; font-style: italic; }
-.ev-q figcaption { margin-top: 6px; font-size: var(--fs-meta); font-weight: 600; color: var(--text-2); }
+.ev-where { display: flex; align-items: flex-start; gap: 6px; margin: 10px 0 0; font-size: var(--fs-small); font-weight: 600; line-height: 1.4; color: var(--text-2); }
+.ev-where svg { flex: none; width: 15px; height: 15px; margin-top: 2px; color: var(--text-3); }
+/* a statement as a pull quote: the serif upright and large, who says it under it */
+.ev-q { margin: 0 16px 20px; padding: 0 0 0 16px; border-left: 2px solid var(--line); }
+.ev-q blockquote { margin: 0; font-family: var(--display); font-size: var(--fs-lead); font-weight: 500; line-height: 1.34; letter-spacing: -.005em;
+  color: var(--text); text-wrap: pretty; }
+.ev-q figcaption { margin-top: 8px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-3); }
+.ev-q figcaption::before { content: "— "; }
+.page[data-tab="begivenhed"] .ev-q { border-left-color: var(--red); }
+/* the event page's rows speak as the front page's: no bold words in the headlines */
+.page[data-tab="begivenhed"] .story .h b { font-weight: inherit; }
 .ev .follow { margin: 0 16px; }
 /* the front page's event card: its state, its title in the serif, one line, three numbers and the way in */
 .ev-card { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: calc(100% - 32px); margin: 4px 16px 0; padding: 0;

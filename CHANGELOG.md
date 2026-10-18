@@ -30,6 +30,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   meter, a number with an earlier one '▲ 350 % siden fredag' and two thin bars, before and now; the bars draw out once
   as the page opens (not with Reduce Motion). The front page's card sits on the page's own ground like the other
   blocks, and its 'tal' module wears the same cell.
+  The rest of the page in the same hand: the places one quiet line with the map mark under the event's line (no
+  section of grey pills), a statement a pull quote – the serif upright and large, a red rule, who says it under it –
+  and the news rows without bold words or the section's name, as on the front page.
 - **Large pictures keep a face clear of the text** (2026-10-18, the owner: 'Teksten dækker for rubios ansigt, der skal
   vurderes om det er et godt nok billede til forside i sådanne tilfælde'): the radar finds where a picture's face sits
   (`thumbs.subject`, card `pf`, kept per picture, the older pictures looked at eight a run) and the app moves the

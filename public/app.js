@@ -3556,6 +3556,7 @@ function eventPage() {
     + (hero ? `<p class="ev-kick"><span>${esc(e.kicker || '')}</span></p>` : `<p class="ev-kick"><span>${esc(e.kicker || '')}</span><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(st)}</span></p>`
       + `<h1 class="ev-title">${esc(e.title)}</h1>`)
     + `${e.dek ? `<p class="ev-dek">${esc(e.dek)}</p>` : ''}`
+    + ((e.places || []).length ? `<p class="ev-where"><svg aria-hidden="true"><use href="#i-map"/></svg><span>${e.places.map(esc).join(' · ')}</span></p>` : '')
     + `<p class="ev-meta">Opdateret ${esc(stamp(e.at))}<button class="ev-share" data-ev-share="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button></p></header>`;
   if (e.status === 'kommende' && e.date) {
     const n = Math.max(0, calDay(e.date) - today);
@@ -3568,12 +3569,12 @@ function eventPage() {
     h += `<section class="ev-sec ev-art"><h2 class="ev-h2">Det er sket</h2>${e.article.map(a => `<p>${rich(a.text, linkSession())}</p>`).join('')}`
       + (src.length ? `<p class="ev-src">Bygger på ${esc(src.join(', '))}</p>` : '') + '</section>';
   }
-  if ((e.places || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Steder</h2><p class="ev-places">${e.places.map(x => `<span>${esc(x)}</span>`).join('')}</p></section>`;
   if ((e.quotes || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Udtalelser</h2>${e.quotes.map(q => `<figure class="ev-q"><blockquote>»${esc(q.text)}«</blockquote><figcaption>${esc(q.who)}</figcaption></figure>`).join('')}</section>`;
   const tp = e.topic && threadNamed(e.topic);
   if (tp && tp.lines.length) h += `<section class="ev-sec"><h2 class="ev-h2">Forløbet</h2>${storyline(tp, 6).html}</section>`;
   const list = (e.stories || []).map(id => find(id) || findStory(id)).filter(Boolean).sort((a, b) => when(b) - when(a));
-  if (list.length) h += `<section class="ev-sec ev-news"><h2 class="ev-h2">Nyheder</h2>${list.map((i, k) => story(i, 300 + k, { tag: true, top: true, plain: true, sq: true })).join('')}</section>`;
+  const ms = mainSec(list);
+  if (list.length) h += `<section class="ev-sec ev-news"><h2 class="ev-h2">Nyheder</h2>${list.map((i, k) => story(i, 300 + k, { tag: true, top: true, plain: true, sq: true, msec: ms })).join('')}</section>`;
   const a = list.length && V('bix') && V('mix') ? list.map(i => answerFor(i)).find(Boolean) : null;
   if (a) h += `<section class="ev-sec"><h2 class="ev-h2">Analyser</h2><div class="ans-ref">${answerLine(a)}</div></section>`;
   return h + '</article>';
