@@ -26,6 +26,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   light copy 960 px wide (`thumbs.large`, state/l/ on the data branch, about a twentieth of the original). The app
   loads the copy for Dagens historie and the event pictures (`picSrc`), the original when the copy is gone; the
   headline goes under a picture only when no picture of the story fits. An event page follows its story's picture.
+  Fixed the same day: the most widely carried story (41 outlets) took the whole run's budget and its graded pictures'
+  copies were deleted, so it was graded again every run – now at most five pictures a story, the budget shared out
+  story by story, only the chosen picture's copy kept and the article pages looked at on the step's own clock.
 - **Times of Israel only when there is no other source** (2026-10-18, the owner: 'Brug kun times of israel som kilde
   hvis der ikke er andre'). `"last": true` in config/feeds.json marks a source of last resort: the radar lets it lead a
   story only when no other outlet can (the story keeps it among its other outlets); on an event page a box or a

@@ -158,7 +158,9 @@ def test_the_best_picture_of_a_story_is_kept_as_a_light_copy(tmp_path, monkeypat
     with Image.open(io.BytesIO(light)) as im:
         assert im.width == thumbs.LARGE_W
     assert len(light) < len(pics['https://img.test/wide.jpg']) / 3
-    assert memory['grade']['https://img.test/wide.jpg'][2] == card['pl']
+    assert card['pl'] == 'l' + thumbs.name_of('https://img.test/wide.jpg')
+    assert memory['grade']['https://img.test/wide.jpg'][0] > memory['grade']['https://img.test/narrow.jpg'][0]
+    assert [f.name for f in (tmp_path / 'l').glob('*.jpg')] == [card['pl']]   # only the chosen one is kept
     # the next run grades nothing again, and a story that left takes its copy with it
     monkeypatch.setattr(thumbs, 'get', lambda *a, **k: (_ for _ in ()).throw(AssertionError('fetched again')))
     thumbs.attach(cards, members, set(), folder, memory)

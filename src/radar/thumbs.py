@@ -32,6 +32,7 @@ LARGE_CARDS = 18     # the strongest stories in Live (and the big ones) whose pi
 LARGE_BUDGET = 14    # originals graded in a run (the rest the next runs)
 LARGE_PAGES = 16     # article pages looked at in a run for their share pictures
 LARGE_SECONDS = 20
+LARGE_EACH = 5       # an outlet's pictures graded for a story: the lead's and four others'
 CUT = 'face1'   # change it when pictures are cut differently: every card then gets a freshly made one
 
 
@@ -338,7 +339,7 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
         if it.get('pic') in spot:
             it['pf'] = spot[it['pic']]
 
-    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now, look)
+    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now)
 
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):
@@ -349,10 +350,11 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
             'spot': {k: v for k, v in spot.items() if k in shown}, 'grade': graded}
 
 
-def large(cards, options, pages, bad, graded, light, now, look):
-    """For the strongest stories: every outlet's picture graded (fitness), the best kept as the story's large picture
-    (card 'pic' its original, 'pf' its subject, 'pl' the light copy in `light`). graded: {url: [fitness, pf, file] or
-    0}, kept between runs. Returns graded, pruned to the pictures still in question."""
+def large(cards, options, pages, bad, graded, light, now, look=None):
+    """For the strongest stories: their outlets' pictures graded (fitness, at most LARGE_EACH a story, the budget shared
+    out story by story), the best kept as the story's large picture (card 'pic' its original, 'pf' its subject, 'pl'
+    its light copy in `light` – the one file kept for a story). graded: {url: [fitness, pf] or 0}, kept between runs.
+    Returns graded, pruned to the pictures still in question."""
     start = time.monotonic()
     wide = [it for it in sorted(cards, key=lambda c: -(c.get('rank') or 0)) if it.get('live') or it.get('big')][:LARGE_CARDS]
     if not wide:   # no story in question: no copy kept
@@ -361,9 +363,17 @@ def large(cards, options, pages, bad, graded, light, now, look):
         return {}
     light.mkdir(parents=True, exist_ok=True)
     cand = {it['id']: options(it) for it in wide}
-    links = list(dict.fromkeys(o[1] for us in cand.values() for o in us if isinstance(o, tuple) and o[1] not in pages))
+
+    def page_of(link):   # its own clock: the small pictures' pass may have used its time
+        if time.monotonic() - start > LARGE_SECONDS / 2:
+            return link, None
+        try:
+            return link, share_image(get(link, 300_000, 'text/html,application/xhtml+xml').decode('utf-8', 'replace'), link)
+        except Exception:  # noqa: BLE001 – paywall, block or timeout: no picture from this page
+            return link, ''
+    links = list(dict.fromkeys(o[1] for us in cand.values() for o in us[:LARGE_EACH] if isinstance(o, tuple) and o[1] not in pages))
     with ThreadPoolExecutor(8) as pool:
-        for link, url in pool.map(look, links[:LARGE_PAGES]):
+        for link, url in pool.map(page_of, links[:LARGE_PAGES]):
             if url is not None:
                 pages[link] = [url, now.isoformat()]
 
@@ -371,10 +381,9 @@ def large(cards, options, pages, bad, graded, light, now, look):
         return isinstance(u, str) and u.startswith('http') and u not in bad and not STAND_IN.search(u)
     for k, us in cand.items():
         flat = [pages.get(u[1], [''])[0] if isinstance(u, tuple) else u for u in us]
-        cand[k] = [u for u in dict.fromkeys(flat) if usable(u)]
-    for u, g in list(graded.items()):   # a light copy that is gone is made again
-        if g and not (light / g[2]).exists():
-            del graded[u]
+        cand[k] = [u for u in dict.fromkeys(flat) if usable(u)][:LARGE_EACH]
+
+    made = {}   # the light copies made in this run, by picture
 
     def grade_one(url):
         if time.monotonic() - start > LARGE_SECONDS:
@@ -383,17 +392,19 @@ def large(cards, options, pages, bad, graded, light, now, look):
             return url, grade(get(url, 8_000_000, 'image/jpeg,image/png,image/webp,image/*;q=.8')) or 0
         except Exception:  # noqa: BLE001 – no picture from this address
             return url, 0
-    need = list(dict.fromkeys(u for us in cand.values() for u in us if u not in graded))[:LARGE_BUDGET]
-    with ThreadPoolExecutor(6) as pool:
-        for url, g in pool.map(grade_one, need):
-            if g is None:
-                continue                  # out of time: the next run
-            if not g:
-                graded[url] = 0
-                continue
-            name = 'l' + name_of(url)
-            (light / name).write_bytes(g[2])
-            graded[url] = [g[0], g[1], name]
+
+    def run(urls):
+        with ThreadPoolExecutor(6) as pool:
+            for url, g in pool.map(grade_one, urls):
+                if g is None:
+                    continue              # out of time: the next run
+                graded[url] = [g[0], g[1]] if g else 0
+                if g:
+                    made[url] = g[2]
+    # story by story: every story's first picture, then every story's second …
+    order = [us[k] for k in range(LARGE_EACH) for us in cand.values() if k < len(us) and us[k] not in graded]
+    run(list(dict.fromkeys(order))[:LARGE_BUDGET])
+    chosen = {}
     for it in wide:
         best = None
         for n, u in enumerate(cand.get(it['id']) or []):
@@ -401,12 +412,22 @@ def large(cards, options, pages, bad, graded, light, now, look):
             if g:
                 score = g[0] + (0.5 if n == 0 else 0)   # the lead's own picture, by a little, when they are alike
                 if best is None or score > best[0]:
-                    best = (score, u, g)
+                    best = (score, u)
         if best:
-            it['pic'], it['pf'], it['pl'] = best[1], best[2][1], best[2][2]
+            chosen[it['id']] = best[1]
+    lname = lambda u: 'l' + name_of(u)   # noqa: E731
+    # a chosen picture whose copy is gone (graded in an earlier run): made again, a few a run
+    run([u for u in dict.fromkeys(chosen.values()) if u not in made and not (light / lname(u)).exists()][:6])
+    for u in set(chosen.values()):
+        if u in made and not (light / lname(u)).exists():
+            (light / lname(u)).write_bytes(made[u])
+    for it in wide:
+        u = chosen.get(it['id'])
+        if u and (light / lname(u)).exists() and graded.get(u):
+            it['pic'], it['pf'], it['pl'] = u, graded[u][1], lname(u)
     keep = {it['pl'] for it in cards if it.get('pl')}
-    for p in light.glob('*.jpg'):
-        if p.name not in keep:
-            p.unlink()
+    for f in light.glob('*.jpg'):
+        if f.name not in keep:
+            f.unlink()
     asked = {u for us in cand.values() for u in us}
-    return {u: g for u, g in graded.items() if u in asked}
+    return {u: (g[:2] if g else 0) for u, g in graded.items() if u in asked}
