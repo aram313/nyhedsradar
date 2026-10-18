@@ -268,7 +268,10 @@ def test_the_front_pages_service_blocks_speak_its_two_voices():
     # 18/10, further work on the front page (the owner: 'bare fortsæt forbedring'): the markets as a small table with the
     # Danish petrol price first, the calendar's days in the serif without the kinds' colours, a quiet serif foot
     mk = fn('marketsLine')
-    assert "cell('Benzin i Danmark'" in mk and 'class="mk-grid"' in mk and 'Børserne: lukkekurser' in mk
+    assert 'class="mk-grid"' in mk and 'Børserne: lukkekurser' in mk and 'diesel: ugepris' in mk
+    # the oil prices first and the US diesel price, not the Danish petrol (the owner, 18/10)
+    assert "const MARKETS = [['brent', 'Brent', ' $'], ['wti', 'WTI', ' $'], ['us_diesel', 'Diesel i USA', ' $/gal.'], ['spx', 'S&P 500', '']];" in CODE
+    assert 'Benzin i Danmark' not in mk
     assert '.page[data-tab="home"] .ce .ck i, .page[data-tab="home"] .ce .ck-d { display: none; }' in RULES
     assert re.search(r'\.page\[data-tab="home"\] \.ce \.cd b \{[^}]*font-family: var\(--display\)', RULES)
     assert re.search(r'\.page\[data-tab="home"\] \.foot \{[^}]*font-style: italic', RULES)

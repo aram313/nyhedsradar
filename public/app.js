@@ -1322,30 +1322,28 @@ function movementBlock(used) {
   frontAns.add(a.nr);
   return `<section class="block f-svar-b">${blockHead('Analyser', moreLink('Alle', 'analyses'))}<div class="ans-ref f-svar">${answerLine(a)}</div></section>`;
 }
-// the markets as a small table, as a paper's markets box – a way to Økonomi: the Danish petrol price first (the
-// lowest a chain lists today: what a Danish reader pays), then oil, the S&P 500 and gold with their move since the close
-// before, and the closing day when it is not today's
-const MARKETS = [['brent', 'Brent', ' $'], ['spx', 'S&P 500', ''], ['gold', 'Guld', ' $']];
+// the markets as a small table, as a paper's markets box – a way to Økonomi: the oil prices first, then the US diesel
+// price (the owner, 18/10: 'Olie priser i markedet er vigtigt, usa dieselpris vægter højere end danske' – the price the
+// world's freight runs on, weekly from the EIA) and the S&P 500, each with its move since the close (or week) before;
+// under them the closing day when the exchanges are closed and the diesel price's week
+const MARKETS = [['brent', 'Brent', ' $'], ['wti', 'WTI', ' $'], ['us_diesel', 'Diesel i USA', ' $/gal.'], ['spx', 'S&P 500', '']];
 function marketsLine() {
   const E = need('eco');
   if (!E || !E.s) return '';
   const nf1 = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 1 }), nf2 = new Intl.NumberFormat('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const cell = (name, value, move = '') => `<span class="mk"><span class="mk-n">${esc(name)}</span><span class="mk-v">${value}${move}</span></span>`;
-  const cells = [];
-  const petrol = Math.min(...((E.pumps && E.pumps.chains) || []).map(c => c.p && c.p.benzin && c.p.benzin.v).filter(v => v > 0));
-  if (isFinite(petrol)) cells.push(cell('Benzin i Danmark', `${nf2.format(petrol)} kr.`));
-  for (const [k, name, u] of MARKETS) {
+  const cells = MARKETS.map(([k, name, u]) => {
     const x = E.s[k];
-    if (!x || x.v == null) continue;
-    const ch = x.p ? (x.v - x.p) / x.p * 100 : null;
-    cells.push(cell(name, `${nf1.format(x.v)}${u}`, ch == null ? '' : ` <em>${ch >= 0 ? '▲' : '▼'} ${nf1.format(Math.abs(ch))} %</em>`));
-    if (cells.length >= 4) break;
-  }
+    if (!x || x.v == null) return '';
+    const ch = x.p ? (x.v - x.p) / x.p * 100 : null, fmt = k === 'us_diesel' ? nf2 : nf1;
+    return `<span class="mk"><span class="mk-n">${esc(name)}</span><span class="mk-v">${fmt.format(x.v)}${u}`
+      + `${ch == null ? '' : ` <em>${ch >= 0 ? '▲' : '▼'} ${nf1.format(Math.abs(ch))} %</em>`}</span></span>`;
+  }).filter(Boolean);
   if (!cells.length) return '';
-  const last = MARKETS.map(([k]) => E.s[k] && E.s[k].t).filter(Boolean).sort().pop();
-  const day = last && FMT.ymd.format(new Date(last)) !== FMT.ymd.format(new Date()) ? `Børserne: lukkekurser ${FMT.wdl.format(new Date(last))}` : '';
+  const last = ['brent', 'wti', 'spx'].map(k => E.s[k] && E.s[k].t).filter(Boolean).sort().pop();
+  const notes = [last && FMT.ymd.format(new Date(last)) !== FMT.ymd.format(new Date()) ? `Børserne: lukkekurser ${FMT.wdl.format(new Date(last))}` : '',
+    E.s.us_diesel && E.s.us_diesel.t ? `diesel: ugepris ${dSlash(E.s.us_diesel.t).replace(/\/\d{4}$/, '')}` : ''].filter(Boolean);
   return `<section class="block mk-b">${blockHead('Markederne', moreLink('Økonomi', 'okonomi'))}<a class="mk-grid" href="?tab=okonomi" data-okonomi>${cells.join('')}</a>`
-    + (day ? `<p class="mk-t">${esc(day)}</p>` : '') + '</section>';
+    + (notes.length ? `<p class="mk-t">${esc(cap(notes.join(' · ')))}</p>` : '') + '</section>';
 }
 // 'Følg udviklingen' on the front page: the developments that moved last (not the main story's own, which shows its
 // steps above); a tap opens one on the Udvikling page, where the recap and the earlier days are too

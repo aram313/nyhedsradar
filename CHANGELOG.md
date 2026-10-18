@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside · Markederne: the oil prices first, the US diesel price instead of the Danish** (2026-10-18, the owner: 'Olie
+  priser i markedet er vigtigt, usa dieselpris vægter højere end danske'). The table is Brent, WTI, Diesel i USA (the
+  EIA's weekly retail price, $/gal.) and the S&P 500, each with its move; under it 'Børserne: lukkekurser fredag ·
+  diesel: ugepris 12/10'. The Danish petrol price and gold left the front page (both stay on Økonomi).
 - **Forside: the standfirst is not said twice** (2026-10-18, the front page's review): an opened story showed its
   standfirst and, under it, the summary beginning with the same sentence; opened, the standfirst steps aside.
 - **Radar: a picture too dark to see is no picture** (2026-10-18, the front page's review: Dagens historie wore DR's
