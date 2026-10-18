@@ -509,7 +509,7 @@ const VFILES = {
   eco: () => CFG.energyUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'energy.json'),
 };
 // the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3, plc: 10 * 60e3 };
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3, plc: 3 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
