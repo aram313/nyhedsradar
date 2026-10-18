@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Forside: every block alike, 'Også i dag' gone** (2026-10-18, the owner: 'øverste kort ser ikke særlig godt ud' –
+  then '"Også i dag" er unødvendig og bør fjernes. alle kort skal se ens ud'). Dagens historie is now a block like the
+  others – no card, the small red label, the picture large with rounded corners, the headline in the serif under it,
+  its line as a caption – and so are a second main block, its 'with' story and the fixed page's blocks ('Døgnets
+  vigtigste', 'Danmark'); no list sets a headline on a picture any more. The day's headline above it and 'Også i dag'
+  are gone; the editor's lede goes on in 'Del overblik'. The review found and fixed: the caption under the picture sat
+  off the left edge (an inline line), and opening the story from the headline scrolled the headline out of sight.
 - **Forside: a professional review – each subject once, the paper's typography, pictures with meaning** (2026-10-18,
   the owner: 'vi skal have en professionel gennemgang af forsiden … den skal fange læseren være æstetisk på et højt
   niveau'; of four proposals he chose three). Each subject once: 'Følg udviklingen' no longer offers a development

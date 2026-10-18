@@ -1199,41 +1199,18 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .page[data-tab="home"] .lede-t .lede-h { display: block; margin-bottom: 8px; font-size: var(--fs-title); font-weight: 700; line-height: 1.14;
   letter-spacing: -.012em; color: var(--text); font-variation-settings: "opsz" 60; }
 .page[data-tab="home"] .lede-t a.lede-a { text-decoration-thickness: 1px; text-underline-offset: .18em; }
-/* the top merged (the owner, 18/10: 'Slå dem sammen', then 'det ser ikke godt ud'): one card – the day's headline at its
-   top under a short red rule, the picture edge to edge, its line as a caption, then 'Også i dag' as quiet rows with a
-   chevron, as the app's other rows (app.js homeTop) */
+/* every block alike on the front page (the owner, 18/10: 'alle kort skal se ens ud'): Dagens historie and the other
+   main blocks without a card of their own – the small red label, the picture large, the serif headline under it, as
+   the lists (app.js homeTop, composedHome) */
 .lede.merged { padding-bottom: 0; }
-.pkg.merged { padding-top: 0; overflow: hidden; }
-.top-h { position: relative; margin: 0; padding: 22px 16px 14px; font-family: var(--display); font-size: var(--fs-title); font-weight: 700;
-  line-height: 1.14; letter-spacing: -.012em; color: var(--text); text-wrap: balance; font-variation-settings: "opsz" 60; }
-.page[data-tab="home"] .top-h::before { content: ""; position: absolute; top: 12px; left: 16px; width: 26px; height: 3px; background: var(--red); }
-.top-h a.lede-a { color: inherit; text-decoration: none; }
-.top-h a.lede-a:active { opacity: .6; }
-.pkg.merged .story.lead .tx .h { display: none; }
-.pkg.merged .lead-pic::after { display: none; }
-.pkg.merged .story.lp .row { background: none; border-radius: 0; }   /* one card: the picture's row is no card of its own */
-.pkg.merged .story.lp .row > .tx { position: static; padding: 9px 16px 2px; text-shadow: none; }
-.pkg.merged .story.lp .tx .m, .pkg.merged .story.lp .tx .m .kind, .pkg.merged .story.lp .tx .m > span::before { color: var(--text-3); }
-.pkg.merged .story.lp .tx .m .src { color: var(--text-2); }
-.also-day { margin: 10px 16px 4px; }
-.also-h { margin: 0 0 2px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); }
-.also-day ul { margin: 0; padding: 0; list-style: none; }
-.also-day li { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 0; border-top: 1px solid var(--line);
-  font-size: var(--fs-body); font-weight: 560; line-height: 1.32; color: var(--text); }
-.also-day li:first-child { border-top: 0; }
-.also-day li > a.lede-a { flex: 1; color: inherit; text-decoration: none; }
-.also-day li > a.lede-a::after { content: ""; position: absolute; inset: 0; }   /* the whole row opens the story */
-.also-day li { position: relative; }
-.also-day li > svg { flex: none; width: 16px; height: 16px; color: var(--text-3); }
-.also-day li:active { opacity: .6; }
+.page[data-tab="home"] .block.top { margin: 22px 0 0; padding: 0; border-radius: 0; background: none; }
+.page[data-tab="home"] .block.top .block-h { padding-left: 16px; }
+.page[data-tab="home"] .block.top .row, .page[data-tab="home"] .block.top .x-in { padding-left: var(--s4); padding-right: var(--s4); }
+.page[data-tab="home"] .block.top .story.open { border-radius: 0; }
+.page[data-tab="home"] .block.top .story + .story::before { left: 16px; right: 16px; }
 /* the development under Dagens historie shows only with the story opened (app.js homeTop) */
 .pkg.merged > .of-main { display: none; }
 .pkg.merged:has(> .story.open) > .of-main { display: block; }
-/* the row a line of 'Også i dag' leads to lights up once (app.js alsoGo) */
-.page[data-tab="home"] .story.flash::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit;
-  background: var(--pulse-soft); animation: flash 1.6s ease-out forwards; }
-@keyframes flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .page[data-tab="home"] .story.flash::after { animation-duration: .01s; } }
 /* the block titles: a short red rule above, not a bar beside */
 .page[data-tab="home"] .block-h h2 { position: relative; padding-top: 9px; }
 .page[data-tab="home"] .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }

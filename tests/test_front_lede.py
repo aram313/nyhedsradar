@@ -152,7 +152,7 @@ def test_the_front_page_shows_less():
     comp = fn('composedHome')
     assert 'const FRONT_MAX = 6' in CODE and 'if (drawn >= FRONT_MAX) break;' in comp
     assert "most = b.dkQuiet ? 2 : 3" in comp and 'data-unfold="${esc(key)}"' in comp   # 'Alle ›' unfolds the rest
-    assert "top: true }); break; } }" in comp and ".slice(0, 3)" in comp   # one more story under Dagens historie
+    assert "top: true, plain: true }); break; } }" in comp and ".slice(0, 3)" in comp   # one more story under Dagens historie
     line = fn('storyline')
     assert 'storyline(tp, n = 2)' in line and 'stepsWithDays(lines, null)' in line and 'Hele udviklingen' in line
     assert "esc(String(b.text))" in comp   # a linje without the wiki's underlines
@@ -212,25 +212,17 @@ def test_the_input_shows_the_ledes_parts(folder):
     assert '"lede_ids"' in text
 
 
-def test_the_days_headline_and_dagens_historie_are_one():
-    # the owner, 18/10: 'overskriften ser ud til at gentage dagens nyhed' – he chose 'Slå dem sammen'
+def test_dagens_historie_is_a_block_like_every_other():
+    # the owner, 18/10: '"Også i dag" er unødvendig og bør fjernes. alle kort skal se ens ud'
     top = fn('homeTop')
     assert 'ledeHead(lede, body, ids) + body' in top                              # no Dagens historie: the lede whole
-    assert ".some(p => p.id === mainId)" in top and "filter(p => p.id !== mainId" in top   # nothing said twice
-    assert "replace(blockHead('Dagens historie'), '')" in top and "pkg merged" in top
-    assert '<p class="also-h">Også i dag</p>' in top
-    assert 'homeTop(f.lede || notes().lede, composed' in CODE and 'homeTop(notes().lede, html' in CODE
-    assert '.pkg.merged .story.lead .tx .h { display: none; }' in RULES
-
-
-def test_a_line_of_ogsaa_i_dag_glides_to_its_row_and_lights_it():
-    # the owner, 18/10: 'så skal den gøre smooth ned og flash den del den henviser til. ikke teleportere til en åben historie'
-    go = fn('alsoGo')
-    assert 'movePage(dy' in go and 'flashRow(el)' in go and 'toggle(' not in go
-    assert "data-${first ? 'lede' : 'also'}=" in fn('homeTop') and "t.closest('[data-also]')" in CODE
-    # the development under Dagens historie only with the story opened, and never dimmed by it
-    assert '.pkg.merged > .of-main { display: none; }' in RULES and '.pkg.merged:has(> .story.open) > .of-main { display: block; }' in RULES
-    assert "!sib.matches('.dim, .of-main')" in CODE
+    assert 'Også i dag' not in CODE and 'alsoGo' not in CODE and 'class="top-h"' not in CODE
+    assert 'data-brief' in top and "'<div class=\"follow pkg-f of-main\"'" in top
+    comp = fn('composedHome')
+    assert 'story(shown, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic })' in comp
+    assert "b.style === 'billeder'" not in comp                                    # no headline on a picture
+    assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{[^}]*background: none', RULES)
+    assert '.pkg.merged > .of-main { display: none; }' in RULES and "!sib.matches('.dim, .of-main')" in CODE
 
 
 def test_the_front_page_says_each_subject_once_in_the_papers_way():

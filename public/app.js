@@ -1362,7 +1362,7 @@ function composedHome(all, opts, f) {
       // editor chose a text lead
       const pic = first || b.picture !== false ? leadPic(i) : '';
       html += `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
-        + story(shown, n++, { ...opts, tag: true, top: true, lead: true, pic });
+        + story(shown, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic });
       // the development under the story is the story's own: the editor's timeline when its name shares a subject with
       // the story's headline (or the editor filed this very story in it), else the development the story belongs to by
       // the same test – else none: a timeline of another development is worse than none
@@ -1373,7 +1373,7 @@ function composedHome(all, opts, f) {
       html += mainAnswer(i, tp ? tp.name : '', svarSet);
       if (tp && tp.lines.filter(l => l.at).length) html += storyline(tp).html;
       if (tp) mark(tp.name);
-      for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true }); break; } }   // one more at most
+      for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true, plain: true }); break; } }   // one more at most
       html += '</section>';
       filled++;
     } else if (b.kind === 'liste') {
@@ -1387,7 +1387,7 @@ function composedHome(all, opts, f) {
       const more = all.length > most ? `<button class="more" data-unfold="${esc(key)}" aria-expanded="${unfolded.has(key)}">${unfolded.has(key) ? 'Færre' : 'Alle<svg aria-hidden="true"><use href="#i-chev"/></svg>'}</button>` : '';
       // 'billeder': the first story with the outlet's own picture is set large, the rest as rows; a list of one
       // section ('Danmark') does not say the section on every row, and a list of mostly one only on the other ones
-      const big = b.style === 'billeder' ? list.find(i => i.pic) : null, tag = new Set(list.map(secOf)).size > 1;
+      const big = null, tag = new Set(list.map(secOf)).size > 1;   // every block alike (18/10): no picture with the headline on it
       const msec = tag ? mainSec(list) : '';
       // the paper's way (the owner, 18/10: 'Avisens typografi', 'Billeder med mening'): the block's first story as its
       // headline in the serif, with the outlet's own picture large above it when it has one; the rest as plain lines,
@@ -1428,7 +1428,7 @@ function composedHome(all, opts, f) {
     if (m) {
       const pic = leadPic(m);
       html = `<section class="block top pkg${pic ? '' : ' text'}" data-sec="${secOf(m)}">${blockHead('Dagens historie')}`
-        + story(m, n++, { ...opts, tag: true, top: true, lead: true, pic }) + mainAnswer(m, '', svarSet) + '</section>' + html;
+        + story(m, n++, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: pic }) + mainAnswer(m, '', svarSet) + '</section>' + html;
     }
   }
   return filled ? html : null;   // a composition with none of its stories left: the fixed page
@@ -1584,23 +1584,6 @@ function ledeGo(id) {
   scrollToEl(el, 8);
   setTimeout(() => { if (!touching && el.isConnected) scrollToEl(el, 8); }, 150);   // rows above it laid out by now
 }
-// a line of 'Også i dag' tapped (the owner, 18/10: 'så skal den gøre smooth ned og flash den del den henviser til. ikke
-// teleportere til en åben historie'): the page glides to the story's row and the row lights up once – closed; one the
-// page does not show opens in Live, as a link with ?item= does
-function alsoGo(id) {
-  const i = findStory(id), el = i && tab === 'home' && pg$('s-' + i.id);
-  if (!el) { if (i) openInLive(i.id); return; }
-  if (cur().classList.contains('focus')) closeOpen();
-  const dy = el.getBoundingClientRect().top - $('bar').offsetHeight - 24;
-  movePage(dy, Math.min(700, 320 + Math.abs(dy) / 4), () => flashRow(el));
-}
-function flashRow(el) {
-  el.classList.remove('flash');
-  void el.offsetWidth;   // the light runs again when it is asked again
-  el.classList.add('flash');
-  clearTimeout(el.flashT);
-  el.flashT = setTimeout(() => el.classList.remove('flash'), 1800);
-}
 // the stories a front page shows, in its order: its rows and its Live strip
 const pageStories = html => [...new Set([...html.matchAll(/(?:id="s-|data-live=")([^"]+)"/g)].map(m => m[1]))].map(id => find(id) || findStory(id));
 // the head of the front page: the date with 'Del overblik' (the day's overview as a WhatsApp text), the editor's lede
@@ -1612,45 +1595,24 @@ function ledeHead(lede, body = '', ids = null) {
     + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
     + (lede ? `<p class="lede-t">${ledeHtml(lede, pageStories(body), ids)}</p>` : '') + catchUpLine() + '</header>' + installCard();
 }
-// The top of the front page: the day's headline and Dagens historie as one (the owner, 18/10: 'overskriften ser ud til at
-// gentage dagens nyhed' – he chose 'Slå dem sammen'). The lede's first clause is the big headline when it is about
-// Dagens historie, else Dagens historie's own headline; the story's picture and its line under it (its own headline not
-// again); then the lede's other clauses as 'Også i dag', a line each, each opening its story. Nothing is said twice.
-// A page without Dagens historie keeps the lede whole (ledeHead).
+// The top of the front page: the date with 'Del overblik', then Dagens historie as a block like every other (the owner,
+// 18/10: first 'overskriften ser ud til at gentage dagens nyhed', then '"Også i dag" er unødvendig og bør fjernes. alle
+// kort skal se ens ud'): its small red label, the picture large, the headline in the serif under it. The editor's lede
+// goes on in 'Del overblik'. A page without Dagens historie keeps the lede (ledeHead).
 function homeTop(lede, body, ids) {
-  const sec = body.match(/<section class="block top pkg[^"]*"[^>]*>/), at = sec ? sec.index + sec[0].length : -1;
-  const mainId = sec && (body.slice(at).match(/<article [^>]*id="s-([^"]+)"/) || [])[1];
-  if (!mainId) return ledeHead(lede, body, ids) + body;
-  const main = shownAs.get(mainId) || find(mainId) || findStory(mainId);
-  const wiki = t => scan(t).map(f => f.id).filter(id => !LINK_SKIP.has(id));
-  const linked = lede ? ledeLinks(lede, pageStories(body), stories(), ids, findStory, wiki) : [];
-  const brk = Math.max(1, linked.findIndex((p, n) => n && LEDE_OPEN.test(p.sep)));
-  const own = linked.slice(0, brk).some(p => p.id === mainId);
-  const line = (p, first) => {
-    const t = first ? p.t : cap(p.t.replace(/^[\s,;–-]+/u, '')), [, words, stop] = t.match(/^([\s\S]*?)([.!?…]*)$/u);
-    return p.id ? `${first ? esc(p.sep) : ''}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-${first ? 'lede' : 'also'}="${esc(p.id)}">${esc(words)}</a>${first ? esc(stop) : ''}`
-      : esc((first ? p.sep : '') + words + (first ? stop : ''));
-  };
-  const head = own ? linked.slice(0, brk).map(p => line(p, true)).join('')
-    : main ? `<a class="lede-a" href="?item=${encodeURIComponent(mainId)}" data-lede="${esc(mainId)}">${bold(main.title, [])}</a>` : '';
-  const also = (own ? linked.slice(brk) : linked).filter(p => p.id !== mainId && p.t.trim());
+  const sec = body.match(/<section class="block top pkg[^"]*"[^>]*>/);
+  if (!sec) return ledeHead(lede, body, ids) + body;
   const todayStr = FMT.ymd.format(new Date());
   const top = `<header class="lede merged"><div class="lede-d"><span>${cap(dateDa(todayStr, true))}</span>`
-    + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
-    + '</header>';
-  // one package in one card (the owner, 18/10: 'det ser ikke godt ud' – the headline stood outside the picture's card):
-  // the headline at its top, the picture and its line, then 'Også i dag' as quiet rows, each opening its story
-  const alsoHtml = also.length ? `<div class="also-day"><p class="also-h">Også i dag</p><ul>${also.map(p => `<li>${line(p, false)}<svg aria-hidden="true"><use href="#i-chev"/></svg></li>`).join('')}</ul></div>` : '';
-  const headHtml2 = head ? `<h2 class="top-h">${head}</h2>` : '';
-  let b = body.slice(0, sec.index) + sec[0].replace('class="block top pkg', 'class="block top pkg merged') + headHtml2 + body.slice(at).replace(blockHead('Dagens historie'), '');
-  const end = b.indexOf('</article>', sec.index);
-  if (end > -1) b = b.slice(0, end + 10) + alsoHtml + b.slice(end + 10);
+    + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div></header>`;
+  let b = body.slice(0, sec.index) + sec[0].replace('class="block top pkg', 'class="block top pkg merged') + body.slice(sec.index + sec[0].length);
   const close = b.indexOf('</section>', sec.index);
   // the development under Dagens historie only when the story is opened (the owner, 18/10: 'Udviklingen … skal kun vises
   // hvis man folder historien ud'): marked, shown by the open story (style.css) and never dimmed by it (focusSync)
   const fl = b.indexOf('<div class="follow pkg-f"', sec.index);
   if (fl > -1 && fl < close) b = b.slice(0, fl) + '<div class="follow pkg-f of-main"' + b.slice(fl + 25);
-  return top + (close > -1 ? b.slice(0, close + 10) + catchUpLine() + installCard() + b.slice(close + 10) : b + catchUpLine() + installCard());
+  const end = b.indexOf('</section>', sec.index);
+  return top + (end > -1 ? b.slice(0, end + 10) + catchUpLine() + installCard() + b.slice(end + 10) : b + catchUpLine() + installCard());
 }
 // the foot: what Khabar read and chose (the prices live in the Økonomi tab)
 function homeFoot(all) {
@@ -1680,7 +1642,7 @@ function fixedHome(all, opts) {
     // a Danish outlet's headline for the package when the story has one
     const dk = lead.lang !== 'da' && lead.how !== 'ed' && (lead.also || []).find(a => a.group === 'dk' && !curious(a.title));
     const shown = dk ? { ...lead, title: dk.title, origTitle: dk.title, source: dk.source, kw: [] } : lead;
-    html += `<section class="block top pkg${leadPic(lead) ? '' : ' text'}" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, lead: true, pic: leadPic(lead) })}`;
+    html += `<section class="block top pkg${leadPic(lead) ? '' : ' text'}" data-sec="${secOf(lead)}">${blockHead('Dagens historie')}${story(shown, 0, { ...opts, tag: true, top: true, plain: true, fl: true, fpic: leadPic(lead) })}`;
     // one quiet line when the amir has answered on the main story's subject (its own words, and the recap topic's name
     // when that topic is the story's own); the topic's timeline only then too
     own = pkg && pkg.topic && topicOf(lead, pkg.topic) ? pkg.topic : null;
@@ -1695,12 +1657,12 @@ function fixedHome(all, opts) {
   if (!pq) html += quoteOfDay(pin);   // the day's quote right under Dagens historie (the owner, 17/10), when it had none
   const rest = top.filter(i => i !== lead && !same(i)).slice(0, 3);
   html += `<section class="block">${blockHead('Døgnets vigtigste', moreLink('Alle', 'latest'))}
-    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true })).join('')}</section>`;
+    ${rest.map((i, n) => story(i, n + 1, { ...opts, tag: true, top: true, plain: true, fl: !n, fpic: !n ? leadPic(i) : '' })).join('')}</section>`;
   // 'Danmark' only when a Danish story matters (big, Danish politics on Islam and Muslims, or among the day's five
   // strongest), and then its two strongest such stories not shown above
   const onPage = new Set([lead, ...rest].filter(Boolean).map(i => i.id)), tops = dayTops();
   const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
-  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true })).join('')}</section>`;
+  if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, fl: !n, fpic: !n ? leadPic(i) : '' })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
   html += calBlock();   // 'Det sker snart' between the news and the developments
   html += followStrip(own);   // not the main story's own development again
@@ -3098,8 +3060,6 @@ async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
-  const al = t.closest('[data-also]');   // a line of 'Også i dag': its story, found on the page
-  if (al) { e.preventDefault(); alsoGo(al.dataset.also); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
   const bg = t.closest('[data-begreb]');
   if (bg) { e.preventDefault(); openSide('begreb', bg.dataset.begreb); return; }
