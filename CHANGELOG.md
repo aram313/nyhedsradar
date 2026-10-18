@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The event editor – and notes between the editors** (2026-10-18, the owner: 'Sæt begivenheds ekspert redaktøren
+  op …' – four times a day – and 'Ekspert redaktøren må også gerne kigge på forsiden … hvis den finder forbedringer skal
+  den lave det og give besked til khabar hjernes næste kørsel om vurdering. Begge redaktøre skal arbejde med thaqafa og
+  verdens forståelsen'). A second Claude routine, 'Khabar · begivenhedsredaktør' (claude-opus-5-5, 08, 12, 16 and 20
+  Danish winter time; its public prompt docs/hjerne/routine-event-prompt.md), builds and keeps the event pages whole and
+  looks over the whole front page, improving it in the same update. An update may carry a `memo` ({by:
+  begivenhedsredaktør | forsideredaktør, text}): `memo.json` on the digest branch keeps the last eight, the input shows
+  those of the last twelve hours first, and a new note from the event editor calls for the front-page editor's update.
 - **The articles' sentences that name the places** (2026-10-18, the owner: 'Er det meningen at kortet kun viser
   paris?' – the cities were in the articles, in sentences without a count). The reader keeps, beside the count sentences,
   up to two sentences an article that list places ('in Paris, Lyon and Marseille'), so the editor can name every city on

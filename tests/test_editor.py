@@ -645,7 +645,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
     assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'front.json',
-                                                                              'kalender.json', 'live.json', 'moves.json', 'other.json',
+                                                                              'kalender.json', 'live.json', 'memo.json', 'moves.json', 'other.json',
                                                                               'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
     assert git(remote, 'show', 'digest:other.json') == '{"days": {}}'
@@ -794,3 +794,22 @@ def test_one_event_is_one_calendar_entry():
     # an update naming the same event under a new id replaces it
     out = editor.calendar_file([{**talks, 'id': 'libanon-florida', 'link': 'https://aa.test/a'}], out, {}, now, problems)
     assert [e['id'] for e in out['items'] if e['date'] == '2026-10-20'] == ['libanon-florida'] and not problems, problems
+
+
+def test_the_editors_leave_each_other_notes():
+    # the owner, 18/10: the event editor looks at the front page four times a day – 'hvis den finder forbedringer skal den
+    # lave det og give besked til khabar hjernes næste kørsel om vurdering'
+    from datetime import datetime, timedelta, timezone
+    now = datetime(2026, 10, 18, 18, 0, tzinfo=timezone.utc)
+    problems = []
+    memo = editor.memo_file({'by': 'begivenhedsredaktør', 'text': 'Forsiden: Frankrig op som Dagens historie; behold det.'},
+                            {'items': [{'at': '2026-10-18T10:00:00+00:00', 'by': 'forsideredaktør', 'text': 'Morgenens forside.'}]},
+                            now, problems)
+    assert problems == [] and [m['by'] for m in memo['items']] == ['begivenhedsredaktør', 'forsideredaktør']
+    lines = editor.memo_lines(memo, now + timedelta(hours=1))
+    assert lines[0].startswith("## Notes between the editors")
+    assert lines[2] == '- 18.10 20.00 · begivenhedsredaktør: Forsiden: Frankrig op som Dagens historie; behold det.'
+    assert editor.memo_lines(memo, now + timedelta(hours=20)) == []
+    bad = []
+    editor.memo_file({'by': 'nogen', 'text': 'x'}, None, now, bad)
+    assert bad and editor.memo_file(None, None, now, []) is None

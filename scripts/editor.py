@@ -123,7 +123,13 @@ NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json')
+                'events.json', 'memo.json')
+# the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
+# den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
+# the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
+# editor calls for an update
+MEMOS, MEMO_HOURS, MEMO_TEXT = 8, 12, 1500
+EDITORS = ('begivenhedsredaktør', 'forsideredaktør')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
 CAL_KEEP = 2        # days an entry of the calendar stays after its day has passed
 CAL_AHEAD = 30      # days of the calendar the input lists
@@ -758,6 +764,10 @@ def look(args, now):
         out.append(f"Note: {len(filed)} answer(s) filed after the wiki build (newest {filed[0].get('date')}) – the owner "
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
     reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads, lapse)
+    memo_new = next((m for m in (read(args, 'origin/digest', 'memo.json', {}).get('items') or [])
+                     if m.get('by') == EDITORS[0] and now - ts(m.get('at')) < timedelta(hours=MEMO_HOURS)), None)
+    if memo_new:
+        out.append(f"Note from the event editor ({dk(ts(memo_new['at'])):%H.%M}): {clip(memo_new.get('text'), 160)}")
     # a great event without its page (Begivenheder, 18/10): the widely carried stories grouped by event, and a group
     # whose words tell an event – not a decision or a statement – calls for an update, once
     pages = read(args, 'origin/digest', 'events.json', {}).get('items') or []
@@ -788,6 +798,9 @@ def look(args, now):
         keys.append(f"answer:{answer['id']}")
     if facts_great:
         keys.append(facts_great)
+    if memo_new and (last is None or ts(memo_new['at']) > last):
+        reasons.append('besked fra begivenhedsredaktøren')
+        keys.append(f"memo:{memo_new['at']}")
     keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
     keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
@@ -957,6 +970,8 @@ def cmd_gate(args):
 # ------------------------------------------------------------------ the input of a full update
 
 TEMPLATE = {
+    'memo': {'by': ' | '.join(EDITORS), 'text': '<optional – a note to your colleague: what you judged, changed and why, '
+                                                   'what to keep or watch (at most 1500 characters)>'},
     'lede': '<one Danish sentence of at most about 25 words: the day so far, its heaviest movements first – reality only; '
             'leave the field out (or "keep") to keep the lede on the front page>',
     'lede_ids': ['<optional: the story id each part of the lede opens on the front page, one per part in order (the parts '
@@ -1062,6 +1077,31 @@ def story_lines(i, joined=0):
     also = [f"{a['source']}: {a.get('title_tr') or a['title']}" for a in (i.get('also') or [])[:6]]
     if also:
         out.append('Also: ' + ' | '.join(also))
+    return out + ['']
+
+
+def memo_file(entry, current, now, problems):
+    """memo.json as this update leaves it: the note added (by one of EDITORS, at most MEMO_TEXT characters), the last MEMOS
+    kept; None when the update has no note."""
+    if not entry:
+        return None
+    if not isinstance(entry, dict) or entry.get('by') not in EDITORS or not str(entry.get('text') or '').strip():
+        problems.append(f"memo: {{'by': {' | '.join(EDITORS)}, 'text': '…'}} – a note to your colleague, or leave it out")
+        return None
+    text = re.sub(r'\s+', ' ', str(entry['text'])).strip()
+    if len(text) > MEMO_TEXT:
+        problems.append(f'memo: {len(text)} characters – at most {MEMO_TEXT}')
+    items = [m for m in (current or {}).get('items') or [] if isinstance(m, dict)]
+    return {'items': [{'at': now.isoformat(timespec='seconds'), 'by': entry['by'], 'text': text[:MEMO_TEXT]}, *items][:MEMOS]}
+
+
+def memo_lines(memo, now):
+    """The input's notes from the editors of the last MEMO_HOURS, newest first."""
+    notes = [m for m in (memo or {}).get('items') or [] if now - ts(m.get('at')) < timedelta(hours=MEMO_HOURS)]
+    if not notes:
+        return []
+    out = ["## Notes between the editors – read the other editor's first: keep what it set unless the news moved since", '']
+    out += [f"- {dk(ts(m['at'])):%d.%m %H.%M} · {m.get('by')}: {m.get('text')}" for m in notes]
     return out + ['']
 
 
@@ -1273,6 +1313,7 @@ def cmd_input(args):
     wire = uncovered(lines, moves)
     noted = answers_of(args)
     out = [f'# Material for the {dk(now):%H.%M} update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
+    out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
     out += brain.section(top, noted['items'])
     out += front_lines(notes, digest, by_id)
     today = dk(now).date().isoformat()
@@ -2283,6 +2324,7 @@ def cmd_publish(args):
         problems += more
     kal = calendar_file(draft.get('calendar'), quoted(read(args, 'origin/digest', 'kalender.json', {'items': []})),
                         resolver(data.get('items', [])), now, problems)
+    memo = memo_file(draft.get('memo'), read(args, 'origin/digest', 'memo.json', {}), now, problems)
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))
@@ -2316,6 +2358,8 @@ def cmd_publish(args):
              'live.json': live['file'], 'kalender.json': kal, 'events.json': evt}
     if front:
         files['front.json'] = front
+    if memo:
+        files['memo.json'] = memo
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again
