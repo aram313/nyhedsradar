@@ -75,6 +75,7 @@ OPINION = re.compile(r'\b(det er (?:tydeligt|klart|åbenlyst|indlysende)|tydelig
 MEDIA_SAY = re.compile(r'\b(?:ifølge (?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)?|'
                        r'(?:danske |flere |udenlandske |internationale |franske )?medier(?:ne)? (?:omtaler|beskriver|skriver|'
                        r'melder|rapporterer|kalder))\b', re.I)
+HOW_MUCH = re.compile(r'(?:mere end|over|omkring|cirka|ca\.|næsten|op mod|mindst|under)\b', re.I)   # belongs in the value
 OUTLET_SAY = re.compile(r'\b(?:skriver|skrev|omtaler|omtalte|melder|meldte|rapporterer|rapporterede|beretter|'
                         r'bragte|bringer)\b', re.I)
 QUOTED = re.compile(r'»[^«»]*«|«[^«»]*»|"[^"]*"|“[^”]*”')
@@ -214,6 +215,8 @@ def thin(items, find):
             lacks.append('kilder ved navn (artiklen siger »medierne«)')
         if sum(len(OUTLET_SAY.findall(str(a.get('text') or ''))) for a in e.get('article') or [] if isinstance(a, dict)) >= 3:
             lacks.append('en artikel om selve begivenheden (den gengiver, hvad medierne skriver)')
+        if any(HOW_MUCH.match(str(f.get('note') or '')) for f in e.get('facts') or [] if isinstance(f, dict)):
+            lacks.append('»over …« i selve tallet (noten begynder med det)')
         if any(digits(NOT_A_COUNT.sub(' ', str(f.get('note') or ''))) and not f.get('was')
                for f in e.get('facts') or [] if isinstance(f, dict)):
             lacks.append('det tidligere tal i grafikken (det står i en note)')
@@ -245,10 +248,29 @@ def great_lines(groups, head, teaser):
     return out + ['']
 
 
-def sources(stories):
-    """The outlets of the stories a box, a paragraph or a statement cites, each once: the app names them under it, also
-    when a story has left Live."""
-    return list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source')))
+OWN = ('title', 'title_tr', 'title_da', 'summary', 'summary_tr', 'summary_da', 'origTitle')
+
+
+def carriers(stories, number):
+    """The outlets whose own headline or teaser carries a number (its digits): the story's own outlet, or another
+    outlet of it by its headline."""
+    out = []
+    for it in stories:
+        if number in digits(' · '.join(str(it.get(k) or '') for k in OWN)) and it.get('source'):
+            out.append(str(it['source']))
+        for a in it.get('also') or []:
+            if isinstance(a, dict) and a.get('source') and number in digits(f"{a.get('title') or ''} · {a.get('title_tr') or ''}"):
+                out.append(str(a['source']))
+    return out
+
+
+def sources(stories, said=None):
+    """The outlets a box, a paragraph or a statement rests on, each once: the app names them under it, also when a
+    story has left Live. With the text it says (a box's value, a paragraph), the outlets that carry its numbers (18/10:
+    the first page credited BT for the arrests The Hindu and Times of Israel gave); else, or none found, the cited
+    stories' own outlets."""
+    got = [o for n in sorted(digits(NOT_A_COUNT.sub(' ', said or ''))) for o in carriers(stories, n)]
+    return list(dict.fromkeys(got)) or list(dict.fromkeys(str(it.get('source')) for it in stories if it.get('source')))
 
 
 def text(x, limit=None):
@@ -349,13 +371,16 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                                 'news only (their headline, teaser or another outlet\'s headline), or leave the box out')
             if len(note) > NOTE:
                 problems.append(f'{where} fact {n}: note – who says it, at most {NOTE} characters')
+            if HOW_MUCH.match(note):
+                problems.append(f"{where} fact {n}: the note {note!r} begins with how much – put it in the value ('over "
+                                f"{value}'); the note says who gives the count")
             if digits(NOT_A_COUNT.sub(' ', note)) and not f.get('was'):
                 problems.append(f"{where} fact {n}: the note {note!r} holds a number – a note says who gives the count; "
                                 'an earlier count goes in "was": {"value": …, "when": …, "ids": […]} (the app draws both)')
             if voice and note:
                 voice.check_voice(note, f'{where} fact {n} note', problems)
             box = {'label': label, 'value': value, **({'note': note} if note else {}),
-                   'ids': [it['id'] for it in cited], 'src': sources(cited)}
+                   'ids': [it['id'] for it in cited], 'src': sources(cited, value)}
             whole = text(f.get('of'))
             if whole:
                 if not digits(whole):
@@ -428,7 +453,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 voice.check_voice(para, f'{where} article {n}', problems)
                 voice.check_reality(para, f'{where} article {n}', problems)
                 voice.check_forecast(para, f'{where} article {n}', problems)
-            article.append({'text': para, 'ids': [it['id'] for it in cited], 'src': sources(cited)})
+            article.append({'text': para, 'ids': [it['id'] for it in cited], 'src': sources(cited, para)})
         # a page under way holds the counts its stories carry, and is told from its material (18/10: the first page
         # had two paragraphs and no box while its stories' headlines carried the arrests and the injured)
         if status == 'i gang' and told:
@@ -452,6 +477,15 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 'facts': facts, 'places': places[:PLACES], 'quotes': quotes, 'stories': stories,
                 **({'article': article} if article else {}), **({'pic': pic} if pic else {}), **({'pf': pf} if pic and pf else {}), 'at': stamp}
         items[ident] = item
+    # the outlets under the pages this update leaves as they are follow their stories too (the news grow)
+    changed = {text(x.get('id')) for x in entries or [] if isinstance(x, dict)}
+    for ident, e in items.items():
+        if ident in changed:
+            continue
+        for part, said in [*((f, f.get('value')) for f in e.get('facts') or []), *((a, a.get('text')) for a in e.get('article') or [])]:
+            cited = [it for it in (find.get(str(i)) for i in part.get('ids') or []) if it]
+            if cited:
+                part['src'] = sources(cited, said)
     keep = [e for e in items.values() if (last_day(e) or today) >= today - timedelta(days=EVENT_KEEP)]
     live = [e for e in keep if e.get('status') != 'afsluttet']
     if len(live) > MAX_EVENTS:

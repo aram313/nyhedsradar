@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A box credits the outlet that gave its number** (2026-10-18, the first real page said 'Kilder: BT' for the arrests
+  The Hindu and Times of Israel gave): a box's and a paragraph's sources are the outlets whose own headline or teaser
+  carries its numbers (else the cited stories' own outlets), and they follow the stories on the pages an update leaves as
+  they are. 'Mere end' in a note is refused – it belongs in the value ('over 1.800'); the check names such a page.
 - **The change says since when only for a time** (2026-10-18, the first real page gave the arrests' earlier figure
   'tidligere meldt'): '▲ 50 % siden fredag' when the earlier count names a time ('fredag', 'i går', '17/10', 'kl. 12'),
   else '▲ 50 % fra 1.200' and the bar 'Før'.

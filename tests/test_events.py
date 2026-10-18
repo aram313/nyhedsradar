@@ -216,3 +216,20 @@ def test_the_article_tells_the_event_not_what_the_outlets_write():
     problems = []
     events.events_file([good], None, {'fx': story}, NOW, TODAY, problems, voice)
     assert problems == [], problems
+
+
+def test_a_box_credits_the_outlets_that_carry_its_number():
+    # 18/10: the first page credited BT (the story's own outlet) for the arrests The Hindu and Times of Israel gave
+    story = {'id': 'fx', 'outlets': 23, 'source': 'BT', 'title': 'Demonstranter stormer rådhuse i Frankrig',
+             'also': [{'source': 'Times of Israel', 'title': 'Mass protests in France; 1,200 arrested, 150 cops injured'},
+                      {'source': 'The Hindu', 'title': 'France protests: More than 1,800 arrested, Interior Minister says'}]}
+    assert events.sources([story], 'over 1.800') == ['The Hindu']
+    assert events.sources([story], 'Mere end 1.800 er anholdt; tidligere 1.200.') == ['Times of Israel', 'The Hindu']
+    assert events.sources([story], 'Demonstranter stormede rådhuse.') == ['BT']
+    # and a page the update leaves as it is follows its stories
+    page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang', 'since': '2026-10-18',
+            'dek': '…', 'stories': ['fx'], 'at': '2026-10-18T08:00:00+00:00',
+            'facts': [{'label': 'Anholdte', 'value': '1.800', 'note': 'mere end, ifølge indenrigsministeren', 'ids': ['fx'], 'src': ['BT']}]}
+    out = events.events_file([], {'items': [page]}, {'fx': story}, NOW, TODAY, [], voice)
+    assert out['items'][0]['facts'][0]['src'] == ['The Hindu']
+    assert any('»over …«' in w for _, lacks in events.thin(out['items'], {'fx': story}.get) for w in lacks)
