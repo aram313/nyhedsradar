@@ -243,7 +243,7 @@ def test_the_tab_its_icon_and_its_links():
     start = CODE.split('const START = ')[1].split('};')[0]
     assert "kalender: 'kalender'" in start and "kort: 'home'" in start
     assert "params.get('kalender') ? 'kalender'" in CODE   # ?kalender=<id> opens the tab at the event
-    assert "'kalender'].some(k => q.has(k))" in INDEX   # and skips the intro
+    assert "'kalender', 'begivenhed', 'forside', 'forsider'].some(k => q.has(k))" in INDEX   # and skips the intro
     assert 'kalender: kalenderPage' in CODE.split('const OWN = ')[1].split('\n')[0]   # drawn before the news come
 
 

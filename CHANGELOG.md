@@ -9,6 +9,19 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front-page archive – one front page a day** (2026-10-18, the owner: 'Bliver forsider snapshottet og gemt?' –
+  'ja lav et arkiv, men kun ved dagens sidste opdatering. så vi får et om dagen'). Every publish with a composition
+  writes the Danish day's front page to `arkiv/<date>.json` on the digest branch over the one the day's earlier update
+  left, so what stays is the day's last; `arkiv/index.json` lists the days, kept for good (about 55 KB a day). A day
+  holds what the page showed: the composition and the lede, every story it names with the headline and summary it wore,
+  the event pages it placed or the app set in (with their places' coordinates), the quote, the Live block's stories and
+  the day's recap; Dagens historie's and the events' pictures go along as their light copies (`arkiv/img/`, the data
+  branch's own picture put in the digest branch's tree – nothing fetched). The app: 'Tidligere forsider' (a quiet row at
+  the front page's foot and 'Se forsiden fra …' under an earlier day on Udvikling, `?forsider=1`) lists the days by
+  month; a day (`?forside=<date>`, shareable) is drawn in the front page's own look (`.page.fp`, the class that replaced
+  `.page[data-tab="home"]`): the date line, Dagens historie with its picture, the lists, the event cards as of that day
+  (an event no longer followed opens as it stood: 'Som siden så ud …', its map from its own places), the quote, Live, the
+  day's recap, and the day before and after. An archived story opens in place under an id of its own.
 - **The chief editor – the fejlbog and a morning report** (2026-10-18, the owner: one more editor once a day on the
   highest setting – 'ja sæt den op kl 5'). A third Claude routine, 'Khabar · chefredaktør' (claude-opus-5-5, 05 Danish
   winter time, cron `0 4 * * *`; public prompt docs/hjerne/routine-chief-prompt.md), reviews the last day's work of the

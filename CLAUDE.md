@@ -194,6 +194,19 @@ da'wah.
   way that the editor did not place gets its card after the first block, one ahead within a week its countdown
   (`eventsUnplaced`). The fact boxes (`factBoxes`, `factCell`, `factGraphic`, `factDelta`): hairlines, no boxes, the
   first number large; a share of ten as dots, another share a meter, a number with `was` two bars and the change.
+- **The front-page archive** (18/10, the owner: 'ja lav et arkiv, men kun ved dagens sidste opdatering. så vi får et om
+  dagen'; open to every reader but quiet – my recommendation, not a tab): `editor.py publish` with a composition writes
+  the Danish day's front page (`front_snapshot`: the blocks with the stories as shown – `arch_story`: the editor's
+  headline, else the Danish, else the outlet's, a curiosity headline giving way to its teaser –, the events placed or
+  set in by the app with `geo`, the quote, the Live block's stories, the day's recap) to `arkiv/<date>.json` on the
+  digest branch over the day's earlier one, `arkiv/index.json` (`archive_index`) one row a day kept for good, and the
+  main stories' and events' light copies as `arkiv/img/<date>-<id>.jpg` (`push(…, pics)`: the data branch's blob put
+  in the digest tree by `tree_of`; a picture of the day its page no longer shows goes). The app: the side pages
+  `forsider` (`arkListPage`) and `forside` (`arkPage`, `?forside=<date>`) – the front page's pieces in its look
+  (`.page.fp` on both pages; the CSS's front-page rules use the class), archived rows under their own ids (`arkItem`,
+  `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
+  the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
+  holds the days before it.
 - **Faces in large pictures** (18/10): `thumbs.subject` keeps where a picture's face sits (`spot` in pics.json, card
   `pf`, app.json carries it); the app's `placePic` sets the picture so the face sits about a quarter from the top, and
   where it would sit under the text, the headline goes under the picture (`tx-below`).
@@ -480,7 +493,7 @@ da'wah.
   from its cache.
   Colour is minimal (the owner found section-coloured labels 'in your face') – except the front page's red accents since
   17/10 ('Forsiden bliver for monoton, brug gerne lidt rød og flere nuancer': the date, a bar before each block title, the
-  newest step, the ways on, the quote; `--red`, readable in both looks, only under `.page[data-tab="home"]`): a small section dot on mixed lists, red
+  newest step, the ways on, the quote; `--red`, readable in both looks, only under `.page.fp`): a small section dot on mixed lists, red
   only for big stories and 'live', the ochre only for the movement's text. Headlines guide the eye with bold keywords
   (who and where) instead. Block titles and day markers must never look alike.
 - **Speed rules (round 2, measured 2026-10-17, docs/hjerne/notes-r2-speed.md and notes-r2-review.md):** a reload

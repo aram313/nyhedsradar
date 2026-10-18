@@ -614,13 +614,13 @@ html.intro-short .intro-ink .ink-ring { animation-iteration-count: 1; }
 .now li.nl-day::before, .now li.nl-day + li::before { display: none; }
 .now li.nl-day { padding: 10px 16px 2px calc(16px + 44px * var(--ts, 1) + var(--s3)); font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
   text-transform: uppercase; color: var(--text-3); }
-.now li > button { display: grid; grid-template-columns: calc(44px * var(--ts, 1)) 1fr; column-gap: var(--s3); width: 100%; padding: 10px 0; color: inherit; text-align: left; }
+.now li > button, .now li > a { display: grid; grid-template-columns: calc(44px * var(--ts, 1)) 1fr; column-gap: var(--s3); width: 100%; padding: 10px 0; color: inherit; text-align: left; }
 .now time { font-size: var(--fs-meta); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); line-height: calc(16px * 1.33 * var(--ts, 1)); }
 .now span { font-size: var(--fs-body); line-height: 1.33; font-weight: 480; }
 .now span b { font-weight: 700; }
 .now em { grid-column: 2; margin-top: 3px; font-style: normal; font-size: var(--fs-meta); font-weight: 600; color: var(--text-2); }
 .now em i { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--sec); vertical-align: 1px; }
-.now li > button:active { opacity: .6; }
+.now li > button:active, .now li > a:active { opacity: .6; }
 .k-news .grp { margin-top: 20px; }
 
 /* ------------------------------------------------------------ the main story's development: newest first, with day rows */
@@ -1156,17 +1156,17 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    block's title, the newest step of a development, the ways on ('Alle ›', 'Hele udviklingen ›') and the day's quote –
    and the panels take more than one shade: Dagens historie the panel's, the developments a step deeper, the quote a
    red tint. Only on the front page; Live and Analyser keep their quiet */
-.page[data-tab="home"] .lede-d > span { color: var(--text-3); }   /* red only as the accent (18/10) */
-.page[data-tab="home"] .block-h h2::before { content: ""; flex: none; align-self: center; width: 4px; height: .8em; margin-right: -2px;
+.page.fp .lede-d > span { color: var(--text-3); }   /* red only as the accent (18/10) */
+.page.fp .block-h h2::before { content: ""; flex: none; align-self: center; width: 4px; height: .8em; margin-right: -2px;
   border-radius: 2px; background: var(--red); }
-.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all { color: var(--text-2); }
-.page[data-tab="home"] .follow li:first-child::before, .page[data-tab="home"] .pkg .follow li:first-child::before { background: var(--text); border-color: var(--text); }
-.page[data-tab="home"] .follow li:first-child time { color: var(--text); }
-.page[data-tab="home"] .fol { background: var(--fill); }   /* a step deeper than Dagens historie's panel */
-.page[data-tab="home"] .fol-row:first-child .fol-m { color: var(--text-2); }   /* the development that moved last */
-.page[data-tab="home"] .qday .quote { background: var(--pulse-soft); }
-.page[data-tab="home"] .qday .quote::before { background: var(--red); }
-.page[data-tab="home"] .qday .quote q::before { content: "»"; display: block; height: .6em; margin: -4px 0 6px; font-size: var(--fs-title); font-style: normal;
+.page.fp .more, .page.fp .tl-all { color: var(--text-2); }
+.page.fp .follow li:first-child::before, .page.fp .pkg .follow li:first-child::before { background: var(--text); border-color: var(--text); }
+.page.fp .follow li:first-child time { color: var(--text); }
+.page.fp .fol { background: var(--fill); }   /* a step deeper than Dagens historie's panel */
+.page.fp .fol-row:first-child .fol-m { color: var(--text-2); }   /* the development that moved last */
+.page.fp .qday .quote { background: var(--pulse-soft); }
+.page.fp .qday .quote::before { background: var(--red); }
+.page.fp .qday .quote q::before { content: "»"; display: block; height: .6em; margin: -4px 0 6px; font-size: var(--fs-title); font-style: normal;
   font-weight: 800; line-height: 1; color: var(--red); }
 
 /* ------------------------------------------------------------ colour on the icons (the owner, 17/10: "Tror også der skal
@@ -1195,41 +1195,41 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
    news) as a bold newspaper serif headline, the rest beneath as its rubric in the same face, and a short red rule over
    each block's title. The face is Source Serif 4 (Hizb ut-Tahrir's texts keep the phone's own serif on their ochre tint) */
 :root { --display: "Source Serif 4", "Source Serif Pro", Georgia, serif; }
-.page[data-tab="home"] .lede-d > span { letter-spacing: .04em; }
-.page[data-tab="home"] .lede-t { margin-top: 4px; font-family: var(--display); font-size: var(--fs-lead); font-weight: 400; line-height: 1.38;
+.page.fp .lede-d > span { letter-spacing: .04em; }
+.page.fp .lede-t { margin-top: 4px; font-family: var(--display); font-size: var(--fs-lead); font-weight: 400; line-height: 1.38;
   letter-spacing: 0; color: var(--text-2); font-variation-settings: "opsz" 20; }
-.page[data-tab="home"] .lede-t .lede-h { display: block; margin-bottom: 8px; font-size: var(--fs-title); font-weight: 700; line-height: 1.14;
+.page.fp .lede-t .lede-h { display: block; margin-bottom: 8px; font-size: var(--fs-title); font-weight: 700; line-height: 1.14;
   letter-spacing: -.012em; color: var(--text); font-variation-settings: "opsz" 60; }
-.page[data-tab="home"] .lede-t a.lede-a { text-decoration-thickness: 1px; text-underline-offset: .18em; }
+.page.fp .lede-t a.lede-a { text-decoration-thickness: 1px; text-underline-offset: .18em; }
 /* every block alike on the front page (the owner, 18/10: 'alle kort skal se ens ud'): Dagens historie and the other
    main blocks without a card of their own – the small red label, the picture large, the serif headline under it, as
    the lists (app.js homeTop, composedHome) */
 .lede.merged { padding-bottom: 0; }
-.page[data-tab="home"] .block.top { margin: 8px 0 0; padding: 0; border-radius: 0; background: none; }
+.page.fp .block.top { margin: 8px 0 0; padding: 0; border-radius: 0; background: none; }
 /* less air (the owner, 18/10: 'Strammere luft'): the first block close under the date, the blocks a fifth closer */
-.page[data-tab="home"] .block { margin-top: 22px; }
-.page[data-tab="home"] .lede.merged { padding-top: 10px; }
+.page.fp .block { margin-top: 22px; }
+.page.fp .lede.merged { padding-top: 10px; }
 /* Dagens historie the way in (the owner, 18/10: 'Dagens historie større'): built as every block, its headline larger –
    the one difference */
-.page[data-tab="home"] .pkg.merged .story.fl .h { font-size: var(--fs-title); line-height: 1.14; font-weight: 700; letter-spacing: -.012em;
+.page.fp .pkg.merged .story.fl .h { font-size: var(--fs-title); line-height: 1.14; font-weight: 700; letter-spacing: -.012em;
   font-variation-settings: "opsz" 60; }
-.page[data-tab="home"] .block.top .block-h { padding-left: 16px; }
-.page[data-tab="home"] .block.top .row, .page[data-tab="home"] .block.top .x-in { padding-left: var(--s4); padding-right: var(--s4); }
-.page[data-tab="home"] .block.top .story.open { border-radius: 0; }
-.page[data-tab="home"] .block.top .story + .story::before { left: 16px; right: 16px; }
+.page.fp .block.top .block-h { padding-left: 16px; }
+.page.fp .block.top .row, .page.fp .block.top .x-in { padding-left: var(--s4); padding-right: var(--s4); }
+.page.fp .block.top .story.open { border-radius: 0; }
+.page.fp .block.top .story + .story::before { left: 16px; right: 16px; }
 /* the Economist's restraint (the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'):
    red only for the short rule and the block's label; no word set bold in a headline; a quiet grey line under it
    without the section's coloured dot; a standfirst in the serif under a block's headline; the photographs calm – a
    little colour, soft contrast, no grain */
-.page[data-tab="home"] .story .h b, .page[data-tab="home"] .now li b { font-weight: inherit; }
-.page[data-tab="home"] .m .sec { display: none; }
-.page[data-tab="home"] .m .src { font-weight: 500; }
+.page.fp .story .h b, .page.fp .now li b { font-weight: inherit; }
+.page.fp .m .sec { display: none; }
+.page.fp .m .src { font-weight: 500; }
 .dek { display: block; margin-top: 5px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.4; color: var(--text-2);
   text-wrap: pretty; font-variation-settings: "opsz" 20; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .pkg.merged .dek { -webkit-line-clamp: 3; }   /* a standfirst is short: two lines, Dagens historie three */
 .story.open .dek { display: none; }   /* opened, the summary says it whole – never the same sentence twice */
-.page[data-tab="home"] .f-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
-.page[data-tab="home"] .story.open .f-pic img { filter: grayscale(.45) contrast(1.04); }
+.page.fp .f-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
+.page.fp .story.open .f-pic img { filter: grayscale(.45) contrast(1.04); }
 .f-svar-b .f-svar { margin-top: 6px; }   /* the movement's answer right under its label (app.js movementBlock) */
 /* the markets as a small table of four, two a row, each its name small over its figure (app.js marketsLine) */
 .mk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; margin: 2px 16px 0; color: var(--text); text-decoration: none; }
@@ -1241,12 +1241,12 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .mk-grid:active { opacity: .6; }
 .mk-t { margin: 2px 16px 0; font-size: var(--fs-meta); color: var(--text-3); }
 /* the calendar on the front page in the page's two voices: the day in the serif, the kind of event without its colour */
-.page[data-tab="home"] .ce .cd b { font-family: var(--display); font-weight: 600; letter-spacing: 0; font-variation-settings: "opsz" 48; }
-.page[data-tab="home"] .ce .ck i, .page[data-tab="home"] .ce .ck-d { display: none; }
+.page.fp .ce .cd b { font-family: var(--display); font-weight: 600; letter-spacing: 0; font-variation-settings: "opsz" 48; }
+.page.fp .ce .ck i, .page.fp .ce .ck-d { display: none; }
 /* the foot: one quiet line in the serif under a short rule – what Khabar read and chose */
-.page[data-tab="home"] .foot { position: relative; margin-top: 30px; padding-top: 22px; font-family: var(--display); font-style: italic;
+.page.fp .foot { position: relative; margin-top: 30px; padding-top: 22px; font-family: var(--display); font-style: italic;
   font-size: var(--fs-small); color: var(--text-3); }
-.page[data-tab="home"] .foot::before { content: ""; position: absolute; top: 0; left: 50%; width: 32px; height: 1px; margin-left: -16px; background: var(--line); }
+.page.fp .foot::before { content: ""; position: absolute; top: 0; left: 50%; width: 32px; height: 1px; margin-left: -16px; background: var(--line); }
 /* ------------------------------------------------------------ Begivenheder: the event pages and their front modules
    (the owner, 18/10: 'faktabokse og begivenheds sider … gør vores forside livlig'): a magazine's feature in the app's two
    voices – the serif for the title, the numbers and the article, the sans for labels; red for the label, the live mark and
@@ -1259,7 +1259,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .ev-state { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em;
   text-transform: uppercase; color: var(--text-2); }
 .ev-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-2); }
-.page[data-tab="begivenhed"] .ev-state.live i, .page[data-tab="home"] .ev-state.live i { background: var(--red); }
+.page[data-tab="begivenhed"] .ev-state.live i, .page.fp .ev-state.live i { background: var(--red); }
 .ev-title { margin: 8px 0 0; font-family: var(--display); font-size: calc(var(--fs-title) * 1.12); font-weight: 700; line-height: 1.1;
   letter-spacing: -.015em; text-wrap: balance; font-variation-settings: "opsz" 60; }
 .ev-dek { margin: 10px 0 0; font-family: var(--display); font-size: var(--fs-lead); line-height: 1.4; color: var(--text-2); text-wrap: pretty; }
@@ -1333,7 +1333,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* the days to an event ahead */
 .nt { display: flex; align-items: center; gap: 16px; width: 100%; padding: 4px 16px 0; text-align: left; color: var(--text); }
 .nt-n { flex: none; min-width: 64px; font-family: var(--display); font-size: calc(var(--fs-title) * 1.7); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.page[data-tab="home"] .nt-n { color: var(--red); }
+.page.fp .nt-n { color: var(--red); }
 .nt-n small { display: block; margin-top: 2px; font-family: var(--sans); font-size: var(--fs-meta); font-weight: 600; color: var(--text-3); }
 .nt-t { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .nt-t b { font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.25; }
@@ -1342,7 +1342,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .nt:active { opacity: .6; }
 /* a story of an event: the way to its page, first under the opened story */
 .ev-mini .ev-dot { width: 7px; height: 7px; margin-right: 2px; border-radius: 50%; background: var(--text-2); }
-.page[data-tab="home"] .ev-mini .ev-dot, .page[data-tab="latest"] .ev-mini .ev-dot { background: var(--red); }
+.page.fp .ev-mini .ev-dot, .page[data-tab="latest"] .ev-mini .ev-dot { background: var(--red); }
 /* the great pictures (the owner, 18/10: 'billederne til store begivenheder burde have tekst på i bunden med en sort fade i
    bunden til at fremhæve teksten, samme på dagens nyhed'): Dagens historie's picture inset with round corners, its
    headline in the serif on the dark fade, its standfirst under it; the calm treatment of the page (a little colour, soft
@@ -1350,12 +1350,12 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .pkg.merged .story.lp .row { background: none; }
 .pkg.merged .story.lp .lead-pic { width: auto; margin: 0; border-radius: 12px; }   /* the row gives the 16 px */
 .pkg.merged .story.lp .row > .tx { left: 30px; right: 30px; bottom: 16px; }
-.page[data-tab="home"] .pkg.merged .story.lp .tx .h { font-size: var(--fs-title); line-height: 1.12; letter-spacing: -.012em; }
-.page[data-tab="home"] .lead-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
-.page[data-tab="home"] .story.lp.open .lead-pic img { filter: grayscale(.45) contrast(1.04); }
-.page[data-tab="home"] .lead-pic::before { display: none; }
+.page.fp .pkg.merged .story.lp .tx .h { font-size: var(--fs-title); line-height: 1.12; letter-spacing: -.012em; }
+.page.fp .lead-pic img { filter: grayscale(.62) contrast(1.04) brightness(.97); }
+.page.fp .story.lp.open .lead-pic img { filter: grayscale(.45) contrast(1.04); }
+.page.fp .lead-pic::before { display: none; }
 .lp-dek { margin: 10px 16px 0; }
-.page[data-tab="home"] .pkg.merged .lp-dek + .x, .pkg.merged .story.lp .lp-dek { margin-bottom: 2px; }
+.page.fp .pkg.merged .lp-dek + .x, .pkg.merged .story.lp .lp-dek { margin-bottom: 2px; }
 /* a picture whose face would sit under the text (app.js placePic): the text goes under the picture, on the page */
 .story.lp.tx-below .lead-pic::after { display: none; }
 .story.lp.tx-below .row > .tx, .pkg.merged .story.lp.tx-below .row > .tx { position: static; padding: 10px 0 0; text-shadow: none; }
@@ -1370,9 +1370,9 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .ev-hero.tx-below .ev-over .ev-ct, .ev-hero.tx-below .ev-over h1.ev-ct { color: var(--text); }
 .ev-hero.tx-below .ev-over .ev-state { color: var(--text-2); }
 .ev-hero.tx-below .ev-over .ev-state i { background: var(--text-2); }
-.page[data-tab="home"] .ev-hero.tx-below .ev-state.live i, .page[data-tab="begivenhed"] .ev-hero.tx-below .ev-state.live i { background: var(--red); }
+.page.fp .ev-hero.tx-below .ev-state.live i, .page[data-tab="begivenhed"] .ev-hero.tx-below .ev-state.live i { background: var(--red); }
 /* the small square pictures of the rows (Kort nyt, the lists): calm like the large */
-.page[data-tab="home"] .th img, .page[data-tab="begivenhed"] .th img { filter: grayscale(.62) contrast(1.04); }
+.page.fp .th img, .page[data-tab="begivenhed"] .th img { filter: grayscale(.62) contrast(1.04); }
 /* an event's picture with its state and title on the dark fade: the card on the front page and the page's head */
 .ev-hero { position: relative; display: block; overflow: hidden; aspect-ratio: 16 / 9; max-height: 42vh; background: var(--fill-2); }
 .ev-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; filter: grayscale(.62) contrast(1.04) brightness(.97); }
@@ -1405,16 +1405,16 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .kf-d { display: inline-flex; align-items: baseline; gap: 4px; margin-top: 8px; font-style: normal; font-size: var(--fs-meta); font-weight: 700;
   font-variant-numeric: tabular-nums; color: var(--text); }
 .kf-d i { font-style: normal; font-size: var(--fs-cap); }
-.page[data-tab="begivenhed"] .kf-d.up i, .page[data-tab="home"] .kf-d.up i { color: var(--red); }
+.page[data-tab="begivenhed"] .kf-d.up i, .page.fp .kf-d.up i { color: var(--red); }
 /* a share of ten: ten dots, the share filled */
 .kf-dots { display: flex; gap: 6px; margin-top: 12px; }
 .kf-dots i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--text-3); }
 .kf-dots i.on { box-shadow: none; background: var(--text); }
-.page[data-tab="begivenhed"] .kf-dots i.on, .page[data-tab="home"] .kf-dots i.on { background: var(--red); }
+.page[data-tab="begivenhed"] .kf-dots i.on, .page.fp .kf-dots i.on { background: var(--red); }
 /* any other share: a thin meter */
 .kf-meter { position: relative; display: block; align-self: stretch; height: 6px; margin-top: 12px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .kf-meter i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--text); }
-.page[data-tab="begivenhed"] .kf-meter i, .page[data-tab="home"] .kf-meter i { background: var(--red); }
+.page[data-tab="begivenhed"] .kf-meter i, .page.fp .kf-meter i { background: var(--red); }
 /* the number before and now: two thin bars, their values at the end */
 .kf-bars { display: grid; gap: 8px; align-self: stretch; margin-top: 12px; }
 .kf-bars > span { display: grid; grid-template-columns: 4.6em 1fr 4.2em; align-items: center; gap: 10px; font-size: var(--fs-meta); color: var(--text-3); }
@@ -1424,7 +1424,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .kf-bars > span > span { text-align: right; font-variant-numeric: tabular-nums; }
 .kf-bars .kf-now { color: var(--text); font-weight: 650; }
 .kf-bars .kf-now i { background: var(--text); }
-.page[data-tab="begivenhed"] .kf-bars .kf-now i, .page[data-tab="home"] .kf-bars .kf-now i { background: var(--red); }
+.page[data-tab="begivenhed"] .kf-bars .kf-now i, .page.fp .kf-bars .kf-now i { background: var(--red); }
 /* the bars and the meter draw out once when the page is made (a keyframe on insertion: a patch keeps them drawn) */
 @media (prefers-reduced-motion: no-preference) {
   .kf-bars i, .kf-meter i { transform-origin: left center; animation: kf-grow .9s cubic-bezier(.2, .7, .2, 1) .15s both; }
@@ -1441,25 +1441,25 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .pkg.merged > .of-main { display: none; }
 .pkg.merged:has(> .story.open) > .of-main { display: block; }
 /* the block titles: a short red rule above, not a bar beside */
-.page[data-tab="home"] .block-h h2 { position: relative; padding-top: 9px; }
-.page[data-tab="home"] .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }
+.page.fp .block-h h2 { position: relative; padding-top: 9px; }
+.page.fp .block-h h2::before { position: absolute; top: 0; left: 0; width: 26px; height: 3px; margin: 0; border-radius: 0; }
 /* the paper's way (the owner, 18/10: 'Avisens typografi', 'Billeder med mening'): two voices – the serif for headlines,
    the sans for the rest. A block's title is a small red label under its rule (as Økonomi's fly titles); its first story
    is its headline in the serif, with the outlet's own picture large above it when it has one; the other stories are
    plain lines without small pictures (app.js composedHome) */
-.page[data-tab="home"] .block-h h2 { padding-top: 12px; font-size: var(--fs-cap); font-weight: 750; line-height: 1.2; letter-spacing: .07em;
+.page.fp .block-h h2 { padding-top: 12px; font-size: var(--fs-cap); font-weight: 750; line-height: 1.2; letter-spacing: .07em;
   text-transform: uppercase; color: var(--red); }
-.page[data-tab="home"] .block-h { min-height: 40px; }
-.page[data-tab="home"] .story.fl .h { font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.24;
+.page.fp .block-h { min-height: 40px; }
+.page.fp .story.fl .h { font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.24;
   letter-spacing: -.01em; font-variation-settings: "opsz" 32; }
-.page[data-tab="home"] .story.fl .h b { font-weight: 700; }
+.page.fp .story.fl .h b { font-weight: 700; }
 .story.fp .row { flex-wrap: wrap; }
 .f-pic { order: -1; flex: 0 0 100%; position: relative; display: block; aspect-ratio: 16 / 9; max-height: 34vh; margin-bottom: 2px;
   border-radius: 12px; overflow: hidden; background: var(--fill-2); }
 .f-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: var(--press); }
 /* Dagens historie's headline on its picture in the same serif */
-.page[data-tab="home"] .story.lp .tx .h { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; font-variation-settings: "opsz" 48; }
-.page[data-tab="home"] .story.lp .tx .h b { font-weight: 700; }
+.page.fp .story.lp .tx .h { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; font-variation-settings: "opsz" 48; }
+.page.fp .story.lp .tx .h b { font-weight: 700; }
 
 /* ------------------------------------------------------------ Kalender (17/10, the owner: "en kalender, som viser
    fremtidige begivenheder … Og den skal have en fane for sig selv"): in the front page's Economist manner – a red fly
@@ -1521,7 +1521,7 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .cal-none { margin: 2px 16px 0 72px; font-size: var(--fs-small); color: var(--text-3); }
 .cal-past { margin-top: var(--s5); }
 .cal-pb small { font-weight: 500; color: var(--text-3); }
-.page[data-tab="home"] .ce .cw { color: var(--text-2); font-weight: 700; }
+.page.fp .ce .cw { color: var(--text-2); font-weight: 700; }
 
 /* the answer reader's and a wiki page's sections (18/10, the owner: 'bedre opdeling især under begreber, så måske at
    overskrifter skrives med rødt'): red, with more room above, so each part stands apart */
@@ -1541,3 +1541,32 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 /* 'Nyhed' (18/10): one story on a page of its own, reached from another page, with the bar's way back */
 .nyhed-one { margin-top: 8px; }
 .nyhed-live { margin-top: 12px; }
+
+/* ------------------------------------------------------------ Arkiv (18/10): the front page of every day, kept at its last update */
+.ark-head { padding: var(--s3) var(--s4) var(--s1); }
+.ark-head h1 { margin: 0; font-family: var(--display); font-size: var(--fs-title); font-weight: 700; line-height: 1.14; letter-spacing: -.012em; }
+.ark-head p { margin: 6px 0 0; font-size: var(--fs-small); line-height: 1.4; color: var(--text-2); text-wrap: pretty; }
+.ark-list { margin: 0; }
+.ark-row { position: relative; display: flex; align-items: flex-start; gap: var(--s3); padding: 12px 16px; color: inherit; text-decoration: none; }
+.ark-row + .ark-row::before { content: ""; position: absolute; top: 0; left: 72px; right: 0; border-top: 1px solid var(--line); }
+.ark-row:active { opacity: .6; }
+.ark-row .cd { padding-top: 1px; }
+.ark-x { flex: 1; min-width: 0; }
+.ark-x b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: var(--fs-body); font-weight: 650;
+  line-height: 1.3; letter-spacing: -.005em; }
+.ark-x span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: 4px; font-size: var(--fs-small);
+  line-height: 1.38; color: var(--text-2); }
+.ark-pic { flex: none; width: 64px; height: 64px; overflow: hidden; border-radius: 12px; background: var(--fill); }
+.ark-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ark-when { margin: 2px 0 0; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+.ark-top { padding-bottom: 4px; }
+.ark-rec .ov-body { margin: 4px 12px 0; }
+.ark-nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); margin: 32px 16px 8px; }
+.ark-step { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 12px; color: inherit; text-decoration: none; }
+.ark-step.nx { text-align: right; }
+.ark-step small { font-size: var(--fs-cap); font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+.ark-step b { font-size: var(--fs-small); font-weight: 650; line-height: 1.3; }
+.ark-step:active { opacity: .6; }
+.ark-q { margin-top: var(--s3); }
+.ev-was { margin: 6px 0 0; font-size: var(--fs-meta); font-style: italic; color: var(--text-3); }

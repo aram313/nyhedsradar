@@ -59,7 +59,7 @@ def test_red_is_used_only_for_live_big_and_new():
     # review of 2026-10-17: the stale box, search marks, the switches, the focus ring and the offline logo were red
     # and since 17/10 the front page's accents (the owner: "Forsiden bliver for monoton, brug gerne lidt rød")
     allowed = ('.logo', '.block-h .live', '.m .big', '.nd', '.tab-dot', '.live-dot', '.story.fresh', 'li.new', '.intro', ':root',
-               '.page[data-tab="home"]', '.page[data-tab="kalender"]', '.page[data-tab="begivenhed"]',
+               '.page.fp', '.page[data-tab="kalender"]', '.page[data-tab="begivenhed"]',
                '.page[data-tab="latest"] .story.tick.w3')
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         sel, decl = ' '.join(m.group(1).split()), m.group(2)
@@ -130,7 +130,8 @@ def test_one_time_format_and_one_word_set():
 
 
 def test_deep_links_skip_the_intro_and_name_the_page_in_view():
-    assert "['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender'].some(k => q.has(k))" in INDEX
+    assert ("['item', 'nye', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender', 'begivenhed', 'forside', 'forsider']"
+            ".some(k => q.has(k))") in INDEX
     assert "if (deep || (seen && away < 6 * 3600e3)) d.classList.add('intro-skip')" in INDEX
     assert "`forlob=${encodeURIComponent(arg)}`" in CODE and "openSide('threads', params.get('forlob'))" in CODE
 
@@ -140,7 +141,7 @@ def test_deep_links_skip_the_intro_and_name_the_page_in_view():
 def test_the_share_sends_the_editors_sentence_and_the_way_back():
     share = fn('shareText')
     assert 'sumOf(d)' in share and 'firstSentence(ed && ed.text)' in share and 'cleanTeaser(d.summary' in share
-    assert 'via ${itemUrl(d.id)}' in share and "const itemUrl = id => `khabar.nu/?item=" in CODE
+    assert 'via ${d.ark ? `khabar.nu/?forside=${d.ark}` : itemUrl(d.id)}' in share and "const itemUrl = id => `khabar.nu/?item=" in CODE
     assert 'asShown(el)' in CODE.split('async function onTap(e) {')[1].split('\n')[1]
     assert "$('list').addEventListener('click', onTap);" in CODE
 
@@ -345,9 +346,9 @@ def test_no_ids_no_prompts_and_no_claude():
 def test_the_front_page_has_its_red_accents_in_a_readable_red():
     # since 18/10 (the owner: 'tænker mere economist ikke ekstrabladet' – 'Rød kun som accent') only the short rule and
     # the block's label are red; the date and the links are grey
-    for sel in ('.page[data-tab="home"] .block-h h2::before', '.page[data-tab="home"] .block-h h2'):
+    for sel in ('.page.fp .block-h h2::before', '.page.fp .block-h h2'):
         assert re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
-    for sel in ('.page[data-tab="home"] .lede-d > span', '.page[data-tab="home"] .more, .page[data-tab="home"] .tl-all'):
+    for sel in ('.page.fp .lede-d > span', '.page.fp .more, .page.fp .tl-all'):
         assert not re.search(re.escape(sel) + r' \{[^}]*var\(--red\)', RULES), sel
     # the readable red only on the front page, the chosen tab's icon (17/10) and the Kalender tab's Economist accents (its
     # fly title, its block titles' rule and the dot of an event in the next 48 hours)
@@ -358,7 +359,7 @@ def test_the_front_page_has_its_red_accents_in_a_readable_red():
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', RULES):
         if 'var(--red)' in m.group(2):
             sel = m.group(1)
-            assert '.page[data-tab="home"]' in sel or '.tabs button[aria-selected="true"] > svg' in sel or any(c in sel for c in calendar), sel
+            assert '.page.fp' in sel or '.tabs button[aria-selected="true"] > svg' in sel or any(c in sel for c in calendar), sel
 
 
 def test_the_whole_english_text_is_one_tap_away():

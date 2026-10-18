@@ -100,7 +100,8 @@ with one tap (no code to send).
    (`scripts/voice.py`: the content rules and no curiosity headline), fills in links, sources and times and writes
    `digest.json` (the day), `moves.json` (the last 30 days), `summaries.json` (summaries and headlines), `live.json`
    (the level), `front.json` (the composition) and, for a new answer of the amir's, `answers.json` to the digest
-   branch. The look also calls the editor when stories wait for their headline (8 of them, or one for 45 minutes).
+   branch, and the day's front page into the archive (`arkiv/<date>.json`, written over by every later update of the
+   day, so the day's last update stays – one front page a day, kept for good; the app's 'Tidligere forsider'). The look also calls the editor when stories wait for their headline (8 of them, or one for 45 minutes).
 11. The result is written to `data.json` (every candidate, for the editor), `app.json` (what the app shows), `search.json` (everything read in the last two days,
    for the app's search), `lines.json` and `analyses.json` (the text of the amir's newest answers) on the `data`
    branch. The app (`public/`, published to GitHub Pages by `pages.yml`) reads those files and the editor's files from

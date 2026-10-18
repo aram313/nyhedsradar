@@ -37,7 +37,7 @@ const GROUP_SHORT = { dk: ['dansk', 'danske'], west: ['vestligt', 'vestlige'], m
 const GROUP_ORDER = ['dk', 'west', 'mena', 'il', 'east', 'official', 'channel', 'bevægelsen'];
 const LANG = { ar: 'arabisk', tr: 'tyrkisk', en: 'engelsk', da: 'dansk' };
 const TITLES = { home: 'Khabar.nu', latest: 'Live', kalender: 'Kalender', okonomi: 'Økonomi', analyses: 'Analyser', search: 'Søg', threads: 'Udvikling', svar: 'Svar',
-  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt', nyhed: 'Nyhed', begivenhed: 'Begivenhed' };
+  begreb: 'Leksikon', begreber: 'Leksikon', gemt: 'Gemt', nyhed: 'Nyhed', begivenhed: 'Begivenhed', forsider: 'Arkiv', forside: 'Arkiv' };
 // the tab whose options the dock above the tabs shows (paintOpts)
 let dockTab = '';
 // the small pictures live next to data.json on the data branch
@@ -45,6 +45,10 @@ const THUMBS = CFG.thumbUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 't/'
 // the large pictures' light copies (the radar's thumbs.large, state/l/ on the data branch – the owner, 18/10: 'Billederne
 // tager alt for lang tid at loade'): about a twentieth of an outlet's original, the original kept as the fallback
 const LIGHT = THUMBS.replace(/t\/$/, 'l/');
+// the front-page archive (the owner, 18/10: 'ja lav et arkiv, men kun ved dagens sidste opdatering. så vi får et om
+// dagen'): one front page a day on the digest branch – arkiv/index.json, arkiv/<date>.json, Dagens historie's picture
+// in arkiv/img/ (scripts/editor.py front_snapshot)
+const ARK = CFG.arkivUrl || (CFG.digestUrl ? CFG.digestUrl.replace(/digest\.json$/, 'arkiv/') : '');
 
 const RAW = { news: rawOf('lastData'), digest: rawOf('lastDigest'), sums: rawOf('lastSummaries'), front: rawOf('lastFront'), moves: rawOf('lastMoves') };
 idle(() => { try { localStorage.removeItem('lastSums'); localStorage.removeItem('lastTitles'); } catch { /* nothing kept */ } });   // the old copies (before 17/10)
@@ -102,7 +106,7 @@ function learnFrom(i, kind) {
     readSent.add(i.id); store.set('readSent', [...readSent].slice(-300));
   }
   fetch('https://ntfy.sh/' + CFG.feedbackTopic, {
-    method: 'POST', body: JSON.stringify({ kind, id: i.id, title: i.origTitle || i.title, summary: (i.origSummary || i.summary || '').slice(0, 220), ...(adminKey ? { me: 1 } : {}) }),
+    method: 'POST', body: JSON.stringify({ kind, id: i.sid || i.id, title: i.origTitle || i.title, summary: (i.origSummary || i.summary || '').slice(0, 220), ...(adminKey ? { me: 1 } : {}) }),
   }).catch(() => { /* offline: nothing lost but a hint */ });
 }
 
@@ -507,15 +511,18 @@ const VFILES = {
   plc: () => CFG.placesUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'places.json'),
   // the front page's markets line: Økonomi's numbers (energy.json, 42 KB packed), asked for once the page is drawn
   eco: () => CFG.energyUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'energy.json'),
+  // the front-page archive's days (a day itself is 'fs:<date>', fileOf); a past day never changes
+  ark: () => ARK && ARK + 'index.json',
 };
+const fileOf = k => VFILES[k] ? VFILES[k]() : k.startsWith('fs:') && ARK ? ARK + k.slice(3) + '.json' : '';
 // the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3, plc: 3 * 60e3 };
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3, plc: 3 * 60e3, ark: 30 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
   if (x.state === 'loading') return x.v;
   if (x.state === 'idle' || (x.state === 'ok' ? VFRESH[k] && age > VFRESH[k] : age > 10 * 60e3)) {
-    const url = VFILES[k]();
+    const url = fileOf(k);
     if (!url) { x.state = 'error'; x.at = Date.now(); return x.v; }
     x.state = 'loading';
     // a file asked for again that has not changed (the answers every quarter of an hour) draws nothing again
@@ -534,7 +541,8 @@ function vLoaded(k) {
   // (search and Gemt too: a search's answers found through the wiki come with its whole file, a saved answer with the index)
   const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'],
     ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], evt: ['home', 'begivenhed', 'latest'], plc: ['begivenhed'], txt: ['analyses', 'svar'], mfull: ['svar'],
-    bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'] }[k] || [];
+    bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'],
+    ark: ['forsider', 'forside', 'home', 'threads'] }[k] || (k.startsWith('fs:') ? ['forside', 'begivenhed'] : []);
   if (k === 'cal' || k === 'kal') calGen++;   // the merged calendar is worked out again
   if (k === 'bix' && busy) { redrawAfterLoad = true; return; }   // the news are on their way: their drawing takes the links along
   if (pages.length) redrawPages(pages);
@@ -845,7 +853,7 @@ function carryOver(before, after) {
   }
 }
 const firstFound = i => (carried.get(i.id) || {}).found || i.found;
-const isNew = i => lastSeen && firstFound(i) && new Date(firstFound(i)).getTime() > lastSeen && !shared[i.id];
+const isNew = i => !i.ark && lastSeen && firstFound(i) && new Date(firstFound(i)).getTime() > lastSeen && !shared[i.id];
 let cache = null;
 let titlesVer = 0;
 function stories() {
@@ -869,7 +877,7 @@ const findStory = id => id && (find(id) || stories().find(i => (i.members || [])
 const itemUrl = id => `khabar.nu/?item=${encodeURIComponent(id)}`;
 function shareText(d) {
   const ed = sumOf(d), first = firstSentence(ed && ed.text) || firstSentence(cleanTeaser(d.summary, d.title));
-  return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}\n\nvia ${itemUrl(d.id)}`;
+  return `*${d.title}*\n${first ? first + '\n' : ''}${d.link}\n\nvia ${d.ark ? `khabar.nu/?forside=${d.ark}` : itemUrl(d.id)}`;
 }
 
 // ---------------------------------------------------------------- render: one story
@@ -906,7 +914,7 @@ function picSrc(url) {
     for (const e of events()) if (e.pl && e.pic && !lightOf.has(e.pic)) lightOf.set(e.pic, LIGHT + e.pl);
     lightVer = ver;
   }
-  return lightOf.get(url) || url;
+  return lightOf.get(url) || arkLight.get(url) || url;
 }
 // a light copy that is gone (its story left the strongest): the original instead; the original failing is a failure
 function picFallback(img, failed) {
@@ -1028,7 +1036,7 @@ function story(i, n, opts = {}) {
   // Dagens historie's picture: large above its headline (opts.pic, from leadPic); one that fails leaves the text lead
   const lp = opts.lead && opts.pic ? `<span class="lead-pic" aria-hidden="true"><img src="${esc(picSrc(opts.pic))}" data-orig="${esc(opts.pic)}" alt="" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" onerror="picFallback(this, leadPicFailed)"${pfAttr(i.pf)}${placed ? ` style="object-position:${placed.pos}"` : ''} onload="placePic(this)"></span>`
     : opts.fpic ? `<span class="f-pic" aria-hidden="true"><img src="${esc(opts.fpic)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '';
-  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}" data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
+  return `<article class="${cls}" id="s-${esc(i.id)}" data-id="${esc(i.id)}"${i.ark ? ` data-ark="${esc(i.ark)}"` : ''} data-sec="${secOf(i)}"${opts.tag ? ' data-tag="1"' : ''}${opts.msec ? ` data-msec="${opts.msec}"` : ''}${opts.clock ? ' data-clock="1"' : ''}${opts.top ? ' data-top="1"' : ''}${opts.home ? ' data-home="1"' : ''}>
     <div class="row"><button class="hit" data-toggle aria-expanded="${open}" aria-label="${esc(rowLabel(i, opts))}"></button>${lp}${opts.tick ? `<time class="tt" aria-hidden="true">${isNew(i) ? '<i class="nd"></i>' : ''}${clock(i.published || i.found)}</time>` : ''}<span class="tx"${open ? '' : ' aria-hidden="true"'}><span class="h" dir="auto">${headHtml(i, open)}</span>${opts.fl && !open ? dek(i) : ''}<span class="m">${meta(i, opts)}</span></span>${opts.tick ? rowSave(i) : opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '') : thumb(i.source, i.thumb)}</div>${opts.lead && opts.pic && opts.dek && !open ? dek(i, 'lp-dek') : ''}
     <div class="x"><div><div class="x-in">${open ? detail(i, detailOpts(i, opts)) : ''}</div></div></div></article>`;
 }
@@ -1067,12 +1075,12 @@ function heroStory(i, n, opts) {
 // the amir's answer on its subject if there is one, and two small buttons – the development it belongs to, and the other
 // outlets' headlines, folded until asked for. The headline and the summary link the wiki's pages they name (one block).
 const covOpen = new Set();
-const sumOf = i => [i.id, ...(i.also || []).map(a => a.id)].map(k => sums[k]).find(Boolean);
+const sumOf = i => i.ed || [i.id, ...(i.also || []).map(a => a.id)].map(k => sums[k]).find(Boolean);   // an archived story keeps its own
 // an opened story is one block: its headline and its summary share the three links (the headline's are counted first)
 const headHtml = (i, open) => open ? rich(i.title, linkSession(), i.kw) : bold(i.title, i.kw);
 // the main story may wear a Danish outlet's headline: opening it later links the words it shows
 const shownAs = new Map();
-const asShown = el => (el.dataset.home && shownAs.get(el.dataset.id)) || find(el.dataset.id);
+const asShown = el => (el.dataset.ark && arkItem(el.dataset.ark, el.dataset.id)) || (el.dataset.home && shownAs.get(el.dataset.id)) || find(el.dataset.id);
 const storySession = i => { const s = linkSession(); pickLinks(i.title, s); return s; };
 function detail(i, o = {}) {
   const ed = sumOf(i), text = ed ? ed.text : i.summary;
@@ -1109,8 +1117,8 @@ const OIL = /\b(?:olie\w*|benzin\w*|diesel\w*|brændstof\w*|brent|opec\w*|hormuz
 const energyRow = () => '<a class="qrow" href="?tab=okonomi" data-okonomi><span>Olie og brændstof – priser nu</span><svg><use href="#i-chev"/></svg></a>';
 const oilRow = text => (OIL.test(text || '') ? energyRow() : '');
 function moreRow(i) {
-  const ev = eventFor(i), evRow = ev ? `<button class="mini ev-mini" data-event="${esc(ev.id)}"><span class="ev-dot" aria-hidden="true"></span><span>Begivenhed: ${esc(ev.title)}</span><svg class="go"><use href="#i-chev"/></svg></button>` : '';
-  const t = threadFor(i), n = (i.outlets || 1) - 1;
+  const ev = !i.ark && eventFor(i), evRow = ev ? `<button class="mini ev-mini" data-event="${esc(ev.id)}"><span class="ev-dot" aria-hidden="true"></span><span>Begivenhed: ${esc(ev.title)}</span><svg class="go"><use href="#i-chev"/></svg></button>` : '';
+  const t = !i.ark && threadFor(i), n = (i.outlets || 1) - 1;
   const follow = t ? `<button class="mini" data-follow="${t.key}"><svg class="ic"><use href="#i-thread"/></svg><span>Udvikling: ${esc(t.name)}</span><svg class="go"><use href="#i-chev"/></svg></button>` : '';
   const cov = (i.also || []).length ? `<button class="mini${covOpen.has(i.id) ? ' on' : ''}" data-cov aria-expanded="${covOpen.has(i.id)}">Andre medier<em>${n}</em><svg class="chev"><use href="#i-chev"/></svg></button>` : '';
   return evRow || follow || cov ? `<div class="mini-row">${evRow}${follow}${cov}</div>` : '';
@@ -1157,7 +1165,8 @@ const dayOpen = new Set();     // topics opened beyond their first lines: '<date
 const daysOpen = new Set();    // earlier days opened in the archive
 function findDay(date) {
   const d = dayOf(digest);
-  return d && d.date === date ? d : ((moves && moves.days) || []).map(dayOf).find(x => x && x.date === date);
+  return (d && d.date === date ? d : ((moves && moves.days) || []).map(dayOf).find(x => x && x.date === date))
+    || (arkSnap(date) && arkSnap(date).day ? dayOf(arkSnap(date).day) : null);
 }
 // one line: the time at the left (a line from before midnight says so), who in bold, then what – the whole line
 // opens the source; lines that came while the user was away get a small dot
@@ -1217,7 +1226,7 @@ function archive() {
     return `<article class="arch${open ? ' open' : ''}" data-arch="${esc(day.date)}">
       <button class="arch-row" data-arch-toggle aria-expanded="${open}"><span><b>${cap(dateDa(day.date, true))}</b>
       <small>${updWord(n)} · ${day.topics.length} ${day.topics.length === 1 ? 'udvikling' : 'udviklinger'}</small></span><svg aria-hidden="true"><use href="#i-chev"/></svg></button>
-      ${open ? dayBody(day) : ''}</article>`;
+      ${open ? dayBody(day) + arkLinkFor(day.date) : ''}</article>`;
   }).join('') + (list.length > 3 && !archAll ? `<button class="qbtn" data-arch-all>Vis flere dage (${list.length - 3})</button>` : '');
 }
 
@@ -1792,7 +1801,7 @@ function homeTop(lede, body, ids) {
 // the foot: what Khabar read and chose (the prices live in the Økonomi tab)
 function homeFoot(all) {
   const src = Object.keys(data.sources || {}).length, day = all.filter(i => hours(i) < 24).length;
-  return `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn og valgt ${day} ud.</p>`;
+  return arkRow() + `<p class="foot">Khabar har læst ${num(data.scanned_24h)} nyheder fra ${src} kilder det seneste døgn og valgt ${day} ud.</p>`;
 }
 function home(all, opts) {
   opts = { ...opts, home: true };
@@ -2786,6 +2795,145 @@ function gemtPage() {
     + `<div class="acts know-acts"><button class="act" data-move="share"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button>`
     + `<button class="act" data-move="copy"><svg aria-hidden="true"><use href="#i-copy"/></svg>Kopiér link</button></div></div>`;
 }
+// ---------------------------------------------------------------- Arkiv: the front page of every day
+// The owner, 18/10: 'Bliver forsider snapshottet og gemt på noget tidspunkt?' – 'ja lav et arkiv, men kun ved dagens
+// sidste opdatering. så vi får et om dagen. hvordan synes du tilgængeligheden til den skal være?' Open to every reader,
+// and quiet: one row at the foot of the front page and 'Se forsiden fra …' under an earlier day on Udvikling, never a
+// tab. 'Tidligere forsider' lists the days, newest first under their months (the day large, Dagens historie's headline,
+// the rest of the lede, its picture small); a day's page draws its front page as it stood at the day's last update –
+// the date line, Dagens historie with its picture, the lists, the event cards as of that day, the quote, Live – with
+// the front page's own pieces and look (.page.fp), each story opened in place with the headline and summary it wore,
+// then the day's recap, and the ways to the day before and after. The editor's tool writes the files (editor.py
+// front_snapshot); nothing is kept on the phone. Today is the front page itself: the list holds the days before it.
+let arkDate = '';
+const arkLight = new Map(), arkShown = new Map(), arkMemo = new Map();
+const arkDays = () => ((V('ark') || {}).days || []).filter(d => d && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && d.date < dkYmd(new Date()));
+const arkSnap = date => V('fs:' + date);
+// an archived story as a row's item: the fields the front page drew it with, never new again, under an id of its own
+// (a story opened in the archive is not opened on today's front page; `sid` is the story's own); the headline a main
+// block gave it (arkShown) wins
+const arkId = (date, id) => `a${date.replace(/-/g, '')}-${id}`;
+function arkItem(date, id) {
+  id = String(id || '').replace(/^a\d{8}-/, '');
+  const st = ((arkSnap(date) || {}).stories || {})[id];
+  if (!st) return null;
+  const k = date + '|' + id;
+  if (arkShown.has(k)) return arkShown.get(k);
+  if (!arkMemo.has(k)) {
+    if (st.img && st.pic) arkLight.set(st.pic, ARK + 'img/' + st.img);
+    arkMemo.set(k, { ...st, id: arkId(date, id), sid: id, kw: [], found: st.published, ark: date });
+  }
+  return arkMemo.get(k);
+}
+// an event of an archived front page, as it stood that day (`_day`): the day open first, then the others loaded
+function arkEvent(id) {
+  id = String(id || '');
+  const days = [arkDate, ...Object.keys(vd).filter(k => k.startsWith('fs:')).map(k => k.slice(3))];
+  for (const date of days) {
+    const e = ((arkSnap(date) || {}).events || []).find(x => x && x.id === id);
+    if (e) { if (e.img && e.pic) arkLight.set(e.pic, ARK + 'img/' + e.img); return { ...e, _day: date }; }
+  }
+  return null;
+}
+const arkHas = date => arkDays().some(d => d.date === date);
+const arkDay = date => cap(dateDa(date, true));
+// the ways in: the front page's foot, and an earlier day on Udvikling
+function arkRow() {
+  need('ark');
+  return arkDays().length ? '<a class="qrow ark-q" href="?forsider=1" data-forsider><span>Tidligere forsider</span><svg aria-hidden="true"><use href="#i-chev"/></svg></a>' : '';
+}
+function arkLinkFor(date) {
+  need('ark');
+  return arkHas(date) ? `<a class="qrow ark-q" href="?forside=${esc(date)}" data-forside="${esc(date)}"><span>Se forsiden fra ${esc(dateDa(date, true))}</span><svg aria-hidden="true"><use href="#i-chev"/></svg></a>` : '';
+}
+// the lede after its first clause – Dagens historie's headline says that one already
+function arkRest(lede) {
+  const parts = ledeParts(lede);
+  return parts.length > 1 ? cap(parts.slice(1).map((x, k) => (k ? x.sep : '') + x.t).join('').replace(/^[\s,;–-]+/u, '')) : '';
+}
+const arkText = sn => `*Forsiden ${dateDa(sn.date, true)}*\n${sn.lede || ''}\n\nvia khabar.nu/?forside=${sn.date}`;
+function arkListPage() {
+  const ix = need('ark'), all = arkDays();
+  const head = '<header class="ark-head"><h1>Tidligere forsider</h1><p>Forsiden, som den så ud ved dagens sidste opdatering – én for hver dag.</p></header>';
+  if (!ix) return head + (waiting('ark') ? '<div class="skel"></div>'.repeat(5) : retry('arkivet', 'ark'));
+  if (!all.length) return head + stateBlock('empty', 'Arkivet er nyt: dagens forside lægges her, når dagen er omme.', [['Til forsiden', 'data-go="home"']]);
+  let h = head, month = '';
+  for (const d of all) {
+    if (d.date.slice(0, 7) !== month) {
+      h += (month ? '</div>' : '') + `<h2 class="grp">${esc(cap(FMT.my.format(new Date(d.date.slice(0, 7) + '-15T12:00:00'))))}</h2><div class="ark-list">`;
+      month = d.date.slice(0, 7);
+    }
+    const at = new Date(d.date + 'T12:00:00'), img = d.img ? ARK + 'img/' + d.img : '', rest = arkRest(d.lede);
+    h += `<a class="ark-row" href="?forside=${esc(d.date)}" data-forside="${esc(d.date)}" aria-label="${esc(`Forsiden ${dateDa(d.date, true)}: ${d.head || d.lede || ''}`)}">`
+      + `<span class="cd" aria-hidden="true"><b>${at.getDate()}</b><small>${esc(FMT.wd.format(at).replace('.', ''))}</small></span>`
+      + `<span class="ark-x" aria-hidden="true"><b>${esc(d.head || d.lede || '')}</b>${rest ? `<span>${esc(rest)}</span>` : ''}</span>`
+      + (img || d.pic ? `<span class="ark-pic" aria-hidden="true"><img src="${esc(img || d.pic)}" data-orig="${esc(d.pic || '')}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="picFallback(this, i => i.parentNode.remove())"></span>` : '') + '</a>';
+  }
+  return h + '</div>';
+}
+function arkPage() {
+  const date = arkDate, sn = date ? need('fs:' + date) : null;
+  need('ark');
+  if (!sn) {
+    if (waiting('fs:' + date)) return '<div class="skel"></div>'.repeat(5);
+    return V('ark') && !arkHas(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)
+      ? stateBlock('gone', 'Arkivet har ingen forside fra den dag.', [['Tidligere forsider', 'data-forsider']])
+      : retry('forsiden', 'fs:' + date);
+  }
+  const used = new Set();
+  const take = id => { const i = arkItem(date, String(id || '')); if (!i || used.has(i.id)) return null; used.add(i.id); return i; };
+  let html = '', n = 400, tops = 0;
+  const order = (sn.blocks || []).filter(b => b && FRONT_KINDS.has(b.kind)).map((b, k) => [b, k])
+    .sort((x, y) => (FRONT_RANK[x[0].kind] ?? 4) - (FRONT_RANK[y[0].kind] ?? 4) || x[1] - y[1]).map(x => x[0]);
+  for (const b of order) {
+    if (b.kind === 'top') {
+      const i0 = take(b.story);
+      if (!i0) continue;
+      const first = !tops++, i = b.title ? { ...i0, title: String(b.title) } : i0;
+      arkShown.set(date + '|' + i.sid, i);   // opened or shared, it is the headline the page showed
+      const pic = first || b.picture !== false ? leadPic(i) : '';
+      html += `<section class="block top pkg${pic ? '' : ' text'}${first ? ' merged' : ''}" data-sec="${secOf(i)}">${first ? blockHead('Dagens historie') : ''}`
+        + story(i, n++, pic ? { tag: true, top: true, lead: true, pic, dek: true } : { tag: true, top: true, plain: true, fl: true });
+      for (const x of b.with || []) { const w = take(x); if (w) { html += story(w, n++, { tag: true, top: true, plain: true, sq: true }); break; } }
+      html += '</section>';
+    } else if (b.kind === 'liste') {
+      const all = (b.stories || []).map(take).filter(Boolean);
+      if (!all.length) continue;
+      const key = `ark|${date}|${b.title || ''}`, most = b.dkQuiet ? 2 : 3, list = unfolded.has(key) ? all : all.slice(0, most);
+      const more = all.length > most ? `<button class="more" data-unfold="${esc(key)}" aria-expanded="${unfolded.has(key)}">${unfolded.has(key) ? 'Færre' : 'Alle<svg aria-hidden="true"><use href="#i-chev"/></svg>'}</button>` : '';
+      const tag = new Set(list.map(secOf)).size > 1, msec = tag ? mainSec(list) : '';
+      html += `<section class="block f-list${unfolded.has(key) ? ' unf' : ''}">${blockHead(esc(b.title || ''), more)}`
+        + list.map((i, k) => story(i, n++, { tag, msec, top: true, plain: true, sq: true, fl: !k })).join('') + '</section>';
+    } else if (b.kind === 'citat' && b.who && b.text) html += quoteBlock(b);
+    else if (b.kind === 'svar') {
+      need('mix'); need('ans');
+      const a = answers().by.get(String(b.nr || ''));
+      if (a) html += `<div class="ans-ref f-svar">${answerLine(a)}</div>`;
+    } else if (b.kind === 'live') {
+      const list = (b.stories || []).map(take).filter(Boolean);
+      if (list.length) html += `<section class="block now">${blockHead('Live')}<ul>${list.map(i => `<li><a href="${esc(i.link)}" target="_blank" rel="noopener" aria-label="${esc(rowLabel(i, { top: true }))}"><time aria-hidden="true">${clock(i.published)}</time><span dir="auto" aria-hidden="true">${esc(i.title)}</span><em aria-hidden="true">${esc(i.source)}</em></a></li>`).join('')}</ul></section>`;
+    } else if (b.kind === 'linje' && b.text) html += `<p class="f-line">${esc(String(b.text))}</p>`;
+    else if (b.kind === 'begivenhed' || b.kind === 'tal' || b.kind === 'nedtaelling') {
+      const e = ((sn.events || []).find(x => x && x.id === b.event));
+      if (!e) continue;
+      if (e.img && e.pic) arkLight.set(e.pic, ARK + 'img/' + e.img);
+      const ev = { ...e, _day: date };
+      html += b.kind === 'begivenhed' ? eventCard(ev) : b.kind === 'tal' ? numberBlock(ev, b.fact) : countdownBlock(ev);
+    }
+  }
+  const day = sn.day && dayOf(sn.day);
+  if (day && day.topics.length) html += `<section class="block ark-rec">${blockHead('Dagens resumé')}${dayBody(day)}</section>`;
+  const all = arkDays(), k = all.findIndex(d => d.date === date), before = k > -1 ? all[k + 1] : all.find(d => d.date < date), after = k > 0 ? all[k - 1] : null;
+  const step = (d, cls, word) => d ? `<a class="ark-step ${cls}" href="?forside=${esc(d.date)}" data-forside="${esc(d.date)}"><small>${word}</small><b>${esc(arkDay(d.date))}</b></a>` : '<span></span>';
+  const head = `<header class="lede merged ark-top"><div class="lede-d"><span>${esc(arkDay(date))}</span>`
+    + `<button class="lede-share" data-ark-share="${esc(date)}" aria-label="Del forsiden fra ${esc(dateDa(date, true))}"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del</span></button></div>`
+    + `<p class="ark-when">Forsiden ved dagens sidste opdatering kl. ${esc(clock(sn.at))}</p>`
+    + (tops ? '' : sn.lede ? `<p class="lede-t">${esc(sn.lede)}</p>` : '') + '</header>';
+  const today = after ? step(after, 'nx', 'Dagen efter')
+    : '<button class="ark-step nx" data-go="home"><small>I dag</small><b>Forsiden nu</b></button>';
+  return head + html + `<nav class="ark-nav" aria-label="Andre dage">${step(before, 'pv', 'Dagen før')}${today}</nav>`
+    + '<a class="qrow ark-q" href="?forsider=1" data-forsider><span>Alle tidligere forsider</span><svg aria-hidden="true"><use href="#i-chev"/></svg></a>';
+}
 const isStale = () => data && data.updated && (Date.now() - new Date(data.updated)) / 60000 > 60;
 // the bar's status: the time of the news with a small refresh mark (a tap reloads); 'offline · 10.53' while the phone's
 // copy shows; 'ingen forbindelse' when there is none. Old news: only the box on the page says it, the bar stays quiet.
@@ -2801,7 +2949,8 @@ function renderHeader(busyText = '') {
 }
 // the movement's pages (Analyser, an answer, the wiki) need no news: they are drawn before the news have come, and
 // say nothing about the news being old
-const OWN = { analyses: analysesPage, svar: svarPage, begreb: begrebPage, begreber: begreberPage, gemt: gemtPage, kalender: kalenderPage };
+const OWN = { analyses: analysesPage, svar: svarPage, begreb: begrebPage, begreber: begreberPage, gemt: gemtPage, kalender: kalenderPage,
+  forsider: arkListPage, forside: arkPage };
 // the news pages before any news is on the phone: skeleton rows for at most four seconds, then a message and a way on
 const bootAt = Date.now();
 function noNews() {
@@ -3237,7 +3386,12 @@ async function onTap(e) {
   const evb = t.closest('[data-event]');   // an event's card, number, countdown or row: its page
   if (evb) { e.preventDefault(); openSide('begivenhed', evb.dataset.event); return; }
   const evs = t.closest('[data-ev-share]');
-  if (evs) { const ev = eventOf(evs.dataset.evShare); if (ev) share(eventText(ev)); return; }
+  if (evs) { const ev = eventOf(evs.dataset.evShare) || arkEvent(evs.dataset.evShare); if (ev) share(eventText(ev)); return; }
+  const fs = t.closest('[data-forside]');   // an earlier day's front page
+  if (fs) { e.preventDefault(); openSide('forside', fs.dataset.forside); return; }
+  if (t.closest('[data-forsider]')) { e.preventDefault(); openSide('forsider'); return; }   // the archive's days
+  const as = t.closest('[data-ark-share]');
+  if (as) { const sn = arkSnap(as.dataset.arkShare); if (sn) share(arkText(sn)); return; }
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
@@ -3534,7 +3688,7 @@ function eventFor(i) {
 }
 // 'I GANG · DAG 3', 'OM 2 DAGE', 'I MORGEN', 'AFSLUTTET'
 function evState(e) {
-  const today = calToday();
+  const today = e._day ? calDay(e._day) : calToday();   // an archived event as it stood that day
   if (e.status === 'kommende' && e.date) {
     const n = calDay(e.date) - today;
     return n <= 0 ? 'I dag' : n === 1 ? 'I morgen' : `Om ${n} dage`;
@@ -3619,7 +3773,7 @@ const evHero = (e, tag = 'span', title = 'span') => {
 // a red dot each and its name as the editor wrote it, the first ringed. It cannot be moved; without WebGL there is none.
 const evPlaces = e => {
   const got = (V('plc') || {}).places || {}, kick = String(e.kicker || '').trim().toLowerCase();
-  return (e.places || []).map(p => ({ name: p, at: got[`${String(p).trim().toLowerCase()}|${kick}`] }))
+  return (e.places || []).map(p => ({ name: p, at: got[`${String(p).trim().toLowerCase()}|${kick}`] || (e.geo || {})[p] }))
     .filter(x => Array.isArray(x.at) && x.at[2] === 'city');
 };
 function evMapBox(e) {
@@ -3636,13 +3790,13 @@ function evMapStyle(dark) {   // the Kort tab's style without roads, buildings a
     && !/road|highway|bridge|tunnel|building|aeroway|rail|transit|poi|housenumber/.test(l.id)) }));
 }
 // the event's country (its kicker, when the radar found it a country): its name spaced out at its middle, as a paper's map
-const evLand = e => { const at = ((V('plc') || {}).places || {})[`${String(e.kicker || '').trim().toLowerCase()}|${String(e.kicker || '').trim().toLowerCase()}`];
+const evLand = e => { const at = ((V('plc') || {}).places || {})[`${String(e.kicker || '').trim().toLowerCase()}|${String(e.kicker || '').trim().toLowerCase()}`] || (e.geo || {})[e.kicker];
   return Array.isArray(at) && at[2] === 'country' ? { name: e.kicker, at } : null; };
 function evMaps(pg) {
   for (const box of pg.querySelectorAll('.ev-map[data-keep]')) {
     if (box.dataset.drawn === box.dataset.keep) continue;
     box.dataset.drawn = box.dataset.keep;
-    const e = eventOf(box.dataset.ev), pts = e ? evPlaces(e) : [];
+    const e = eventOf(box.dataset.ev) || arkEvent(box.dataset.ev), pts = e ? evPlaces(e) : [];
     if (!pts.length) continue;
     const dark = kDarkNow();
     Promise.all([loadVector(), evMapStyle(dark)]).then(([, style]) => {
@@ -3703,17 +3857,18 @@ function evMaps(pg) {
 }
 function eventPage() {
   need('evt');
-  const e = eventOf(evId);
+  const e = eventOf(evId) || arkEvent(evId);   // an event no longer followed: as the archived front page held it
   if (!e) return waiting('evt') ? '<div class="skel"></div>'.repeat(4)
     : stateBlock('gone', 'Begivenheden er ikke længere fulgt på Khabar.', [['Til forsiden', 'data-go="home"']]);
-  const today = calToday(), st = evState(e), live = e.status === 'i gang';
+  const today = e._day ? calDay(e._day) : calToday(), st = evState(e), live = e.status === 'i gang';
   const hero = evHero(e, 'div', 'h1');
   let h = `<article class="ev">${hero}<header class="ev-head">`
     + (hero ? `<p class="ev-kick"><span>${esc(e.kicker || '')}</span></p>` : `<p class="ev-kick"><span>${esc(e.kicker || '')}</span><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(st)}</span></p>`
       + `<h1 class="ev-title">${esc(e.title)}</h1>`)
     + `${e.dek ? `<p class="ev-dek">${esc(e.dek)}</p>` : ''}`
     + ((e.places || []).length ? `<p class="ev-where"><svg aria-hidden="true"><use href="#i-map"/></svg><span>${e.places.map(esc).join(' · ')}</span></p>` : '')
-    + `<p class="ev-meta">Opdateret ${esc(stamp(e.at))}<button class="ev-share" data-ev-share="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button></p></header>`;
+    + `<p class="ev-meta">Opdateret ${esc(stamp(e.at))}<button class="ev-share" data-ev-share="${esc(e.id)}"><svg aria-hidden="true"><use href="#i-share"/></svg>Del</button></p>`
+    + (e._day ? `<p class="ev-was">Som siden så ud ${esc(dateDa(e._day, true))}</p>` : '') + '</header>';
   if (e.status === 'kommende' && e.date) {
     const n = Math.max(0, calDay(e.date) - today);
     h += `<div class="ev-count"><span class="ev-cn">${n === 0 ? 'I dag' : n === 1 ? 'I morgen' : n}</span>${n > 1 ? '<span class="ev-cu">dage</span>' : ''}`
@@ -3729,7 +3884,7 @@ function eventPage() {
   if ((e.quotes || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Udtalelser</h2>${e.quotes.map(q => `<figure class="ev-q"><blockquote>»${esc(q.text)}«</blockquote><figcaption>${esc(q.who)}</figcaption></figure>`).join('')}</section>`;
   const tp = e.topic && threadNamed(e.topic);
   if (tp && tp.lines.length) h += `<section class="ev-sec"><h2 class="ev-h2">Forløbet</h2>${storyline(tp, 6).html}</section>`;
-  const list = (e.stories || []).map(id => find(id) || findStory(id)).filter(Boolean).sort((a, b) => when(b) - when(a));
+  const list = (e.stories || []).map(id => find(id) || findStory(id) || (e._day ? arkItem(e._day, id) : null)).filter(Boolean).sort((a, b) => when(b) - when(a));
   const ms = mainSec(list);
   if (list.length) h += `<section class="ev-sec ev-news"><h2 class="ev-h2">Nyheder</h2>${list.map((i, k) => story(i, 300 + k, { tag: true, top: true, plain: true, sq: true, msec: ms })).join('')}</section>`;
   const a = list.length && V('bix') && V('mix') ? list.map(i => answerFor(i)).find(Boolean) : null;
@@ -3763,7 +3918,7 @@ function numberBlock(e, n = 1) {
 }
 function countdownBlock(e) {
   if (e.status !== 'kommende' || !e.date) return '';
-  const n = calDay(e.date) - calToday();
+  const n = calDay(e.date) - (e._day ? calDay(e._day) : calToday());
   if (n < 0) return '';
   return `<section class="block nt-b">${blockHead(esc(e.kicker || 'Snart'))}<button class="nt" data-event="${esc(e.id)}">`
     + `<span class="nt-n">${n === 0 ? 'I dag' : n === 1 ? 'I morgen' : n}${n > 1 ? '<small>dage</small>' : ''}</span>`
@@ -4498,14 +4653,14 @@ addEventListener('online', () => {
 const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
-const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed', 'begivenhed']);
+const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed', 'begivenhed', 'forsider', 'forside']);
 // the tab a side page belongs to: it stays selected while the side page is in view (an answer, a page, A–Å: Analyser)
-const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '', begivenhed: 'home' };
+const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '', begivenhed: 'home', forsider: 'home', forside: 'home' };
 const ASIDE = new Set(['search', ...SIDE]);
 let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
 // the side pages one came through (a story's concept, its answer, an earlier answer …): the logo goes back through them
 const backStack = [];
-const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : t === 'begivenhed' ? evId : '';
+const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : t === 'begivenhed' ? evId : t === 'forside' ? arkDate : '';
 // The phone's own back (Android's button and gesture, a browser's swipe) goes the app's way back: every side page
 // opened is a step in the browser's history, and stepping back there is stepping back here. A tab chosen from a side
 // page takes those steps away again; the address names the page in view and nothing older.
@@ -4516,7 +4671,8 @@ const sideUrl = (t, arg) => {
   const q = t === 'svar' ? `svar=${encodeURIComponent(arg)}` : t === 'begreb' ? `begreb=${encodeURIComponent(arg)}`
     : t === 'threads' ? (arg ? `forlob=${encodeURIComponent(arg)}` : 'digest=1') : t === 'gemt' ? 'gemt=1'
     : t === 'nyhed' ? (String(arg).includes(',') ? `nye=${encodeURIComponent(arg)}` : `item=${encodeURIComponent(String(arg).replace(/^x-/, ''))}`)
-    : t === 'begivenhed' ? `begivenhed=${encodeURIComponent(arg)}` : '';
+    : t === 'begivenhed' ? `begivenhed=${encodeURIComponent(arg)}` : t === 'forside' ? `forside=${encodeURIComponent(arg)}`
+    : t === 'forsider' ? 'forsider=1' : '';
   return q ? BASE + (BASE.includes('?') ? '&' : '?') + q : BASE;
 };
 try { history.replaceState({ khabar: 'base' }, '', BASE); } catch {}
@@ -4529,6 +4685,7 @@ function openSide(t, arg = '') {
   }
   if (t === 'nyhed') nyhedId = arg;
   if (t === 'begivenhed') { evId = arg; need('evt'); }
+  if (t === 'forside') { arkDate = arg; need('fs:' + arg); need('ark'); }
   if (t === 'svar') svarNr = arg; else if (t === 'begreb') begrebId = arg; else if (t === 'threads') { udFocus = arg; if (arg) { udOpen.add(arg); pendingThr = arg; } }
   try { history.pushState({ khabar: 'side', t, arg }, '', sideUrl(t, arg)); sideDepth++; } catch {}
   if (t === tab) { render({ view: true }); showTitle(t); if (!pendingThr) cur().scrollTop = 0; } else setTab(t, { top: true });
@@ -4582,7 +4739,7 @@ function leaveSides() {
 function stepBack() {
   const b = backStack.pop();
   if (!b) { setTab(backTo || 'home'); return; }
-  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg; else if (b.t === 'nyhed') { nyhedId = b.arg; expanded.clear(); expanded.add(b.arg); } else if (b.t === 'begivenhed') evId = b.arg;
+  if (b.t === 'svar') svarNr = b.arg; else if (b.t === 'begreb') begrebId = b.arg; else if (b.t === 'threads') udFocus = b.arg; else if (b.t === 'nyhed') { nyhedId = b.arg; expanded.clear(); expanded.add(b.arg); } else if (b.t === 'begivenhed') evId = b.arg; else if (b.t === 'forside') arkDate = b.arg;
   pendingThr = '';
   if (b.t === tab) render({ view: true }); else setTab(b.t);
   cur().scrollTop = b.y;
@@ -4954,7 +5111,8 @@ const LANGS = { da: 'Dansk', ar: 'Arabisk', en: 'Engelsk', tr: 'Tyrkisk', ur: 'U
 const VIA_NAMES = { push: 'En notifikation', whatsapp: 'WhatsApp', facebook: 'Facebook / Messenger', google: 'Google', sms: 'En sms',
   web: 'Andre sider', direct: 'Direkte (ikon eller bogmærke)' };
 const TAB_NAMES = { home: 'Forside', dk: 'Danmark', me: 'Mellemøsten', world: 'Verden', threads: 'Udvikling', latest: 'Live', search: 'Søg',
-  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å', nyhed: 'En nyhed', begivenhed: 'En begivenhed' };
+  analyses: 'Analyser', svar: 'Et svar', begreb: 'Leksikon', begreber: 'Leksikon A–Å', nyhed: 'En nyhed', begivenhed: 'En begivenhed',
+  forsider: 'Tidligere forsider', forside: 'En tidligere forside' };
 async function loadStats() {
   const url = CFG.statsUrl || (CFG.dataUrl || '').replace(/data\.json.*$/, 'stats.enc');
   const r = await fetch(url, { cache: 'no-cache' });
@@ -5480,6 +5638,8 @@ function routeLink(url) {
   else if (p.get('item')) { focusId = p.get('item'); if (SIDE.has(tab) || tab === 'search') setTab('home', { top: true }); else render(); }
   else if (p.get('svar')) openSide('svar', p.get('svar'));
   else if (p.get('begivenhed')) openSide('begivenhed', p.get('begivenhed'));
+  else if (p.get('forside')) openSide('forside', p.get('forside'));
+  else if (p.has('forsider')) openSide('forsider');
   else if (p.has('digest')) openSide('threads');
   else if (p.get('kalender')) location.assign(url);
   else setTab('home', { top: true });
@@ -5499,6 +5659,8 @@ takeMove();   // a 'Flyt til en anden telefon' link: its saves added to this pho
 addEventListener('hashchange', () => { if (location.hash.startsWith('#flyt=')) { takeMove(); openSide('gemt'); } });   // one opened in a running app
 if (params.get('nye')) openSide('nyhed', params.get('nye'));   // a notification about several new stories
 else if (params.get('begivenhed')) openSide('begivenhed', params.get('begivenhed'));
+else if (params.get('forside')) openSide('forside', params.get('forside'));   // a shared earlier front page
+else if (params.has('forsider')) openSide('forsider');
 else if (params.get('begreb')) openSide('begreb', params.get('begreb'));
 else if (params.get('svar')) openSide('svar', params.get('svar'));
 else if (params.get('forlob')) { goOverview = false; openSide('threads', params.get('forlob')); }   // a shared development
@@ -5510,7 +5672,7 @@ load();
 setTimeout(() => need('ans'), 700);   // the editor's filed answers
 // a link into the app (a shared story, answer, page or development, a notification) skips the intro (index.html); a
 // first visitor who came that way has seen the app when they leave it, and is counted at once
-const DEEP = ['item', 'nye', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender', 'begivenhed'].some(k => params.has(k));
+const DEEP = ['item', 'nye', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender', 'begivenhed', 'forside', 'forsider'].some(k => params.has(k));
 if (store.get('introSeen', false)) setTimeout(() => countVisit(cameVia()), 1500);   // a first visit counts at 'Kom i gang'
 else if (DEEP) {
   setTimeout(() => countVisit(cameVia(), true), 1500);

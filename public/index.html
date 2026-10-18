@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%AD%D8%A8%D8%B1&display=block">
 <!-- the front page's headline face (the owner, 17/10: "pænere skrift", "mere elegant", "Se til the Economist"): Source Serif 4 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&display=fallback">
-<link rel="stylesheet" href="style.css?v=20261018ea">
+<link rel="stylesheet" href="style.css?v=20261018fa">
 </head>
 <body>
 <!-- the intro: the name writes itself (right to left, like Arabic), then the first visit says what Khabar is for -->
@@ -69,7 +69,7 @@
     // break (the next morning, say): the name writes itself once more, briefly
     const seen = localStorage.getItem('introSeen'), away = Date.now() - (Number(localStorage.getItem('hiddenAt')) || 0);
     // a link into the app (a shared story, answer, page or development, a notification) opens straight on what it names
-    const q = new URLSearchParams(location.search), deep = ['item', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender'].some(k => q.has(k));
+    const q = new URLSearchParams(location.search), deep = ['item', 'nye', 'svar', 'begreb', 'forlob', 'digest', 'tab', 'gemt', 'kalender', 'begivenhed', 'forside', 'forsider'].some(k => q.has(k));
     if (deep || (seen && away < 6 * 3600e3)) d.classList.add('intro-skip');
     else { d.classList.add('intro-on'); if (seen) d.classList.add('intro-short'); }
     const mode = get('mode');
@@ -128,7 +128,7 @@
     <button id="searchClear" aria-label="Ryd"><svg><use href="#i-x"/></svg></button>
 </div>
 <main id="list">
-  <section class="page" data-tab="home" id="page-home" role="tabpanel" aria-labelledby="tab-home"></section>
+  <section class="page fp" data-tab="home" id="page-home" role="tabpanel" aria-labelledby="tab-home"></section>
   <section class="page" data-tab="latest" id="page-latest" role="tabpanel" aria-labelledby="tab-latest"></section>
   <section class="page" data-tab="kalender" id="page-kalender" role="tabpanel" aria-labelledby="tab-kalender"></section>
   <section class="page" data-tab="okonomi" id="page-okonomi" role="tabpanel" aria-labelledby="tab-okonomi"></section>
@@ -140,6 +140,8 @@
   <section class="page side" data-tab="gemt" aria-label="Gemt"></section>
   <section class="page side" data-tab="nyhed" aria-label="Nyhed"></section>
   <section class="page side" data-tab="begivenhed" aria-label="Begivenhed"></section>
+  <section class="page side" data-tab="forsider" aria-label="Tidligere forsider"></section>
+  <section class="page side fp" data-tab="forside" aria-label="En tidligere forside"></section>
   <section class="page" data-tab="search" aria-label="Søg"></section>
 </main>
 
@@ -219,6 +221,6 @@
 </section>
 
 <script src="config.js"></script>
-<script src="app.js?v=20261018ea"></script>
+<script src="app.js?v=20261018fa"></script>
 </body>
 </html>

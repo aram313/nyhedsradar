@@ -51,6 +51,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -63,6 +64,7 @@ import voice  # noqa: E402 – Khabar's content rules
 import events as event_pages  # noqa: E402 – Begivenheder: the event pages and their fact boxes
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from radar import level as radar_level  # noqa: E402 – how the radar reads live.json (stdlib only)
+from radar import headlines as radar_heads  # noqa: E402 – the radar's curiosity test and teaser cleaning (stdlib only)
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTIONS = {'dk': 'Danmark', 'me': 'Mellemøsten', 'world': 'Verden'}
@@ -2458,9 +2460,19 @@ def cmd_publish(args):
             (out / name).unlink()
     for name, obj in files.items():
         (out / name).write_text(json.dumps(quoted(obj), ensure_ascii=False, indent=1), encoding='utf-8')
+    pics = {}
+    shutil.rmtree(out / ARCHIVE, ignore_errors=True)   # only this update's day goes into the archive
+    if front:   # the day's front page, over the one the day's earlier update left: the last update of the day stays
+        snap, pics = front_snapshot(front, notes, pool, resolver(data.get('items', [])), checked, kept_sums, evt,
+                                    days.get(dk(now).date().isoformat()),
+                                    read(args, 'origin/data', 'places.json', {}).get('places') or {}, now)
+        index = archive_index(read(args, 'origin/digest', f'{ARCHIVE}/index.json', {}), snap)
+        (out / ARCHIVE).mkdir()
+        for name, obj in ((f"{snap['date']}.json", snap), ('index.json', index)):
+            (out / ARCHIVE / name).write_text(json.dumps(obj, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     new = sum(x['added'] == notes['created'] for d in days.values() for tp in d['topics'] for x in tp['lines'])
     if args.push:
-        push(out, f"Opdatering {dk(now):%d.%m %H.%M}")
+        push(out, f"Opdatering {dk(now):%d.%m %H.%M}", pics)
     left = [a for a in waiting(args, noted) if a['id'] not in noted['items']] if not answer else []
     print(f"{'Published' if args.push else 'Written to ' + str(out)}: {date_da(now)} kl. {dk(now):%H.%M} · {new} new lines · "
           f"lede {'new' if notes['lede_at'] == notes['created'] else 'kept'} · {len(notes['picks'])} picks · "
@@ -2485,22 +2497,214 @@ def cmd_publish(args):
         print(f'Note: {len(unheaded)} stories in Live still wait for your headline – they come first in the next input.')
 
 
-def push(folder, message):
-    """One commit on the orphan digest branch: these files, and every other file the branch holds as it was; the
-    working tree is not touched."""
-    def git(*a, data=None):
-        return subprocess.run(['git', *a], input=data, capture_output=True, check=True).stdout.decode().strip()
+# ------------------------------------------------------------------ the front-page archive
+# The owner, 18/10: 'Bliver forsider snapshottet og gemt på noget tidspunkt?' – 'ja lav et arkiv, men kun ved dagens
+# sidste opdatering. så vi får et om dagen'. Every publish with a composition writes the Danish day's front page
+# (arkiv/<date>.json on the digest branch) over the one the day's earlier update left, so what stays is the day's last:
+# one front page a day, kept for good, arkiv/index.json listing the days. A snapshot holds what the page showed then –
+# the composition and the lede, every story it names with the headline and summary it wore, the event pages it placed
+# or that the app set in by itself (with their places' coordinates), its quote, the Live block's stories and the day's
+# recap –, and Dagens historie's and the events' pictures as their light copies in arkiv/img/: the data branch's own
+# picture put in the digest branch's tree, nothing fetched; the outlet's original stays the fallback. The app's
+# 'Tidligere forsider' draws it (arkPage in app.js).
+ARCHIVE = 'arkiv'
+ARCH_LIVE = 3            # the Live block's stories when the block gives no number (the app's nowStrip)
+ARCH_EVENT_STORIES = 8   # an event page's stories kept with it
+ARCH_ALSO = 6            # the other outlets kept with a story (the opened story's 'Andre medier')
+
+
+def _first(*xs):
+    return next((x for x in xs if x), None)
+
+
+def arch_story(i, titles, sums):
+    """A story as the front page showed it: the editor's headline (else the Danish one, else the outlet's; a curiosity
+    headline gives way to its teaser's first sentence, as the app does), its summary, the outlet, its link, its picture."""
+    ids = ids_of(i) | {a.get('id') for a in i.get('also') or [] if a.get('id')}
+    ed = _first(*[(titles.get(k) or {}).get('title') for k in sorted(ids)],
+                *[(v or {}).get('title') for v in titles.values() if set((v or {}).get('members') or []) & ids])
+    ed = ed if ed and good_title(ed) else None
+    lang, own = i.get('lang') or '', clean(i.get('title'))
+    if ed:
+        title, how = ed, 'ed'
+    elif lang == 'da' or not (i.get('title_da') or i.get('title_tr')):
+        title, how = own, ''
+    else:
+        title, how = clean(i.get('title_da') or i.get('title_tr')), 'mt'
+    teaser = radar_heads.clean_teaser((i.get('summary_da') if how == 'mt' else None) or i.get('summary') or '', own)
+    if how != 'ed' and radar_heads.curious(title) and teaser:
+        first = re.match(r'[\s\S]*?[.!?](?=\s|$)', teaser)
+        title = clip(first.group(0) if first else teaser, 120)
+    danish = how == 'ed' or lang == 'da' or bool(i.get('title_da'))
+    q = voice.quote_israel if danish else (lambda s: s)
+    out = {'id': i['id'], 'title': q(title), 'source': i.get('source') or '', 'link': i.get('link') or '',
+           'published': i.get('published') or i.get('found'), 'sec': i.get('sec') or '', 'lang': lang, 'how': how,
+           'summary': q(teaser), 'outlets': i.get('outlets') or 1}
+    if own and own != title:
+        out['origTitle'] = own   # the outlet's own headline as it wrote it: the opened story's 'Original'
+    summary = _first(*[(sums.get(k) or {}).get('text') for k in sorted(ids)])
+    if summary:
+        out['ed'] = {'text': voice.quote_israel(summary), 'paywall': True}
+    for k in ('kind', 'pic', 'pf', 'cover', 'big'):
+        if i.get(k):
+            out[k] = i[k]
+    if i.get('confirmed') == 0:
+        out['confirmed'] = 0
+    also = [{k: a[k] for k in ('source', 'title', 'title_tr', 'link', 'group', 'lang') if a.get(k)}
+            for a in (i.get('also') or [])[:ARCH_ALSO]]
+    if also:
+        out['also'] = also
+    return out
+
+
+def front_snapshot(front, notes, pool, find, titles, sums, events, day, places, now):
+    """(the day's front page as the app drew it, {arkiv/img/<name>: its light copy on the data branch}) – see above."""
+    date = dk(now).date().isoformat()
+    named, pics = [], {}
+
+    def take(x):
+        i = find.get(str(x or ''))
+        if i and i['id'] not in named:
+            named.append(i['id'])
+        return i['id'] if i else None
+
+    by_ev = {e['id']: e for e in (events or {}).get('items') or [] if e.get('id')}
+    blocks, placed = [], []
+    for b in front.get('blocks') or []:
+        if not isinstance(b, dict) or not b.get('kind'):
+            continue
+        b = dict(b)
+        if b['kind'] == 'top':
+            b['story'] = take(b.get('story'))
+            if not b['story']:
+                continue
+            b['with'] = [s for s in map(take, b.get('with') or []) if s]
+        elif b['kind'] == 'liste':
+            b['stories'] = [s for s in map(take, b.get('stories') or []) if s]
+            if not b['stories']:
+                continue
+        elif b['kind'] == 'citat' and not (b.get('who') and b.get('text')):
+            q = next((q for q in notes.get('quotes') or [] if q.get('id') == b.get('quote')), None)
+            if not q:
+                continue
+            b.update({k: q[k] for k in ('who', 'text', 'link', 'sec') if q.get(k)})
+        elif b['kind'] in ('begivenhed', 'tal', 'nedtaelling'):
+            if b.get('event') not in by_ev:
+                continue
+            placed.append(b['event'])
+        blocks.append(b)
+    # the events the app sets in by itself (eventsUnplaced): one under way under Dagens historie, one ahead within a week
+    today = dk(now).date()
+
+    def days_to(e):
+        try:
+            return (datetime.fromisoformat(str(e.get('date') or '')[:10]).date() - today).days
+        except ValueError:
+            return None
+    for e in by_ev.values():
+        if e['id'] in placed:
+            continue
+        d = days_to(e) if e.get('status') == 'kommende' else None
+        ahead = d is not None and 0 <= d <= 7
+        if e.get('status') == 'i gang' and not any(x.get('auto') == 'i gang' for x in blocks):
+            blocks.append({'kind': 'begivenhed', 'event': e['id'], 'auto': 'i gang'})
+            placed.append(e['id'])
+        elif ahead and not any(x.get('auto') == 'kommende' for x in blocks):
+            blocks.append({'kind': 'nedtaelling', 'event': e['id'], 'auto': 'kommende'})
+            placed.append(e['id'])
+    lede_ids = [take(x) or '' if x else x for x in (front.get('lede_ids') or notes.get('lede_ids') or [])]
+    # the Live block: the newest stories no other block shows, as the app picks them
+    shown = set(named)
+    for b in blocks:
+        if b['kind'] == 'live':
+            n = max(1, min(10, int(b.get('n') or ARCH_LIVE)))
+            fresh = sorted((i for i in pool if i['id'] not in shown and i.get('kind') != 'kommentar' and i.get('confirmed') != 0),
+                           key=lambda i: i.get('published') or i.get('found') or '', reverse=True)[:n]
+            b['stories'] = [take(i['id']) for i in fresh]
+            shown |= set(b['stories'])
+    evs = []
+    for eid in placed:
+        e = dict(by_ev[eid])
+        e['stories'] = [s for s in map(take, (e.get('stories') or [])[:ARCH_EVENT_STORIES]) if s]
+        kick = str(e.get('kicker') or '').strip().lower()
+        geo = {p: places[f'{str(p).strip().lower()}|{kick}'] for p in [*(e.get('places') or []), e.get('kicker')]
+               if p and f'{str(p).strip().lower()}|{kick}' in places}   # the kicker's own: the country named on the map
+        if geo:
+            e['geo'] = geo
+        if e.get('pic') and e.get('pl'):
+            e['img'] = f"{date}-{e['id']}.jpg"
+            pics[f"{ARCHIVE}/img/{e['img']}"] = f"l/{e['pl']}"
+        e.pop('pl', None)
+        evs.append(e)
+    stories = {k: arch_story(find[k], titles, sums) for k in named}
+    tops = [b for b in blocks if b['kind'] == 'top']
+    for k, b in enumerate(tops):   # the main stories' pictures as they were shown large: Dagens historie's always
+        s, i = stories.get(b['story']), find.get(b['story'])
+        if s and s.get('pic') and i.get('pl') and (not k or b.get('picture') is not False):
+            s['img'] = f"{date}-{s['id']}.jpg"
+            pics[f"{ARCHIVE}/img/{s['img']}"] = f"l/{i['pl']}"
+    snap = {'date': date, 'at': now.isoformat(timespec='seconds'), 'lede': front.get('lede') or notes.get('lede') or '',
+            'lede_ids': lede_ids, 'blocks': blocks, 'stories': stories, 'events': evs}
+    if day and day.get('topics'):
+        snap['day'] = {k: day[k] for k in ('date', 'title', 'created', 'updates', 'topics') if k in day}
+    return snap, pics
+
+
+def archive_index(current, snap):
+    """arkiv/index.json: one row a day, newest first – the day's lede, Dagens historie's headline and its picture."""
+    top = next((b for b in snap['blocks'] if b['kind'] == 'top' and b.get('story') in snap['stories']), None)
+    s = snap['stories'][top['story']] if top else {}
+    row = {'date': snap['date'], 'at': snap['at'], 'lede': snap['lede'], 'head': (top or {}).get('title') or s.get('title') or ''}
+    row.update({k: s[k] for k in ('img', 'pic', 'pf') if s.get(k)})
+    days = [d for d in (current or {}).get('days') or [] if isinstance(d, dict) and d.get('date') and d['date'] != snap['date']]
+    return {'updated': snap['at'], 'days': sorted([row, *days], key=lambda d: d['date'], reverse=True)}
+
+
+def tree_of(git, root, files, gone, path=''):
+    """The tree at `path` in `root` with `files` ({path: blob}) set in and the blobs `gone` names left out."""
     entries = {}
     try:
-        for row in git('ls-tree', 'origin/digest').splitlines():
+        for row in git('ls-tree', f"{root}:{path.rstrip('/')}" if path else root).splitlines():
             meta, name = row.split('\t', 1)
             entries[name] = meta
     except subprocess.CalledProcessError:
-        pass
-    for n in DIGEST_FILES:
-        if (folder / n).exists():
-            entries[n] = f"100644 blob {git('hash-object', '-w', str(folder / n))}"
-    tree = git('mktree', data=''.join(f'{meta}\t{name}\n' for name, meta in sorted(entries.items())).encode())
+        pass   # no branch yet, or no such folder on it
+    for name in [n for n, m in entries.items() if m.split()[1] == 'blob' and gone(path + n)]:
+        entries.pop(name)
+    inner = {}
+    for p, sha in files.items():
+        head, _, rest = p.partition('/')
+        if rest:
+            inner.setdefault(head, {})[rest] = sha
+        else:
+            entries[head] = f'100644 blob {sha}'
+    for name, sub in inner.items():
+        entries[name] = f"040000 tree {tree_of(git, root, sub, gone, path + name + '/')}"
+    return git('mktree', data=''.join(f'{m}\t{n}\n' for n, m in sorted(entries.items())).encode())
+
+
+def push(folder, message, pics=None):
+    """One commit on the orphan digest branch: these files, the archive's day (arkiv/) with its pictures – the data
+    branch's light copies, {arkiv/img/<name>: its path on the data branch} – and every other file the branch holds as it
+    was; the working tree is not touched. A picture of the archive's day that its front page no longer shows goes."""
+    def git(*a, data=None):
+        return subprocess.run(['git', *a], input=data, capture_output=True, check=True).stdout.decode().strip()
+    files = {n: git('hash-object', '-w', str(folder / n)) for n in DIGEST_FILES if (folder / n).exists()}
+    days = []
+    if (folder / ARCHIVE).is_dir():
+        for p in sorted((folder / ARCHIVE).glob('*.json')):
+            files[f'{ARCHIVE}/{p.name}'] = git('hash-object', '-w', str(p))
+            if p.stem != 'index':
+                days.append(p.stem)
+    for name, src in (pics or {}).items():
+        try:
+            sha = git('rev-parse', '--verify', '-q', f'origin/data:{src}')
+            subprocess.run(['git', 'cat-file', 'blob', sha], capture_output=True, check=True)   # here (fetched now in a partial clone)
+            files[name] = sha
+        except subprocess.CalledProcessError:
+            pass   # the copy is gone: the app shows the outlet's original
+    tree = tree_of(git, 'origin/digest', files,
+                   lambda p: p not in files and any(p.startswith(f'{ARCHIVE}/img/{d}-') for d in days))
     env = {'GIT_AUTHOR_NAME': 'Khabar redaktør', 'GIT_AUTHOR_EMAIL': 'redaktor@users.noreply.github.com'}
     env.update(GIT_COMMITTER_NAME=env['GIT_AUTHOR_NAME'], GIT_COMMITTER_EMAIL=env['GIT_AUTHOR_EMAIL'])
     commit = subprocess.run(['git', 'commit-tree', tree, '-m', message], capture_output=True, check=True,

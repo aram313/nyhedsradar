@@ -223,7 +223,7 @@ def test_dagens_historie_is_a_block_like_every_other():
     # since 18/10 (the owner: 'samme på dagens nyhed'): its picture large with the headline on a dark fade, else the serif
     assert 'story(shown, n++, pic ? { ...opts, tag: true, top: true, lead: true, pic, dek: true } : { ...opts, tag: true, top: true, plain: true, fl: true })' in comp
     assert "b.style === 'billeder'" not in comp                                    # no headline on a picture
-    assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{[^}]*background: none', RULES)
+    assert re.search(r'\.page\.fp \.block\.top \{[^}]*background: none', RULES)
     assert '.pkg.merged > .of-main { display: none; }' in RULES and "!sib.matches('.dim, .of-main')" in CODE
 
 
@@ -234,25 +234,25 @@ def test_the_front_page_says_each_subject_once_in_the_papers_way():
     assert 'plain: true, sq: true, fl: !big && !k })' in comp and 'fpic' not in comp.split("b.kind === 'liste'")[1].split("b.kind === 'udvikling'")[0]
     # since 18/10 a small square picture on the rows that have one – never the outlet's initials in its place
     assert "opts.plain ? (opts.sq && i.thumb ? thumb(i.source, i.thumb) : '')" in CODE
-    assert re.search(r'\.page\[data-tab="home"\] \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
-    assert re.search(r'\.page\[data-tab="home"\] \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)
+    assert re.search(r'\.page\.fp \.block-h h2 \{[^}]*text-transform: uppercase;[^}]*color: var\(--red\)', RULES)
+    assert re.search(r'\.page\.fp \.story\.fl \.h \{[^}]*font-family: var\(--display\)', RULES)
 
 
 def test_dagens_historie_leads_by_its_headline_and_the_page_has_less_air():
     # the owner, 18/10: 'Dagens historie større', 'Strammere luft'
-    assert re.search(r'\.page\[data-tab="home"\] \.pkg\.merged \.story\.fl \.h \{[^}]*font-size: var\(--fs-title\)', RULES)
-    assert '.page[data-tab="home"] .block { margin-top: 22px; }' in RULES
-    assert re.search(r'\.page\[data-tab="home"\] \.block\.top \{ margin: 8px 0 0;', RULES)
+    assert re.search(r'\.page\.fp \.pkg\.merged \.story\.fl \.h \{[^}]*font-size: var\(--fs-title\)', RULES)
+    assert '.page.fp .block { margin-top: 22px; }' in RULES
+    assert re.search(r'\.page\.fp \.block\.top \{ margin: 8px 0 0;', RULES)
 
 
 def test_the_front_page_has_the_economists_restraint():
     # the owner, 18/10: 'stilfuldt og elegant design … tænker mere economist ikke ekstrabladet'
     assert '${opts.fl && !open ? dek(i) : \'\'}' in CODE and "String((ed && ed.text) || i.summary || '')" in fn('dek')
     assert '.story.open .dek { display: none; }' in RULES   # opened, the summary says it: never twice
-    for rule in ('.page[data-tab="home"] .story .h b, .page[data-tab="home"] .now li b { font-weight: inherit; }', '.page[data-tab="home"] .m .sec { display: none; }',
-                 '.page[data-tab="home"] .lede-d > span { color: var(--text-3); }'):
+    for rule in ('.page.fp .story .h b, .page.fp .now li b { font-weight: inherit; }', '.page.fp .m .sec { display: none; }',
+                 '.page.fp .lede-d > span { color: var(--text-3); }'):
         assert rule in RULES, rule
-    assert re.search(r'\.page\[data-tab="home"\] \.f-pic img \{ filter: grayscale\(\.62\)', RULES)
+    assert re.search(r'\.page\.fp \.f-pic img \{ filter: grayscale\(\.62\)', RULES)
 
 
 def test_the_front_page_uses_its_potential_by_brevity():
@@ -275,6 +275,6 @@ def test_the_front_pages_service_blocks_speak_its_two_voices():
     # the oil prices first and the US diesel price, not the Danish petrol (the owner, 18/10)
     assert "const MARKETS = [['brent', 'Brent', ' $'], ['wti', 'WTI', ' $'], ['us_diesel', 'Diesel i USA', ' $/gal.'], ['spx', 'S&P 500', '']];" in CODE
     assert 'Benzin i Danmark' not in mk
-    assert '.page[data-tab="home"] .ce .ck i, .page[data-tab="home"] .ce .ck-d { display: none; }' in RULES
-    assert re.search(r'\.page\[data-tab="home"\] \.ce \.cd b \{[^}]*font-family: var\(--display\)', RULES)
-    assert re.search(r'\.page\[data-tab="home"\] \.foot \{[^}]*font-style: italic', RULES)
+    assert '.page.fp .ce .ck i, .page.fp .ce .ck-d { display: none; }' in RULES
+    assert re.search(r'\.page\.fp \.ce \.cd b \{[^}]*font-family: var\(--display\)', RULES)
+    assert re.search(r'\.page\.fp \.foot \{[^}]*font-style: italic', RULES)
