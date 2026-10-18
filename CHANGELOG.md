@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **No 'breaking' before a headline** (2026-10-18, the owner: 'Fjern alle "breaking" tekster fra titler i live'). An alarm
+  word before a headline – 'BREAKING …', 'NEW: …', 'Urgent |', 'Just in:', 'Update:', 'Haster:', 'عاجل |' and the alarm
+  emoji with them – is taken off at intake for every source (headlines.unalarm in feeds.tidy, also for what earlier runs
+  kept) and on the phone (app.js unalarm in tidy, for what it has already). A word in capitals goes without a colon;
+  'New', 'Update' and the rest only with one, so 'NEW YORK' and 'Breaking Point' stay.
 - **Forside · Markederne: the oil prices first, the US diesel price instead of the Danish** (2026-10-18, the owner: 'Olie
   priser i markedet er vigtigt, usa dieselpris vægter højere end danske'). The table is Brent, WTI, Diesel i USA (the
   EIA's weekly retail price, $/gal.) and the S&P 500, each with its move; under it 'Børserne: lukkekurser fredag ·

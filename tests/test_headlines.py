@@ -89,3 +89,40 @@ def test_curiosity_headlines():
               'WHO warns of Ebola spread in 22 countries', 'Israeli settlers attack Palestinians in West Bank',
               'Kremlin: Starlink should not be used for war', "'We will respond,' Iran says after strikes"]:
         assert not curious(t), t
+
+
+ALARMS = [('BREAKING Egyptian Presidency: The National Defence Council has decided', 'Egyptian Presidency: The National Defence Council has decided'),
+          ('NEW: The Trump administration is proposing gas deals', 'The Trump administration is proposing gas deals'),
+          ('🔴 Urgent | Israeli strikes on Gaza', 'Israeli strikes on Gaza'),
+          ('⚡️BREAKING NEWS: Explosion in Beirut port', 'Explosion in Beirut port'),
+          ('Just in: Iran says talks will resume', 'Iran says talks will resume'),
+          ('Haster: Regeringen falder i aften', 'Regeringen falder i aften'),
+          ('عاجل | غارات على غزة', 'غارات على غزة')]
+KEPT = ['Trump Takes NATO to Breaking Point Over Ukraine', 'NEW YORK: Protests continue for a third day',
+        'New sanctions on Russia announced by the EU']
+
+
+def test_alarm_words_before_a_headline_are_taken_off():
+    # the owner, 18/10: 'Fjern alle "breaking" tekster fra titler i live'
+    from radar.headlines import unalarm
+    for before, after in ALARMS:
+        assert unalarm(before) == after, before
+    for t in KEPT:
+        assert unalarm(t) == t, t
+    assert unalarm('BREAKING: ') == 'BREAKING: '                     # nothing left: the headline as it was
+    assert tidy('Al Jazeera', 'BREAKING: Israeli army strikes southern Lebanon again') == 'Israeli army strikes southern Lebanon again'
+
+
+def test_the_app_takes_the_alarm_words_off_as_the_radar_does():
+    import shutil
+    import subprocess
+    import pytest
+    if not shutil.which('node'):
+        pytest.skip('node is not installed')
+    app = (ROOT / 'public' / 'app.js').read_text(encoding='utf-8')
+    js = app[app.index('const TAGS = new RegExp'):app.index('\n', app.index('const tidy = '))]
+    cases = [b for b, _ in ALARMS] + KEPT
+    out = subprocess.run(['node', '-e', js + f'\nconsole.log(JSON.stringify({json.dumps(cases)}.map(tidy)));'],
+                         capture_output=True, text=True, encoding='utf-8')
+    assert out.returncode == 0, out.stderr
+    assert json.loads(out.stdout) == [a for _, a in ALARMS] + KEPT

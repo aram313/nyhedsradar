@@ -281,7 +281,18 @@ const TAGS = new RegExp('^(?:[\\u2190-\\u2bff\\u{1f000}-\\u{1faff}\\ufe0f\\u200d
   + '|(?:breaking|urgent|watch|video|update|just in|عاجل|متابعة|فيديو)\\s*[|:\\-–]\\s*'
   + '|(?:gaza|west bank|lebanon|lebanese|syria|syrian|yemen|yemeni|iran|iranian|iraqi|israeli|hebrew|palestinian|local|medical|security)'
   + ' sources\\s+(?!say|said|report|told|claim))+', 'iu');
-const tidy = t => (t || '').replace(TAGS, '') || t;
+// an alarm word before a headline (the owner, 18/10: 'Fjern alle "breaking" tekster fra titler i live'): 'BREAKING …',
+// 'NEW: …', 'Just in |', 'Urgent:', 'عاجل |'; a word in capitals without a colon, 'New', 'Update' and the rest only with
+// one ('NEW YORK', 'Breaking Point' stay). As ALARM in src/radar/headlines.py – this catches what the phone has already.
+const ALARM = /^[\s\u2190-\u2bff\u{1f000}-\u{1faff}\ufe0f\u200d]*(?:breaking(?:\s+news)?|urgent|just\s+in|developing|updated?|new|alert|flash|live\s+updates?|haster|brydning|خبر\s+عاجل|عاجل)\s*[|:\-–—]\s*/iu;
+const ALARM_CAPS = /^[\s\u2190-\u2bff\u{1f000}-\u{1faff}\ufe0f\u200d]*(?:BREAKING(?:\s+NEWS)?|URGENT|JUST\s+IN|DEVELOPING|ALERT|FLASH)\s+/u;
+function unalarm(t) {
+  let out = t, was;
+  do { was = out; out = out.replace(ALARM, '').replace(ALARM_CAPS, ''); } while (out !== was);
+  out = out.trim();
+  return out ? out[0].toUpperCase() + out.slice(1) : t;
+}
+const tidy = t => (t ? unalarm(t.replace(TAGS, '') || t) : t || '');
 // A curiosity headline withholds the news instead of stating it (the owner's rule of 2026-10-17): a question, 'Derfor …',
 // 'Se …', 'Her er …', 'Sådan …', 'Det skal du vide', a label before a colon, a line that only names who speaks, a
 // quotation with no one named after it. The radar's own test (src/radar/headlines.py), Danish and English.

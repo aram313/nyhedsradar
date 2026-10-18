@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-from radar.headlines import clean_teaser
+from radar.headlines import clean_teaser, unalarm
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
 TAG = re.compile(r'<[^>]+>')
@@ -240,6 +240,7 @@ def tidy(item, feed):
                 if not m or not _site_tail(m.group(1) or m.group(2), own):
                     break
             title = title[:m.start()].rstrip()
+    title = unalarm(title)   # 'BREAKING …', 'NEW: …' – the news says itself (the owner, 18/10)
     if any(p.search(title) for p in drop):
         return None
     for p in cut:

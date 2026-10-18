@@ -63,6 +63,19 @@ CTA = re.compile(
     r'|The post .{1,200}? appeared first on .{1,80}?\.?'
     r'|\[(?:…|\.\.\.|&hellip;)\])\s*$', re.I)
 LEAD_TAG = re.compile(r'^(?:live|video|watch|se video|breaking)\s*[:|–-]\s*', re.I)
+# an alarm word before a headline (the owner, 18/10: 'Fjern alle "breaking" tekster fra titler i live'): 'BREAKING …',
+# 'NEW: …', 'Just in |', 'Urgent:', 'عاجل |' and the alarm emoji before them – the news says itself. A word in capitals
+# goes without a colon ('BREAKING Egyptian Presidency: …'); 'New', 'Update' and the rest only with one, so 'NEW YORK' and
+# 'Trump Takes NATO to Breaking Point' stay as they are. Keep ALARM in public/app.js alike.
+ALARM = re.compile(r'^(?:[\s←-⯿\U0001f000-\U0001faff️‍]*(?:(?:breaking(?:\s+news)?|urgent|just\s+in|developing|'
+                   r'updated?|new|alert|flash|live\s+updates?|haster|brydning|خبر\s+عاجل|عاجل)\s*[|:\-–—]\s*'
+                   r'|(?-i:BREAKING(?:\s+NEWS)?|URGENT|JUST\s+IN|DEVELOPING|ALERT|FLASH)\s+))+', re.I)
+
+
+def unalarm(title):
+    """The headline without the alarm words before it; the headline itself when nothing would be left."""
+    t = ALARM.sub('', title or '').strip()
+    return t[:1].upper() + t[1:] if t else (title or '')
 URL = re.compile(r'\s*(?:https?://|www\.)\S+', re.I)
 # a picture's caption with its credit ('[Sabir Mazhar – Anadolu Agency]', '[Screengrab/AA]') and the markup after it
 CREDIT = re.compile(r'^.{0,400}?\[[^\]]{0,80}(?:agency|\bAA\b|anadolu|getty|afp|reuters|\bAP\b|screengrab|photo|foto|epa|'
