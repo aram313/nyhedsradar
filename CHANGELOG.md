@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The articles' sentences that name the places** (2026-10-18, the owner: 'Er det meningen at kortet kun viser
+  paris?' – the cities were in the articles, in sentences without a count). The reader keeps, beside the count sentences,
+  up to two sentences an article that list places ('in Paris, Lyon and Marseille'), so the editor can name every city on
+  the page's map; the pages read before are read once again.
 - **Khabar's understanding is an ordinary da'wah carrier's – no quotation marks of distance** (2026-10-18, the owner:
   'Samfundmodellen er fejlslagen, det skal ikke stå i anførselstegn. Dette er en generel regel at khabars forståelse skal
   være til en almindelig dawahbærer' – the France page said 'en "fejlslagen" samfundsmodel'). `voice.check_distance`

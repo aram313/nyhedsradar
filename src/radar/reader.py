@@ -22,8 +22,11 @@ READ_EACH = 6        # its articles read
 READ_PAGES = 36      # pages fetched in a run (the rest the next runs)
 READ_SECONDS = 25
 SENTENCES = 6        # sentences kept from an article
+PLACE_SENTENCES = 2  # and the sentences that name the places, for the page's map (the owner, 18/10: 'Er det meningen at
+                     # kortet kun viser paris?' – the cities were in the articles, but in sentences without a count)
 SENTENCE = 300       # characters a sentence at most
 KEEP_DAYS = 2
+READ_V = 2           # what a reading keeps: 2 since the place sentences (18/10)
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml'}
 NO_READ = re.compile(r'^https?://(?:[\w-]+\.)?(?:t\.me|youtube\.com|youtu\.be|x\.com|twitter\.com|facebook\.com)/', re.I)
@@ -57,22 +60,33 @@ def body(page):
     return ' '.join(p for p in paras if len(p) >= 60)
 
 
+# a list of places: a preposition, then two names or more ('in Paris, Lyon and Marseille', 'i blandt andet Nantes, Rennes')
+PLACES = re.compile(r"\b(?:in|i|across|throughout|including|such as|cities of|towns of|blandt andet|bl\.a\.|herunder|byer som|"
+                    r"byerne)\s+(?:[a-zæøå]+\s+){0,3}[A-ZÆØÅÀ-Ý][\w’'-]+(?:,\s*(?:and\s+|og\s+)?[A-ZÆØÅÀ-Ý][\w’'-]+|\s+(?:and|og)\s+"
+                    r"[A-ZÆØÅÀ-Ý][\w’'-]+)+")
+
+
 def counts(sentence):
     """Whether a sentence carries a count: a number of two digits or more that is not a date, a year or a clock time."""
     return any(len(re.sub(r'\D', '', m)) >= 2 for m in NUMBER.findall(NOT_A_COUNT.sub(' ', sentence)))
 
 
-def sentences(text, most=SENTENCES):
-    """The first sentences of a text that carry a count, each once."""
+def sentences(text, most=SENTENCES, places=PLACE_SENTENCES):
+    """The first sentences of a text that carry a count, each once – and the first that list places."""
     text = re.sub(r'\s+', ' ', html.unescape(TAG.sub(' ', text or ''))).strip()
-    out = []
+    out, named = [], []
     for s in re.split(r'(?<=[.!?])\s+(?=[\"“«»A-ZÆØÅÀ-Ý\d])', text):
         s = s.strip()
-        if 40 <= len(s) <= SENTENCE and counts(s) and s not in out:
-            out.append(s)
-            if len(out) >= most:
-                break
-    return out
+        if not 40 <= len(s) <= SENTENCE or s in out or s in named:
+            continue
+        if counts(s):
+            if len(out) < most:
+                out.append(s)
+        elif PLACES.search(s) and len(named) < places:
+            named.append(s)
+        if len(out) >= most and len(named) >= places:
+            break
+    return out + named
 
 
 def own_address(link, resolved, resolve):
@@ -95,7 +109,8 @@ def attach(cards, members_of, memory, now, resolve=None, fetch=None):
         resolve = fresh.resolve
     fetch = fetch or get
     since = (now - timedelta(days=KEEP_DAYS)).isoformat()
-    read = {k: v for k, v in (memory.get('read') or {}).items() if v[0] >= since}
+    # pages read before the place sentences were kept (READ_V) are read again
+    read = {k: v for k, v in (memory.get('read') or {}).items() if v[0] >= since} if memory.get('v') == READ_V else {}
     resolved = dict(memory.get('own') or {})
     start = time.monotonic()
     great = sorted((c for c in cards if c.get('live') and (c.get('outlets') or 1) >= READ_LEAST),
@@ -130,6 +145,6 @@ def attach(cards, members_of, memory, now, resolve=None, fetch=None):
         if said:
             c['said'] = said[:24]
     asked = {m['link'] for ms in arts.values() for m in ms}
-    return {'read': {k: v for k, v in read.items() if k in asked or v[1]},
+    return {'v': READ_V, 'read': {k: v for k, v in read.items() if k in asked or v[1]},
             'own': {k: v for k, v in resolved.items() if k in asked}}
 
