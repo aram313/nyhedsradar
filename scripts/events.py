@@ -594,8 +594,8 @@ def lines(current, now, find=None, head=None, teaser=None):
     out = [f'## Event pages (Begivenheder) – {len(items)} now', '']
     if find and any(e.get('status') == 'i gang' for e in items):
         out += ['Bring each page under way up to date from its stories\' material below: every count they carry in a box '
-                '(the earlier figure as "was" when it has grown), who gives each, the places named, a statement, and '
-                'the article told from all of it.', '']
+                '(the earlier figure as "was" when it has grown), who gives each, every city the stories and their articles '
+                "name in 'places' (the page's map shows them), a statement, and the article told from all of it.", '']
     if not items:
         out.append('None yet. A great event (many outlets, a state or a people in motion, a vote ahead) gets a page.')
     for e in items:

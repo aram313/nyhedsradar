@@ -503,11 +503,13 @@ const VFILES = {
   kal: () => CFG.kalenderUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'kalender.json'),
   // the editor's event pages (Begivenheder, 18/10): the digest branch's events.json
   evt: () => CFG.eventsUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'events.json'),
+  // where the event pages' places lie (the radar's places.py, from OpenStreetMap): the pages' maps
+  plc: () => CFG.placesUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'places.json'),
   // the front page's markets line: Økonomi's numbers (energy.json, 42 KB packed), asked for once the page is drawn
   eco: () => CFG.energyUrl || (CFG.dataUrl || '').replace(/data\.json$/, 'energy.json'),
 };
 // the calendar changes a few times a day (the editor's entries sooner); the shelved map's events followed the news's cycle
-const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3 };
+const VFRESH = { ans: 15 * 60e3, txt: 15 * 60e3, map: 90e3, cal: 30 * 60e3, kal: 10 * 60e3, eco: 5 * 60e3, evt: 5 * 60e3, plc: 10 * 60e3 };
 const V = k => (vd[k] && vd[k].v) || null;
 function need(k) {
   const x = vd[k] ||= { v: null, state: 'idle', at: 0 }, age = Date.now() - x.at;
@@ -531,7 +533,7 @@ function vLoaded(k) {
   if (k === 'bix' || k === 'mix' || k === 'ans') fillAnswerRefs();
   // (search and Gemt too: a search's answers found through the wiki come with its whole file, a saved answer with the index)
   const pages = { bix: ['home', 'latest', 'threads', 'analyses', 'svar', 'begreb', 'begreber', 'search', 'gemt'], mix: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'],
-    ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], evt: ['home', 'begivenhed', 'latest'], txt: ['analyses', 'svar'], mfull: ['svar'],
+    ans: ['home', 'analyses', 'svar', 'begreb', 'search', 'gemt'], eco: ['home'], evt: ['home', 'begivenhed', 'latest'], plc: ['begivenhed'], txt: ['analyses', 'svar'], mfull: ['svar'],
     bfull: ['begreb', 'svar', 'search', ...(anQuery ? ['analyses'] : [])], map: ['kort'], cal: ['kalender', 'home'], kal: ['kalender', 'home'] }[k] || [];
   if (k === 'cal' || k === 'kal') calGen++;   // the merged calendar is worked out again
   if (k === 'bix' && busy) { redrawAfterLoad = true; return; }   // the news are on their way: their drawing takes the links along
@@ -2836,6 +2838,7 @@ function morph(from, to, added) {
     else {
       if (m === at) at = at.nextSibling; else from.insertBefore(m, at);
       if (m.nodeType !== 1) { if (m.nodeValue !== n.nodeValue) m.nodeValue = n.nodeValue; }
+      else if (m.dataset.keep && m.dataset.keep === n.dataset.keep) { /* a map: its elements are its own (evMaps) */ }
       else if (!m.isEqualNode(n)) {
         for (const a of [...m.attributes]) if (!n.hasAttribute(a.name)) m.removeAttribute(a.name);
         for (const a of n.attributes) if (m.getAttribute(a.name) !== a.value) m.setAttribute(a.name, a.value);
@@ -2904,6 +2907,7 @@ function draw(t, opts = {}) {
   // a calendar event a link or the front page named: brought just below the bar once drawn (the tab in view)
   // (and again while the files and the news that follow redraw it for two seconds, until the reader's finger takes over)
   if (t === 'kalender' && t === tab) calAimAt(pg);
+  if (t === 'begivenhed') evMaps(pg);   // the event's map, made once its box is on the page
   if (t === 'threads' && pendingThr) { const card = pg.querySelector('#' + CSS.escape('thr-' + pendingThr)); if (card) { pendingThr = ''; requestAnimationFrame(() => scrollToEl(card, 12)); } }
 }
 // Analyser's strip stays under the bar; its year bands stick under the strip (its height measured when it changes)
@@ -3603,6 +3607,95 @@ const evHero = (e, tag = 'span', title = 'span') => {
     + `<span class="ev-over"><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span>`
     + `<${title} class="ev-ct">${esc(e.title)}</${title}></span></${tag}>` : '';
 };
+// ---------------------------------------------------------------- the event page's map
+// The places of an event on a quiet map (the owner, 18/10: 'Lad os lave kortet' – DR's overview of France's riots, its
+// cities as red dots on France – 'Er tænkeligt at dette kan lade sig gøre automatisk'): every page with a place the radar
+// found (places.json, OpenStreetMap's Nominatim) gets one. OpenFreeMap's vector map, as the shelved Kort tab drew it –
+// the app's own names, never 'Israel' (kStyle) – without the roads and the towns' own names: only the event's places,
+// a red dot each and its name as the editor wrote it, the first ringed. It cannot be moved; without WebGL there is none.
+const evPlaces = e => {
+  const got = (V('plc') || {}).places || {}, kick = String(e.kicker || '').trim().toLowerCase();
+  return (e.places || []).map(p => ({ name: p, at: got[`${String(p).trim().toLowerCase()}|${kick}`] }))
+    .filter(x => Array.isArray(x.at) && x.at[2] === 'city');
+};
+function evMapBox(e) {
+  if (!(e.places || []).length) return '';
+  need('plc');
+  const pts = evPlaces(e);
+  if (!pts.length) return '';
+  const keep = `${e.id}:${pts.map(p => p.name + p.at.slice(0, 2)).join(';')}:${kDarkNow() ? 'd' : 'l'}`;
+  return `<section class="ev-sec ev-map-sec"><h2 class="ev-h2">Kort</h2><div class="ev-map" data-keep="${esc(keep)}" data-ev="${esc(e.id)}"`
+    + ` role="img" aria-label="${esc('Kort: ' + pts.map(p => p.name).join(', '))}"></div><p class="ev-src">Kort: OpenFreeMap · OpenStreetMap</p></section>`;
+}
+function evMapStyle(dark) {   // the Kort tab's style without roads, buildings and names: land, water and borders
+  return kStyle(dark).then(st => ({ ...st, layers: st.layers.filter(l => l.type !== 'symbol'
+    && !/road|highway|bridge|tunnel|building|aeroway|rail|transit|poi|housenumber/.test(l.id)) }));
+}
+// the event's country (its kicker, when the radar found it a country): its name spaced out at its middle, as a paper's map
+const evLand = e => { const at = ((V('plc') || {}).places || {})[`${String(e.kicker || '').trim().toLowerCase()}|${String(e.kicker || '').trim().toLowerCase()}`];
+  return Array.isArray(at) && at[2] === 'country' ? { name: e.kicker, at } : null; };
+function evMaps(pg) {
+  for (const box of pg.querySelectorAll('.ev-map[data-keep]')) {
+    if (box.dataset.drawn === box.dataset.keep) continue;
+    box.dataset.drawn = box.dataset.keep;
+    const e = eventOf(box.dataset.ev), pts = e ? evPlaces(e) : [];
+    if (!pts.length) continue;
+    const dark = kDarkNow();
+    Promise.all([loadVector(), evMapStyle(dark)]).then(([, style]) => {
+      if (!box.isConnected || !window.maplibregl) return;
+      box.textContent = '';
+      const lats = pts.map(p => p.at[0]), lons = pts.map(p => p.at[1]);
+      // the places' extent, at least a country's breadth around them
+      let [s, n, w, o] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+      const cy = (s + n) / 2, cx = (w + o) / 2, hy = Math.max((n - s) / 2, 3.2), hx = Math.max((o - w) / 2, 4.2);
+      [s, n, w, o] = [cy - hy, cy + hy, cx - hx, cx + hx];
+      const map = new maplibregl.Map({ container: box, style, interactive: false, attributionControl: false, fadeDuration: 0,
+        bounds: [[w, s], [o, n]], fitBoundsOptions: { padding: 28 } });
+      box._map = map;
+      // the places: a dot on the map, its name beside it on a layer of the app's own – to its right, or to its left or
+      // under it where another name stands (measured, so no two names cover each other)
+      pts.forEach((p, k) => {
+        const dot = document.createElement('i');
+        dot.className = 'ev-dot' + (k === 0 ? ' main' : '');
+        new maplibregl.Marker({ element: dot, anchor: 'center' }).setLngLat([p.at[1], p.at[0]]).addTo(map);
+      });
+      const land = evLand(e), names = document.createElement('div');
+      names.className = 'ev-names';
+      names.setAttribute('aria-hidden', 'true');
+      names.innerHTML = pts.map(p => `<b>${esc(p.name)}</b>`).join('') + (land ? `<em>${esc(land.name)}</em>` : '');
+      box.appendChild(names);
+      const where = [...pts, ...(land ? [land] : [])];
+      function place() {
+        const taken = [], W = box.clientWidth, H = box.clientHeight;
+        [...names.children].forEach((el, k) => {
+          if (el.tagName === 'EM') el.hidden = false;   // measured shown, hidden again below where it has no room
+          const at = map.project([where[k].at[1], where[k].at[0]]), w = el.offsetWidth, h = el.offsetHeight;
+          if (el.tagName === 'EM') {   // the country's name: at its middle, or the nearest room the places leave
+            const ways = [[0, 0], [0, 22], [0, -22], [-40, 0], [40, 0], [-40, 22], [40, 22], [-40, -22], [40, -22], [0, 44], [0, -44], [-70, 10], [70, 10]].map(([dx, dy]) => [at.x - w / 2 + dx, at.y - h / 2 + dy]);
+            const cover = ([x, y]) => (x < 2 || x + w > W - 2 || y < 2 || y + h > H - 2 ? 1e6 : 0) + taken.reduce((a, t) =>
+              a + Math.max(0, Math.min(x + w, t[0] + t[2]) - Math.max(x, t[0])) * Math.max(0, Math.min(y + h, t[1] + t[3]) - Math.max(y, t[1])), 0);
+            const [x, y] = ways.reduce((best, way) => (cover(way) < cover(best) ? way : best));
+            el.hidden = cover([x, y]) > 0;
+            el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+            return;
+          }
+          const R = at.x + 9, L = at.x - 9 - w, C = at.x - w / 2, M = at.y - h / 2;
+          const ways = [[R, M], [L, M], [C, at.y + 7], [C, at.y - 7 - h], [R, at.y - h - 2], [R, at.y + 2], [L, at.y - h - 2], [L, at.y + 2]];
+          // the way that covers the least of the names already set (none, where there is one), inside the map
+          const cover = ([x, y]) => (x < 2 || x + w > W - 2 ? 1e6 : 0) + taken.reduce((a, t) =>
+            a + Math.max(0, Math.min(x + w, t[0] + t[2]) - Math.max(x, t[0])) * Math.max(0, Math.min(y + h, t[1] + t[3]) - Math.max(y, t[1])), 0);
+          const [x, y] = ways.reduce((best, way) => (cover(way) < cover(best) ? way : best));
+          taken.push([x, y, w, h]);
+          el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+        });
+      }
+      // the page's width changes (a turned phone, the text size): the map follows, its places in view
+      new ResizeObserver(() => { map.resize(); map.fitBounds([[w, s], [o, n]], { padding: 28, duration: 0 }); place(); }).observe(box);
+      map.once('load', place);
+      place();
+    }).catch(() => { box.closest('.ev-map-sec')?.remove(); });
+  }
+}
 function eventPage() {
   need('evt');
   const e = eventOf(evId);
@@ -3622,6 +3715,7 @@ function eventPage() {
       + `<span class="ev-cd">${esc(cap(FMT.full.format(calDate(e.date))))}</span></div>`;
   }
   if ((e.facts || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Fakta</h2>${factBoxes(e)}</section>`;
+  h += evMapBox(e);
   if ((e.article || []).length) {
     const src = evSources(e.article);
     h += `<section class="ev-sec ev-art"><h2 class="ev-h2">Det er sket</h2>${e.article.map(a => `<p>${rich(a.text, linkSession())}</p>`).join('')}`

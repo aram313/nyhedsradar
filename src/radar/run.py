@@ -929,6 +929,13 @@ def main():
             save(STATE / 'read.json', reader.attach(shown, members_of, load(STATE / 'read.json', {}), NOW))
         except Exception as e:  # noqa: BLE001 – a bonus too
             print(f'reading failed: {type(e).__name__}: {e}')
+        # the event pages' places on a map (radar/places.py, the owner, 18/10: 'Lad os lave kortet'): looked up once each
+        try:
+            from radar import places
+            save(STATE / 'places.json', places.update(load(os.environ.get('RADAR_EVENTS', CACHE / 'events.json'), {}),
+                                                      load(STATE / 'places.json', {}), NOW))
+        except Exception as e:  # noqa: BLE001
+            print(f'places failed: {type(e).__name__}: {e}')
 
     # one-line statements ("Kremlin: ...") from the wire and elsewhere, for the 'Bevægelser' view and the
     # editor's briefing: English and Danish versions made once and kept

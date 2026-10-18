@@ -60,10 +60,16 @@ def test_the_kort_code_stays_but_nothing_reaches_it():
 
 
 def test_no_request_goes_to_the_map_services():
+    # since 18/10 an event page's map (the owner: 'Lad os lave kortet') draws its places with the shelved section's vector
+    # map: only that section of the event page names the map library, and it runs only on the event page
+    evmap = OUTSIDE[OUTSIDE.index('const evPlaces = '):OUTSIDE.index('function eventPage() {')]
+    rest = OUTSIDE.replace(evmap, '')
     for host in ('leaflet', 'markercluster', 'maplibre', 'cartocdn', 'openstreetmap', 'openfreemap', 'tile.'):
         assert host not in INDEX.lower(), host
         assert host not in SW.lower(), host
-        assert host not in OUTSIDE.lower(), host   # only the shelved section names them
+        assert host not in rest.lower(), host   # only the shelved section and the event map name them
+    assert 'loadLeaflet' not in evmap and 'markercluster' not in evmap.lower()   # the vector map alone, no Leaflet
+    assert rest.count('evMaps(') == 1 and "if (t === 'begivenhed') evMaps(pg);" in rest   # drawn on the event page only
     assert 'mapUrl' not in PAGES and 'CARTO_KEY' not in PAGES
 
 

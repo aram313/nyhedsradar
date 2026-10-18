@@ -129,6 +129,11 @@ da'wah.
   by `fresh.resolve`) and up to six sentences with a count kept per article with its outlet (`said` on the card in
   data.json, `state/read.json` remembers pages two days) – the editor's material for event pages (events.story_text,
   carriers, material); only single sentences, never an article, and the app shows none of it.
+- `src/radar/places.py` (18/10, the owner: 'Lad os lave kortet'): the event pages' places (events.json from the digest
+  branch, `.cache/events.json`, `RADAR_EVENTS`) looked up once each in Nominatim (≤ 12 a run, a second apart, a
+  User-Agent naming Khabar) into `places.json` on the data branch ("<place>|<kicker>" → [lat, lon, country|state|city]);
+  the app's event page draws a map from it (`evMapBox`, `evMaps`: OpenFreeMap's vector map through the shelved Kort
+  section's `loadVector`/`kStyle`, without its own names; `data-keep` lets `morph` leave the map's elements alone).
 - **The large pictures** (18/10): `thumbs.large` grades every outlet's picture of the 18 strongest stories in Live and the
   big ones (`fitness`: wide, sharp, light, a scene or a small high face; the face's height is `pf[4]`), keeps the best as
   the card's `pic` with its `pf` and a light copy `pl` (960 px, state/l/, kept per picture in pics.json `grade`); the app

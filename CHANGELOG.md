@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **A map on every event page with places** (2026-10-18, the owner: 'Lad os lave kortet … Er tænkeligt at dette kan
+  lade sig gøre automatisk i fremtiden?' – DR's overview of France's riots shows its cities as red dots on France). The
+  radar looks up every place the editor names on an event page once in OpenStreetMap's Nominatim (`src/radar/places.py`:
+  one request a second, a User-Agent naming the app, every answer kept; `places.json` on the data branch, only place
+  names leave the radar), and the page draws them under the facts on OpenFreeMap's vector map as the shelved Kort tab did
+  (the app's own names, no roads or towns of the map's own, land, water and borders only): a red dot for each city, the
+  first ringed, its name as the editor wrote it set where it covers no other name, the country's name spaced out where
+  the places leave room; it cannot be moved, follows the phone's width and the app's light or dark look, and without
+  WebGL there is none. The editor's input asks for every city the stories and their articles name.
 - **The Hindu is no source** (2026-10-18, the owner: 'The hindu skal også ud'). `"cite": false` in config/feeds.json:
   its headlines and its articles' sentences are no material for the editor, ground no number on an event page and are
   credited for nothing, and (with `"last": true`) it leads a story only when no other outlet carries it. The check names

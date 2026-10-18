@@ -1280,6 +1280,19 @@ a.bg::after { content: ""; position: absolute; inset: -9px -3px; }
 .ev-art p { margin: 0 16px 14px; font-family: var(--display); font-size: var(--fs-read); line-height: 1.6; color: var(--text); text-wrap: pretty; }
 .ev-where { display: flex; align-items: flex-start; gap: 6px; margin: 10px 0 0; font-size: var(--fs-small); font-weight: 600; line-height: 1.4; color: var(--text-2); }
 .ev-where svg { flex: none; width: 15px; height: 15px; margin-top: 2px; color: var(--text-3); }
+/* the event's map (app.js evMaps): a quiet map, the places as red dots with their names, the first ringed */
+.ev-map { position: relative; height: calc(230px * var(--ts, 1)); margin: 0 16px; border-radius: 12px; overflow: hidden; background: var(--fill); }
+.ev-map .maplibregl-canvas { outline: none; }
+.ev-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--bg); }
+.ev-dot.main { width: 12px; height: 12px; }
+.page[data-tab="begivenhed"] .ev-dot { background: var(--red); }
+.page[data-tab="begivenhed"] .ev-dot.main { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--red); }
+.ev-names { position: absolute; inset: 0; pointer-events: none; }
+.ev-names em { position: absolute; top: 0; left: 0; white-space: nowrap; font-style: normal; font-size: var(--fs-small); font-weight: 600;
+  letter-spacing: .32em; text-transform: uppercase; color: var(--text-3); text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg); }
+.ev-names b { position: absolute; top: 0; left: 0; white-space: nowrap; font-size: var(--fs-meta); font-weight: 700; line-height: 1.2;
+  color: var(--text); text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 3px var(--bg); }
+.ev-map-sec .ev-src { margin-top: 6px; }
 /* a statement as a pull quote: the serif upright and large, who says it under it */
 .ev-q { margin: 0 16px 20px; padding: 0 0 0 16px; border-left: 2px solid var(--line); }
 .ev-q blockquote { margin: 0; font-family: var(--display); font-size: var(--fs-lead); font-weight: 500; line-height: 1.34; letter-spacing: -.005em;
