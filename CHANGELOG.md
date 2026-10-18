@@ -9,6 +9,18 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An economy editor for the Økonomi page, once a day** (2026-10-18, the owner: 'kan vi erstatte en af senior
+  kørslerne i løbet af dagen som kan kigge på økonomi og kalender siden? tilføje kontekst forbedre layout og gøre det
+  mere livligt. en gang om dagen er nok til det. dette er dog primært til økonomi siden'). The senior editor's 16
+  o'clock run goes to a new Claude routine, 'Khabar · økonomiredaktør' (claude-opus-5-5, cron `0 15 * * *`; the senior
+  editor keeps 07, 12 and 20). From its own input (`editor.py input --okonomi`: the page's figures, the economic news,
+  the fortnight ahead) it writes the page's day – checked by the new `scripts/okonomi.py`: reality only, every number
+  from a cited story, no judgement, forecast or advice on money – into okonomi.json, which the radar puts into the page's
+  data. **The page:** the day's lines in the serif under Lige nu's headline, a line under each topic's headline on what
+  the news say moved it ('Bygger på Reuters, DR'), 'I nyhederne' with up to three stories under the figures (opened in
+  place), 'Det kommer' – the economic dates of the next fortnight, a tap opens the calendar at it – and the editor's
+  'Dagens citat'. It also adds the economic events the news name to the calendar and writes the economic stories'
+  headlines. A day older than 30 hours is not shown.
 - **Reuters straight from Reuters** (2026-10-18, the owner: 'Axios og reuters burde være nogle primære kilder, hvordan
   får vi historier fra dem i dag?'). Reuters has no feed; until now its stories came from two Google News searches –
   late, partial (Reuters's report of US officials at the Palestinian village never came) and without pictures. The

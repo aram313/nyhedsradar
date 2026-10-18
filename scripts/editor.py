@@ -62,9 +62,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import brain  # noqa: E402 – the books' order of weight and Hizb ut-Tahrir's newest answers, for weighing
 import voice  # noqa: E402 – Khabar's content rules
 import events as event_pages  # noqa: E402 – Begivenheder: the event pages and their fact boxes
+import okonomi as econ  # noqa: E402 – the economy editor's day on the Økonomi page
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from radar import level as radar_level  # noqa: E402 – how the radar reads live.json (stdlib only)
 from radar import headlines as radar_heads  # noqa: E402 – the radar's curiosity test and teaser cleaning (stdlib only)
+from radar import energy as radar_energy  # noqa: E402 – the economy page's news patterns (stdlib only)
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTIONS = {'dk': 'Danmark', 'me': 'Mellemøsten', 'world': 'Verden'}
@@ -125,14 +127,14 @@ NOTE_LEN = 1200
 SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$')
 KEEP_WORD = 'keep'
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json', 'memo.json', 'lessons.json', 'report.json')
+                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
 # editor calls for an update; the owner reads the senior and chief editors' notes in his admin block (18/10), so a couple
 # of days of them are kept
 MEMOS, MEMO_HOURS, MEMO_TEXT = 20, 12, 1500
-EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør')
+EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør', 'økonomiredaktør')
 # the chief editor (the owner, 18/10: one editor once a day on the highest setting – 'ja sæt den op kl 5'): it reads the
 # last day's own text (input --audit), keeps the fejlbog – rules drawn from the editors' mistakes, which every input shows
 # at its top (lessons.json) – and writes the owner a short morning report (report.json, shown in the owner's admin block)
@@ -1380,8 +1382,58 @@ def answer_lines(a, known):
         "### The answer's text", '', str(a.get('text') or '')[:ANSWER_TEXT], '']
 
 
+def econ_stories(items, now, hours=36):
+    """The economic stories of the last `hours` – the Økonomi page's own patterns (oil, fuel and gas; debt, central
+    banks, tariffs, sanctions, markets) on every headline the radar has of a story –, strongest first."""
+    out = []
+    for i in items:
+        text = ' '.join(str(x) for x in (i.get('title'), i.get('title_tr'), i.get('title_da'),
+                                         *[a.get('title') for a in i.get('also') or []]) if x)
+        if now - ts(i.get('published') or i['found']) < timedelta(hours=hours) and (
+                radar_energy.NEWS.search(text) or radar_energy.CRISIS.search(text) or econ.MARKETS.search(text)):
+            out.append(i)
+    return sorted(out, key=lambda i: -(i.get('rank') or 0))[:ECON_STORIES]
+
+
+ECON_STORIES = 40
+
+
+def econ_input(args, now):
+    """The economy editor's input (input --okonomi): the fejlbog and the notes, the brain, the page's figures, the
+    economic news, the stories among them still without a headline, the fortnight ahead in the calendar and the dates
+    the news name, the page as the last economy update left it."""
+    data, _, _ = material(args)
+    items = data.get('items', [])
+    noted = answers_of(args)
+    stories = econ_stories(items, now)
+    out = [f'# Material for the economy update · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)', '']
+    out += lesson_lines(read(args, 'origin/digest', 'lessons.json', {}))
+    out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
+    out += brain.section(stories[:TOP], noted['items'])
+    cal_now, kal_now = read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {})
+    out += econ.input_lines(read(args, 'origin/data', 'energy.json', {}), stories, read(args, 'origin/digest', 'okonomi.json', {}),
+                            cal_now, kal_now, now, story_lines)
+    titles = summaries_of(args).get('titles')
+    heads = [i for i in to_head(stories, titles, now) if i in stories]
+    out += head_lines(heads, True, {i['id'] for i in stories})
+    out += calendar_lines(cal_now, kal_now, now)
+    heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (titles or {}).items()}
+    out += news_dates(stories, cal_now, kal_now, now, heads_now)
+    template = {**econ.TEMPLATE, **{k: TEMPLATE[k] for k in ('titles', 'summaries', 'calendar', 'memo') if k in TEMPLATE}}
+    out += ['', '## Write /tmp/editor/update.json in exactly this shape (UTF-8 JSON)', '',
+            json.dumps(template, ensure_ascii=False, indent=1)]
+    WORK.mkdir(parents=True, exist_ok=True)
+    (WORK / 'input.md').write_text('\n'.join(out), encoding='utf-8')
+    (WORK / 'input.meta').write_text(json.dumps({'digest': '' if args.dir else digest_head(), 'made': now.isoformat()}),
+                                     encoding='utf-8')
+    print(f'{WORK / "input.md"}: {len(stories)} economic stories, {len(heads)} without a headline')
+
+
 def cmd_input(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
+    if getattr(args, 'okonomi', False):
+        econ_input(args, now)
+        return
     data, lines, moves = material(args)
     digest = read(args, 'origin/digest', 'digest.json', {})
     notes = digest.get('editor') or {}
@@ -2415,6 +2467,8 @@ def cmd_publish(args):
     memo = memo_file(draft.get('memo'), read(args, 'origin/digest', 'memo.json', {}), now, problems)
     lessons = lessons_file(draft.get('lessons'), read(args, 'origin/digest', 'lessons.json', {}), now, problems)
     report = report_file(draft.get('report'), now, problems)
+    oko = econ.okonomi_file(draft.get('okonomi'), read(args, 'origin/digest', 'okonomi.json', {}), resolver(data.get('items', [])).get,
+                            read(args, 'origin/data', 'calendar.json', {}), kal, now, problems, voice)
     if problems:
         print('Not published – fix these in the file and run publish again:')
         print('\n'.join('- ' + p for p in problems))
@@ -2454,6 +2508,8 @@ def cmd_publish(args):
         files['lessons.json'] = lessons
     if report:
         files['report.json'] = report
+    if oko:
+        files['okonomi.json'] = oko
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
     for name in DIGEST_FILES:   # a file of an earlier publish this update does not write is never pushed again
@@ -2724,6 +2780,7 @@ def main(argv=None):
     p.add_argument('--push', action='store_true', help='commit the files to the digest branch')
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')
     p.add_argument('--audit', action='store_true', help="input: the last day's own text and the chief editor's fields")
+    p.add_argument('--okonomi', action='store_true', help="input: the economy editor's material for the Økonomi page")
     p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'], help=argparse.SUPPRESS)
     args = p.parse_args(argv)
     {'check': cmd_check, 'gate': cmd_gate, 'input': cmd_input, 'publish': cmd_publish}[args.command](args)

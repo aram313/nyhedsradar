@@ -456,7 +456,7 @@ def test_the_ai_build_out_counter_is_on_the_economy_page():
 
 
 def test_the_very_biggest_economic_news_stand_at_the_top():
-    assert "h += bigNews() + nowRows(list, base);" in PAGE
+    assert "h += bigNews() + nowRows(list, base) + coming();" in PAGE   # the dates ahead after the moves (18/10)
     rule = PAGE.split('const hugeNews = () =>')[1].split('\n')[0]
     assert 'n.big' in rule and '>= 8' in rule and '864e5' in rule and '.slice(0, 2)' in rule
     assert 'data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>' in PAGE      # opens in Khabar, as every story

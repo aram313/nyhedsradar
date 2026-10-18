@@ -118,6 +118,29 @@
     font-variation-settings: "opsz" 60; text-wrap: balance; }
   .ec-meta { margin: 10px 16px 0; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); text-wrap: pretty; }
   .ec-sub { margin: 20px 16px 4px; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+  /* the economy editor's day (18/10, the owner: 'tilføje kontekst … gøre det mere livligt'): under a topic's headline
+     what the news say moved it, in the serif as a paper's standfirst, the outlets it rests on under it; the day's lines
+     at the top of Lige nu on the page's own ground with a thin rule at its left */
+  .ec-ctx { margin: 10px 16px 2px; }
+  .ec-ctx p { margin: 0; font-family: var(--display); font-size: var(--fs-read); font-weight: 400; line-height: 1.45; color: var(--text-2);
+    text-wrap: pretty; }
+  .ec-ctx .ec-ctx-src { margin-top: 5px; font-family: inherit; font-size: var(--fs-meta); line-height: 1.4; color: var(--text-3); }
+  .ec-ctx.ec-day { margin-top: 12px; padding: 2px 0 2px 12px; border-left: 2px solid var(--line); }
+  .ec-ctx.ec-day p:first-child { font-size: var(--fs-lead); line-height: 1.38; color: var(--text); }
+  /* 'Det kommer': the planned economic events of the next fortnight, the day large as in the calendar */
+  .ec-cal { margin: 4px 0 0; }
+  .ec-cal-r { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; color: inherit; text-decoration: none; }
+  .ec-cal-r + .ec-cal-r::before { content: ""; position: absolute; top: 0; left: 72px; right: 0; border-top: 1px solid var(--line); }
+  .ec-cal-r:active { opacity: .6; }
+  .ec-cal-d { flex: none; width: 44px; display: flex; flex-direction: column; align-items: center; font-variant-numeric: tabular-nums; }
+  .ec-cal-d b { font-size: var(--fs-title); font-weight: 700; line-height: 1.05; letter-spacing: -.02em; }
+  .ec-cal-d small { margin-top: 2px; font-size: var(--fs-cap); font-weight: 650; letter-spacing: .03em; color: var(--text-3); }
+  .ec-cal-x { flex: 1; min-width: 0; }
+  .ec-cal-x b { display: block; font-size: var(--fs-body); font-weight: 650; line-height: 1.3; }
+  .ec-cal-x span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: 3px;
+    font-size: var(--fs-small); line-height: 1.38; color: var(--text-2); }
+  .ec-cal-n { flex: none; padding-top: 2px; font-size: var(--fs-meta); font-weight: 650; color: var(--text-3); white-space: nowrap; }
+  .ec-cal-n.near { color: var(--red); }
   .en-hint { margin: 0 16px 4px; font-size: var(--fs-meta); line-height: 1.45; color: var(--text-3); }
 
   /* the key figures: large, simple tiles (12 from the edge, 12 inside, radius 16 – the app's panel); a tap opens the
@@ -1332,13 +1355,49 @@ function bigNews() {
   return list.length ? `<div class="ec-big">${list.map(n => `<div class="ec-bigi${openNews.has(n.i) ? ' open' : ''}"><a href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>`
     + `<span class="ec-big-h">${esc(newsTidy(newsPick(n)[0]))}</span><span class="ec-big-m">${esc(n.s)} · ${esc(when(n.p))} · ${n.n} medier</span></a>${openNews.has(n.i) ? storyX(n, ' big') : ''}</div>`).join('')}</div>` : '';
 }
+// ---- the economy editor's day (energy.json `ed`, from okonomi.json – scripts/okonomi.py; the owner, 18/10: 'tilføje
+// kontekst forbedre layout og gøre det mere livligt'): once a day the economy editor tells what the news say moved the
+// figures – the day at the top of Lige nu, a line under a topic's headline, up to three stories under its figures – and
+// the planned events of the next fortnight. Reality only, every number from a story it cites; the radar drops a day older
+// than 30 hours
+const ED = () => (D && D.ed) || null;
+function edLine(id) {
+  const e = ED(), x = e && (id === 'nu' ? e.dag : (e.emner || {})[id]);
+  if (!x || !x.text) return '';
+  return `<div class="ec-ctx${id === 'nu' ? ' ec-day' : ''}"><p>${esc(qi(x.text))}</p>`
+    + ((x.src || []).length ? `<p class="ec-ctx-src">Bygger på ${esc(x.src.join(', '))}</p>` : '') + '</div>';
+}
+function edNews(id) {
+  const list = (((ED() || {}).emner || {})[id] || {}).news || [];
+  return list.length ? `<h3 class="ec-sub">I nyhederne</h3>${news(list, '', true)}` : '';
+}
+const ymdToday = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Copenhagen' });
+const daysTo = ymd => Math.round((new Date(ymd + 'T12:00:00') - new Date(ymdToday() + 'T12:00:00')) / 864e5);
+function coming() {
+  const list = ((ED() || {}).kommende || []).filter(x => x && x.id && /^\d{4}-\d{2}-\d{2}/.test(x.date || '') && daysTo(x.date.slice(0, 10)) >= 0);
+  if (!list.length) return '';
+  return '<h3 class="ec-sub">Det kommer</h3><div class="ec-cal">' + list.map(x => {
+    const d = asDate(x.date.slice(0, 10)), n = daysTo(x.date.slice(0, 10));
+    const left = n === 0 ? 'i dag' : n === 1 ? 'i morgen' : `om ${n} dage`;
+    return `<a class="ec-cal-r" href="../?kalender=${encodeURIComponent(x.id)}" target="_top" data-cal="${esc(x.id)}">`
+      + `<span class="ec-cal-d" aria-hidden="true"><b>${d.getDate()}</b><small>${esc(d.toLocaleDateString('da-DK', { month: 'short' }).replace('.', ''))}</small></span>`
+      + `<span class="ec-cal-x"><b>${esc(qi(x.title))}</b>${x.why ? `<span>${esc(qi(x.why))}</span>` : ''}</span>`
+      + `<span class="ec-cal-n${n <= 1 ? ' near' : ''}">${left}</span></a>`;
+  }).join('') + '</div>';
+}
+// a date ahead opens the app's calendar at it (in the app's frame); on khabar.nu/energi the link does
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-cal]'), go = a && appFn('khabarOpenCal');
+  if (go) { e.preventDefault(); go(a.dataset.cal); }
+});
 function topicHtml(T) {
   let h = `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p><h2 class="ec-head">${esc(head(T.id))}</h2></header>`;
+  h += edLine(T.id);
   let base;
   if (T.id === 'nu') {
     const list = topMoves();
     base = baseOf(list.map(moveFig));
-    h += bigNews() + nowRows(list, base);
+    h += bigNews() + nowRows(list, base) + coming();
   } else if (T.id === 'kris') {
     // the newest story is the headline line above: its source and time under it, then the rest
     const [lead, ...rest] = D.crisis || [];
@@ -1364,6 +1423,7 @@ function topicHtml(T) {
     base = baseOf(tiles);
     h += tileGrid(T.id, tiles, base);
     if (T.id === 'debt') h += debtView();
+    h += edNews(T.id);
   }
   if (FOLDS.has(T.id)) {
     const on = folds.has(T.id);

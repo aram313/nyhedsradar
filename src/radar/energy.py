@@ -757,6 +757,60 @@ def editor_titles(summaries):
     return out
 
 
+def news_rec(it, ed):
+    """A story as the page's lists draw it: every version of its headline the app knows (the page picks by the reader's
+    language setting, as the app does), the editor's first."""
+    mine = next((ed[k] for k in [it.get('id'), *(it.get('members') or [])] if k in ed), None)
+    return {'i': it.get('id'), 'o': it.get('title'), 'en': it.get('title_tr'), 'da': it.get('title_da'),
+            'ed': mine, 'l': it.get('lang'), 'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [],
+            'kd': it.get('kw_da') or [], 's': it.get('source'), 'p': it.get('published') or it.get('found'),
+            'u': it.get('link'), 'n': it.get('outlets') or 1, 'big': bool(it.get('big'))}
+
+
+# The economy editor's day (the owner, 18/10: 'kan vi erstatte en af senior kørslerne … som kan kigge på økonomi og
+# kalender siden? tilføje kontekst forbedre layout og gøre det mere livligt'): okonomi.json from the digest branch
+# (RADAR_OKONOMI, scripts/okonomi.py checks it) – the day's lines, each topic's line and stories, the events ahead and the
+# day's statement – with the stories as the page draws them; none when it is older than ED_HOURS (a day it missed)
+ED_HOURS = 30
+
+
+def editor_layer(state, path=None, summaries=None, t=None):
+    def load(name):
+        try:
+            return json.loads(Path(name if os.path.isabs(str(name)) else state / name).read_text(encoding='utf-8'))
+        except Exception:
+            return {}
+
+    d = load(path or os.environ.get('RADAR_OKONOMI') or '__none__')
+    try:
+        if not d or (t or now()) - datetime.fromisoformat(str(d.get('at'))) > timedelta(hours=ED_HOURS):
+            return None
+    except (ValueError, TypeError):
+        return None
+    ed = editor_titles(load(summaries or os.environ.get('RADAR_SUMMARIES') or '__none__'))
+    find = {}
+    for it in load('data.json').get('items', []):
+        for k in it.get('members') or []:
+            find.setdefault(k, it)
+    find.update({it['id']: it for it in load('data.json').get('items', []) if it.get('id')})
+    out = {'at': d['at']}
+    if (d.get('dag') or {}).get('text'):
+        out['dag'] = {'text': d['dag']['text'], 'src': d['dag'].get('src') or []}
+    topics = {}
+    for k, v in (d.get('emner') or {}).items():
+        box = {'text': v.get('text') or '', 'src': v.get('src') or [],
+               'news': [news_rec(find[i], ed) for i in v.get('stories') or [] if i in find]}
+        if box['text'] or box['news']:
+            topics[k] = box
+    if topics:
+        out['emner'] = topics
+    if d.get('kommende'):
+        out['kommende'] = d['kommende']
+    if (d.get('citat') or {}).get('text'):
+        out['citat'] = d['citat']
+    return out
+
+
 def energy_news(state, hours=72, limit=16, summaries=None, pattern=None):
     """Stories about oil, fuel and gas, newest first: those with the editor's headline and Danish outlets' own."""
     def load(name):
@@ -772,14 +826,10 @@ def energy_news(state, hours=72, limit=16, summaries=None, pattern=None):
         text = ' '.join(x for x in (it.get('title'), it.get('title_tr'), it.get('title_da')) if x)
         if (pattern or NEWS).search(text) and it.get('id') not in seen:
             seen.add(it.get('id'))
-            mine = next((ed[k] for k in [it.get('id'), *(it.get('members') or [])] if k in ed), None)
-            if not mine and it.get('lang') != 'da':
+            rec = news_rec(it, ed)
+            if not rec['ed'] and it.get('lang') != 'da':
                 continue      # the machine's Danish of a foreign headline reads badly: only the editor's or a Danish outlet's
-            # every version the app knows; the page picks by the reader's language setting, as the app does
-            out.append({'i': it.get('id'), 'o': it.get('title'), 'en': it.get('title_tr'), 'da': it.get('title_da'),
-                        'ed': mine, 'l': it.get('lang'), 'k': (it.get('kw_tr') if it.get('title_tr') else it.get('kw')) or [],
-                        'kd': it.get('kw_da') or [], 's': it.get('source'), 'p': it.get('published') or it.get('found'),
-                        'u': it.get('link'), 'n': it.get('outlets') or 1, 'big': bool(it.get('big'))})
+            out.append(rec)
     fresh = []
     for x in out:
         try:
@@ -861,7 +911,11 @@ def crisis_archive(fresh, kept, seed, t=None, days=CRISIS_DAYS, limit=CRISIS_MAX
 WHO_SAYS = re.compile(r'^([^:–]{2,48}):\s+(.{12,240})$')
 
 
-def econ_quote(crisis, digest=None, t=None):
+def econ_quote(crisis, digest=None, t=None, ed=None):
+    if ed and (ed.get('citat') or {}).get('text'):   # the economy editor's statement of the day
+        q = ed['citat']
+        return {'who': q.get('who') or '', 'text': q['text'], 'u': q.get('u') or '', 's': q.get('s') or '', 'p': ed.get('at'),
+                'i': (q.get('ids') or [None])[0], 'ed': True}
     try:
         d = json.loads(Path(digest or os.environ.get('RADAR_DIGEST') or Path(__file__).resolve().parents[2] / '.cache' / 'digest.json').read_text(encoding='utf-8'))
     except (OSError, ValueError):
@@ -974,7 +1028,8 @@ def run(state):
         'news': energy_news(state),
         # the economy page's 'Uro i økonomien', with its memory of 30 days and the backward fill
         'crisis': (crisis := crisis_archive(energy_news(state, hours=96, limit=12, pattern=CRISIS), prev.get('crisis') or [], crisis_seed(), t)),
-        'quote': econ_quote(crisis, t=t),
+        'ed': (layer := editor_layer(state, t=t)),
+        'quote': econ_quote(crisis, t=t, ed=layer),
     }
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     return out

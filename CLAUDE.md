@@ -358,8 +358,21 @@ da'wah.
     --audit`), corrects what falls short, keeps the fejlbog (`lessons.json` on the digest branch, `lessons` in an update,
     ≤ 40 rules; every input shows it first), leaves the 07 senior editor a memo and writes the owner a morning report
     (`report`, report.json, shown first in the owner's admin block). Public prompt: docs/hjerne/routine-chief-prompt.md.
-    The senior editor (`trig_019VrGU5HBU66UxcDjqEavok`, cron `0 6,11,15,19`) takes 07, 12, 16 and 20 in place of the
-    front-page editor (`trig_01B5p6DmEx8pz9cDLZzwxbHj`, cron `0 5,7-10,12-14,16-18,20-22`).
+    The senior editor (`trig_019VrGU5HBU66UxcDjqEavok`, cron `0 6,11,19` since 18/10 evening) takes 07, 12 and 20 in
+    place of the front-page editor (`trig_01B5p6DmEx8pz9cDLZzwxbHj`, cron `0 5,7-10,12-14,16-18,20-22`).
+  - **The economy editor** (Khabar · økonomiredaktør, 18/10, the owner: 'kan vi erstatte en af senior kørslerne i løbet
+    af dagen som kan kigge på økonomi og kalender siden? tilføje kontekst forbedre layout og gøre det mere livligt. en gang
+    om dagen er nok … primært til økonomi siden'): claude-opus-5-5, cron `0 15 * * *` = 16 Danish winter time, the senior
+    editor's former 16 o'clock run (the front page has no update that hour: the front-page editor runs at 15 and 17). It
+    reads `editor.py input --okonomi` (the page's figures, the economic news of 36 hours – energy.NEWS, energy.CRISIS and
+    okonomi.MARKETS –, the fortnight's planned events with their ids, its own last day) and writes `okonomi` – `dag`, a
+    line and up to three stories per topic (`emner`), up to four `kommende` dates, the day's `citat` – plus headlines,
+    summaries and calendar entries; `scripts/okonomi.py` checks it (every number from a cited story, no judgement,
+    forecast or advice on money – `ADVICE`) into okonomi.json; the radar's energy step reads it (`RADAR_OKONOMI`,
+    `energy.editor_layer`, dropped after 30 hours) into energy.json's `ed`, and the page shows the day under Lige nu's
+    headline, each topic's line under its headline ('Bygger på …'), 'I nyhederne' under the figures, 'Det kommer' in Lige
+    nu (a tap opens the Kalender tab at it, `khabarOpenCal`) and its statement as 'Dagens citat'. Public prompt:
+    docs/hjerne/routine-okonomi-prompt.md.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub, want} to the relay; `push.py` keeps them in

@@ -3619,6 +3619,8 @@ addEventListener('touchmove', e => {
 // Økonomi's page scrolls inside its frame, so it has its own pull (18/10, the owner: 'man kan ikke hive ned for at
 // opdatere økonomi siden'); the logo answers it as it answers the app's own
 window.khabarOkReady = on => logo.classList.toggle('ready', !!on);
+// a date ahead on Økonomi ('Det kommer', the economy editor's) opens the Kalender tab at it, as ?kalender=<id> does
+window.khabarOpenCal = id => { calFocus = String(id || ''); calGone = ''; ver++; setTab('kalender', { top: true }); return true; };
 // a story tapped on Økonomi opens in Live, opened, where its summary, outlets and share are (18/10, the owner: 'det skal
 // åbne i nyhedsoversigten i khabar'); false when Live does not hold it – the page unfolds it then
 window.khabarOpenStory = (id, n) => {

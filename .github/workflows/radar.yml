@@ -46,6 +46,7 @@ jobs:
             git show FETCH_HEAD:live.json > .cache/live.json 2>/dev/null || rm -f .cache/live.json
             git show FETCH_HEAD:summaries.json > .cache/summaries.json 2>/dev/null || rm -f .cache/summaries.json
             git show FETCH_HEAD:events.json > .cache/events.json 2>/dev/null || rm -f .cache/events.json
+            git show FETCH_HEAD:okonomi.json > .cache/okonomi.json 2>/dev/null || rm -f .cache/okonomi.json
           fi
 
       - uses: actions/setup-python@v5
@@ -108,6 +109,7 @@ jobs:
           RADAR_STATE: state
           RADAR_SUMMARIES: .cache/summaries.json    # the editor's headlines for the energy news
           RADAR_DIGEST: .cache/digest.json          # the editor's quotes: the economy page's 'Dagens citat'
+          RADAR_OKONOMI: .cache/okonomi.json        # the economy editor's day: the page's lines, stories and dates
         run: python -m radar.energy
 
       # the Kalender tab's planned events (src/radar/calendar.py, stdlib only): Wikipedia's electoral calendars, the Fed's
@@ -151,7 +153,7 @@ jobs:
 
       - name: Save state
         run: |
-          rm -f .cache/profile.jsonl .cache/digest.json .cache/live.json .cache/summaries.json .cache/events.json
+          rm -f .cache/profile.jsonl .cache/digest.json .cache/live.json .cache/summaries.json .cache/events.json .cache/okonomi.json
           cd state
           git init -q -b data
           git config user.name "radar-bot"
