@@ -3504,11 +3504,16 @@ function evShare(f) {
 // capitals over its number, who says it in italics under it; the first number the page's headline number, the rest two
 // to a row. A share of ten as ten dots, any other share as a thin meter; a number with the one before as two thin bars
 // and the change beside the number.
+// when the earlier count was given, if it names a time ('fredag', 'i går', '17/10', 'kl. 12'): 'siden fredag' and the
+// bar's label; else ('tidligere meldt') the change says from what and the bar is 'Før'
+const WHEN_T = /^(i (går|dag|morges|aftes|nat)|(man|tirs|ons|tors|fre|lør|søn)dag\w*|i forgårs|\d|kl\.)/i;
+const wasWhen = f => (WHEN_T.test(String(f.was && f.was.when || '').trim()) ? String(f.was.when).trim() : '');
 function factDelta(f) {
   const now = evNum(f.value), was = f.was && evNum(f.was.value);
   if (now == null || !was) return '';
   const ch = (now - was) / was * 100, n = Math.abs(ch) >= 10 ? Math.round(Math.abs(ch)) : Math.abs(ch).toFixed(1).replace('.', ',');
-  return `<em class="kf-d${ch >= 0 ? ' up' : ' down'}"><i aria-hidden="true">${ch >= 0 ? '▲' : '▼'}</i>${n} %${f.was.when ? ` siden ${esc(f.was.when)}` : ''}</em>`;
+  const w = wasWhen(f);
+  return `<em class="kf-d${ch >= 0 ? ' up' : ' down'}"><i aria-hidden="true">${ch >= 0 ? '▲' : '▼'}</i>${n} %${w ? ` siden ${esc(w)}` : ` fra ${esc(f.was.value)}`}</em>`;
 }
 function factGraphic(f) {
   const r = evShare(f), m = String(f.value || '').match(/^\s*(\d+)\s*(?:af|ud af|of)\s*10\b/i);
@@ -3520,7 +3525,7 @@ function factGraphic(f) {
   const now = evNum(f.value), was = f.was && evNum(f.was.value);
   if (now != null && was) {
     const top = Math.max(now, was);
-    return `<span class="kf-bars" aria-hidden="true"><span><em>${esc(cap(f.was.when || 'før'))}</em><b><i style="width:${(was / top * 100).toFixed(1)}%"></i></b><span>${esc(f.was.value)}</span></span>`
+    return `<span class="kf-bars" aria-hidden="true"><span><em>${esc(cap(wasWhen(f) || 'før'))}</em><b><i style="width:${(was / top * 100).toFixed(1)}%"></i></b><span>${esc(f.was.value)}</span></span>`
       + `<span class="kf-now"><em>Nu</em><b><i style="width:${(now / top * 100).toFixed(1)}%"></i></b><span>${esc(f.value)}</span></span></span>`;
   }
   return '';

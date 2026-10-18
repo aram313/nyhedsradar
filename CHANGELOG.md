@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The change says since when only for a time** (2026-10-18, the first real page gave the arrests' earlier figure
+  'tidligere meldt'): '▲ 50 % siden fredag' when the earlier count names a time ('fredag', 'i går', '17/10', 'kl. 12'),
+  else '▲ 50 % fra 1.200' and the bar 'Før'.
 - **An event page tells the event, not the press review** (2026-10-18, the editor's third try: 'BT skriver, at … DR
   omtaler situationen som … The Hindu skriver, at …', and the arrests' earlier figure in a note). The tool refuses an
   article that says three times what an outlet writes – each fact with its first source ('oplyser indenrigsministeren'),
