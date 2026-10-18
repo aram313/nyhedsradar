@@ -3267,6 +3267,26 @@ window.khabarOpenStory = (id, n) => {
   openStory(outside.id);
   return true;
 };
+// a story of the Økonomi frame unfolds there, in place (the owner, 18/10: 'når man åbner nyheder på økonomi må den gerne
+// foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side'): the frame asks for what an
+// opened row shows – Khabar's headline, the summary and what it rests on – and hands its Del, Kopiér and Gem back here,
+// so they do what they do everywhere (the toast, the bookmark kept with the story)
+window.khabarStoryData = id => {
+  const i = findStory(id);
+  if (!i) return null;
+  const ed = sumOf(i);
+  return { title: i.title, sum: (ed ? ed.text : i.summary) || '', paywall: !!(ed && ed.paywall), saved: isSaved('s', i.id),
+    link: i.link, source: i.source, outlets: i.outlets || 1 };
+};
+window.khabarStoryAct = async (id, act) => {
+  const i = findStory(id);
+  if (!i) return null;
+  if (act === 'save') return toggleSave('s', i.id, i);
+  if (act === 'share') share(shareText(i), i);
+  else if (act === 'copy') { if (await copyText(shareText(i))) { toast('Kopieret'); markShared(i); } }
+  else if (act === 'read') learnFrom(i, 'read');
+  return true;
+};
 // the 'Nyhed' side page: one story, opened, with Læs, Del, Kopiér and Gem, and the way to all of Live under it
 function openStory(id) {
   expanded.clear(); expanded.add(id);

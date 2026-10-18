@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi: a story unfolds in place, with the app's buttons** (2026-10-18, the owner: 'når man åbner nyheder på
+  økonomi må den gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side' – then
+  'hvor er logoerne på knapperne'). A tap on a story of the page – the list, its lead, 'Stor nyhed', the quote – no
+  longer goes to the 'Nyhed' page: it unfolds where it is, one at a time, with what an opened row shows in Live (the
+  summary and what it rests on) and Læs, Del, Kopiér and Gem with the app's own icons. The app gives the content and
+  does the actions (khabarStoryData, khabarStoryAct), so the toast and the bookmark work as everywhere; a story the
+  app has not shows its original headline and 'Læs hos …'.
 - **Økonomi: the news last, the very biggest at the top** (2026-10-18, the owner: 'nyheder på økonomi skal være i
   bunden på økonomi siden, medmindre det er kæmpe store overskrifter, så kommer de op'). 'Finans og økonomi' moved from
   second to last place (the dock follows). A story of the last 24 hours that many outlets carry (the radar's big, eight

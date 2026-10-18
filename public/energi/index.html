@@ -88,8 +88,8 @@
   .ec-lead-m { margin: 6px 16px 4px; font-size: var(--fs-meta); color: var(--text-3); }
   /* the very biggest economic news, at the top under Lige nu (bigNews) */
   .ec-big { display: grid; gap: 12px; margin: 12px 16px 10px; }
-  .ec-big a { display: block; padding: 1px 0 1px 12px; border-left: 3px solid var(--red); color: inherit; text-decoration: none; }
-  .ec-big a:active { opacity: .6; }
+  .ec-bigi > a { display: block; padding: 1px 0 1px 12px; border-left: 3px solid var(--red); color: inherit; text-decoration: none; }
+  .ec-bigi > a:active { opacity: .6; }
   .ec-big-k { display: block; font-size: var(--fs-cap); font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--red); }
   .ec-big-h { display: block; margin-top: 3px; font-family: var(--display); font-size: var(--fs-lead); font-weight: 650; line-height: 1.22; }
   .ec-big-m { display: block; margin-top: 4px; font-size: var(--fs-meta); color: var(--text-3); }
@@ -107,6 +107,8 @@
   /* a story unfolded here: its original headline and the way to the outlet */
   .en-x { padding: 0 16px 12px; }
   .en-x.lead { padding-top: 2px; }
+  .en-x.big, .en-x.quote { padding: 10px 0 2px 12px; }
+  .en-x .acts { margin-top: 2px; }
   .en-orig { margin: 0 0 8px; font-size: var(--fs-small); line-height: 1.4; color: var(--text-2); }
   .en-go { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--fill); color: var(--text); font-size: var(--fs-small); font-weight: 650; text-decoration: none; }
   /* pulled down to refresh (18/10, the owner: 'man kan ikke hive ned for at opdatere økonomi siden') */
@@ -285,6 +287,14 @@
 </style>
 </head>
 <body>
+<!-- the app's own icons for an unfolded story's Læs, Del, Kopiér and Gem (copied from ../index.html – keep them alike) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-open" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 4.5h6v6M19.5 4.5l-8 8"/><path d="M17.5 13.5v4.5a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 18V8A1.5 1.5 0 0 1 6 6.5h4.5"/></g></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11M8 7.2l4-3.7 4 3.7"/><path d="M8.5 10.5H7a1.5 1.5 0 0 0-1.5 1.5v6.5A1.5 1.5 0 0 0 7 20h10a1.5 1.5 0 0 0 1.5-1.5V12a1.5 1.5 0 0 0-1.5-1.5h-1.5"/></g></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11.5" rx="2.2"/><path d="M15.5 8.5V6.2A2.2 2.2 0 0 0 13.3 4H6.2A2.2 2.2 0 0 0 4 6.2v7.1a2.2 2.2 0 0 0 2.2 2.2h2.3"/></g></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M7.2 4.5h9.6a1.2 1.2 0 0 1 1.2 1.2v14.1l-6-4.1-6 4.1V5.7a1.2 1.2 0 0 1 1.2-1.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-saved" viewBox="0 0 24 24"><path d="M7.2 4.5h9.6a1.2 1.2 0 0 1 1.2 1.2v14.1l-6-4.1-6 4.1V5.7a1.2 1.2 0 0 1 1.2-1.2z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+</svg>
 <header class="bar" id="bar">
   <div class="brand">
     <a class="en-home" href="../" aria-label="Til Khabar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="logo" viewBox="162 112 272 196" aria-hidden="true"><text x="300" y="270" text-anchor="middle">حبر</text><path class="ink-fix" d="M302.7 200.5 C302.7 202.5 307 206.8 316 206.29 L317 213 L300 213 Z M296 241.27 C299 240.81 303 240.92 306 240.39 L306 236 L296 236 Z"/><circle class="dot" id="dot" cx="380" cy="128" r="12"/></svg></a>
@@ -1248,6 +1258,33 @@ const newsPick = n => { const danish = store.get('danish', true);
   return n.ed ? [qi(n.ed), n.kd] : n.l === 'da' ? [qi(n.o), n.k] : danish && n.da ? [qi(n.da), n.kd] : readableText(n.o) ? [n.o, n.k] : [n.en || n.da || n.o, n.en ? n.k : n.kd]; };
 const newsTidy = t => (t || '').replace(/^(?:[←-⯿\u{1f000}-\u{1faff}️‍\s]|(?:breaking|urgent|عاجل)\s*[|:\-–]\s*)+/iu, '')
   .replace(/ (['’]s)\b/g, '$1');   // "EU 's" from the machine
+// a story opened here unfolds in place, as everywhere in Khabar (the owner, 18/10: 'når man åbner nyheder på økonomi må
+// den gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side'): in the app, what an
+// opened row shows there – the summary, what it rests on, Læs, Del, Kopiér and Gem (khabarStoryData, khabarStoryAct, so
+// they do what they do everywhere); a story the app has not (on khabar.nu/energi, or one that left Live) shows its
+// original headline and 'Læs hos …'
+const appFn = name => { try { return EMBED && typeof parent[name] === 'function' ? parent[name] : null; } catch (e) { return null; } };
+function storyX(n, cls = '') {
+  const data = appFn('khabarStoryData'), x = data && data(n.i);
+  const orig = n.o && n.o !== newsPick(n)[0] ? `<p class="en-orig">Original: »${esc(n.o)}«</p>` : '';
+  if (!x) return `<div class="en-x${cls}">${orig}<a class="en-go" href="${esc(n.u)}" target="_blank" rel="noopener">Læs hos ${esc(n.s)} ›</a></div>`;
+  return `<div class="en-x${cls}" data-sid="${esc(n.i)}">${x.sum ? `<p class="sum" dir="auto">${esc(x.sum)}</p>` : ''}`
+    + (x.paywall ? '<p class="credit">Resumé ud fra overskrifter og indledninger</p>' : '') + orig
+    + `<div class="acts"><a class="act primary" href="${esc(x.link || n.u)}" target="_blank" rel="noopener" data-act="read"><svg><use href="#i-open"/></svg>Læs</a>`
+    + '<button class="act" data-act="share"><svg><use href="#i-share"/></svg>Del</button><button class="act" data-act="copy"><svg><use href="#i-copy"/></svg>Kopiér</button>'
+    + `<button class="act sq${x.saved ? ' on' : ''}" data-act="save" aria-label="${x.saved ? 'Gemt' : 'Gem'}" aria-pressed="${x.saved}"><svg><use href="#i-${x.saved ? 'saved' : 'save'}"/></svg></button></div></div>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'), box = b && b.closest('[data-sid]'), act = box && appFn('khabarStoryAct');
+  if (!act) return;
+  if (b.dataset.act === 'read') { act(box.dataset.sid, 'read'); return; }   // the link opens the outlet's page
+  e.preventDefault();
+  const r = await act(box.dataset.sid, b.dataset.act);
+  if (b.dataset.act === 'save' && typeof r === 'boolean') {
+    b.classList.toggle('on', r); b.setAttribute('aria-pressed', r); b.setAttribute('aria-label', r ? 'Gemt' : 'Gem');
+    b.querySelector('use').setAttribute('href', r ? '#i-saved' : '#i-save');
+  }
+});
 function news(list = D.news || [], empty = 'Ingen nyheder om olie og brændstof de seneste tre døgn.', all = newsAll, more = 'newsMore') {
   if (!list.length) return `<p class="en-note">${esc(empty)}</p>`;
   const pick = newsPick, tidy = newsTidy;
@@ -1260,9 +1297,9 @@ function news(list = D.news || [], empty = 'Ingen nyheder om olie og brændstof 
   const items = shown.map(n => {
     const [t, k] = pick(n);
     // a tap opens the story in Khabar (onStory), not the outlet's page; one Khabar has not in Live unfolds here
-    const open = openNews.has(n.i), orig = n.o && n.o !== t ? `<p class="en-orig">Original: »${esc(n.o)}«</p>` : '';
+    const open = openNews.has(n.i);
     return `<div class="story${open ? ' open' : ''}"><a class="row" href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}" aria-expanded="${open}"><span class="tx"><span class="h">${words(tidy(t), k)}</span><span class="m"><span class="src">${esc(n.s)}</span><span>${esc(when(n.p))}</span>${n.n > 1 ? `<span>${n.n} medier</span>` : ''}</span></span></a>`
-      + (open ? `<div class="en-x">${orig}<a class="en-go" href="${esc(n.u)}" target="_blank" rel="noopener">Læs hos ${esc(n.s)} ›</a></div>` : '') + '</div>';
+      + (open ? storyX(n) : '') + '</div>';
   }).join('');
   const moreBtn = !all && list.length > 8 ? `<button class="en-showmore" id="${more}">${list.length - 8} mere${CHEV}</button>` : '';
   return `<div class="en-news">${items}${moreBtn}</div>`;
@@ -1292,8 +1329,8 @@ function meta(T, base) {
 const hugeNews = () => (D.crisis || []).filter(n => n.big && (n.n || 0) >= 8 && Date.now() - new Date(n.p) < 864e5).slice(0, 2);
 function bigNews() {
   const list = hugeNews();
-  return list.length ? `<div class="ec-big">${list.map(n => `<a href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>`
-    + `<span class="ec-big-h">${esc(newsTidy(newsPick(n)[0]))}</span><span class="ec-big-m">${esc(n.s)} · ${esc(when(n.p))} · ${n.n} medier</span></a>`).join('')}</div>` : '';
+  return list.length ? `<div class="ec-big">${list.map(n => `<div class="ec-bigi${openNews.has(n.i) ? ' open' : ''}"><a href="${esc(n.u)}" target="_blank" rel="noopener" data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>`
+    + `<span class="ec-big-h">${esc(newsTidy(newsPick(n)[0]))}</span><span class="ec-big-m">${esc(n.s)} · ${esc(when(n.p))} · ${n.n} medier</span></a>${openNews.has(n.i) ? storyX(n, ' big') : ''}</div>`).join('')}</div>` : '';
 }
 function topicHtml(T) {
   let h = `<header class="ec-top"><p class="ec-fly" id="f-${T.id}">${esc(T.fly)}</p><h2 class="ec-head">${esc(head(T.id))}</h2></header>`;
@@ -1306,7 +1343,7 @@ function topicHtml(T) {
     // the newest story is the headline line above: its source and time under it, then the rest
     const [lead, ...rest] = D.crisis || [];
     if (lead) h += `<p class="ec-lead-m"><a href="${esc(lead.u)}" target="_blank" rel="noopener" data-story="${esc(lead.i)}">${esc(lead.s)} · ${esc(when(lead.p))} ›</a></p>`
-      + (openNews.has(lead.i) ? `<div class="en-x lead">${lead.o && lead.o !== newsPick(lead)[0] ? `<p class="en-orig">Original: »${esc(lead.o)}«</p>` : ''}<a class="en-go" href="${esc(lead.u)}" target="_blank" rel="noopener">Læs hos ${esc(lead.s)} ›</a></div>` : '');
+      + (openNews.has(lead.i) ? storyX(lead, ' lead') : '');
     // 'Dagens citat' (the owner, 18/10: 'Lad os tilføje en dagens citat under økonomi også'): the editor's economic
     // quote, else a story of the week whose headline says who said what (energy.py econ_quote); its day when not today
     const Q = D.quote;
@@ -1315,7 +1352,7 @@ function topicHtml(T) {
       const by = [esc(Q.who), Q.s ? esc(Q.s) : '', Q.p && !fresh ? esc(when(Q.p)) : ''].filter(Boolean).join(' · ');
       h += `<figure class="ec-quote"><p class="ec-q-h">${fresh ? 'Dagens citat' : 'Seneste citat'}</p>`
         + `<a class="ec-q" href="${esc(Q.u || '#')}" target="_blank" rel="noopener"${Q.i ? ` data-story="${esc(Q.i)}"` : ''}><blockquote>»${esc(qi(Q.text))}«</blockquote>`
-        + `<figcaption>${by}</figcaption></a></figure>`;
+        + `<figcaption>${by}</figcaption></a>${Q.i && openNews.has(Q.i) ? storyX({ i: Q.i, u: Q.u, s: Q.s || Q.who || '' }, ' quote') : ''}</figure>`;
     }
     // one week at a time (the owner, 18/10: 'for mange nyheder … vis 1 uge af gangen, og resten kan foldes ud')
     const since = Date.now() - 7 * 864e5, week = rest.filter(n => new Date(n.p) >= since), older = rest.length - week.length;
@@ -1520,7 +1557,7 @@ function sole(keep) {
   openNews.clear();
   for (const id of was) if (id !== keep && TOPIC[id]) fill(TOPIC[id]);
 }
-const LIFT = '.ec-tile[aria-expanded="true"], .ec-open, .en-item.open, .en-news .story.open, .ec-lead-m + .en-x';
+const LIFT = '.ec-tile[aria-expanded="true"], .ec-open, .en-item.open, .en-news .story.open, .ec-lead-m + .en-x, .ec-bigi.open, .ec-quote:has(.en-x)';
 function focusSync() {
   for (const el of document.querySelectorAll('.lift, .dimmed')) el.classList.remove('lift', 'dimmed');
   const lifted = [...document.querySelectorAll(LIFT)], was = document.body.classList.contains('focus');
@@ -1593,20 +1630,14 @@ async function load() {
   } else st.textContent = 'ikke hentet';
 }
 $('#status').addEventListener('click', () => { $('#status').textContent = 'henter …'; load(); });
-// a story's tap (18/10, the owner: 'når man åbner dem skal det ikke åbne ekstern link med det samme, det skal åbne i
-// nyhedsoversigten i khabar'): in the app, the story opened in Live (khabarOpenStory) – its summary, its outlets, its
-// share; on khabar.nu/energi, the app at the story; a story Live does not hold (the backward fill, one that left Live)
-// unfolds in place with its original headline and 'Læs hos …' – the outlet only when one asks for it
+// a story's tap (18/10, the owner: 'når man åbner dem skal det ikke åbne ekstern link med det samme' – then 'må den
+// gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side'): the story unfolds in
+// place (storyX), one at a time; the outlet's page only by its 'Læs'
 document.addEventListener('click', e => {
   const a = e.target.closest('a[data-story]');
   if (!a) return;
   e.preventDefault();
   const id = a.dataset.story;
-  // what the row shows goes along, so the app can show a story its Live does not hold
-  const n = D && [...(D.crisis || []), ...(D.news || [])].find(x => x.i === id);
-  const item = n && { title: newsTidy(newsPick(n)[0]), source: n.s, link: n.u, published: n.p };
-  try { if (EMBED && typeof parent.khabarOpenStory === 'function' && parent.khabarOpenStory(id, item)) return; } catch (err) { /* not the app */ }
-  if (!EMBED && id && !id.startsWith('seed-')) { location.href = '../?item=' + encodeURIComponent(id); return; }
   const sec = a.closest('.ec-sec');
   const redraw = () => { if (sec && TOPIC[sec.dataset.t]) fill(TOPIC[sec.dataset.t]); focusSync(); };
   if (openNews.has(id)) anchored(() => { openNews.delete(id); redraw(); });

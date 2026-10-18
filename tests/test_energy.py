@@ -460,3 +460,17 @@ def test_the_very_biggest_economic_news_stand_at_the_top():
     rule = PAGE.split('const hugeNews = () =>')[1].split('\n')[0]
     assert 'n.big' in rule and '>= 8' in rule and '864e5' in rule and '.slice(0, 2)' in rule
     assert 'data-story="${esc(n.i)}"><span class="ec-big-k">Stor nyhed</span>' in PAGE      # opens in Khabar, as every story
+
+
+def test_a_story_on_the_economy_page_unfolds_in_place():
+    # the owner, 18/10: 'må den gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side'
+    tap = PAGE.split("document.addEventListener('click', e => {\n  const a = e.target.closest('a[data-story]');")[1].split('}, true);')[0]
+    assert 'khabarOpenStory' not in tap and '?item=' not in tap and 'openNews.add(id)' in tap
+    assert "appFn('khabarStoryData')" in PAGE and "appFn('khabarStoryAct')" in PAGE
+    assert '<button class="act" data-act="share"><svg><use href="#i-share"/></svg>Del</button>' in PAGE
+    for icon in ('i-open', 'i-share', 'i-copy', 'i-save', 'i-saved'):       # the app's icons, as on its own buttons
+        assert f'<symbol id="{icon}"' in PAGE, icon
+    for where in ('storyX(n)', "storyX(lead, ' lead')", "storyX(n, ' big')"):
+        assert where in PAGE, where
+    app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
+    assert 'window.khabarStoryData = id =>' in app and 'window.khabarStoryAct = async (id, act) =>' in app
