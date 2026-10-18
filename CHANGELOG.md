@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The owner chooses a large story's picture, and Khabar learns his taste** (2026-10-18, the owner: 'kan jeg som admin
+  få lov til at vælge mellem 3 billeder når jeg holder nede på de store artikler på forsiden … redaktøren vil også i
+  fremtiden lære af dette og forstå min smag for billedvalg'). The radar keeps the three best pictures of each of the
+  strongest stories with their light copies (`thumbs.large`, card `pics`); a long press on a large story shows them in
+  the owner's sheet, a tap makes one the story's picture at once on his phone and for everyone at the radar's next pass
+  (admin action `pic`, `state/removed.json` `pics`, three days). Each choice teaches the grading once (`thumbs.learn`):
+  a weight for a face, a small or a close face, a wide or an upright picture, a sharp one, and for the outlet – the
+  chosen against those it beat –, added to a picture's fitness (at most ±2, `taste` in pics.json), so the radar's own
+  choices move towards his.
 - **English keeps the machine's Danish** (2026-10-18, the owner: 'engelsk til dansk oversættelserne var gode nok, så
   dem beholder vi'): the reviewed-only rule holds for Arabic, Turkish and the other languages; an English story shows its
   machine Danish headline and teaser again (Live, notifications, search, Økonomi), and the economy editor needs to write

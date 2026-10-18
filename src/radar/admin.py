@@ -42,6 +42,8 @@ def valid(m, key, now):
         return bool(re.fullmatch(r'(?:[0-9a-f]{8})?', m.get('id', '')))
     if m.get('act') == 'lead':    # the front page's main story: a story id, or '' for the automatic choice
         return bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('id', '')))
+    if m.get('act') == 'pic':     # the picture of a story on the front page: a picture's key, or '' for the automatic
+        return bool(re.fullmatch(r'[0-9a-f]{16}', m.get('id', ''))) and bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('why', '')))
     if m.get('act') == 'rank':    # raise or lower a story ('' undoes it)
         return bool(re.fullmatch(r'[0-9a-f]{16}', m.get('id', ''))) and m.get('why') in ('up', 'down', '')
     return m.get('act') == 'undo'
@@ -60,6 +62,11 @@ def apply(state, msgs, items, key, now, text):
                 state[m['act']] = {'key' if m['act'] == 'quote' else 'id': sid, 'at': now.isoformat()}
             else:
                 state.pop(m['act'], None)
+        elif m['act'] == 'pic':
+            if m['why']:
+                state.setdefault('pics', {})[sid] = {'k': m['why'], 'at': now.isoformat()}
+            else:
+                state.get('pics', {}).pop(sid, None)
         elif m['act'] == 'rank':
             if m['why']:
                 state.setdefault('rank', {})[sid] = {'v': m['why'], 'at': now.isoformat()}
@@ -83,6 +90,7 @@ def prune(state, now, days):
     state['removed'] = [r for r in state['removed'] if datetime.fromisoformat(r['at']) >= now - timedelta(days=days)]
     # a raised or lowered story and a chosen main story belong to the news of the moment: two days, one day
     state['rank'] = {k: v for k, v in (state.get('rank') or {}).items() if datetime.fromisoformat(v['at']) >= now - timedelta(days=2)}
+    state['pics'] = {k: v for k, v in (state.get('pics') or {}).items() if datetime.fromisoformat(v['at']) >= now - timedelta(days=3)}
     if state.get('lead') and datetime.fromisoformat(state['lead']['at']) < now - timedelta(days=1):
         state.pop('lead')
     return state
@@ -94,7 +102,7 @@ def load(path):
     except (OSError, ValueError):
         st = {}
     out = {'removed': st.get('removed') or [], 'moved': st.get('moved') or {}}
-    for k in ('quote', 'lead', 'rank'):
+    for k in ('quote', 'lead', 'rank', 'pics'):
         if st.get(k):
             out[k] = st[k]
     return out

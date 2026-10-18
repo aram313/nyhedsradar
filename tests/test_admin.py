@@ -73,3 +73,14 @@ def test_the_owner_picks_the_main_story_and_raises_or_lowers_stories():
     st = {'removed': [], 'moved': {}, 'rank': {sid: {'v': 'up', 'at': old}}, 'lead': {'id': sid, 'at': old}}
     st = admin.prune(st, NOW, 30)
     assert st['rank'] == {} and 'lead' not in st
+
+
+def test_the_owner_chooses_a_storys_picture():
+    # 18/10, the owner: 'vælge mellem 3 billeder når jeg holder nede på de store artikler på forsiden'
+    sid, key = 'aaaabbbbccccdddd', '0123456789abcdef'
+    n, st = run([signed(act='pic', id=sid, why=key, sec=''), signed(act='pic', id=sid, why='not-a-key', sec='')])
+    assert n == 1 and st['pics'][sid]['k'] == key
+    n, st = run([signed(act='pic', id=sid, why='', sec='')], st)
+    assert sid not in st['pics']                                                  # back to Khabar's own choice
+    st = admin.prune({'removed': [], 'moved': {}, 'pics': {sid: {'k': key, 'at': (NOW - timedelta(days=4)).isoformat()}}}, NOW, 30)
+    assert st['pics'] == {}

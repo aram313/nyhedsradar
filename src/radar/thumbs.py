@@ -11,7 +11,7 @@ import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
 SIZE = (330, 300)   # the picture fills the right of a story row and fades out; sharp on a 3x phone screen
@@ -33,6 +33,14 @@ LARGE_BUDGET = 14    # originals graded in a run (the rest the next runs)
 LARGE_PAGES = 16     # article pages looked at in a run for their share pictures
 LARGE_SECONDS = 20
 LARGE_EACH = 5       # an outlet's pictures graded for a story: the lead's and four others'
+# the owner chooses among a story's best pictures (18/10, the owner: 'kan jeg som admin få lov til at vælge mellem 3
+# billeder når jeg holder nede på de store artikler på forsiden … redaktøren vil også i fremtiden lære af dette og forstå
+# min smag for billedvalg'): the best CHOICES with their light copies on the card ('pics'); his choice wins for the story,
+# and each one teaches the grading his taste (`taste`: a weight per feature and per outlet, learned from the chosen
+# against the others it beat – a bonus of at most TASTE_MAX on a picture's fitness)
+CHOICES = 3
+TASTE_MAX, TASTE_RATE = 2.0, 0.5
+FEATURES = ('face', 'small_face', 'close', 'wide', 'upright', 'sharp')
 CUT = 'face1'   # change it when pictures are cut differently: every card then gets a freshly made one
 
 
@@ -174,6 +182,47 @@ def fitness(w, h, mean, pf):
     return round(s, 2)
 
 
+def pic_key(url):
+    """A picture's short name, as the app and the owner's choice give it."""
+    return name_of(url)[:16]
+
+
+def features(url, g):
+    """What the owner's taste is learned on: a picture's face and its size, its shape, its size in pixels; its outlet."""
+    pf = (g or [0, [0, 0, 1.5, 0, 0]])[1]
+    ar, face, fh = pf[2], pf[3], pf[4] if len(pf) > 4 else 0
+    f = {'face': 1.0 if face else 0.0, 'small_face': 1.0 if face and fh <= 0.22 else 0.0, 'close': 1.0 if face and fh > 0.35 else 0.0,
+         'wide': 1.0 if 1.3 <= ar <= 2.1 else 0.0, 'upright': 1.0 if ar < 1.0 else 0.0, 'sharp': 1.0 if g and g[0] >= 2 else 0.0}
+    return f, urlsplit(url).hostname or ''
+
+
+def taste_bonus(taste, url, g):
+    """The owner's learned taste for a picture: a bonus (or a penalty) of at most TASTE_MAX."""
+    if not taste:
+        return 0.0
+    f, host = features(url, g)
+    w = taste.get('w') or {}
+    b = sum(w.get(k, 0.0) * v for k, v in f.items()) + max(-1.0, min(1.0, 0.3 * (taste.get('hosts') or {}).get(host, 0.0)))
+    return max(-TASTE_MAX, min(TASTE_MAX, b))
+
+
+def learn(taste, chosen, others, graded):
+    """One choice of the owner's: the chosen picture's features weigh up, the ones it was chosen over weigh down."""
+    taste = {'w': dict(taste.get('w') or {}), 'hosts': dict(taste.get('hosts') or {}), 'n': int(taste.get('n') or 0),
+             'seen': list(taste.get('seen') or [])}
+    fc, hc = features(chosen, graded.get(chosen))
+    for u in others:
+        fo, ho = features(u, graded.get(u))
+        for k in FEATURES:
+            taste['w'][k] = round(taste['w'].get(k, 0.0) + TASTE_RATE * (fc[k] - fo[k]) / max(1, len(others)), 3)
+        if ho and ho != hc:
+            taste['hosts'][ho] = round(taste['hosts'].get(ho, 0.0) - 0.5 / max(1, len(others)), 3)
+    if hc:
+        taste['hosts'][hc] = round(taste['hosts'].get(hc, 0.0) + 1.0, 3)
+    taste['n'] += 1
+    return taste
+
+
 def grade(raw):
     """A picture for a large frame: (its fitness, where its subject sits, a light JPEG copy LARGE_W wide), or None for
     one that is too small, too narrow, too dark or unreadable."""
@@ -201,7 +250,7 @@ def grade(raw):
         return None
 
 
-def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40):
+def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40, chosen_by=None):
     """Give each card a 'thumb' (a file name in `folder`) and delete the files no card uses any more.
     memory: {'page': {article link: [its share image or '', when]}, 'bad': {image url: when}}, kept between runs."""
     import PIL  # noqa: F401 – without Pillow (local test runs) the caller skips pictures altogether
@@ -339,7 +388,8 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
         if it.get('pic') in spot:
             it['pf'] = spot[it['pic']]
 
-    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now)
+    taste = dict(memory.get('taste') or {})   # the owner's picture taste, learned from his choices
+    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now, chosen_by=chosen_by, taste=taste)
 
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):
@@ -347,13 +397,15 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
             p.unlink()
     shown = {it.get('pic') for it in cards}
     return {'page': pages, 'bad': bad, 'lit': {k: v for k, v in lit.items() if k in used},
-            'spot': {k: v for k, v in spot.items() if k in shown}, 'grade': graded}
+            'spot': {k: v for k, v in spot.items() if k in shown}, 'grade': graded, 'taste': taste}
 
 
-def large(cards, options, pages, bad, graded, light, now, look=None):
-    """For the strongest stories: their outlets' pictures graded (fitness, at most LARGE_EACH a story, the budget shared
-    out story by story), the best kept as the story's large picture (card 'pic' its original, 'pf' its subject, 'pl'
-    its light copy in `light` – the one file kept for a story). graded: {url: [fitness, pf] or 0}, kept between runs.
+def large(cards, options, pages, bad, graded, light, now, look=None, chosen_by=None, taste=None):
+    """For the strongest stories: their outlets' pictures graded (fitness and the owner's learned taste, at most
+    LARGE_EACH a story, the budget shared out story by story), the best kept as the story's large picture (card 'pic' its
+    original, 'pf' its subject, 'pl' its light copy in `light`) – or the one the owner chose (chosen_by: {story or member
+    id: picture key}) – and its best CHOICES with their copies on the card ('pics', for the owner's choice). graded:
+    {url: [fitness, pf] or 0}, kept between runs; taste: what his choices taught (learn), updated in place.
     Returns graded, pruned to the pictures still in question."""
     start = time.monotonic()
     wide = [it for it in sorted(cards, key=lambda c: -(c.get('rank') or 0)) if it.get('live') or it.get('big')][:LARGE_CARDS]
@@ -404,28 +456,46 @@ def large(cards, options, pages, bad, graded, light, now, look=None):
     # story by story: every story's first picture, then every story's second …
     order = [us[k] for k in range(LARGE_EACH) for us in cand.values() if k < len(us) and us[k] not in graded]
     run(list(dict.fromkeys(order))[:LARGE_BUDGET])
-    chosen = {}
+    chosen, ranked = {}, {}
+    taste = taste if taste is not None else {}
     for it in wide:
-        best = None
+        scored = []
         for n, u in enumerate(cand.get(it['id']) or []):
             g = graded.get(u)
-            if g:
-                score = g[0] + (0.5 if n == 0 else 0)   # the lead's own picture, by a little, when they are alike
-                if best is None or score > best[0]:
-                    best = (score, u)
-        if best:
-            chosen[it['id']] = best[1]
+            if g:   # the lead's own picture, by a little, when they are alike; the owner's taste on top
+                scored.append((g[0] + (0.5 if n == 0 else 0) + taste_bonus(taste, u, g), u))
+        scored.sort(key=lambda x: -x[0])
+        ranked[it['id']] = [u for _, u in scored[:CHOICES]]
+        own = next((chosen_by[k] for k in [it['id'], *(it.get('members') or [])] if (chosen_by or {}).get(k)), None)
+        pick = next((u for _, u in scored if pic_key(u) == own), None) if own else None
+        if pick:
+            chosen[it['id']] = pick
+            if pick not in ranked[it['id']]:
+                ranked[it['id']] = [pick, *ranked[it['id']][:CHOICES - 1]]
+            seen = f"{it['id']}|{own}"
+            if seen not in (taste.get('seen') or []):   # each choice teaches once
+                taste.update(learn(taste, pick, [u for _, u in scored if u != pick][:CHOICES], graded))
+                taste['seen'] = [*(taste.get('seen') or []), seen][-200:]
+        elif scored:
+            chosen[it['id']] = scored[0][1]
     lname = lambda u: 'l' + name_of(u)   # noqa: E731
-    # a chosen picture whose copy is gone (graded in an earlier run): made again, a few a run
-    run([u for u in dict.fromkeys(chosen.values()) if u not in made and not (light / lname(u)).exists()][:6])
-    for u in set(chosen.values()):
+    wanted = list(dict.fromkeys([*chosen.values(), *[u for us in ranked.values() for u in us]]))
+    # a picture in question whose copy is gone (graded in an earlier run): made again, a few a run
+    run([u for u in wanted if u not in made and not (light / lname(u)).exists()][:8])
+    for u in wanted:
         if u in made and not (light / lname(u)).exists():
             (light / lname(u)).write_bytes(made[u])
     for it in wide:
         u = chosen.get(it['id'])
         if u and (light / lname(u)).exists() and graded.get(u):
             it['pic'], it['pf'], it['pl'] = u, graded[u][1], lname(u)
-    keep = {it['pl'] for it in cards if it.get('pl')}
+        opts = [{'k': pic_key(x), 'u': x, 'pf': graded[x][1], 'pl': lname(x)} for x in ranked.get(it['id']) or []
+                if graded.get(x) and (light / lname(x)).exists()]
+        if len(opts) >= 2:
+            it['pics'] = opts
+        else:
+            it.pop('pics', None)
+    keep = {it['pl'] for it in cards if it.get('pl')} | {o['pl'] for it in cards for o in it.get('pics') or []}
     for f in light.glob('*.jpg'):
         if f.name not in keep:
             f.unlink()

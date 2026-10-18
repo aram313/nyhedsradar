@@ -421,6 +421,16 @@ textarea { width: 100%; border: 0; border-radius: 10px; padding: 10px; backgroun
 /* settings: the two setup guides side by side; the colour palettes folded under 'Flere farver' */
 .guides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .guides .wide { margin: 0; }
+/* the owner's picture choice in the long-press sheet (18/10): the story's best pictures side by side, the one shown ringed */
+.owner .pp-h { margin: 2px 4px 0; font-size: var(--fs-small); font-weight: 650; color: var(--text-2); }
+.pp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 6px; }
+.pp-b { display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; padding: 0; border-radius: 12px; background: none; text-align: left; }
+.pp-b img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 12px; background: var(--fill);
+  box-shadow: 0 0 0 2px transparent; }
+.pp-b.on img { box-shadow: 0 0 0 3px var(--text); }
+.pp-b span { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--fs-cap); color: var(--text-3); }
+.pp-b:active { opacity: .7; }
+.pp-auto { margin-top: -4px; }
 /* settings, cleaned up (18/10): a small label over a choice inside a section, the sources behind one row */
 .set-l { margin: 14px 0 6px; font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
 .sheet h3 + .set-l { margin-top: 4px; }

@@ -394,6 +394,8 @@ const edTitle = i => edOk(titles[i.id]) || (i.members || []).map(m => edOk(title
 // Danish. A reader who chose the originals (Arabic and Turkish as 'Original', English with Danish off) sees them.
 function display(i) {
   let d = { ...i, origTitle: i.title, origSummary: i.summary, kw: i.kw || [], how: '', teased: false, kind: i.kind || (isComment(i) ? 'kommentar' : '') };
+  const chose = (i.pics || []).length ? ownerPicOf(i) : null;
+  if (chose) d = { ...d, pic: chose.u, pf: chose.pf, pl: chose.pl };
   const keepOrig = i.foreign && foreignMode === 'original';
   const ed = edTitle(i);
   if (ed && (danish || i.lang === 'da') && !keepOrig) {
@@ -814,8 +816,14 @@ function owner() {
   const pub = (data && data.owner) || {}, since = data ? Date.parse(data.updated) : 0, fresh = x => x && x.at > since;
   const rank = { ...(pub.rank || {}) };
   for (const [id, x] of Object.entries(ownerLocal.rank || {})) if (fresh(x)) { if (x.v) rank[id] = x.v; else delete rank[id]; }
-  return { quote: fresh(ownerLocal.quote) ? ownerLocal.quote.v : pub.quote || '', lead: fresh(ownerLocal.lead) ? ownerLocal.lead.v : pub.lead || '', rank };
+  const pics = { ...(pub.pics || {}) };
+  for (const [id, x] of Object.entries(ownerLocal.pics || {})) if (fresh(x)) { if (x.v) pics[id] = x.v; else delete pics[id]; }
+  return { quote: fresh(ownerLocal.quote) ? ownerLocal.quote.v : pub.quote || '', lead: fresh(ownerLocal.lead) ? ownerLocal.lead.v : pub.lead || '', rank, pics };
 }
+// the picture the owner chose for a story (18/10: 'vælge mellem 3 billeder når jeg holder nede på de store artikler'):
+// one of its best pictures (the radar's `pics`), by its key – shown at once, before the radar has applied it for all
+const ownerPicOf = i => { const p = owner().pics || {}, k = p[i.id] || (i.members || []).map(m => p[m]).find(Boolean);
+  return k ? (i.pics || []).find(x => x.k === k) || null : null; };
 const ownerRankOf = i => { const r = owner().rank; return r[i.id] || (i.also || []).map(a => r[a.id]).find(Boolean) || ''; };
 const pickRank = i => {
   const o = ownerRankOf(i);
@@ -917,7 +925,10 @@ let lightVer = -1, lightOf = new Map();
 function picSrc(url) {
   if (lightVer !== ver) {
     lightOf = new Map();
-    for (const i of (data && data.items) || []) if (i.pl && i.pic) lightOf.set(i.pic, LIGHT + i.pl);
+    for (const i of (data && data.items) || []) {
+      if (i.pl && i.pic) lightOf.set(i.pic, LIGHT + i.pl);
+      for (const p of i.pics || []) if (p.u && p.pl && !lightOf.has(p.u)) lightOf.set(p.u, LIGHT + p.pl);   // the owner's choices
+    }
     for (const e of events()) if (e.pl && e.pic && !lightOf.has(e.pic)) lightOf.set(e.pic, LIGHT + e.pl);
     lightVer = ver;
   }
@@ -5456,7 +5467,13 @@ function openAct(i) {
   const here = secOf(i), lift = ownerRankOf(i);
   const rank = [lift === 'up' ? ['rank:', 'Fortryd op'] : ['rank:up', 'Opprioriter'],
                 lift === 'down' ? ['rank:', 'Fortryd ned'] : ['rank:down', 'Nedprioriter']];
-  showOwnerSheet(i.title, `<div class="pair">${rank.map(([a, l]) => `<button class="wide" data-a="${a}">${esc(l)}</button>`).join('')}</div>`
+  const pics = i.pics || [], mine = ownerPicOf(i), shown = mine ? mine.k : (pics.find(p => p.u === i.pic) || {}).k;
+  const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+  const choose = pics.length >= 2 ? '<p class="pp-h">Vælg billede</p><div class="pp">' + pics.map(p =>
+    `<button class="pp-b${p.k === shown ? ' on' : ''}" data-a="pic:${esc(p.k)}" aria-pressed="${p.k === shown}" aria-label="Billede fra ${esc(host(p.u))}">`
+    + `<img src="${esc(LIGHT + p.pl)}" alt="" decoding="async"><span>${esc(host(p.u))}</span></button>`).join('') + '</div>'
+    + (mine ? '<button class="wide soft-btn pp-auto" data-a="pic:">Lad Khabar vælge billedet igen</button>' : '') : '';
+  showOwnerSheet(i.title, choose + `<div class="pair">${rank.map(([a, l]) => `<button class="wide" data-a="${a}">${esc(l)}</button>`).join('')}</div>`
     + [['hide:irrelevant', 'Fjern · irrelevant'], ['hide:noise', 'Fjern · ikke en nyhed'], ['hide:dup', 'Fjern · dublet'],
     ...Object.entries(SECTIONS).filter(([k]) => k !== here).map(([k, n]) => ['move:' + k, 'Flyt til ' + n])]
     .map(([a, l]) => `<button class="wide${a.startsWith('hide') ? ' warn' : ''}" data-a="${a}">${esc(l)}</button>`).join(''), i);
@@ -5484,6 +5501,12 @@ $('act').addEventListener('click', async e => {
     const ok = await ownerAct(kind, { id: val });
     const said = kind === 'quote' ? (val ? 'Citat valgt' : 'Citatet vælges automatisk igen') : (val ? 'Dagens historie valgt' : 'Dagens historie vælges automatisk igen');
     toast(ok ? said : 'Kunne ikke sende – prøv igen', ok);
+    return;
+  }
+  if (kind === 'pic' && i) {   // the owner's picture: shown at once, for everyone at the radar's next pass, and learned
+    (ownerLocal.pics ||= {})[i.id] = { v: val, at: Date.now() }; store.set('ownerLocal', ownerLocal); cache = null; ver++; render();
+    const ok = await ownerAct('pic', i, val);
+    toast(ok ? (val ? 'Billede valgt – Khabar lærer din smag' : 'Khabar vælger billedet igen') : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
   if (kind === 'rank' && i) {

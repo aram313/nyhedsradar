@@ -921,7 +921,8 @@ def main():
     try:
         from radar import thumbs
         telegram = {f['name'] for f in feeds if f.get('type') == 'telegram' and not f.get('official')}
-        save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW))
+        save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW,
+                                                chosen_by={k: v['k'] for k, v in (owner.get('pics') or {}).items()}))
     except ImportError:   # no Pillow (local test runs): the cards simply have no pictures
         pass
     except Exception as e:  # noqa: BLE001 – pictures are a bonus; the radar must keep running
@@ -1060,7 +1061,7 @@ def main():
     # 8. write state + the public files the app reads
     public_fields = ('id', 'title', 'summary', 'link', 'source', 'lang', 'published', 'found',
                      'pct', 'rank', 'spct', 'sec', 'secs', 'big', 'important', 'outlets', 'confirmed', 'cover',
-                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pf', 'pl', 'said', 'kw', 'kw_tr', 'kw_da',
+                     'also', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb', 'pic', 'pf', 'pl', 'pics', 'said', 'kw', 'kw_tr', 'kw_da',
                      'members', 'camps', 'first', 'actors', 'tier', 'tags', 'powers', 'method', 'fit', 'live', 'kind')
     app_fields = ('id', 'title', 'summary', 'link', 'lang', 'published', 'found', 'rank', 'sec', 'secs', 'big', 'important',
                   'outlets', 'confirmed', 'cover', 'foreign', 'title_tr', 'summary_tr', 'title_da', 'summary_da', 'thumb',
@@ -1071,7 +1072,9 @@ def main():
                   # where the large picture's subject sits (thumbs.subject): the app keeps a face clear of the text on it
                   'pf',
                   # its light copy (thumbs.large, state/l/): the app loads it instead of the outlet's original
-                  'pl')
+                  'pl',
+                  # its best pictures with their copies, for the owner's choice (thumbs.large, 18/10)
+                  'pics')
     also_fields = ('id', 'source', 'title', 'link', 'lang', 'group', 'title_tr')
 
     def slim(d, keys):   # empty values left out (the app reads a missing field as empty); 0 stays (confirmed: 0)
@@ -1097,7 +1100,8 @@ def main():
         'analyses': analyses.for_app(found_analyses),
         # the owner's front-page choices: quote, main story, raised/lowered stories
         'owner': {'quote': (owner.get('quote') or {}).get('key'), 'lead': (owner.get('lead') or {}).get('id'),
-                  'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()}},
+                  'rank': {k: v['v'] for k, v in (owner.get('rank') or {}).items()},
+                  'pics': {k: v['k'] for k, v in (owner.get('pics') or {}).items()}},
     }
     # the whole candidate pool, for the editor and search: every story with its rank line (`live`: why Live shows it,
     # or null) and the level applied (`live` at the top)

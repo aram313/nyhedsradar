@@ -213,6 +213,13 @@ da'wah.
   `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
   the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
   holds the days before it.
+- **The owner's picture choice** (18/10, the owner: 'vælge mellem 3 billeder når jeg holder nede på de store artikler
+  … redaktøren vil også … lære af dette og forstå min smag for billedvalg'): `thumbs.large` keeps the best `CHOICES`
+  (3) pictures of each strong story with their light copies as the card's `pics` [{k (pic_key), u, pf, pl}] (app.json
+  carries it); the owner's long press on a large story (`openAct`) shows them, a tap sends the signed action `pic`
+  (admin.py; `state/removed.json` `pics`, kept three days, `data.owner.pics`) and shows it at once (`ownerPicOf` in
+  `display`); the radar's large() then takes his choice (`chosen_by`) and learns from it once (`learn`, `taste` in
+  pics.json: feature and outlet weights, `taste_bonus` ≤ ±2 on fitness).
 - **Faces in large pictures** (18/10): `thumbs.subject` keeps where a picture's face sits (`spot` in pics.json, card
   `pf`, app.json carries it); the app's `placePic` sets the picture so the face sits about a quarter from the top, and
   where it would sit under the text, the headline goes under the picture (`tx-below`).

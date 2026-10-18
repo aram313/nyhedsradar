@@ -160,10 +160,45 @@ def test_the_best_picture_of_a_story_is_kept_as_a_light_copy(tmp_path, monkeypat
     assert len(light) < len(pics['https://img.test/wide.jpg']) / 3
     assert card['pl'] == 'l' + thumbs.name_of('https://img.test/wide.jpg')
     assert memory['grade']['https://img.test/wide.jpg'][0] > memory['grade']['https://img.test/narrow.jpg'][0]
-    assert [f.name for f in (tmp_path / 'l').glob('*.jpg')] == [card['pl']]   # only the chosen one is kept
+    assert sorted(f.name for f in (tmp_path / 'l').glob('*.jpg')) == sorted(o['pl'] for o in card['pics'])   # the choices' copies only
+    assert card['pics'][0]['pl'] == card['pl']
     # the next run grades nothing again, and a story that left takes its copy with it
     monkeypatch.setattr(thumbs, 'get', lambda *a, **k: (_ for _ in ()).throw(AssertionError('fetched again')))
     thumbs.attach(cards, members, set(), folder, memory)
     assert cards[0]['pl'] == card['pl']
     thumbs.attach([], {}, set(), folder, memory)
     assert not list((tmp_path / 'l').glob('*.jpg'))
+
+
+def test_the_owner_chooses_among_three_pictures_and_the_grading_learns_his_taste(tmp_path, monkeypatch):
+    # 18/10, the owner: 'kan jeg som admin få lov til at vælge mellem 3 billeder når jeg holder nede på de store artikler
+    # på forsiden … redaktøren vil også i fremtiden lære af dette og forstå min smag for billedvalg'
+    from datetime import datetime, timezone
+    pics = {'https://a.test/scene.jpg': (3.0, [0.5, 0.4, 1.78, 0, 0]),      # a wide scene: the grading's best
+            'https://b.test/face.jpg': (1.0, [0.5, 0.3, 1.5, 1, 0.3]),       # a face
+            'https://c.test/close.jpg': (0.5, [0.5, 0.4, 1.4, 1, 0.4]),      # a close face
+            'https://d.test/tall.jpg': (-2.0, [0.5, 0.5, 0.8, 0, 0])}        # upright: the worst
+    monkeypatch.setattr(thumbs, 'get', lambda url, *a, **k: url.encode())
+    monkeypatch.setattr(thumbs, 'grade', lambda raw: (*pics[raw.decode()], b'jpeg'))
+    now = datetime(2026, 10, 18, 20, tzinfo=timezone.utc)
+    cards = [{'id': 's1', 'rank': 120, 'live': 'rank', 'members': ['m1']}]
+    light, taste, graded = tmp_path / 'l', {}, {}
+    options = lambda it: list(pics)   # noqa: E731
+    graded = thumbs.large(cards, options, {}, {}, graded, light, now, taste=taste)
+    card = cards[0]
+    assert card['pic'] == 'https://a.test/scene.jpg'
+    assert [o['u'] for o in card['pics']] == ['https://a.test/scene.jpg', 'https://b.test/face.jpg', 'https://c.test/close.jpg']
+    assert all((light / o['pl']).exists() for o in card['pics'])                # three light copies to choose from
+    # the owner chooses the face (by a member's id): it is the story's picture, and the grading learns from it once
+    face = thumbs.pic_key('https://b.test/face.jpg')
+    thumbs.large(cards, options, {}, {}, graded, light, now, chosen_by={'m1': face}, taste=taste)
+    assert card['pic'] == 'https://b.test/face.jpg' and taste['n'] == 1
+    assert taste['w']['face'] > 0 and taste['hosts']['b.test'] > 0 and taste['hosts']['a.test'] < 0
+    thumbs.large(cards, options, {}, {}, graded, light, now, chosen_by={'m1': face}, taste=taste)
+    assert taste['n'] == 1                                                      # the same choice teaches once
+    # a later story with the same kinds of pictures: his taste now lifts the face over the scene by itself
+    for n in range(3):
+        taste.update(thumbs.learn(taste, 'https://b.test/face.jpg', ['https://a.test/scene.jpg'], graded))
+    other = [{'id': 's2', 'rank': 110, 'live': 'rank'}]
+    thumbs.large(other, options, {}, {}, graded, light, now, taste=taste)
+    assert other[0]['pic'] == 'https://b.test/face.jpg'
