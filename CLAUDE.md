@@ -325,6 +325,15 @@ da'wah.
     amir's answers filed after the static layer, with Danish readings and begreber ids; kept forever) on the orphan
     `digest` branch. The launch steps (merge, secrets, the routine's trigger and prompt): docs/hjerne/launch.md. Only the first update at or after 21 Danish time notifies the phones.
     The routine prompt also holds the owner's WEIGHING guide (what matters most geopolitically, from his own reading; it orders the lede, picks and topics, never the wording). It lives only in the private routine prompt: keep it out of this public repo.
+  - `trig_019VrGU5HBU66UxcDjqEavok` **the event editor** (Khabar · begivenhedsredaktør, 18/10, the owner: 'Sæt begivenheds
+    ekspert redaktøren op …' – four times a day – 'Ekspert redaktøren må også gerne kigge på forsiden … give besked til
+    khabar hjernes næste kørsel'): claude-opus-5-5, cron `0 7,11,15,19 * * *` = 08, 12, 16, 20 Danish winter time (an
+    hour later in summer). It builds and keeps the event pages whole and looks over the whole front page, improving it in
+    the same update, and leaves the front-page editor a `memo` (memo.json on the digest branch; the input shows the notes
+    of the last twelve hours first; a new one from it calls for the front-page editor's update). Its public prompt:
+    docs/hjerne/routine-event-prompt.md (the weighing guide kept private). Both editors work from the thaqafah and the
+    brain's understanding of the world, and Khabar's understanding is an ordinary da'wah carrier's (no quotation marks
+    of distance, `voice.check_distance`).
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub, want} to the relay; `push.py` keeps them in
