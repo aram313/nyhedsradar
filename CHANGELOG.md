@@ -16,6 +16,8 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   row keeps its place on the screen and the page goes on from there – Live, Dagens historie and Kalender's events
   alike (an event drawn anew is found again by its id). The room below an open story stays until one scrolls up out
   of it, so the browser never pulls the page down under a story closed near the end.
+  Økonomi too ('generelt på alle sider'): a figure, a row or a story that closes – by its own tap or a tap outside –
+  keeps its place while its topic is drawn anew (the browser's own anchoring off there, so the two never correct twice).
 - **Radar: old articles Google News dates anew are left out** (2026-10-18, the owner: 'undersøg de gamle artikler der
   kommer igen'). ABC's April report of a 'Tuesday 8 p.m.' Iran deadline came in the deadlines scout dated 16 October,
   and EnergyNow's April piece with it. Of all 149 Google News items in the pool only these two were old – both from a

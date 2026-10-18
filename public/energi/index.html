@@ -60,6 +60,7 @@
      'Flere tal' row with the rest, and one line with the topic's time and sources. Colour only for up/down next to an
      arrow, red only for the rule, the fly title and the dock's chosen topic */
   :root { --up: #2f7a52; --edock: calc(52px + var(--bottom)); --display: "Source Serif 4", "Source Serif Pro", Georgia, serif; }
+  html { overflow-anchor: none; }   /* the page keeps its own place when something closes (anchored) and when the numbers are drawn anew (renderAll) */
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --up: #4cc38a; } }
   :root[data-theme="dark"] { --up: #4cc38a; }
   main.en { max-width: 680px; margin: 0 auto; padding: calc(var(--barh) + 2px) 0 calc(var(--edock) + 20px); font-size: var(--fs-body); }
@@ -1437,16 +1438,19 @@ $('#topics').addEventListener('click', e => {
     const box = cur.closest('[data-panel]'); box.innerHTML = more('curve'); drawCharts(box);
     return;
   }
-  if (tile) { const k = tile.dataset.tile, opening = openTile[T.id] !== k; if (opening) sole(T.id); openTile[T.id] = opening ? k : null; fill(T); focusSync(); return; }
+  if (tile) {
+    const k = tile.dataset.tile, opening = openTile[T.id] !== k, go = () => { if (opening) sole(T.id); openTile[T.id] = opening ? k : null; fill(T); focusSync(); };
+    if (opening) go(); else anchored(go);
+    return;
+  }
   if (fold) { if (folds.has(T.id)) folds.delete(T.id); else folds.add(T.id); fill(T); return; }
   if (t.closest('#newsMore')) { newsAll = true; fill(T); return; }
   if (t.closest('#crisisMore')) { crisisAll = true; fill(T); return; }
   const row = t.closest('.en-row');
   if (!row) return;
   const k = row.closest('.en-item').dataset.k;
-  if (open.has(k)) open.delete(k); else { sole(T.id); open.add(k); }
-  fill(T);
-  focusSync();
+  if (open.has(k)) anchored(() => { open.delete(k); fill(T); focusSync(); });
+  else { sole(T.id); open.add(k); fill(T); focusSync(); }
 });
 // One thing open on the page, the rest dimmed until it is closed (the owner, 18/10: 'når noget er åbent på en side … bør
 // resten af siden dæmpes … kunne lukkes hvis man trykker uden for zonen' and 'kun én ting bør kunne være åbnet af
@@ -1478,9 +1482,25 @@ function focusSync() {
 addEventListener('click', e => {
   if (!document.body.classList.contains('focus') || e.target.closest('.lift, .ec-dock, #bar')) return;
   e.preventDefault(); e.stopPropagation();
-  sole(null);
-  focusSync();
+  anchored(() => { sole(null); focusSync(); });
 }, true);
+// what closes keeps its place on the screen and the page goes on from there (the owner, 18/10: 'it should anchor the
+// main story position' – 'generelt på alle sider'): the open thing, found again by its key after its topic is drawn
+// anew; the browser's own anchoring is off on this page (html), so the two never correct twice
+const KEYS = ['data-tile', 'data-k', 'data-story'];
+function keyOf(el) {
+  const hit = e => KEYS.find(a => e.hasAttribute(a));
+  for (let e = el; e && e !== document.body; e = e.parentElement) { const a = hit(e); if (a) return `[${a}="${CSS.escape(e.getAttribute(a))}"]`; }
+  const d = el.querySelector(KEYS.map(a => `[${a}]`).join(','));
+  return d ? `[${hit(d)}="${CSS.escape(d.getAttribute(hit(d)))}"]` : null;
+}
+function anchored(close) {
+  const el = document.querySelector('.lift'), key = el && keyOf(el), at = key && document.querySelector(key);
+  const top = at ? at.getBoundingClientRect().top : 0;
+  close();
+  const now = key && document.querySelector(key);
+  if (at && now) { const d = now.getBoundingClientRect().top - top; if (Math.abs(d) >= 0.5) scrollBy(0, d); }
+}
 let resizeT;
 addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { watch(); if (D) drawCharts($('#topics')); }, 150); });
 addEventListener('hashchange', () => { const id = HASH[location.hash.slice(1)]; if (id && id !== current) jump(id); });
@@ -1533,9 +1553,9 @@ document.addEventListener('click', e => {
   try { if (EMBED && typeof parent.khabarOpenStory === 'function' && parent.khabarOpenStory(id, item)) return; } catch (err) { /* not the app */ }
   if (!EMBED && id && !id.startsWith('seed-')) { location.href = '../?item=' + encodeURIComponent(id); return; }
   const sec = a.closest('.ec-sec');
-  if (openNews.has(id)) openNews.delete(id); else { sole(sec && sec.dataset.t); openNews.add(id); }
-  if (sec && TOPIC[sec.dataset.t]) fill(TOPIC[sec.dataset.t]);
-  focusSync();
+  const redraw = () => { if (sec && TOPIC[sec.dataset.t]) fill(TOPIC[sec.dataset.t]); focusSync(); };
+  if (openNews.has(id)) anchored(() => { openNews.delete(id); redraw(); });
+  else { sole(sec && sec.dataset.t); openNews.add(id); redraw(); }
 }, true);
 // pull down to refresh, as the app's pages (18/10, the owner: 'man kan ikke hive ned for at opdatere økonomi siden' –
 // the page scrolls inside the app's frame, where the app's own pull never reaches): the page follows the finger, a
