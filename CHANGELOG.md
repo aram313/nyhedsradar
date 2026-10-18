@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Radar: widely carried, weighty stories reach Live** (2026-10-18, the owner: 'gennemgå de nyheder der er blevet valgt
+  fra med hjernen og så om vi har misset noget'). A review of the 327 stories left out in 48 hours found Sisi's 2030
+  exit (14 outlets) and Tunisia's biggest protest in years (5) missing: 'big' needs the taste model's 80, and it rates a
+  Muslim state's own politics low. Now a story carried by four established outlets whose tier the books weigh (1–4, 6,
+  or the major issues in the Middle East) is in Live whatever the taste model and the day's count say (why 'wide';
+  replayed on the pool: six more stories in 48 hours, all from the Middle East). And every established outlet's
+  headline is weighed, not the lead's alone: a tier holds when the lead or two other headlines show it, so one stray
+  word ('radicalizes', 'ousted as press secretary') weighs nothing. The 'Tuesday 8 p.m.' Iran deadline was not added to
+  the calendar: the ABC report was April's, carried again with a new date.
 - **Forside: the headline ends where a clause ends** (2026-10-18, the owner: 'Hvad er det for en overskrift?' – it read
   '… varer 60 dage, mens houthierne' and the line under it began 'Saudi-Arabien udveksler angreb'). A short subject
   after 'mens' (', og ', ';', ' – ') now joins its own clause across a plain ' og ' ('houthierne og Saudi-Arabien

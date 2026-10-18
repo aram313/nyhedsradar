@@ -93,7 +93,7 @@ def in_app(story, the_plan):
 def admit(pool, levels, margin, the_plan, record, now, when, protect, window=timedelta(hours=24), keep=timedelta(hours=48)):
     """Which stories of the pool Live shows. pool: the leads (dicts with id, members, rank); when(story) -> datetime;
     protect(story) -> a reason or None; record: {member id: iso} of earlier admissions. Returns ({lead id: why}, the
-    new record, a summary for data.json). why is one of take, big, dk (protected), rank, kept (admitted earlier and
+    new record, a summary for data.json). why is one of take, big, wide, dk (protected), rank, kept (admitted earlier and
     still within the margin)."""
     floor, count = levels[the_plan['level']]
     ids = lambda st: set(st.get('members') or []) | {st['id']}

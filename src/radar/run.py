@@ -249,6 +249,44 @@ def top_score(it, pick_rank, hours=12, pick_hours=24):
     return (4 if p < 3 else 3 if ed else 0) + (2 if heavy else 0) + (1 if it.get('big') else 0)
 
 
+def weigh_story(meth, st, trivia, actors, skip):
+    """(tier, tags, powers, support) of a story: every established outlet's headline is weighed (the owner, 18/10, 'se om
+    vi har misset noget': only the lead's headline was read, so a story was weighed by one outlet's wording). A tier
+    holds when the lead's headline shows it or two other headlines do – one stray word ('radicalizes' in one of eight
+    reports on Albania's protests) never weighs a story up; and only a tier a headline names counts, so a member never
+    turns a Danish story's 12 into the rest's 11. support: how many of the headlines show the tier that holds.
+    skip(source): a channel or an outlet off the scale, whose headline weighs nothing."""
+    tier, tags, powers = meth.weigh(st[0], trivia, actors)
+    if tier == 13:   # light news, or weighed down by its lead's own words: no other headline weighs it up
+        return tier, tags, powers, 0
+    votes, extra = {}, {}
+    for m in st[1:]:
+        if skip(m['source']):
+            continue
+        t, tg, pw = meth.weigh(m, trivia)
+        for x in tg:
+            votes[x] = votes.get(x, 0) + 1
+            extra.setdefault(x, set()).update(pw)
+    held = set(tags) | {x for x, n in votes.items() if n >= 2}
+    if held:
+        tier = min(tier, min(held)) if tags else min(held)
+        for x in held - set(tags):
+            powers = sorted(set(powers) | extra.get(x, set()))
+    support = (tier in tags) + votes.get(tier, 0)
+    return tier, sorted(held), sorted(powers), support
+
+
+def wide_story(it, sources, tiers, trivia):
+    """Widely carried and weighty by the books: Live shows it whatever the taste model and the day's count say (the
+    owner, 18/10: Sisi's 2030 exit in 14 outlets and Tunisia's biggest protest in years were left out – the taste
+    model, trained on what the group reads, rates a Muslim state's own politics low, so they never became 'big').
+    sources: established outlets it needs (big_story_sources); tiers: the books' sharp tiers; the major issues
+    (tier 5) count in the Middle East; at least two of its headlines must show the tier ('_tier_n'), so one outlet's
+    word ('ousted as White House press secretary') does not carry it in."""
+    return (it['_ref_out'] >= sources and bool(it.get('confirmed')) and not trivia and it.get('_tier_n', 0) >= 2
+            and (it.get('tier') in tiers or (it.get('tier') == 5 and it.get('sec') == 'me')))
+
+
 def top_now(shown, picks, now_local=None, n=5, hours=12):
     """The stories the app marks 'Høj betydning' (topNow in public/app.js – keep the two alike): at most five, by
     top_score (two points at least), then the editor's order, then rank. Hours since publication, not the calendar day.
@@ -645,7 +683,8 @@ def main():
         r += s.get('rank_fit', 0) * (lead['fit'] - 1)
         lead['sec'] = secs[0]
         lead['actors'] = meth.actors(meth.text(lead))
-        lead['tier'], lead['tags'], lead['powers'] = meth.weigh(lead, ls['trivia'], lead['actors'])
+        lead['tier'], lead['tags'], lead['powers'], lead['_tier_n'] = weigh_story(
+            meth, st, ls['trivia'], lead['actors'], lambda src: src in channel or src in off_scale)
         # the books' order: the leading state's acts up, ceremony down – a lift only for what an established outlet
         # carries (a channel's post about a summit is no confirmed act)
         up = meth.lift(lead['tier'])
@@ -763,6 +802,8 @@ def main():
     def protect(it):
         if it['big']:
             return 'big'
+        if wide_story(it, s['big_story_sources'], meth.bypass_tiers, sig[it['id']]['trivia']):
+            return 'wide'
         danish = [m for m in [it] + members_of_lead.get(it['id'], []) if m.get('lang') == 'da']
         if (it['sec'] == 'dk' and it['confirmed'] and not sig[it['id']]['trivia']
                 and (it.get('tier') == 6 or any(sections.protect_dk.hits(m['title']) for m in danish))):
@@ -777,7 +818,7 @@ def main():
         it['live'] = on_live.get(it['id'])
 
     for it in items.values():
-        for k in ('_core', '_core_dk', '_dk_outlets', '_ref_out', '_ref_est'):
+        for k in ('_core', '_core_dk', '_dk_outlets', '_ref_out', '_ref_est', '_tier_n'):
             it.pop(k, None)
 
     # foreign-language cards (no Danish/English version of the story): translate to English once,

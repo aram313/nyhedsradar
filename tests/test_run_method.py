@@ -120,3 +120,44 @@ def test_the_sharp_tiers_reach_the_editor_below_the_taste_bar(tmp_path, monkeypa
     assert all(i['powers'] == ['usa'] for i in bypassed)
     for i in data['items']:
         assert {'tier', 'tags', 'powers', 'actors', 'members', 'camps', 'first'} <= set(i)
+
+
+def test_every_outlets_headline_is_weighed_and_a_tier_two_of_them_show_holds():
+    # the owner, 18/10 ('se om vi har misset noget'): a story was weighed by its lead's headline alone
+    import radar.run as run
+    from radar.method import Method
+    meth = Method()
+    no = lambda src: False
+    dr = {'title': 'Egyptens præsident fratræder posten i 2030', 'sec': 'me', 'source': 'DR'}
+    coup = [{'title': f'Army ousts the government in a coup, {w} reports', 'sec': 'me', 'source': w}
+            for w in ('Reuters', 'AP')]
+    assert run.weigh_story(meth, [dr], False, None, no)[0] == 5
+    tier, tags, _, n = run.weigh_story(meth, [dr] + coup, False, None, no)
+    assert tier == 4 and 4 in tags and n == 2
+    # one other headline is not enough; a channel's or an off-scale outlet's headline weighs nothing
+    assert run.weigh_story(meth, [dr, coup[0]], False, None, no)[0] == 5
+    assert run.weigh_story(meth, [dr] + coup, False, None, lambda src: src == 'AP')[0] == 5
+    # Albania's protests: one report's 'radicalizes' does not make them the campaign against the belief
+    tirana = [{'title': t, 'source': f's{n}'} for n, t in enumerate([
+        'Albanian anti-government protesters clash with police in Tirana',
+        "Albania's 'Flamingo Revolution' radicalizes in response to prime minister's 'contempt'",
+        'Protests in Albania escalate into violent clashes'])]
+    assert run.weigh_story(meth, tirana, False, None, no)[0] == 11
+    # a member's plain headline never turns a Danish story's 12 into the rest's 11; light news stays light
+    dk = {'title': 'Kommunen lukker svømmehallen i Vejle', 'sec': 'dk', 'source': 'TV 2'}
+    assert run.weigh_story(meth, [dk, {'title': 'Swimming pool closes', 'source': 'Reuters'}], False, None, no)[0] == 12
+    assert run.weigh_story(meth, [dr] + coup, True, None, no)[0] == 13
+
+
+def test_a_widely_carried_weighty_story_is_in_live_whatever_the_taste_model_says():
+    import radar.run as run
+    sharp = {1, 2, 3, 4, 6}
+    sisi = {'_ref_out': 12, 'confirmed': 12, 'tier': 5, 'sec': 'me', '_tier_n': 14}
+    coup = {'_ref_out': 6, 'confirmed': 6, 'tier': 4, 'sec': 'world', '_tier_n': 3}
+    assert run.wide_story(sisi, 4, sharp, False) and run.wide_story(coup, 4, sharp, False)
+    assert not run.wide_story({**sisi, 'sec': 'world'}, 4, sharp, False)        # the major issues: the Middle East
+    assert not run.wide_story({**sisi, '_ref_out': 3}, 4, sharp, False)          # widely carried: four outlets
+    assert not run.wide_story({**sisi, 'tier': 10}, 4, sharp, False)             # weighty by the books
+    assert not run.wide_story({**coup, '_tier_n': 1}, 4, sharp, False)          # 'ousted as press secretary'
+    assert not run.wide_story({**sisi, 'confirmed': 0}, 4, sharp, False)
+    assert not run.wide_story(sisi, 4, sharp, True)                              # never light news

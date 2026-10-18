@@ -591,7 +591,7 @@ def around_the_line(data, pool, known, now, level, the_plan=None):
     inside = {i['id'] for i in pool}
     taken = set(level.get('take') or []) | set((the_plan or {}).get('take') or [])
     above = sorted((i for i in pool if in_24h(i, now) and not i.get('big') and i['id'] not in taken
-                    and i.get('live') not in ('take', 'big', 'dk')   # the radar's why: taken in or protected, not at it
+                    and i.get('live') not in ('take', 'big', 'wide', 'dk')   # the radar's why: taken in or protected, not at it
                     and not taken & set(i.get('members') or [])), key=lambda i: i.get('rank') or 0)[:LINE_SHOWN]
     below = sorted((i for i in data.get('items') or [] if i['id'] not in inside and in_24h(i, now)
                     and radar_level.decision(the_plan or {}, ids_of(i)) != 'drop'),
