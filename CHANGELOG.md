@@ -9,6 +9,9 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **An event page lists each story once** (2026-10-18, the owner: 'nogle historier på begivenheder bliver vist
+  dobbelt' – BT's story on the France page): the app joins an id given twice, and two articles the radar has since put
+  in one story, into one row; the tool keeps each story once when it writes a page.
 - **An event page never contradicts its own development** (2026-10-18, the owner on the France page: 'hvad skaber
   denne kognitive dissonans på begivenhedssiden?' – the boxes said 150 police injured and over 2.000 arrested while
   'Forløbet' under them gave the interior ministry's 997 and 2.397). The ministry's figures came only by the Al Jazeera

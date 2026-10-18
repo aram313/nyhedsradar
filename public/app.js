@@ -3886,7 +3886,10 @@ function eventPage() {
   if ((e.quotes || []).length) h += `<section class="ev-sec"><h2 class="ev-h2">Udtalelser</h2>${e.quotes.map(q => `<figure class="ev-q"><blockquote>»${esc(q.text)}«</blockquote><figcaption>${esc(q.who)}</figcaption></figure>`).join('')}</section>`;
   const tp = e.topic && threadNamed(e.topic);
   if (tp && tp.lines.length) h += `<section class="ev-sec"><h2 class="ev-h2">Forløbet</h2>${storyline(tp, 6).html}</section>`;
-  const list = (e.stories || []).map(id => find(id) || findStory(id) || (e._day ? arkItem(e._day, id) : null)).filter(Boolean).sort((a, b) => when(b) - when(a));
+  // each story once (the owner, 18/10: 'nogle historier på begivenheder bliver vist dobbelt'): an id given twice, or two
+  // articles the radar has since put in one story, are one row
+  const list = [...new Map((e.stories || []).map(id => find(id) || findStory(id) || (e._day ? arkItem(e._day, id) : null))
+    .filter(Boolean).map(i => [i.id, i])).values()].sort((a, b) => when(b) - when(a));
   const ms = mainSec(list);
   if (list.length) h += `<section class="ev-sec ev-news"><h2 class="ev-h2">Nyheder</h2>${list.map((i, k) => story(i, 300 + k, { tag: true, top: true, plain: true, sq: true, msec: ms })).join('')}</section>`;
   const a = list.length && V('bix') && V('mix') ? list.map(i => answerFor(i)).find(Boolean) : null;

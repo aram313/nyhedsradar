@@ -168,3 +168,9 @@ def test_the_app_shows_the_archive_quietly_beside_the_front_page():
     # an archived event as it stood that day: its state, its countdown and its map
     assert "const today = e._day ? calDay(e._day) : calToday();" in APP and "(e.geo || {})[p]" in APP
     assert 'eventOf(evId) || arkEvent(evId)' in APP
+
+
+def test_an_event_page_shows_each_story_once():
+    # 18/10, the owner: 'nogle historier på begivenheder bliver vist dobbelt' – the France page listed BT's story twice
+    page = APP.split('function eventPage() {')[1].split('\nfunction ')[0]
+    assert 'new Map((e.stories || []).map(' in page and '.map(i => [i.id, i])).values()]' in page
