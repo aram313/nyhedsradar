@@ -15,6 +15,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
   without its block title or its headline again; then 'Også i dag', the lede's other clauses a line each, each opening
   its story. The catch-up line and the install card come after the block. A page without Dagens historie keeps the
   lede whole (app.js homeTop).
+  Then (the owner: 'ok det er fint, men det ser ikke godt ud'): one card – the headline at its top under a short red
+  rule and without underline, the picture edge to edge, its line as a caption, 'Også i dag' as quiet rows with a
+  chevron. A line of 'Også i dag' glides the page to its story's row and lights it once, closed ('smooth ned og flash …
+  ikke teleportere til en åben historie'); the development under Dagens historie shows only with the story opened.
 - **Økonomi: a story unfolds in place, with the app's buttons** (2026-10-18, the owner: 'når man åbner nyheder på
   økonomi må den gerne foldes ud som på resten af siden i stedet for at omdirigere til en midlertidig side' – then
   'hvor er logoerne på knapperne'). A tap on a story of the page – the list, its lead, 'Stor nyhed', the quote – no

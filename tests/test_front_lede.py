@@ -221,3 +221,13 @@ def test_the_days_headline_and_dagens_historie_are_one():
     assert '<p class="also-h">Også i dag</p>' in top
     assert 'homeTop(f.lede || notes().lede, composed' in CODE and 'homeTop(notes().lede, html' in CODE
     assert '.pkg.merged .story.lead .tx .h { display: none; }' in RULES
+
+
+def test_a_line_of_ogsaa_i_dag_glides_to_its_row_and_lights_it():
+    # the owner, 18/10: 'så skal den gøre smooth ned og flash den del den henviser til. ikke teleportere til en åben historie'
+    go = fn('alsoGo')
+    assert 'movePage(dy' in go and 'flashRow(el)' in go and 'toggle(' not in go
+    assert "data-${first ? 'lede' : 'also'}=" in fn('homeTop') and "t.closest('[data-also]')" in CODE
+    # the development under Dagens historie only with the story opened, and never dimmed by it
+    assert '.pkg.merged > .of-main { display: none; }' in RULES and '.pkg.merged:has(> .story.open) > .of-main { display: block; }' in RULES
+    assert "!sib.matches('.dim, .of-main')" in CODE

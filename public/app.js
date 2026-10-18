@@ -1574,6 +1574,23 @@ function ledeGo(id) {
   scrollToEl(el, 8);
   setTimeout(() => { if (!touching && el.isConnected) scrollToEl(el, 8); }, 150);   // rows above it laid out by now
 }
+// a line of 'Også i dag' tapped (the owner, 18/10: 'så skal den gøre smooth ned og flash den del den henviser til. ikke
+// teleportere til en åben historie'): the page glides to the story's row and the row lights up once – closed; one the
+// page does not show opens in Live, as a link with ?item= does
+function alsoGo(id) {
+  const i = findStory(id), el = i && tab === 'home' && pg$('s-' + i.id);
+  if (!el) { if (i) openInLive(i.id); return; }
+  if (cur().classList.contains('focus')) closeOpen();
+  const dy = el.getBoundingClientRect().top - $('bar').offsetHeight - 24;
+  movePage(dy, Math.min(700, 320 + Math.abs(dy) / 4), () => flashRow(el));
+}
+function flashRow(el) {
+  el.classList.remove('flash');
+  void el.offsetWidth;   // the light runs again when it is asked again
+  el.classList.add('flash');
+  clearTimeout(el.flashT);
+  el.flashT = setTimeout(() => el.classList.remove('flash'), 1800);
+}
 // the stories a front page shows, in its order: its rows and its Live strip
 const pageStories = html => [...new Set([...html.matchAll(/(?:id="s-|data-live=")([^"]+)"/g)].map(m => m[1]))].map(id => find(id) || findStory(id));
 // the head of the front page: the date with 'Del overblik' (the day's overview as a WhatsApp text), the editor's lede
@@ -1601,7 +1618,7 @@ function homeTop(lede, body, ids) {
   const own = linked.slice(0, brk).some(p => p.id === mainId);
   const line = (p, first) => {
     const t = first ? p.t : cap(p.t.replace(/^[\s,;–-]+/u, '')), [, words, stop] = t.match(/^([\s\S]*?)([.!?…]*)$/u);
-    return p.id ? `${first ? esc(p.sep) : ''}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-lede="${esc(p.id)}">${esc(words)}</a>${first ? esc(stop) : ''}`
+    return p.id ? `${first ? esc(p.sep) : ''}<a class="lede-a" href="?item=${encodeURIComponent(p.id)}" data-${first ? 'lede' : 'also'}="${esc(p.id)}">${esc(words)}</a>${first ? esc(stop) : ''}`
       : esc((first ? p.sep : '') + words + (first ? stop : ''));
   };
   const head = own ? linked.slice(0, brk).map(p => line(p, true)).join('')
@@ -1610,13 +1627,19 @@ function homeTop(lede, body, ids) {
   const todayStr = FMT.ymd.format(new Date());
   const top = `<header class="lede merged"><div class="lede-d"><span>${cap(dateDa(todayStr, true))}</span>`
     + `<button class="lede-share" data-brief aria-label="Del dagens overblik"><svg aria-hidden="true"><use href="#i-share"/></svg><span aria-hidden="true">Del overblik</span></button></div>`
-    + (head ? `<p class="lede-t"><span class="lede-h">${head}</span></p>` : '') + '</header>';
-  const alsoHtml = also.length ? `<div class="also-day"><p class="also-h">Også i dag</p><ul>${also.map(p => `<li><svg aria-hidden="true"><use href="#i-chev"/></svg>${line(p, false)}</li>`).join('')}</ul></div>` : '';
-  // Dagens historie without its block title and its headline (the headline above says it); 'Også i dag' under its line
-  let b = body.slice(0, sec.index) + sec[0].replace('class="block top pkg', 'class="block top pkg merged') + body.slice(at).replace(blockHead('Dagens historie'), '');
+    + '</header>';
+  // one package in one card (the owner, 18/10: 'det ser ikke godt ud' – the headline stood outside the picture's card):
+  // the headline at its top, the picture and its line, then 'Også i dag' as quiet rows, each opening its story
+  const alsoHtml = also.length ? `<div class="also-day"><p class="also-h">Også i dag</p><ul>${also.map(p => `<li>${line(p, false)}<svg aria-hidden="true"><use href="#i-chev"/></svg></li>`).join('')}</ul></div>` : '';
+  const headHtml2 = head ? `<h2 class="top-h">${head}</h2>` : '';
+  let b = body.slice(0, sec.index) + sec[0].replace('class="block top pkg', 'class="block top pkg merged') + headHtml2 + body.slice(at).replace(blockHead('Dagens historie'), '');
   const end = b.indexOf('</article>', sec.index);
   if (end > -1) b = b.slice(0, end + 10) + alsoHtml + b.slice(end + 10);
   const close = b.indexOf('</section>', sec.index);
+  // the development under Dagens historie only when the story is opened (the owner, 18/10: 'Udviklingen … skal kun vises
+  // hvis man folder historien ud'): marked, shown by the open story (style.css) and never dimmed by it (focusSync)
+  const fl = b.indexOf('<div class="follow pkg-f"', sec.index);
+  if (fl > -1 && fl < close) b = b.slice(0, fl) + '<div class="follow pkg-f of-main"' + b.slice(fl + 25);
   return top + (close > -1 ? b.slice(0, close + 10) + catchUpLine() + installCard() + b.slice(close + 10) : b + catchUpLine() + installCard());
 }
 // the foot: what Khabar read and chose (the prices live in the Økonomi tab)
@@ -3007,7 +3030,7 @@ function focusSync(pg = cur()) {
   if (!open) return;
   open.classList.add('lift');
   for (let e = open; e && e !== pg; e = e.parentElement)
-    for (const sib of e.parentElement.children) if (sib !== e && !sib.matches('.dim')) sib.classList.add('dimmed');
+    for (const sib of e.parentElement.children) if (sib !== e && !sib.matches('.dim, .of-main')) sib.classList.add('dimmed');
 }
 function closeOpen() {
   const pg = cur();
@@ -3065,6 +3088,8 @@ async function onTap(e) {
   const t = e.target, el = t.closest('[data-id]'), i = el && asShown(el);   // what is shared is the headline one sees
   const ld = t.closest('[data-lede]');   // a part of the lede: its story, opened
   if (ld) { e.preventDefault(); ledeGo(ld.dataset.lede); return; }
+  const al = t.closest('[data-also]');   // a line of 'Også i dag': its story, found on the page
+  if (al) { e.preventDefault(); alsoGo(al.dataset.also); return; }
   // the wiki and the movement's answers: a name in a text, a subject, an answer's line or row, the index of the pages
   const bg = t.closest('[data-begreb]');
   if (bg) { e.preventDefault(); openSide('begreb', bg.dataset.begreb); return; }
