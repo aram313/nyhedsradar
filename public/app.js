@@ -3777,19 +3777,23 @@ function factGraphic(f) {
   }
   return '';
 }
+// Each box names its own source (19/10, the owner on the France page: 'the source and the al jazeera source is not shown
+// there' – the interior ministry's 2.397 and 997 came through Al Jazeera's wire, and only one line under all the boxes
+// said so): who gives the number (its note), then the outlet that carried it, unless the note names that outlet already
+const factSrc = f => { const note = String(f.note || '').toLowerCase(); return evSources([f]).filter(s => !note.includes(String(s).toLowerCase())); };
+const factWho = f => { const src = factSrc(f); return [f.note, src.length ? 'via ' + src.join(', ') : ''].filter(Boolean).join(' · '); };
 function factCell(f, lead, wide) {
-  const g = factGraphic(f);
+  const g = factGraphic(f), who = factWho(f);
   return `<div class="kf${lead ? ' kf-lead' : g || wide ? ' kf-wide' : ''}"><span class="kf-l">${esc(f.label)}</span><span class="kf-v">${esc(f.value)}</span>`
-    + factDelta(f) + g + (f.note ? `<span class="kf-n">${esc(f.note)}</span>` : '') + '</div>';
+    + factDelta(f) + g + (who ? `<span class="kf-n">${esc(who)}</span>` : '') + '</div>';
 }
 function factBoxes(e, n = 6) {
   const facts = (e.facts || []).slice(0, n);
   if (!facts.length) return '';
-  const [lead, ...rest] = facts, src = evSources(facts);
-  // the plain numbers pair up; one left alone takes the whole row
+  const [lead, ...rest] = facts;
+  // the plain numbers pair up; one left alone takes the whole row (each box names its own source: no line under them)
   const plain = rest.filter(f => !factGraphic(f)), lone = plain.length % 2 ? plain[plain.length - 1] : null;
-  return `<div class="kfacts">${factCell(lead, true)}${rest.length ? `<div class="kf-grid">${rest.map(f => factCell(f, false, f === lone)).join('')}</div>` : ''}</div>`
-    + (src.length ? `<p class="ev-src">Kilder: ${esc(src.join(', '))}</p>` : '');
+  return `<div class="kfacts">${factCell(lead, true)}${rest.length ? `<div class="kf-grid">${rest.map(f => factCell(f, false, f === lone)).join('')}</div>` : ''}</div>`;
 }
 // the event's picture: the one the editor filed (the outlet's own of its first story with one), else a story's in Live
 // The owner's choice of an event's picture (19/10, the owner: 'er det meningen jeg ikke kan holde nede og vælge billede
@@ -3990,7 +3994,8 @@ function eventCard(e) {
   return `<section class="block ev-b">${blockHead(esc(e.kicker || 'Begivenhed'))}<button class="ev-card${hero ? ' pic' : ''}" data-event="${esc(e.id)}">`
     + (hero || `<span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span><span class="ev-ct">${esc(e.title)}</span>`)
     + (e.dek ? `<span class="ev-cdek">${esc(e.dek)}</span>` : '')
-    + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num">${numHtml(f.value)}<small>${esc(f.label)}</small></span>`).join('')}</span>` : '')
+    + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num">${numHtml(f.value)}<small>${esc(f.label)}</small></span>`).join('')}</span>`
+      + (evSources(nums).length ? `<span class="ev-nsrc">Tallene: ${esc(evSources(nums).join(', '))}</span>` : '') : '')
     + `<span class="ev-go">Følg begivenheden<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button></section>`;
 }
 function numberBlock(e, n = 1) {

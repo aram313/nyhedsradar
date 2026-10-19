@@ -205,7 +205,8 @@ da'wah.
   page's modules `begivenhed` (`eventCard`), `tal` (`numberBlock`) and `nedtaelling` (`countdownBlock`); an event under
   way that the editor did not place gets its card after the first block, one ahead within a week its countdown
   (`eventsUnplaced`). The fact boxes (`factBoxes`, `factCell`, `factGraphic`, `factDelta`): hairlines, no boxes, the
-  first number large; a share of ten as dots, another share a meter, a number with `was` two bars and the change.
+  first number large; a share of ten as dots, another share a meter, a number with `was` two bars and the change; each
+  box names who gives its number and the outlet that carried it ('… · via Al Jazeera', `factWho`, 19/10).
 - **The front-page archive** (18/10, the owner: 'ja lav et arkiv, men kun ved dagens sidste opdatering. så vi får et om
   dagen'; open to every reader but quiet – my recommendation, not a tab): `editor.py publish` with a composition writes
   the Danish day's front page (`front_snapshot`: the blocks with the stories as shown – `arch_story`: the editor's

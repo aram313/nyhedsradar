@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Each fact box names its own source** (2026-10-19, the owner on the France page: 'the bigger numbers are correct, but
+  the source and the al jazeera source is not shown there'): a box said who gives its number ('ifølge Frankrigs
+  indenrigsministerium') and only one line under all the boxes named the outlets. Now every box says both – 'ifølge
+  Frankrigs indenrigsministerium · via Al Jazeera' (`factWho`; an outlet the note names already is not said twice) – and
+  the line under the boxes is gone; the front page's event card names its numbers' outlets under them ('Tallene: …').
 - **The owner chooses an event page's picture** (2026-10-19, the owner: 'er det meningen jeg ikke kan holde nede og vælge
   billede på begivenheder' – it was built for stories only). Holding an event's picture (its page's head or its card)
   shows its stories' best pictures – their `pics`, else their own with a light copy –, the one shown now first and
