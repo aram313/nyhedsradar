@@ -833,6 +833,64 @@ def runs_file(current, by, did, now):
     return {'items': [{'by': by, 'at': now.isoformat(timespec='seconds'), 'did': did}, *items][:RUNS_KEPT]}
 
 
+# A count said as the whole so far ('68.000 dræbt siden 2023', 'in total'): never the one a headline of the day tells
+CUMULATIVE = re.compile(r'(?<!\w)(?:siden|i alt|samlet|totalt|hidtil|til dato|since|in total|overall|so far|to date)(?!\w)', re.I)
+CLAUSES = re.compile(r'(?<=[.;!?])\s+|\s+[–-]\s+')
+
+
+def stale_heads(stories, titles, now=None, hours=36):
+    """The editors' headlines behind their own story's numbers (19/10, the owner: 'Mindst 18 dræbt i houthi-angreb' over
+    the teaser '53 er dræbt og 200 såret'): [(story, headline, kind, the headline's count, the higher one, where)] – a
+    count of the dead, the injured or the arrested (police apart) that the story's teaser, its articles' sentences or
+    another outlet's headline give higher; a count of the whole so far is left out."""
+    idx = {}
+    for k, v in (titles or {}).items():
+        if isinstance(v, dict) and v.get('title') and not v.get('owner'):
+            for x in [k, *(v.get('members') or [])]:
+                idx.setdefault(x, v)
+    out = []
+    for i in stories or []:
+        if now and i.get('published') and now - ts(i['published']) > timedelta(hours=hours):
+            continue
+        v = next((idx[x] for x in [i['id'], *(i.get('members') or [])] if x in idx), None)
+        if not v:
+            continue
+        have = {}
+        for part in CLAUSES.split(v['title']):
+            if not CUMULATIVE.search(part):   # 'over 340 børn dræbt siden våbenhvilen' is the whole so far, not the day's
+                for kind, police, n in event_pages.counts_in(part):
+                    have[(kind, police)] = max(have.get((kind, police), 0), n)
+        if not have:
+            continue
+        texts = [('its teaser', i.get('summary_da') or i.get('summary') or '')]
+        texts += [(f"{a.get('source') or 'another outlet'}'s headline", a.get('title') or '') for a in i.get('also') or []]
+        texts += [(f"{x.get('s') or 'its'} article", x.get('t') or '') for x in i.get('said') or [] if isinstance(x, dict)]
+        best = {}
+        for where, text in texts:
+            for part in CLAUSES.split(str(text or '')):
+                if CUMULATIVE.search(part):
+                    continue
+                for kind, police, n in event_pages.counts_in(part):
+                    h = have.get((kind, police))
+                    # higher, but of the same order: a figure ten times the headline's is another count (a war's toll)
+                    if h is not None and h + 2 <= n <= 10 * max(h, 1) and n > best.get((kind, police), (0, ''))[0]:
+                        best[(kind, police)] = (n, where)
+        for (kind, police), (n, where) in best.items():
+            out.append((i, v['title'], f"{kind}{' politifolk' if police else ''}", have[(kind, police)], n, where))
+    return out
+
+
+def stale_lines(stale):
+    """The input's list of headlines behind their story's numbers."""
+    if not stale:
+        return []
+    out = ["## Headlines behind their own story's numbers – write each anew under titles", '',
+           "Your headline tells a count its story has since outgrown (its teaser, an article or another outlet gives a higher",
+           "one): write it with the newest count and who gives it. A count of the whole so far is no count of the day.", '']
+    out += [f"- [{i['id']}] yours: {head} – says {have} {kind}; {where} gives {n}" for i, head, kind, have, n, where in stale]
+    return out + ['']
+
+
 def has_head(i, done):
     return i['id'] in done or any(m in done for m in i.get('members') or [])
 
@@ -1064,6 +1122,11 @@ def look(args, now):
         reasons.append(f"begivenhedssiden kan få nye tal fra artiklerne: {clip(page.get('title'), 60)} ({', '.join(nums[:4])})")
     for page, lacks in thin_pages[:1]:
         reasons.append(f"begivenhedssiden mangler {' og '.join(lacks)}: {clip(page.get('title'), 60)}")
+    stale = stale_heads(pool, summaries_of(args).get('titles'), now) if known else []
+    if stale:   # a headline its own story has outgrown (19/10)
+        s0 = stale[0]
+        reasons.append(f"{len(stale)} {'overskrift' if len(stale) == 1 else 'overskrifter'} bagud for historiens tal: "
+                       f"{clip(s0[1], 60)} ({s0[3]} → {s0[4]})")
     waiting_notes = open_notes(args, now, ('redaktion', 'kalender'))
     if waiting_notes:
         reasons.append(f"{len(waiting_notes)} {'kommentar' if len(waiting_notes) == 1 else 'kommentarer'} fra ejeren: "
@@ -1092,6 +1155,7 @@ def look(args, now):
     keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
     keys += [f"behind:{page['id']}:{','.join(str(g[2]) for g in gaps)}" for page, gaps in behind_now]
     keys += [f"note:{n['id']}" for n in waiting_notes]
+    keys += [f"stale-head:{s[0]['id']}:{s[4]}" for s in stale]
     for r in head_reasons(now, heads):   # the headlines: once an update, or once for each story that waited too long
         if r[0].isdigit():
             keys.append(f"heads:{last.isoformat() if last else ''}")
@@ -1739,6 +1803,7 @@ def econ_input(args, now):
     # pairs with the stories let none through, so the economy editor never had a headline to write (19/10)
     heads = to_head(with_economy(stories, args, items), titles, now)
     out += head_lines(heads, True, {i['id'] for i in stories})
+    out += stale_lines(stale_heads(with_economy(stories, args, items), titles, now))
     out += calendar_lines(cal_now, kal_now, now)
     heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (titles or {}).items()}
     out += news_dates(stories, cal_now, kal_now, now, heads_now)
@@ -1839,6 +1904,7 @@ def cmd_input(args):
         pool = [i for i in pool if in_24h(i, now)]
     heads = to_head(with_economy(pool, args, items), headlines_of(args), now, admitted_record(args))   # Økonomi's too (19/10)
     out += head_lines(heads, known, listed)
+    out += stale_lines(stale_heads(with_economy(pool, args, items), summaries_of(args).get('titles'), now))
     level, the_plan = day_level(live, now), active_plan(live, now)
     out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,
                       now, the_plan)

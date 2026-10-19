@@ -1535,6 +1535,34 @@ function frontOrder(blocks) {
   }
   return out.map((b, k) => [b, k]).sort((x, y) => (FRONT_RANK[x[0].kind] ?? 4) - (FRONT_RANK[y[0].kind] ?? 4) || x[1] - y[1]).map(x => x[0]);
 }
+// The page's rhythm (19/10, the owner, on '… det samme mønster om og om igen' – two event cards in a row, then five
+// lists alike: 'fast afveksling'): the blocks keep their order of weight, but two of one look – a card, a list, or
+// something else (a quote, a number, a development, an answer) – never stand together while another can go between
+const LOOK = k => (k === 'top' ? 'top' : k === 'begivenhed' ? 'card' : k === 'liste' ? 'list' : 'accent');
+function frontRhythm(blocks) {
+  const rest = [...blocks], out = [];
+  while (rest.length) {
+    const prev = out.length ? LOOK(out[out.length - 1].kind) : '';
+    const k = rest.findIndex(b => LOOK(b.kind) !== prev);
+    out.push(rest.splice(k < 0 ? 0 : k, 1)[0]);
+  }
+  return out;
+}
+// what the composition lacks the app sets in among its blocks (19/10): the card of an event under way it placed nowhere,
+// and – when it holds no quote, development or number – the day's quote, else the developments that moved last, else
+// an event's first number; set in by the app, they do not count against FRONT_MAX
+function frontBlocks(blocks) {
+  const out = (blocks || []).filter(Boolean), placed = new Set(out.filter(b => b.event).map(b => String(b.event)));
+  const ev = events().find(x => x.status === 'i gang' && !placed.has(x.id));
+  if (ev) out.push({ kind: 'begivenhed', event: ev.id, auto: true });
+  if (!out.some(b => ['citat', 'udvikling', 'tal'].includes(b.kind))) {
+    const q = (notes().quotes || [])[0], th = threads().slice(0, 3), num = events().find(x => x.status === 'i gang' && (x.facts || []).length);
+    if (q) out.push({ ...q, kind: 'citat', auto: true });
+    else if (th.length) out.push({ kind: 'udvikling', topics: th.map(t => t.name), auto: true });
+    else if (num) out.push({ kind: 'tal', event: num.id, fact: 1, auto: true });
+  }
+  return out;
+}
 function composedHome(all, opts, f) {
   const used = new Set();
   const take = id => { const i = findStory(String(id || '')); if (!i || used.has(i.id)) return null; used.add(i.id); return i; };
@@ -1551,10 +1579,9 @@ function composedHome(all, opts, f) {
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
-  for (const b of frontOrder(f.blocks)) {
-    if (!calPut && (FRONT_RANK[b.kind] ?? 4) > CAL_RANK && html) { calPut = true; html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock(); }   // before the developments
+  for (const b of frontRhythm(frontOrder(frontBlocks(f.blocks)))) {
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
-    if (drawn >= FRONT_MAX) break;   // overskuelighed før fuldstændighed: at most six blocks, whatever the composition
+    if (drawn >= FRONT_MAX && !b.auto) continue;   // overskuelighed før fuldstændighed: at most FRONT_MAX of the editor's blocks
     const before = html.length;
     if (b.kind === 'top') {
       const first = !tops, i = take(first && pin ? pin.id : b.story);
@@ -1582,7 +1609,6 @@ function composedHome(all, opts, f) {
       tell(shown.title);
       for (const x of (b.with || [])) { const w = take(x); if (w) { html += story(w, n++, { ...opts, tag: true, top: true, plain: true, sq: true }); break; } }   // one more at most
       html += '</section>';
-      if (first) html += eventsUnplaced(f.blocks, 'i gang');   // an event under way the editor gave no card: under Dagens historie
       filled++;
     } else if (b.kind === 'liste') {
       // the editor's order, but a story of the last 24 hours never waits behind an older one under 'Alle' (the owner,
@@ -1632,8 +1658,9 @@ function composedHome(all, opts, f) {
       const ev = eventOf(b.event);
       if (ev && !evShown.has(b.kind + ev.id)) { evShown.add(b.kind + ev.id); html += b.kind === 'begivenhed' ? eventCard(ev) : b.kind === 'tal' ? numberBlock(ev, b.fact) : countdownBlock(ev); }
     }
-    if (html.length > before) drawn++;
+    if (html.length > before && !b.auto) drawn++;
   }
+  // after the blocks: 'Kort nyt', the movement's answer and the markets, an event ahead within a week, the dates
   if (!calPut && html) html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));

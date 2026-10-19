@@ -9,6 +9,16 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The front page alternates, and a headline its story has outgrown is caught** (2026-10-19, the owner chose two of my
+  proposals: 'fast afveksling' and the check on stale headlines). The composed page sorted its blocks by kind, so the
+  event cards stood together and the lists after them; now `frontRhythm` keeps the order of weight but never sets two
+  of one look (a card, a list, or a quote, number, development or answer) together while another can go between, and
+  `frontBlocks` sets in what the composition lacks: the card of an event under way it placed nowhere (no longer pinned
+  under Dagens historie) and, without a quote, a development or a number, the day's quote, else the developments that
+  moved last, else an event's first number – extra to FRONT_MAX. Kort nyt, the markets and the dates follow all blocks.
+  `editor.stale_heads` finds an editor's headline whose count of the dead, the injured or the arrested its own story
+  has outgrown ('Mindst 18 dræbt …' over a teaser of 53; a count of the whole so far and a figure ten times higher are
+  left out); the input lists them under 'Headlines behind their own story's numbers' and the check calls for an update.
 - **Økonomi shows only the editors' headlines; the editors write them** (2026-10-19, the owner: 'Økonomi sidens
   nyhedshistorie titel oversættelser er elendige og bør gennemrettes af redaktøren inden udgivelse. Ret dem nu og ret op på
   adfærd'). Since 18/10 the page showed an English outlet's headline in the machine's Danish ('Oliepriser let efter

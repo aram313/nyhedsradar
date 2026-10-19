@@ -220,6 +220,10 @@ da'wah.
   `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
   the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
   holds the days before it.
+- **The front page's rhythm** (19/10, the owner: 'fast afveksling'): `frontRhythm` (no two of one look together while
+  another can go between) over `frontOrder` (the order of weight) over `frontBlocks` (the unplaced event's card and, when
+  the composition has none, a quote, else a development, else a number, `auto` – extra to FRONT_MAX). **A headline its
+  story outgrew** (`editor.stale_heads`, `stale_lines`): the input lists it and the check calls for an update.
 - **The runs** (19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og
   andre automationer kører'): the admin block's 'Kørsler' (`RUNS`, `runsHtml` in app.js) shows every editor and automation
   with its clock in Danish time (from the UTC hours; summer/winter handled), its last and next run and an editor's last

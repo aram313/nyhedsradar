@@ -151,7 +151,12 @@ def test_dagens_historie_has_its_own_picture_with_the_headline_on_it():
 
 def test_the_front_page_shows_less():
     comp = fn('composedHome')
-    assert 'const FRONT_MAX = 8' in CODE and 'if (drawn >= FRONT_MAX) break;' in comp
+    assert 'const FRONT_MAX = 8' in CODE and 'if (drawn >= FRONT_MAX && !b.auto) continue;' in comp   # what the app sets in is extra
+    # the rhythm (19/10, the owner: 'fast afveksling'): two of one look never together while another can go between
+    rhythm = fn('frontRhythm')
+    assert 'rest.findIndex(b => LOOK(b.kind) !== prev)' in rhythm
+    blocks = fn('frontBlocks')
+    assert "['citat', 'udvikling', 'tal'].includes(b.kind)" in blocks and "{ kind: 'begivenhed', event: ev.id, auto: true }" in blocks
     assert "most = b.dkQuiet ? 2 : 3" in comp and 'data-unfold="${esc(key)}"' in comp   # 'Alle ›' unfolds the rest
     assert "top: true, plain: true, sq: true }); break; } }" in comp and ".slice(0, 3)" in comp   # one more story under Dagens historie
     line = fn('storyline')

@@ -945,3 +945,17 @@ def test_the_economy_pages_stories_are_the_editors_headlines_to_write(monkeypatc
     assert "const reviewed = n => !!(n && (n.ed || n.l === 'da' || !store.get('danish', true)));" in app
     assert "heads = to_head(with_economy(stories, args, items), titles, now)" in (
         Path(__file__).resolve().parents[1] / 'scripts' / 'editor.py').read_text(encoding='utf-8')
+
+
+def test_a_headline_behind_its_storys_numbers_is_given_back():
+    # 19/10, the owner on the front page: 'Mindst 18 dræbt i houthi-angreb' with '53 er dræbt og 200 såret' under it
+    story = {'id': 'h1', 'members': ['h2'], 'title': 'Houthi attack', 'summary_da': 'Mindst 53 er dræbt og 200 såret i angrebet på lejren.',
+             'also': [{'source': 'AP', 'title': 'Over 68,000 killed in Gaza since 2023'}]}
+    titles = {'h2': {'title': 'Mindst 18 dræbt i houthi-angreb på Yemens regeringslejr i Shabwa', 'at': '2026-10-19T10:00:00+00:00'}}
+    stale = editor.stale_heads([story], titles)
+    assert [(s[2], s[3], s[4], s[5]) for s in stale] == [('dræbt', 18, 53, 'its teaser')]
+    assert editor.stale_lines(stale)[5] == ("- [h1] yours: Mindst 18 dræbt i houthi-angreb på Yemens regeringslejr i Shabwa – says 18 "
+                                            "dræbt; its teaser gives 53")
+    # the owner's own headline is his; a count of the whole so far is no count of the day
+    assert editor.stale_heads([story], {'h2': {**titles['h2'], 'owner': True}}) == []
+    assert editor.stale_heads([{**story, 'summary_da': 'I alt 53 er dræbt siden marts.'}], titles) == []
