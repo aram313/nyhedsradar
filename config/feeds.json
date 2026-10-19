@@ -1095,6 +1095,7 @@
  },
  {
   "name": "ONA",
+  "disabled": true,
   "label": "Oman News Agency",
   "lang": "en",
   "url": "https://www.omannews.gov.om/rss.ona?rsslang=en",
