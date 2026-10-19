@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Event maps frame their own places; the editors can set the frame** (2026-10-19, the owner: 'fik kortoversigtten på
+  begivenheden bosætter angreb, og giv redaktørerne bedre værktøjer til at lave bedre kort i fremtiden, den er alt for
+  zoomet ud'). The map showed at least a country's breadth (about 700 × 900 km) around its places – right for France, the
+  whole Levant for villages on the West Bank. It now frames the places' own spread with a tenth around it, at least 40 km
+  each way (`evFrame`; the West Bank page about 130 km across). An event page may carry `map` – `km`, how many km it shows
+  at least each way, and `focus`, the places it frames; "auto" gives it back (`events.map_of`). Every input says under
+  each page what its map shows (`events.frame`, `map_line`: its dots, how many km across, places not found yet, a place
+  far from the others – a wrong one of that name), with a scale to choose from. An area kicker ('Vestbredden') is named
+  on the map like a country.
 - **The runs in the owner's admin block** (2026-10-19, the owner: 'kan du lægge en widget på indstillinger for admin så jeg
   kan se hvad tid forskellige redaktører og andre automationer kører'): under Kun for dig, 'Kørsler' lists the radar, the
   four editors, the vagtmester, the economy figures, the calendar, the answers' check and the evening notification, each

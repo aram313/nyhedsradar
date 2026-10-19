@@ -138,7 +138,9 @@ da'wah.
 - `src/radar/places.py` (18/10, the owner: 'Lad os lave kortet'): the event pages' places (events.json from the digest
   branch, `.cache/events.json`, `RADAR_EVENTS`) looked up once each in Nominatim (≤ 12 a run, a second apart, a
   User-Agent naming Khabar) into `places.json` on the data branch ("<place>|<kicker>" → [lat, lon, country|state|city]);
-  the app's event page draws a map from it (`evMapBox`, `evMaps`: OpenFreeMap's vector map through the shelved Kort
+  the app's event page draws a map from it, framed by the places' own spread – at least `MAP_MIN_KM` (40) each way – or
+  by the editor's `map` {km, focus} (19/10, the owner: 'den er alt for zoomet ud'; `evFrame` = `events.frame`, and every
+  input says under each page what its map shows: `map_line`) (`evMapBox`, `evMaps`: OpenFreeMap's vector map through the shelved Kort
   section's `loadVector`/`kStyle`, without its own names; `data-keep` lets `morph` leave the map's elements alone).
 - **The large pictures** (18/10): `thumbs.large` grades every outlet's picture of the 18 strongest stories in Live and the
   big ones (`fitness`: wide, sharp, light, a scene or a small high face; the face's height is `pf[4]`), keeps the best as

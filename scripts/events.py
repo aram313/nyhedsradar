@@ -17,7 +17,11 @@ events.json on the digest branch: {'updated', 'items': [event]}. An event, as an
             draws it (the owner, 18/10: 'Gør gerne tallene … visuel interessant med professionelle stilfulde widgets'):
             'of' – the whole the value is a share of ('7 af 10' is one already, as '68 %'): a ring; 'was' –
             {value, when, ids}, the number before ('400', 'fredag'): two bars and the change
-  places    at most PLACES names of the places it happens in ('Paris', 'Lyon')
+  places    at most PLACES names of the places it happens in ('Paris', 'Lyon'), the main one first – looked up by the
+            radar (src/radar/places.py) in the kicker's land; the page's map shows them as dots
+  map       optional, how the map frames them (19/10, the owner: 'giv redaktørerne bedre værktøjer til at lave bedre kort'):
+            {km: how many km it shows at least each way (MAP_KM), focus: the places it frames}; without it, or with
+            "auto", the places' own spread (`frame`, as the app's evFrame)
   quotes    at most QUOTES statements: {who, text, ids}
   stories   at most STORIES story ids: its stories in Live
   topic     a recap topic name: its timeline (the development of the same name)
@@ -34,6 +38,8 @@ from datetime import date, datetime, timedelta
 STATUSES = ('i gang', 'kommende', 'afsluttet')
 TITLE, KICKER, DEK, LABEL, VALUE, NOTE = 60, 24, 220, 30, 18, 70
 FACTS, PLACES, QUOTES, STORIES = 6, 12, 3, 20
+MAP_KM = (10, 4000)              # the breadth an editor may give a page's map
+MAP_MIN_KM, KM_DEG = 40, 111.32  # the automatic frame's least breadth each way – the app's evFrame is the same
 PARAS, PARA = 6, 420     # the article: paragraphs, and characters a paragraph
 MAX_EVENTS = 5          # events at a time: the great ones, not every story
 EVENT_KEEP = 4          # days an event stays after its last change
@@ -589,6 +595,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
         places = [text(p, 40) for p in (e.get('places') or []) if text(p)] if isinstance(e.get('places') or [], list) else []
         if len(places) > PLACES:
             problems.append(f'{where}: places – at most {PLACES}')
+        frame_set = map_of(e.get('map'), places, where, problems)
         quotes = []
         for n, q in enumerate((e.get('quotes') or [])[:QUOTES] if isinstance(e.get('quotes') or [], list) else [], 1):
             if not isinstance(q, dict) or not text(q.get('who')) or not text(q.get('text')):
@@ -666,7 +673,7 @@ def events_file(entries, current, find, now, today, problems, voice=None):
         item = {'id': ident, 'title': title, 'kicker': kicker, 'status': status, 'dek': dek,
                 **({'since': since} if since and status != 'kommende' else {}), **({'date': day} if status == 'kommende' else {}),
                 **({'cal': text(e.get('cal'))} if e.get('cal') else {}), **({'topic': text(e.get('topic'), 80)} if e.get('topic') else {}),
-                'facts': facts, 'places': places[:PLACES], 'quotes': quotes, 'stories': stories,
+                'facts': facts, 'places': places[:PLACES], **({'map': frame_set} if frame_set else {}), 'quotes': quotes, 'stories': stories,
                 **({'article': article} if article else {}), **({'pic': pic} if pic else {}), **({'pf': pf} if pic and pf else {}), **({'pl': pl} if pic and pl else {}), 'at': stamp}
         items[ident] = item
     # the outlets under the pages this update leaves as they are follow their stories too (the news grow)
@@ -695,7 +702,97 @@ def events_file(entries, current, find, now, today, problems, voice=None):
     return {'updated': stamp, 'items': keep}
 
 
-def lines(current, now, find=None, head=None, teaser=None, development=None):
+def map_of(given, places, where, problems):
+    """An update's `map`, checked: {km, focus} or None (left out, "auto": the automatic frame)."""
+    if given is None or (isinstance(given, str) and given.strip().casefold() in ('', 'auto')):
+        return None
+    if not isinstance(given, dict):
+        problems.append(f'{where}: map – {{"km": how many km it shows at least each way, "focus": [places it frames]}}, '
+                        'or "auto"')
+        return None
+    out = {}
+    if given.get('km') not in (None, ''):
+        try:
+            km = float(given['km'])
+        except (TypeError, ValueError):
+            km = None
+        if km is None or not MAP_KM[0] <= km <= MAP_KM[1]:
+            problems.append(f'{where}: map km – how many km the map shows at least each way, {MAP_KM[0]}-{MAP_KM[1]}')
+        else:
+            out['km'] = round(km)
+    focus = given.get('focus') or []
+    if not isinstance(focus, list):
+        problems.append(f'{where}: map focus – a list of the places it frames')
+    else:
+        named = {p.lower() for p in places}
+        wrong = [text(f) for f in focus if text(f).lower() not in named]
+        if wrong:
+            problems.append(f"{where}: map focus {', '.join(wrong)} – only places the page names under 'places'")
+        elif focus:
+            out['focus'] = [text(f, 40) for f in focus][:PLACES]
+    return out or None
+
+
+def distance_km(a, b):
+    """Kilometres between two (lat, lon), on the sphere."""
+    import math
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 2 * 6371 * math.asin(min(1.0, math.sqrt(h)))
+
+
+def frame(e, places):
+    """What a page's map shows, as the app frames it (evFrame): {dots: [(name, lat, lon)], missing: [names not found
+    yet], across: km the map shows from side to side (its box is half again as wide as high), set: the editor's,
+    far: [(name, km from the others' middle)]} – or None without places."""
+    import math
+    kick = str(e.get('kicker') or '').strip().lower()
+    dots, missing = [], []
+    for p in e.get('places') or []:
+        hit = (places or {}).get(f'{str(p).strip().lower()}|{kick}')
+        if not hit:
+            if str(p).strip().lower() != kick:
+                missing.append(p)
+        elif hit[2] == 'city':
+            dots.append((p, hit[0], hit[1]))
+    if not dots:
+        return {'dots': [], 'missing': missing, 'across': 0, 'set': bool(e.get('map')), 'far': []} if missing else None
+    m = e.get('map') or {}
+    focus = {str(x).strip().lower() for x in m.get('focus') or []}
+    use = [d for d in dots if d[0].strip().lower() in focus] or dots
+    s, n = min(d[1] for d in use), max(d[1] for d in use)
+    w, o = min(d[2] for d in use), max(d[2] for d in use)
+    k = max(0.1, math.cos(math.radians((s + n) / 2)))
+    if m.get('km'):
+        high = wide = float(m['km'])
+    else:
+        high = max((n - s) * 1.1 * KM_DEG, MAP_MIN_KM)
+        wide = max((o - w) * 1.1 * KM_DEG * k, MAP_MIN_KM)
+    mid = (sorted(d[1] for d in dots)[len(dots) // 2], sorted(d[2] for d in dots)[len(dots) // 2])
+    off = [(d[0], distance_km(mid, d[1:])) for d in dots]
+    typical = sorted(x[1] for x in off)[len(off) // 2] if len(off) >= 3 else 0
+    far = [(name, round(km)) for name, km in off if len(off) >= 3 and km > 150 and km > 4 * max(typical, 10)]
+    return {'dots': dots, 'missing': missing, 'across': round(max(wide, high * 1.5)), 'set': bool(m.get('km') or m.get('focus')), 'far': far}
+
+
+def map_line(e, places):
+    """The input's line on a page's map: what it shows and how the editor can frame it better."""
+    f = frame(e, places)
+    if f is None:
+        return ''
+    out = f"    map: {len(f['dots'])} {'dot' if len(f['dots']) == 1 else 'dots'}"
+    if f['dots']:
+        out += f" ({', '.join(d[0] for d in f['dots'][:8])}{' …' if len(f['dots']) > 8 else ''}) · it shows about {f['across']} km across"
+        out += " (your map.km/focus)" if f['set'] else ' (automatic: the dots\' own spread)'
+    if f['missing']:
+        out += f" · not found yet: {', '.join(f['missing'])} – the radar looks a place up at its next pass; one still not found " \
+               "is better named as the outlets name it, or left out"
+    for name, km in f['far']:
+        out += f" · {name} lies {km} km from the others – a wrong place of that name? name it more precisely or leave it out"
+    return out
+
+
+def lines(current, now, find=None, head=None, teaser=None, development=None, places=None):
     """The input's view of the event pages: what each says now, so an update changes only what the news moved – and,
     for a page under way, its stories' material (with find, head and teaser) and its development's lines (development:
     {topic name: [recap lines]}), with the counts there the boxes do not show yet."""
@@ -707,6 +804,12 @@ def lines(current, now, find=None, head=None, teaser=None, development=None):
                 "name in 'places' (the page's map shows them), a statement, and the article told from all of it.", '']
     if not items:
         out.append('None yet. A great event (many outlets, a state or a people in motion, a vote ahead) gets a page.')
+    if places is not None and any(e.get('places') for e in items):
+        out += ["The maps: a page's places are its map's dots, the main one first, looked up in the kicker's land; the map "
+                "frames their own spread. To frame it otherwise give the page \"map\": {\"km\": how many km it shows at "
+                'least each way – a village or a town 10-40, a district or a small land 60-150, a region 300-800, a country '
+                '800-1500 – \"focus\": [the places it frames]}; \"map\": \"auto\" gives it back. Each page says below what '
+                'its map shows now.', '']
     for e in items:
         facts = '; '.join(f"{f.get('label')}: {f.get('value')}{' (' + f['note'] + ')' if f.get('note') else ''}"
                           for f in e.get('facts') or [])
@@ -715,6 +818,8 @@ def lines(current, now, find=None, head=None, teaser=None, development=None):
         out.append(f"    facts: {facts or '–'} · places: {', '.join(e.get('places') or []) or '–'} · "
                    f"{len(e.get('stories') or [])} stories · topic: {e.get('topic') or '–'} · "
                    f"article: {len(e.get('article') or [])} paragraphs")
+        if places is not None and map_line(e, places):
+            out.append(map_line(e, places))
         if find and e.get('status') == 'i gang':
             told = [it for it in (find(x) for x in (e.get('stories') or [])[:4]) if it]
             for it in told:

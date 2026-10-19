@@ -1302,7 +1302,9 @@ TEMPLATE = {
                            'was': {'value': '<optional – the earlier count, when it has grown: 1.200>',
                                    'when': '<when it was given: fredag>', 'ids': ['<the stories it stands in>']},
                            'of': '<optional – the whole a share is of: 10 for "7 af 10">'}],
-                'places': ['<the places it happens in: Paris>'],
+                'places': ['<the places it happens in, the main one first: Paris>'],
+                'map': {'km': '<optional – how many km the map shows at least each way; leave "map" out for the automatic frame>',
+                        'focus': ['<optional – the places it frames>']},
                 'quotes': [{'who': '<speaker>', 'text': '<the statement in Danish>', 'ids': ['<story id>']}],
                 'stories': ['<its story ids in Live, the weightiest first>'], 'topic': '<a recap topic name: its timeline>',
                 'article': [{'text': '<one paragraph told objectively, as a news agency tells it: what happened, who, where, '
@@ -1805,7 +1807,8 @@ def cmd_input(args):
     out += news_dates([*pool, *items], cal_now, kal_now, now, heads_now)
     evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
     find_any = {**resolver([*pool, *items]), **wire_stories(lines)}.get
-    out += event_pages.lines(evt_now, now, find_any, headline, teaser_of, development(moves, now))
+    out += event_pages.lines(evt_now, now, find_any, headline, teaser_of, development(moves, now),
+                             read(args, 'origin/data', 'places.json', {}).get('places') or {})
     out += event_pages.great_lines(great_groups(pool, evt_now.get('items') or [], now), headline, teaser_of)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']

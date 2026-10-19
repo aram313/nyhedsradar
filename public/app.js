@@ -3816,7 +3816,7 @@ function evMapBox(e) {
   need('plc');
   const pts = evPlaces(e);
   if (!pts.length) return '';
-  const keep = `${e.id}:${pts.map(p => p.name + p.at.slice(0, 2)).join(';')}:${kDarkNow() ? 'd' : 'l'}`;
+  const mf = e.map || {}, keep = `${e.id}:${pts.map(p => p.name + p.at.slice(0, 2)).join(';')}:${mf.km || ''}${(mf.focus || []).join(',')}:${kDarkNow() ? 'd' : 'l'}`;
   return `<section class="ev-sec ev-map-sec"><h2 class="ev-h2">Kort</h2><div class="ev-map" data-keep="${esc(keep)}" data-ev="${esc(e.id)}"`
     + ` role="img" aria-label="${esc('Kort: ' + pts.map(p => p.name).join(', '))}"></div><p class="ev-src">Kort: OpenFreeMap · OpenStreetMap</p></section>`;
 }
@@ -3840,8 +3840,24 @@ function evMapStyle(dark) {   // the Kort tab's style without roads, buildings a
     && !/road|highway|bridge|tunnel|building|aeroway|rail|transit|poi|housenumber/.test(l.id)) }));
 }
 // the event's country (its kicker, when the radar found it a country): its name spaced out at its middle, as a paper's map
+// (a land or an area – 'Vestbredden' – alike)
 const evLand = e => { const at = ((V('plc') || {}).places || {})[`${String(e.kicker || '').trim().toLowerCase()}|${String(e.kicker || '').trim().toLowerCase()}`] || (e.geo || {})[e.kicker];
-  return Array.isArray(at) && at[2] === 'country' ? { name: e.kicker, at } : null; };
+  return Array.isArray(at) && (at[2] === 'country' || at[2] === 'state') ? { name: e.kicker, at } : null; };
+// The map's frame (19/10, the owner on the West Bank's settler attacks: 'den er alt for zoomet ud' – the villages, a few
+// kilometres apart, on a map of the whole Levant: the frame had a country's breadth at the least): the places with a
+// tenth of their spread around them, at least MAP_MIN_KM each way; the editor may set how many km the map shows at
+// least each way (`map.km`) and the places it frames (`map.focus`) – scripts/events.py `frame` works it out the same
+const MAP_MIN_KM = 40, KM_DEG = 111.32;
+function evFrame(e, pts) {
+  const m = (e && e.map) || {}, focus = new Set((m.focus || []).map(x => String(x).trim().toLowerCase()));
+  const on = pts.filter(p => focus.has(String(p.name).trim().toLowerCase())), use = on.length ? on : pts;
+  const lats = use.map(p => p.at[0]), lons = use.map(p => p.at[1]);
+  const s = Math.min(...lats), n = Math.max(...lats), w = Math.min(...lons), o = Math.max(...lons);
+  const cy = (s + n) / 2, cx = (w + o) / 2, k = Math.max(0.1, Math.cos(cy * Math.PI / 180)), km = +m.km > 0 ? +m.km : 0;
+  const hy = km ? km / 2 / KM_DEG : Math.max((n - s) / 2 * 1.1, MAP_MIN_KM / 2 / KM_DEG);
+  const hx = km ? km / 2 / KM_DEG / k : Math.max((o - w) / 2 * 1.1, MAP_MIN_KM / 2 / KM_DEG / k);
+  return [cy - hy, cy + hy, cx - hx, cx + hx];
+}
 function evMaps(pg) {
   for (const box of pg.querySelectorAll('.ev-map[data-keep]')) {
     if (box.dataset.drawn === box.dataset.keep) continue;
@@ -3852,11 +3868,7 @@ function evMaps(pg) {
     Promise.all([loadVector(), evMapStyle(dark)]).then(([, style]) => {
       if (!box.isConnected || !window.maplibregl) return;
       box.textContent = '';
-      const lats = pts.map(p => p.at[0]), lons = pts.map(p => p.at[1]);
-      // the places' extent, at least a country's breadth around them
-      let [s, n, w, o] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
-      const cy = (s + n) / 2, cx = (w + o) / 2, hy = Math.max((n - s) / 2, 3.2), hx = Math.max((o - w) / 2, 4.2);
-      [s, n, w, o] = [cy - hy, cy + hy, cx - hx, cx + hx];
+      const [s, n, w, o] = evFrame(e, pts);   // the places' own spread, or the breadth the editor set
       const map = new maplibregl.Map({ container: box, style, interactive: false, attributionControl: false, fadeDuration: 0,
         bounds: [[w, s], [o, n]], fitBoundsOptions: { padding: 28 } });
       box._map = map;

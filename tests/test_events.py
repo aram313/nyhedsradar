@@ -307,3 +307,36 @@ def test_the_article_keeps_up_with_the_pages_development_too():
     line = {'id': 'w1', 'who': 'Frankrigs indenrigsministerium', 'text': '2.397 mennesker er anholdt og 997 betjente såret.'}
     assert events.behind(page, [line]) == []                                                   # the boxes are up to date
     assert [(w, h, n) for w, h, n, _ in events.article_behind(page, [line])] == [('anholdte', 1200, 2397), ('sårede politifolk', 150, 997)]
+
+
+WEST_BANK = {'taybeh|vestbredden': [31.9533, 35.3006, 'city'], 'hebron|vestbredden': [31.5289, 35.0945, 'city'],
+             'nablus|vestbredden': [32.2205, 35.2569, 'city'], 'salem|vestbredden': [32.2091, 35.3331, 'city'],
+             'vestbredden|vestbredden': [32.0255, 35.2888, 'state'], 'salem2|vestbredden': [44.9429, -123.0351, 'city']}
+
+
+def test_the_map_frames_the_places_own_spread_and_the_editor_can_set_it():
+    # 19/10, the owner on the settler attacks: 'den er alt for zoomet ud' – 'giv redaktørerne bedre værktøjer til at lave
+    # bedre kort i fremtiden'
+    page = {'id': 'vestbredden-olivenhoest-2026-10', 'kicker': 'Vestbredden', 'places': ['Taybeh', 'Hebron', 'Nablus', 'Ramallah', 'Vestbredden']}
+    f = events.frame(page, WEST_BANK)
+    assert [d[0] for d in f['dots']] == ['Taybeh', 'Hebron', 'Nablus'] and f['missing'] == ['Ramallah']   # the land is no dot
+    assert 100 < f['across'] < 160 and not f['set']                     # the West Bank, not the Levant (once ~900 km)
+    assert events.frame({**page, 'map': {'km': 30}}, WEST_BANK)['across'] == 45   # 30 km each way in a 3:2 box
+    # a place of the same name far away is said
+    far = events.frame({**page, 'places': ['Taybeh', 'Hebron', 'Nablus', 'Salem2']}, WEST_BANK)
+    assert far['far'] and far['far'][0][0] == 'Salem2'
+    line = events.map_line(page, WEST_BANK)
+    assert line.startswith('    map: 3 dots (Taybeh, Hebron, Nablus) · it shows about') and 'not found yet: Ramallah' in line
+    # the editor's map, checked
+    problems = []
+    assert events.map_of({'km': 35, 'focus': ['Hebron']}, page['places'], 'event 1', problems) == {'km': 35, 'focus': ['Hebron']}
+    assert events.map_of('auto', page['places'], 'event 1', problems) is None and not problems
+    events.map_of({'km': 5, 'focus': ['Gaza']}, page['places'], 'event 1', problems)
+    assert len(problems) == 2 and 'map km' in problems[0] and 'map focus Gaza' in problems[1]
+    lines = events.lines({'items': [{**page, 'status': 'i gang', 'title': 'Bosætterangreb', 'dek': 'x', 'facts': []}]},
+                         datetime(2026, 10, 19, 8, tzinfo=timezone.utc), places=WEST_BANK)
+    assert any(x.startswith('The maps:') for x in lines) and any(x.startswith('    map: 3 dots') for x in lines)
+    app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
+    assert 'const MAP_MIN_KM = 40, KM_DEG = 111.32;' in app and f'MAP_MIN_KM, KM_DEG = {events.MAP_MIN_KM}, {events.KM_DEG}' in \
+        (Path(__file__).resolve().parents[1] / 'scripts' / 'events.py').read_text(encoding='utf-8')
+    assert 'const [s, n, w, o] = evFrame(e, pts);' in app
