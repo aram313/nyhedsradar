@@ -1549,18 +1549,19 @@ function frontRhythm(blocks) {
   return out;
 }
 // what the composition lacks the app sets in among its blocks (19/10): the card of an event under way it placed nowhere,
-// and – when it holds no quote, development or number – the day's quote, else the developments that moved last, else
-// an event's first number; set in by the app, they do not count against FRONT_MAX
+// and – when it holds too few quotes, developments or numbers – the day's quote, the developments that moved last, an
+// event's first number (one at least, two with three lists or more); set in by the app, they do not count against FRONT_MAX
 function frontBlocks(blocks) {
   const out = (blocks || []).filter(Boolean), placed = new Set(out.filter(b => b.event).map(b => String(b.event)));
   const ev = events().find(x => x.status === 'i gang' && !placed.has(x.id));
   if (ev) out.push({ kind: 'begivenhed', event: ev.id, auto: true });
-  if (!out.some(b => ['citat', 'udvikling', 'tal'].includes(b.kind))) {
-    const q = (notes().quotes || [])[0], th = threads().slice(0, 3), num = events().find(x => x.status === 'i gang' && (x.facts || []).length);
-    if (q) out.push({ ...q, kind: 'citat', auto: true });
-    else if (th.length) out.push({ kind: 'udvikling', topics: th.map(t => t.name), auto: true });
-    else if (num) out.push({ kind: 'tal', event: num.id, fact: 1, auto: true });
-  }
+  // one such block at least, two when the page has three lists or more (so they do not all stand together)
+  const has = k => out.some(b => b.kind === k), lists = out.filter(b => b.kind === 'liste').length;
+  let want = (lists >= 3 ? 2 : 1) - out.filter(b => ['citat', 'udvikling', 'tal'].includes(b.kind)).length;
+  const q = (notes().quotes || [])[0], th = threads().slice(0, 3), num = events().find(x => x.status === 'i gang' && (x.facts || []).length);
+  if (want > 0 && q && !has('citat')) { out.push({ ...q, kind: 'citat', auto: true }); want--; }
+  if (want > 0 && th.length && !has('udvikling')) { out.push({ kind: 'udvikling', topics: th.map(t => t.name), auto: true }); want--; }
+  if (want > 0 && num && !has('tal')) out.push({ kind: 'tal', event: num.id, fact: 1, auto: true });
   return out;
 }
 function composedHome(all, opts, f) {
