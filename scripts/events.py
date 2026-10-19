@@ -472,7 +472,7 @@ def last_day(e):
         return None
 
 
-def events_file(entries, current, find, now, today, problems, voice=None):
+def events_file(entries, current, find, now, today, problems, voice=None, chosen=None):
     """events.json as this update leaves it. entries: the update's 'events' (a list; None keeps the file as it is);
     current: the file now; find: story id -> story (resolver); today: the Danish date; voice: the content rules
     (scripts/voice.py), the same as a headline's."""
@@ -692,6 +692,11 @@ def events_file(entries, current, find, now, today, problems, voice=None):
             cited = [it for it in (find.get(str(i)) for i in part.get('ids') or []) if it]
             if cited:
                 part['src'] = sources(cited, said)
+    # the owner's own picture of a page (19/10; chosen: {id: {pic, pf, pl}}, found among its stories' best) over the
+    # first story's
+    for ident, own in (chosen or {}).items():
+        if ident in items and own.get('pic'):
+            items[ident].update({k: v for k, v in own.items() if v})
     keep = [e for e in items.values() if (last_day(e) or today) >= today - timedelta(days=EVENT_KEEP)]
     live = [e for e in keep if e.get('status') != 'afsluttet']
     if len(live) > MAX_EVENTS:

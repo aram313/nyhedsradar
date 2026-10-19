@@ -638,6 +638,20 @@ def headlines_of(args):
     return out
 
 
+def event_pictures(owner, items):
+    """The owner's own picture of an event page (19/10, 'ev:<id>' among his pictures in removed.json): {page id: {pic,
+    pf, pl}}, found among the stories' best pictures (data.json `pics`); a key no story holds any more is left out."""
+    want = {k[3:]: v.get('k') for k, v in (owner.get('pics') or {}).items() if k.startswith('ev:') and isinstance(v, dict)}
+    if not want:
+        return {}
+    found = {}
+    for it in items:
+        for p in it.get('pics') or []:
+            if isinstance(p, dict) and p.get('k'):
+                found.setdefault(p['k'], p)
+    return {eid: {'pic': found[k].get('u'), 'pf': found[k].get('pf'), 'pl': found[k].get('pl')} for eid, k in want.items() if k in found}
+
+
 def note_scope(ref):
     """Whose a comment is: 'okonomi' (the economy editor), 'kalender' (either), 'udvikler' (the answers and the wiki: no
     editor's) or 'redaktion' (the front-page and senior editors)."""
@@ -2741,7 +2755,8 @@ def cmd_publish(args):
              | {str(a.get('id')) for a in fetched or [] if isinstance(a, dict) and a.get('id')}}
     ev_problems = []
     evt = event_pages.events_file(draft.get('events'), quoted(read(args, 'origin/digest', 'events.json', {'items': []})),
-                                  {**resolver(data.get('items', [])), **wire_stories(lines)}, now, dk(now).date(), ev_problems, voice)
+                                  {**resolver(data.get('items', [])), **wire_stories(lines)}, now, dk(now).date(), ev_problems, voice,
+                                  event_pictures(owner_state(args), data.get('items', [])))
     extra['events'] = {e['id']: e for e in evt['items']}
     days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {}, extra)
     problems += ev_problems

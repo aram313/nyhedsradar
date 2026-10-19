@@ -924,7 +924,8 @@ def main():
         from radar import thumbs
         telegram = {f['name'] for f in feeds if f.get('type') == 'telegram' and not f.get('official')}
         save(STATE / 'pics.json', thumbs.attach(shown, members_of, telegram, STATE / 't', load(STATE / 'pics.json', {}), NOW,
-                                                chosen_by={k: v['k'] for k, v in (owner.get('pics') or {}).items()}))
+                                                chosen_by={k: v['k'] for k, v in (owner.get('pics') or {}).items()},
+                                                events=load(os.environ.get('RADAR_EVENTS', CACHE / 'events.json'), {})))
     except ImportError:   # no Pillow (local test runs): the cards simply have no pictures
         pass
     except Exception as e:  # noqa: BLE001 – pictures are a bonus; the radar must keep running

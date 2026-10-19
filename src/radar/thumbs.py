@@ -250,7 +250,8 @@ def grade(raw):
         return None
 
 
-def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40, chosen_by=None):
+def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=30, image_budget=50, seconds=40, chosen_by=None,
+           events=None):
     """Give each card a 'thumb' (a file name in `folder`) and delete the files no card uses any more.
     memory: {'page': {article link: [its share image or '', when]}, 'bad': {image url: when}}, kept between runs."""
     import PIL  # noqa: F401 – without Pillow (local test runs) the caller skips pictures altogether
@@ -389,7 +390,8 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
             it['pf'] = spot[it['pic']]
 
     taste = dict(memory.get('taste') or {})   # the owner's picture taste, learned from his choices
-    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now, chosen_by=chosen_by, taste=taste)
+    graded = large(cards, options, pages, bad, dict(memory.get('grade', {})), folder.parent / 'l', now, chosen_by=chosen_by, taste=taste,
+                   events=events)
 
     used = {it['thumb'] for it in cards if it.get('thumb')}
     for p in folder.glob('*.jpg'):
@@ -400,7 +402,7 @@ def attach(cards, members_of, unverified, folder, memory, now=None, page_budget=
             'spot': {k: v for k, v in spot.items() if k in shown}, 'grade': graded, 'taste': taste}
 
 
-def large(cards, options, pages, bad, graded, light, now, look=None, chosen_by=None, taste=None):
+def large(cards, options, pages, bad, graded, light, now, look=None, chosen_by=None, taste=None, events=None):
     """For the strongest stories: their outlets' pictures graded (fitness and the owner's learned taste, at most
     LARGE_EACH a story, the budget shared out story by story), the best kept as the story's large picture (card 'pic' its
     original, 'pf' its subject, 'pl' its light copy in `light`) – or the one the owner chose (chosen_by: {story or member
@@ -478,6 +480,21 @@ def large(cards, options, pages, bad, graded, light, now, look=None, chosen_by=N
                 taste['seen'] = [*(taste.get('seen') or []), seen][-200:]
         elif scored:
             chosen[it['id']] = scored[0][1]
+    # an event page's picture the owner chose among its stories' (19/10, chosen_by 'ev:<id>'): it teaches the grading
+    # once, against the other pictures of those stories
+    for e in (events or {}).get('items') or []:
+        own = (chosen_by or {}).get(f"ev:{e.get('id')}") if isinstance(e, dict) else None
+        seen = f"ev:{e.get('id')}|{own}" if own else ''
+        if not own or seen in (taste.get('seen') or []):
+            continue
+        ids = {str(x) for x in e.get('stories') or []}
+        urls = list(dict.fromkeys(u for it in wide if it['id'] in ids or ids & set(it.get('members') or [])
+                                  for u in cand.get(it['id']) or [] if graded.get(u)))
+        pick = next((u for u in urls if pic_key(u) == own), None)
+        if pick and len(urls) > 1:
+            others = sorted((u for u in urls if u != pick), key=lambda u: -graded[u][0])[:CHOICES]
+            taste.update(learn(taste, pick, others, graded))
+            taste['seen'] = [*(taste.get('seen') or []), seen][-200:]
     lname = lambda u: 'l' + name_of(u)   # noqa: E731
     wanted = list(dict.fromkeys([*chosen.values(), *[u for us in ranked.values() for u in us]]))
     # a picture in question whose copy is gone (graded in an earlier run): made again, a few a run

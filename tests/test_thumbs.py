@@ -202,3 +202,23 @@ def test_the_owner_chooses_among_three_pictures_and_the_grading_learns_his_taste
     other = [{'id': 's2', 'rank': 110, 'live': 'rank'}]
     thumbs.large(other, options, {}, {}, graded, light, now, taste=taste)
     assert other[0]['pic'] == 'https://b.test/face.jpg'
+
+
+def test_an_event_pages_picture_the_owner_chose_teaches_the_grading(tmp_path, monkeypatch):
+    # 19/10, the owner: 'er det meningen jeg ikke kan holde nede og vælge billede på begivenheder'
+    from datetime import datetime, timezone
+    pics = {'https://a.test/scene.jpg': (3.0, [0.5, 0.4, 1.78, 0, 0]), 'https://b.test/face.jpg': (1.0, [0.5, 0.3, 1.5, 1, 0.3])}
+    monkeypatch.setattr(thumbs, 'get', lambda url, *a, **k: url.encode())
+    monkeypatch.setattr(thumbs, 'grade', lambda raw: (*pics[raw.decode()], b'jpeg'))
+    now = datetime(2026, 10, 19, 9, tzinfo=timezone.utc)
+    cards = [{'id': 's1', 'rank': 120, 'live': 'rank', 'members': ['m1']}]
+    taste = {}
+    face = thumbs.pic_key('https://b.test/face.jpg')
+    events = {'items': [{'id': 'vestbredden', 'stories': ['m1']}]}
+    graded = thumbs.large(cards, lambda it: list(pics), {}, {}, {}, tmp_path / 'l', now, chosen_by={'ev:vestbredden': face},
+                          taste=taste, events=events)
+    assert cards[0]['pic'] == 'https://a.test/scene.jpg'           # the story's own picture stays the grading's
+    assert taste['n'] == 1 and taste['w']['face'] > 0 and 'ev:vestbredden|' + face in taste['seen']
+    thumbs.large(cards, lambda it: list(pics), {}, {}, graded, tmp_path / 'l', now, chosen_by={'ev:vestbredden': face},
+                 taste=taste, events=events)
+    assert taste['n'] == 1                                          # once

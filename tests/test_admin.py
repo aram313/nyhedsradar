@@ -129,7 +129,7 @@ def test_every_element_can_be_held_and_the_sheet_is_ordered_for_the_owner():
     # admin funktionerne så det er mere brugervenlige'
     assert "const holdable = t => adminKey && t.closest('.page')" in APP          # every page, reading text too
     sheet = APP.split('function openAct(i, h = null) {')[1].split('\n}\n')[0]
-    order = ["['note', 'i-quote', 'Kommentar']", "'<h4 class=\"os-h\">Billede</h4>", "osSeg('Prioritet'", "osSeg('Sektion'",
+    order = ["['note', 'i-quote', 'Kommentar']", "picGrid(pics, shown, !!mine, 'pic')", "osSeg('Prioritet'", "osSeg('Sektion'",
              "Dagens historie</h4>", "osSeg('Fjern fra Khabar'"]
     at = [sheet.index(x) for x in order]
     assert at == sorted(at)                                                        # comment first, removal last
@@ -142,3 +142,13 @@ def test_the_owners_headline_wins_in_the_app():
     assert "const ed = ownerTitleOf(i) || edTitle(i);" in APP
     assert "const t = ownerTitleOf(i) || (first && pin" in APP                     # over the front page's own headline
     assert "const t = (owner().titles || {})['ev:' + e.id];" in APP                # an event page's title
+
+
+def test_the_owner_chooses_an_event_pages_picture():
+    # 19/10, the owner: 'er det meningen jeg ikke kan holde nede og vælge billede på begivenheder'
+    n, st = run([signed(act='pic', id='ev:vestbredden-olivenhoest-2026-10', why='0123456789abcdef', sec=''),
+                 signed(act='pic', id='ev:Not An Id', why='0123456789abcdef', sec='')])
+    assert n == 1 and st['pics']['ev:vestbredden-olivenhoest-2026-10']['k'] == '0123456789abcdef'
+    sheet = APP.split('function openHeld(h) {')[1].split('\n}\n')[0]
+    assert "evPicChoices(h.ev)" in sheet and "picGrid(pics, shown, !!mine, 'evpic')" in sheet
+    assert "if (kind === 'evpic' && h && h.ev)" in APP and "ownerAct('pic', { id: 'ev:' + h.ev.id }, val)" in APP

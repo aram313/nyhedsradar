@@ -54,8 +54,8 @@ def valid(m, key, now):
         return bool(re.fullmatch(r'(?:[0-9a-f]{8})?', m.get('id', '')))
     if m.get('act') == 'lead':    # the front page's main story: a story id, or '' for the automatic choice
         return bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('id', '')))
-    if m.get('act') == 'pic':     # the picture of a story on the front page: a picture's key, or '' for the automatic
-        return bool(re.fullmatch(r'[0-9a-f]{16}', m.get('id', ''))) and bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('why', '')))
+    if m.get('act') == 'pic':     # a story's picture, or an event page's ('ev:<id>', 19/10): a picture's key, or '' for the automatic
+        return bool(TITLE_ID.fullmatch(m.get('id', ''))) and bool(re.fullmatch(r'(?:[0-9a-f]{16})?', m.get('why', '')))
     if m.get('act') == 'rank':    # raise or lower a story ('' undoes it)
         return bool(re.fullmatch(r'[0-9a-f]{16}', m.get('id', ''))) and m.get('why') in ('up', 'down', '')
     if m.get('act') == 'note':    # a comment to the editors on what he held: its reference, his words, what it showed

@@ -247,7 +247,9 @@ da'wah.
   carries it); the owner's long press on a large story (`openAct`) shows them, a tap sends the signed action `pic`
   (admin.py; `state/removed.json` `pics`, kept three days, `data.owner.pics`) and shows it at once (`ownerPicOf` in
   `display`); the radar's large() then takes his choice (`chosen_by`) and learns from it once (`learn`, `taste` in
-  pics.json: feature and outlet weights, `taste_bonus` ≤ ±2 on fitness).
+  pics.json: feature and outlet weights, `taste_bonus` ≤ ±2 on fitness). An event page's picture the same way (19/10):
+  its stories' best pictures (`evPicChoices`), the choice as 'ev:<id>' among his pictures, learned once in `large`
+  (`events`), kept on the page by `editor.event_pictures` → `events_file(chosen=…)`.
 - **Faces in large pictures** (18/10): `thumbs.subject` keeps where a picture's face sits (`spot` in pics.json, card
   `pf`, app.json carries it); the app's `placePic` sets the picture so the face sits about a quarter from the top, and
   where it would sit under the text, it goes as high as it can and the headline stays on the picture (`tx-below` is no

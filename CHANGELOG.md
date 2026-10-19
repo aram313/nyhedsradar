@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The owner chooses an event page's picture** (2026-10-19, the owner: 'er det meningen jeg ikke kan holde nede og vælge
+  billede på begivenheder' – it was built for stories only). Holding an event's picture (its page's head or its card)
+  shows its stories' best pictures – their `pics`, else their own with a light copy –, the one shown now first and
+  ringed (`evPicChoices`, `picGrid` shared with a story's sheet). A tap shows it at once (`evOwnPic` in `evPic`) and sends
+  the signed `pic` with the id 'ev:<id>' (admin.py); the radar's grading learns from it once against the other pictures of
+  those stories (`thumbs.large(events=…)`), and the editors' tool keeps it on the page and its archive day
+  (`editor.event_pictures`, `events_file(chosen=…)`). 'Lad Khabar vælge billedet igen' gives it back.
 - **Fact boxes of news value only, else none – a general rule** (2026-10-19, the owner: 'faktatallene under bosætter
   angreb under olivenshøsten har ikke nyhedsværdi, derfor skal der enten findes bedre faktatal ellers ingen skal vises.
   dette skal være et en generel regel'). The tool refused a page under way with fewer than two boxes whenever its

@@ -910,3 +910,21 @@ def test_every_update_leaves_a_line_of_who_when_and_what():
     app = (Path(__file__).resolve().parents[1] / 'public' / 'app.js').read_text(encoding='utf-8')
     for by, hours in editor.SCHEDULE.items():
         assert f"by: '{by}'" in app and f"utc: [{', '.join(map(str, hours))}]" in app, by
+
+
+def test_an_event_page_keeps_the_owners_picture():
+    # 19/10: his choice found among the stories' best pictures, and the page keeps it over its first story's
+    owner = {'pics': {'ev:vestbredden': {'k': 'bbbbbbbbbbbbbbbb', 'at': '2026-10-19T09:00:00+00:00'},
+                      'aaaabbbbccccdddd': {'k': 'cccccccccccccccc', 'at': '2026-10-19T09:00:00+00:00'}}}
+    items = [{'id': 's1', 'pics': [{'k': 'aaaaaaaaaaaaaaaa', 'u': 'https://a.test/1.jpg', 'pf': [0.5, 0.4, 1.7, 0, 0], 'pl': 'laaaaaaaaaaaaaaaa.jpg'},
+                                    {'k': 'bbbbbbbbbbbbbbbb', 'u': 'https://b.test/2.jpg', 'pf': [0.5, 0.3, 1.5, 1, 0.3], 'pl': 'lbbbbbbbbbbbbbbbb.jpg'}]}]
+    chosen = editor.event_pictures(owner, items)
+    assert chosen == {'vestbredden': {'pic': 'https://b.test/2.jpg', 'pf': [0.5, 0.3, 1.5, 1, 0.3], 'pl': 'lbbbbbbbbbbbbbbbb.jpg'}}
+    import events as event_pages
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 19, 9, tzinfo=timezone.utc)
+    page = {'id': 'vestbredden', 'title': 'Bosætterangreb', 'kicker': 'Vestbredden', 'status': 'i gang', 'since': '2026-10-16',
+            'dek': 'x', 'facts': [], 'stories': ['s1'], 'pic': 'https://a.test/1.jpg', 'at': '2026-10-19T06:00:00+00:00'}
+    out = event_pages.events_file(None, {'items': [page]}, {'s1': {'id': 's1', 'pic': 'https://a.test/1.jpg'}}, now, now.date(), [],
+                                  chosen=chosen)
+    assert out['items'][0]['pic'] == 'https://b.test/2.jpg' and out['items'][0]['pl'] == 'lbbbbbbbbbbbbbbbb.jpg'

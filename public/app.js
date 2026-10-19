@@ -3792,11 +3792,29 @@ function factBoxes(e, n = 6) {
     + (src.length ? `<p class="ev-src">Kilder: ${esc(src.join(', '))}</p>` : '');
 }
 // the event's picture: the one the editor filed (the outlet's own of its first story with one), else a story's in Live
-const evPic = e => [e.pic, ...(e.stories || []).map(id => (find(id) || findStory(id) || {}).pic)].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || '';
+// The owner's choice of an event's picture (19/10, the owner: 'er det meningen jeg ikke kan holde nede og vælge billede
+// på begivenheder'): the pictures to choose from are its stories' best (their `pics`, else their own with its light copy)
+// and the page's own; his choice is kept as 'ev:<id>' among his pictures and shown at once
+const LIGHT_NAME = /^l([0-9a-f]{16})\.jpg$/;
+function evPicChoices(e) {
+  const out = new Map(), put = p => { if (p && p.u && p.pl && !out.has(p.k) && !badPics.has(p.u)) out.set(p.k, p); };
+  const own = x => { const m = LIGHT_NAME.exec(x.pl || ''); return m && x.pic ? { k: m[1], u: x.pic, pf: x.pf, pl: x.pl } : null; };
+  put(own(e));
+  for (const id of e.stories || []) {
+    const i = find(id) || findStory(id);
+    if (!i) continue;
+    for (const p of i.pics || []) put(p);
+    put(own(i));
+  }
+  return [...out.values()].slice(0, 6);
+}
+const evOwnPic = e => { const k = (owner().pics || {})['ev:' + e.id]; return k ? evPicChoices(e).find(p => p.k === k) || null : null; };
+const evPic = e => { const mine = evOwnPic(e);
+  return mine ? mine.u : [e.pic, ...(e.stories || []).map(id => (find(id) || findStory(id) || {}).pic)].find(x => x && /^https?:\/\//.test(x) && !badPics.has(x)) || ''; };
 // a picture large with the event's state and title on a dark fade at its bottom (the card and the page's head)
 const evHero = (e, tag = 'span', title = 'span') => {
-  const pic = evPic(e), live = e.status === 'i gang', placed = pic ? placedPic('e|', pic) : null;
-  return pic ? `<${tag} class="ev-hero${placed && placed.below ? ' tx-below' : ''}"><img src="${esc(picSrc(pic))}" data-orig="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer"${placed ? ` style="object-position:${placed.pos}"` : ''} onerror="picFallback(this, i => i.parentNode.classList.add('nopic'))"${pfAttr(pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
+  const pic = evPic(e), live = e.status === 'i gang', placed = pic ? placedPic('e|', pic) : null, mine = evOwnPic(e);
+  return pic ? `<${tag} class="ev-hero${placed && placed.below ? ' tx-below' : ''}"><img src="${esc(picSrc(pic))}" data-orig="${esc(pic)}" alt="" decoding="async" referrerpolicy="no-referrer"${placed ? ` style="object-position:${placed.pos}"` : ''} onerror="picFallback(this, i => i.parentNode.classList.add('nopic'))"${pfAttr(mine && mine.u === pic ? mine.pf : pic === e.pic ? e.pf : ((e.stories || []).map(id => find(id) || findStory(id)).find(i => i && i.pic === pic) || {}).pf)} onload="placePic(this)">`
     + `<span class="ev-over"><span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span>`
     + `<${title} class="ev-ct">${esc(e.title)}</${title}></span></${tag}>` : '';
 };
@@ -5673,7 +5691,22 @@ function openHeld(h) {
   const btns = [['note', 'i-quote', 'Kommentar']];
   if (h.kind === 'event') btns.push(['title', 'i-edit', 'Ret overskrift']);
   if (h.seen) btns.push(['copy', 'i-copy', 'Kopiér tekst']);
-  showOwnerSheet(h.seen, osMain(btns), null, 'Admin', h.where.join(' · '));
+  // an event's picture, chosen among its stories' best (19/10)
+  let pics = h.kind === 'event' ? evPicChoices(h.ev) : [];
+  const mine = h.kind === 'event' ? evOwnPic(h.ev) : null, cur = h.kind === 'event' ? evPic(h.ev) : '';
+  // the picture shown now first, also when it has no light copy to choose by (a tap on it: Khabar's own choice)
+  if (cur && !mine && !pics.some(p => p.u === cur)) pics = [{ k: '', u: cur, pf: h.ev.pf }, ...pics].slice(0, 6);
+  const shown = mine ? mine.k : (pics.find(p => p.u === cur) || {}).k;
+  showOwnerSheet(h.seen, osMain(btns) + picGrid(pics, shown, !!mine, 'evpic'), null, 'Admin', h.where.join(' · '));
+}
+// the pictures to choose from, the one shown ringed; 'Lad Khabar vælge billedet igen' when the owner chose one
+function picGrid(pics, shown, chose, act) {
+  if (pics.length < 2) return '';
+  const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+  return '<h4 class="os-h">Billede</h4><div class="pp">' + pics.map(p =>
+    `<button class="pp-b${p.k === shown ? ' on' : ''}" data-a="${act}:${esc(p.k)}" aria-pressed="${p.k === shown}" aria-label="Billede fra ${esc(host(p.u))}">`
+    + `<img src="${esc(p.pl ? LIGHT + p.pl : picSrc(p.u))}" alt="" decoding="async" referrerpolicy="no-referrer"><span>${esc(host(p.u))}</span></button>`).join('') + '</div>'
+    + (chose ? `<button class="wide soft-btn pp-auto" data-a="${act}:">Lad Khabar vælge billedet igen</button>` : '');
 }
 // the time a quote was said shows only here, to choose by; newest first
 function openQuotes() {
@@ -5699,14 +5732,8 @@ function openAct(i, h = null) {
   const d = display(i), here = secOf(i), lift = ownerRankOf(i), main = mainStory(), isLead = !!(h && h.hero) || !!(main && main.id === i.id);
   heldNow = { kind: 'story', i, ref: 'story:' + i.id, where: (h && h.where) || [], seen: d.title, hero: isLead };
   const pics = i.pics || [], mine = ownerPicOf(i), shown = mine ? mine.k : (pics.find(p => p.u === i.pic) || {}).k;
-  const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
   let html = osMain([['note', 'i-quote', 'Kommentar'], ['title', 'i-edit', ownerTitleOf(i) ? 'Din overskrift' : 'Ret overskrift']]);
-  if (pics.length >= 2) {
-    html += '<h4 class="os-h">Billede</h4><div class="pp">' + pics.map(p =>
-      `<button class="pp-b${p.k === shown ? ' on' : ''}" data-a="pic:${esc(p.k)}" aria-pressed="${p.k === shown}" aria-label="Billede fra ${esc(host(p.u))}">`
-      + `<img src="${esc(LIGHT + p.pl)}" alt="" decoding="async"><span>${esc(host(p.u))}</span></button>`).join('') + '</div>'
-      + (mine ? '<button class="wide soft-btn pp-auto" data-a="pic:">Lad Khabar vælge billedet igen</button>' : '');
-  }
+  html += picGrid(pics, shown, !!mine, 'pic');
   html += osSeg('Prioritet', [['rank:up', 'Op', lift === 'up'], ['rank:', 'Normal', !lift], ['rank:down', 'Ned', lift === 'down']]);
   html += osSeg('Sektion', Object.entries(SECTIONS).map(([k, n]) => ['move:' + k, n, k === here]));
   html += '<h4 class="os-h">Dagens historie</h4>' + (isLead
@@ -5832,6 +5859,12 @@ $('act').addEventListener('click', async e => {
     const ok = await ownerAct(kind, { id: val });
     const said = kind === 'quote' ? (val ? 'Citat valgt' : 'Citatet vælges automatisk igen') : (val ? 'Dagens historie valgt' : 'Dagens historie vælges automatisk igen');
     toast(ok ? said : 'Kunne ikke sende – prøv igen', ok);
+    return;
+  }
+  if (kind === 'evpic' && h && h.ev) {   // an event's picture: here at once, for everyone at the radar's next pass, and learned
+    (ownerLocal.pics ||= {})['ev:' + h.ev.id] = { v: val, at: Date.now() }; saveOwner(); cache = null; ver++; render(); redrawPages([tab]);
+    const ok = await ownerAct('pic', { id: 'ev:' + h.ev.id }, val);
+    toast(ok ? (val ? 'Billede valgt – Khabar lærer din smag' : 'Khabar vælger billedet igen') : 'Kunne ikke sende – prøv igen', ok);
     return;
   }
   if (kind === 'pic' && i) {   // the owner's picture: shown at once, for everyone at the radar's next pass, and learned
