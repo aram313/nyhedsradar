@@ -9,6 +9,15 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi shows only the editors' headlines; the editors write them** (2026-10-19, the owner: 'Økonomi sidens
+  nyhedshistorie titel oversættelser er elendige og bør gennemrettes af redaktøren inden udgivelse. Ret dem nu og ret op på
+  adfærd'). Since 18/10 the page showed an English outlet's headline in the machine's Danish ('Oliepriser let efter
+  amerikansk Rusland sanktion lettelse'); now, as for Arabic, a story without the editor's headline waits (`reviewed`,
+  `newsPick`; a reader who chose the originals sees the outlet's own words), and the economy editor's chosen stories need
+  its headline in every language but Danish (`okonomi_file`). The behaviour: the economy editor's input never listed a
+  headline to write – its filter compared (story, wait) pairs with stories and let none through –; it now lists the
+  page's stories as well as the economic news (`economy_shown`, `with_economy`), and so do the front-page editor's input
+  and the check, so the hourly editor writes them too and the verdict calls for it while they wait.
 - **Each fact box names its own source** (2026-10-19, the owner on the France page: 'the bigger numbers are correct, but
   the source and the al jazeera source is not shown there'): a box said who gives its number ('ifølge Frankrigs
   indenrigsministerium') and only one line under all the boxes named the outlets. Now every box says both – 'ifølge

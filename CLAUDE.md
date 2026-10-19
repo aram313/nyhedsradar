@@ -683,7 +683,9 @@ da'wah.
   oversættelserne var gode nok, så dem beholder vi' – English keeps the machine's Danish): `display` shows such a story with the editor's
   headline, else a Danish outlet's own headline (`also`, lang da), else marks it `held` and `stories()` leaves it out
   until the editor writes one; no machine teaser as a summary; the coverage list and search show the outlets' own words;
-  Økonomi's `reviewed`; `run.push_headline` returns '' for such a story and the notification waits in `pending`; the
+  Økonomi's `reviewed` – which since 19/10 holds English back too (the owner: 'Økonomi sidens nyhedshistorie titel
+  oversættelser er elendige og bør gennemrettes af redaktøren inden udgivelse'), and the page's stories are in every
+  editor's 'Headlines to write' (`editor.economy_shown`, `with_economy`); `run.push_headline` returns '' for such a story and the notification waits in `pending`; the
   economy editor's stories need a Danish headline (`okonomi_file(titled=…)`). The radar still translates – for the
   editors' input and the matching – and a reader who chose the originals sees them.
 - Danish politics must never be buried **in Live and the radar**: keep the Danish lift (`rank_core_dk`), `protect_dk`

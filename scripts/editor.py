@@ -989,7 +989,7 @@ def look(args, now):
     app = app_of(args)
     live = read(args, 'origin/digest', 'live.json', {})
     pool, known = admitted(data, app, now, live)
-    heads = to_head(pool, headlines_of(args), now, admitted_record(args)) if known else []
+    heads = to_head(with_economy(pool, args, items), headlines_of(args), now, admitted_record(args)) if known else []
     level = day_level(live, now)
     line = the_line(data, app)
     lapse = None   # today's få or mange lapses to normal when live.json is not written for radar_level.STALE (06-24)
@@ -1692,6 +1692,30 @@ def titled_by(args, draft):
     return lambda it: bool({it['id'], *(it.get('members') or []), *(a.get('id') for a in it.get('also') or [] if a.get('id'))} & have)
 
 
+def economy_shown(args, items):
+    """The stories the Økonomi page shows or holds back for want of the editor's headline – energy.json's oil and fuel
+    news, its finance news and the economy editor's stories under each topic –, those not from a Danish outlet: their
+    headline is the editors' to write (19/10, the owner: 'Økonomi sidens nyhedshistorie titel oversættelser er elendige
+    og bør gennemrettes af redaktøren inden udgivelse')."""
+    d = read(args, 'origin/data', 'energy.json', {}) or {}
+    ids = [n.get('i') for k in ('news', 'crisis') for n in d.get(k) or [] if isinstance(n, dict)]
+    ids += [n.get('i') for v in ((d.get('ed') or {}).get('emner') or {}).values() if isinstance(v, dict)
+            for n in v.get('news') or [] if isinstance(n, dict)]
+    find, out, seen = resolver(items), [], set()
+    for i in ids:
+        it = find.get(i) if i else None
+        if it and it['id'] not in seen and it.get('lang') != 'da':
+            seen.add(it['id'])
+            out.append(it)
+    return out
+
+
+def with_economy(pool, args, items):
+    """The pool whose headlines the editors write: Live's stories and the Økonomi page's (economy_shown)."""
+    have = {i['id'] for i in pool}
+    return [*pool, *(i for i in economy_shown(args, items) if i['id'] not in have)]
+
+
 def econ_input(args, now):
     """The economy editor's input (input --okonomi): the fejlbog and the notes, the brain, the page's figures, the
     economic news, the stories among them still without a headline, the fortnight ahead in the calendar and the dates
@@ -1711,7 +1735,9 @@ def econ_input(args, now):
     out += econ.input_lines(read(args, 'origin/data', 'energy.json', {}), stories, read(args, 'origin/digest', 'okonomi.json', {}),
                             cal_now, kal_now, now, story_lines)
     titles = headlines_of(args)
-    heads = [i for i in to_head(stories, titles, now) if i in stories]
+    # the stories the page shows, too; to_head gives (story, how long it waited) – the filter that once compared those
+    # pairs with the stories let none through, so the economy editor never had a headline to write (19/10)
+    heads = to_head(with_economy(stories, args, items), titles, now)
     out += head_lines(heads, True, {i['id'] for i in stories})
     out += calendar_lines(cal_now, kal_now, now)
     heads_now = {k: (v.get('title') if isinstance(v, dict) else v) for k, v in (titles or {}).items()}
@@ -1811,7 +1837,7 @@ def cmd_input(args):
     pool, known = admitted(data, app, now, live)
     if not known:   # before the radar draws the line: the strongest stories of the day the app shows
         pool = [i for i in pool if in_24h(i, now)]
-    heads = to_head(pool, headlines_of(args), now, admitted_record(args))
+    heads = to_head(with_economy(pool, args, items), headlines_of(args), now, admitted_record(args))   # Økonomi's too (19/10)
     out += head_lines(heads, known, listed)
     level, the_plan = day_level(live, now), active_plan(live, now)
     out += live_lines(level, the_line(data, app), *around_the_line(data, pool, known, now, level, the_plan), pool, known,

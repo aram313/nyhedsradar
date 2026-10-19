@@ -928,3 +928,20 @@ def test_an_event_page_keeps_the_owners_picture():
     out = event_pages.events_file(None, {'items': [page]}, {'s1': {'id': 's1', 'pic': 'https://a.test/1.jpg'}}, now, now.date(), [],
                                   chosen=chosen)
     assert out['items'][0]['pic'] == 'https://b.test/2.jpg' and out['items'][0]['pl'] == 'lbbbbbbbbbbbbbbbb.jpg'
+
+
+def test_the_economy_pages_stories_are_the_editors_headlines_to_write(monkeypatch):
+    # 19/10, the owner: 'Økonomi sidens nyhedshistorie titel oversættelser er elendige og bør gennemrettes af redaktøren
+    # inden udgivelse. Ret dem nu og ret op på adfærd'
+    items = [{'id': 'e1', 'lang': 'en', 'title': 'Oil prices ease after US Russia sanctions relief'},
+             {'id': 'd1', 'lang': 'da', 'title': 'Russisk olieterminal står i flammer'},
+             {'id': 'l1', 'lang': 'en', 'title': 'In Live already'}]
+    energy = {'news': [{'i': 'e1'}, {'i': 'd1'}], 'crisis': [{'i': 'e1'}], 'ed': {'emner': {'oil': {'news': [{'i': 'l1'}]}}}}
+    monkeypatch.setattr(editor, 'read', lambda args, ref, name, default=None: energy if name == 'energy.json' else default)
+    assert [i['id'] for i in editor.economy_shown(None, items)] == ['e1', 'l1']        # a Danish outlet's own headline stands
+    pool = [items[2]]
+    assert [i['id'] for i in editor.with_economy(pool, None, items)] == ['l1', 'e1']    # Live's first, each once
+    app = (Path(__file__).resolve().parents[1] / 'public' / 'energi' / 'index.html').read_text(encoding='utf-8')
+    assert "const reviewed = n => !!(n && (n.ed || n.l === 'da' || !store.get('danish', true)));" in app
+    assert "heads = to_head(with_economy(stories, args, items), titles, now)" in (
+        Path(__file__).resolve().parents[1] / 'scripts' / 'editor.py').read_text(encoding='utf-8')

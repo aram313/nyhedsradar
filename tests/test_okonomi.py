@@ -138,9 +138,8 @@ def test_a_story_in_another_language_needs_its_danish_headline_to_be_shown():
     arabic = {**FED, 'id': 'a1', 'lang': 'ar', 'title': 'الاحتياطي الفيدرالي يثبت الفائدة'}
     find = {'o1': OIL, 'f1': FED, 'a1': arabic}.get
     okonomi.okonomi_file({'emner': {'oil': {'stories': ['o1', 'f1', 'a1']}}}, {}, find, CAL, {}, T, problems, voice,
-                         titled=lambda it: it['id'] == 'o1')   # f1 is English: its machine Danish is good enough
-    assert problems == ["okonomi emner oil stories: a1 is in another language and has no Danish headline of yours – write it "
-                        "under titles (the page shows no machine translation)"]
+                         titled=lambda it: it['id'] == 'o1')   # English too waits for the editor's headline (19/10)
+    assert [p.split(' is in another')[0] for p in problems] == ['okonomi emner oil stories: f1', 'okonomi emner oil stories: a1']
 
 
 def test_no_machine_translation_reaches_a_reader():
