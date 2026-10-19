@@ -9,6 +9,14 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Fact boxes of news value only, else none – a general rule** (2026-10-19, the owner: 'faktatallene under bosætter
+  angreb under olivenshøsten har ikke nyhedsværdi, derfor skal der enten findes bedre faktatal ellers ingen skal vises.
+  dette skal være et en generel regel'). The tool refused a page under way with fewer than two boxes whenever its
+  stories carried two numbers, and the check called such a page 'mangler tal' – so the editors made boxes of whatever
+  number there was ('Anholdte bosættere 8', 'Såret i angreb på ambulance 2'). Both demands are gone (`events_file`,
+  `thin`); `events.FACT_RULE` – the event's size as a whole, never a detail of one incident or a side count, none rather
+  than a weak one – stands in every input over the event pages, in the update's template and in the three routine
+  prompts that write pages; a weak box is taken away with `"facts": []`. The settler page's two boxes were removed.
 - **Event maps frame their own places; the editors can set the frame** (2026-10-19, the owner: 'fik kortoversigtten på
   begivenheden bosætter angreb, og giv redaktørerne bedre værktøjer til at lave bedre kort i fremtiden, den er alt for
   zoomet ud'). The map showed at least a country's breadth (about 700 × 900 km) around its places – right for France, the

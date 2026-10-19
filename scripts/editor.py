@@ -1297,7 +1297,9 @@ TEMPLATE = {
                 'title': '<what is happening, in Danish: Uroligheder i Frankrig>', 'kicker': '<where or what: Frankrig>',
                 'status': 'i gang | kommende | afsluttet', 'since': 'YYYY-MM-DD (i gang)', 'date': 'YYYY-MM-DD (kommende)',
                 'dek': '<one factual line of what is happening and why it matters – reality, never a forecast>',
-                'facts': [{'label': '<what is counted: Anholdte>', 'value': '<the number as the news give it: 1.800>',
+                'facts': [{'label': '<what is counted – a number of news value only, the event\'s size as a whole (the dead, the '
+                                    'injured, the arrested, the marchers, the attacks counted); no such number: no boxes, "facts": []>',
+                           'value': '<the number as the news give it: 1.800>',
                            'note': '<who says it: ifølge indenrigsministeren>', 'ids': ['<the stories the number stands in>'],
                            'was': {'value': '<optional – the earlier count, when it has grown: 1.200>',
                                    'when': '<when it was given: fredag>', 'ids': ['<the stories it stands in>']},

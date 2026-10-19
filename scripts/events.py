@@ -12,6 +12,9 @@ events.json on the digest branch: {'updated', 'items': [event]}. An event, as an
   since     YYYY-MM-DD, the day it began (i gang, afsluttet); date: YYYY-MM-DD, the day it happens (kommende)
   dek       one factual line of what is happening and why it matters (at most DEK) – reality, never a forecast
   facts     at most FACTS boxes: {label, value, note, ids} – 'Demonstranter' · '550.000' · 'ifølge indenrigsministeriet';
+            numbers of news value only (FACT_RULE; the owner, 19/10: 'faktatallene … har ikke nyhedsværdi, derfor skal
+            der enten findes bedre faktatal ellers ingen skal vises. dette skal være en generel regel'): the tool never
+            asks for a box because the stories carry numbers, and a page without one shows no 'Fakta';
             every number in a value stands in a story it cites (its headline, teaser or another outlet's headline) –
             the editor has no internet and never writes a number the news do not carry. A box may say more, so the app
             draws it (the owner, 18/10: 'Gør gerne tallene … visuel interessant med professionelle stilfulde widgets'):
@@ -38,6 +41,7 @@ from datetime import date, datetime, timedelta
 STATUSES = ('i gang', 'kommende', 'afsluttet')
 TITLE, KICKER, DEK, LABEL, VALUE, NOTE = 60, 24, 220, 30, 18, 70
 FACTS, PLACES, QUOTES, STORIES = 6, 12, 3, 20
+FACT_RULE = ("only numbers of news value – the event's size as a whole: the dead, the injured, those arrested among the people it is about, the marchers, the displaced, the villages, homes or trees hit, the attacks counted (by the UN, a ministry, a rights group), the money, the votes or the seats –, never a detail of one incident ('2 såret i et angreb på en ambulance') or a side count ('8 anholdte bosættere' while the attacks are the news); when the material holds no such number the page has no boxes – none is better than a weak one (the owner, 19/10)")
 MAP_KM = (10, 4000)              # the breadth an editor may give a page's map
 MAP_MIN_KM, KM_DEG = 40, 111.32  # the automatic frame's least breadth each way – the app's evFrame is the same
 PARAS, PARA = 6, 420     # the article: paragraphs, and characters a paragraph
@@ -310,18 +314,16 @@ def voice_distance(e):
 
 
 def thin(items, find):
-    """The pages under way that the tool would refuse now (events_file): fewer than two boxes while their stories carry
-    two counts or more, or fewer than three paragraphs while their stories hold six other outlets' headlines –
-    (page, what it lacks)."""
+    """The pages under way that the tool would refuse now (events_file): fewer than three paragraphs while their
+    stories hold six other outlets' headlines, a number no cited story carries, and the like – (page, what it lacks).
+    Never 'too few boxes': a box is the editor's judgement of news value (FACT_RULE)."""
     out = []
     for e in items or []:
         if e.get('status') != 'i gang':
             continue
         told = [it for it in (find(x) for x in e.get('stories') or []) if it]
-        nums, heads = numbers_in(told), sum(len(it.get('also') or []) for it in told)
+        heads = sum(len(it.get('also') or []) for it in told)
         lacks = []
-        if len(e.get('facts') or []) < min(2, len(nums)):
-            lacks.append(f"tal ({', '.join(nums[:4])} i dens historier)")
         if heads >= 6 and len(e.get('article') or []) < 3:
             lacks.append(f"en hel artikel ({len(e.get('article') or [])} afsnit, {heads} overskrifter i dens historier)")
         loose = [f.get('value') for f in e.get('facts') or [] if isinstance(f, dict) and f.get('value')
@@ -653,13 +655,10 @@ def events_file(entries, current, find, now, today, problems, voice=None):
                 voice.check_reality(para, f'{where} article {n}', problems)
                 voice.check_forecast(para, f'{where} article {n}', problems)
             article.append({'text': para, 'ids': [it['id'] for it in cited], 'src': sources(cited, para)})
-        # a page under way holds the counts its stories carry, and is told from its material (18/10: the first page
-        # had two paragraphs and no box while its stories' headlines carried the arrests and the injured)
+        # a page under way is told from its material (18/10: the first page had two paragraphs); its boxes are the
+        # editor's judgement of news value – never demanded because the stories carry numbers (19/10, the owner: the
+        # settler attacks' '8 anholdte bosættere' and '2 såret i angreb på ambulance' had none)
         if status == 'i gang' and told:
-            nums = numbers_in(told)
-            if len(facts) < min(2, len(nums)):
-                problems.append(f"{where}: its stories carry {', '.join(nums[:6])} – give each count its box (label, the "
-                                'number, who gives it), the earlier figure as "was" when it has grown')
             heads = sum(len(it.get('also') or []) for it in told)
             if heads >= 6 and len(article) < 3:
                 problems.append(f'{where}: the article has {len(article)} paragraph(s) while its stories hold {heads} other '
@@ -799,9 +798,10 @@ def lines(current, now, find=None, head=None, teaser=None, development=None, pla
     items = (current or {}).get('items') or []
     out = [f'## Event pages (Begivenheder) – {len(items)} now', '']
     if find and any(e.get('status') == 'i gang' for e in items):
-        out += ['Bring each page under way up to date from its stories\' material below: every count they carry in a box '
-                '(the earlier figure as "was" when it has grown), who gives each, every city the stories and their articles '
-                "name in 'places' (the page's map shows them), a statement, and the article told from all of it.", '']
+        out += ['Bring each page under way up to date from its stories\' material below: its boxes, the article, every '
+                "city the stories and their articles name in 'places' (the page's map shows them), a statement.",
+                f'Fact boxes: {FACT_RULE}. A weak box you find on a page you take away ("facts": [] leaves none); the earlier '
+                'figure as "was" when a count of news value has grown; who gives each.', '']
     if not items:
         out.append('None yet. A great event (many outlets, a state or a people in motion, a vote ahead) gets a page.')
     if places is not None and any(e.get('places') for e in items):
@@ -827,7 +827,7 @@ def lines(current, now, find=None, head=None, teaser=None, development=None, pla
                 out += material(it, head, teaser, 8)
             if told:
                 nums = numbers_in(told)
-                out.append(f"    Numbers in its stories: {', '.join(nums) if nums else 'none'}")
+                out.append(f"    Numbers in its stories (material – a box only for one of news value): {', '.join(nums) if nums else 'none'}")
         dev = (development or {}).get(e.get('topic') or '') or []
         if dev and e.get('status') == 'i gang':
             out.append(f"    Its development ('{e.get('topic')}', the page shows it under 'Forløbet') – a wire line [id] grounds a box "

@@ -194,7 +194,10 @@ da'wah.
 - `scripts/events.py` – **Begivenheder** (2026-10-18, the owner: 'undersider hvor vi følger med i begivenheder med
   faktabokse'; 'objektive til selve begivenheden, ligesom vi får beskrevet i vores thaqafah … fakta, begivenhed og
   tal'): the editor's `events` in an update become `events.json` on the digest branch (in `DIGEST_FILES`; at most
-  `MAX_EVENTS` 5, a page kept `EVENT_KEEP` 4 days after its last change, merged by id, `remove` removes one). Every number in a fact's
+  `MAX_EVENTS` 5, a page kept `EVENT_KEEP` 4 days after its last change, merged by id, `remove` removes one). **A fact box
+  holds a number of news value only – the event's size as a whole – and a page may have none** (19/10, the owner:
+  'enten findes bedre faktatal ellers ingen skal vises. dette skal være en generel regel'; `FACT_RULE`): the tool never
+  asks for boxes because the stories carry numbers (that demand made weak boxes). Every number in a fact's
   value, its `of` and `was`, and in an article paragraph must stand in the stories it cites (`grounded`, digits
   normalised; dates, years and clock times exempt in paragraphs), an article paragraph with an opinion, judgement or
   forecast is refused (`OPINION`), and every text goes through voice.py. The page's picture and its face (`pf`) come

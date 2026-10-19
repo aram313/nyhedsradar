@@ -158,10 +158,11 @@ def test_a_page_under_way_without_its_numbers_is_named_and_its_material_listed()
     page = {'id': 'frankrig', 'title': 'Uroligheder i Frankrig', 'kicker': 'Frankrig', 'status': 'i gang',
             'since': '2026-10-18', 'dek': '…', 'facts': [], 'stories': ['f1'], 'at': '2026-10-18T14:49:58+00:00'}
     find = {'f1': story}.get
-    assert events.thin([page], find) == [(page, ['tal (1,200, 150, 1,800 i dens historier)'])]
+    assert events.thin([page], find) == []         # no box is demanded: news value is the editor's judgement (19/10)
     text = '\n'.join(events.lines({'items': [page]}, NOW, find, lambda i: i['title'], lambda i: ''))
     assert 'DW: France protests: More than 1,800 arrested, Interior Minister says' in text
-    assert 'Numbers in its stories: 1,200, 150, 1,800' in text and 'Bring each page under way up to date' in text
+    assert 'Numbers in its stories (material – a box only for one of news value): 1,200, 150, 1,800' in text
+    assert 'Bring each page under way up to date' in text and "Fact boxes: only numbers of news value" in text
     # a page with its numbers is not thin
     assert events.thin([{**page, 'facts': [{}, {}]}], find) == []
 
@@ -187,7 +188,7 @@ def test_a_page_under_way_holds_its_counts_is_told_whole_and_names_who_says_it()
     problems = []
     events.events_file([page], None, {'fx': rich}, NOW, TODAY, problems, voice)
     text = ' | '.join(problems)
-    assert 'its stories carry 1,200, 150, 1,800 – give each count its box' in text
+    assert 'give each count its box' not in text      # never demanded for numbers (the owner, 19/10)
     assert "the article has 1 paragraph(s) while its stories hold 6 other outlets' headlines" in text
     assert "'Ifølge danske medier' – name who gives each fact" in text
 
@@ -340,3 +341,19 @@ def test_the_map_frames_the_places_own_spread_and_the_editor_can_set_it():
     assert 'const MAP_MIN_KM = 40, KM_DEG = 111.32;' in app and f'MAP_MIN_KM, KM_DEG = {events.MAP_MIN_KM}, {events.KM_DEG}' in \
         (Path(__file__).resolve().parents[1] / 'scripts' / 'events.py').read_text(encoding='utf-8')
     assert 'const [s, n, w, o] = evFrame(e, pts);' in app
+
+
+def test_a_page_may_have_no_boxes_and_a_weak_one_is_never_demanded():
+    # 19/10, the owner: 'faktatallene under bosætter angreb under olivenshøsten har ikke nyhedsværdi, derfor skal der
+    # enten findes bedre faktatal ellers ingen skal vises. dette skal være et en generel regel'
+    story = {'id': 'v1', 'outlets': 9, 'source': 'Anadolu', 'title': 'Bosættere angriber olivenplukkere på Vestbredden',
+             'also': [{'source': 'AA', 'title': '8 settlers arrested after attack'}, {'source': 'X', 'title': '2 injured in attack on ambulance'},
+                      *[{'source': f'S{k}', 'title': f'Olive harvest attacks {k}'} for k in range(5)]]}
+    page = {'id': 'vestbredden-olivenhoest-2026-10', 'title': 'Bosætterangreb under olivenhøsten', 'kicker': 'Vestbredden',
+            'status': 'i gang', 'since': '2026-10-16', 'dek': 'Bosættere angriber landsbyer under olivenhøsten.', 'stories': ['v1'],
+            'facts': [], 'article': [{'text': 'Bosættere har angrebet landsbyer under olivenhøsten.', 'ids': ['v1']}] * 3}
+    problems = []
+    out = events.events_file([page], None, {'v1': story}, NOW, TODAY, problems, voice)
+    assert not [p for p in problems if 'box' in p], problems
+    assert out['items'][0]['facts'] == []
+    assert events.FACT_RULE.startswith('only numbers of news value') and "'8 anholdte bosættere'" in events.FACT_RULE
