@@ -223,6 +223,10 @@ da'wah.
 - **Dagens historie as an event's card** (20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed'): when the
   day's first main story belongs to an event under way (`eventOfStory`), `eventCard(ev, 'Dagens historie')` leads in its
   place (composedHome and fixedHome), and the event is kept from being set in again (`frontBlocks(…, leadEv.id)`).
+- **One subject, one place** (20/10, the owner: 'emner gentages over flere omgange … kort nyt gentager i dag også'): a
+  list about an event the page shows (most of its stories the event's, or every subject of its title the event's –
+  `subjectsOf`, `sameSubject`, `SUBJ_STOP`) is drawn under that event's card (`evMore`, `eventCard(e, head, more)`), not
+  as a block; 'Kort nyt' skips a story an event on the page holds or one naming a subject of the page (`frontMore(…, page)`).
 - **The front page's rhythm** (19/10, the owner: 'fast afveksling'): `frontRhythm` (no two of one look together while
   another can go between) over `frontOrder` (the order of weight) over `frontBlocks` (the unplaced event's card and, when
   the composition has none, a quote, else a development, else a number, `auto` – extra to FRONT_MAX). **A headline its

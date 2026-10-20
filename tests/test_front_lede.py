@@ -151,7 +151,7 @@ def test_dagens_historie_has_its_own_picture_with_the_headline_on_it():
 
 def test_the_front_page_shows_less():
     comp = fn('composedHome')
-    assert 'const FRONT_MAX = 8' in CODE and 'if (drawn >= FRONT_MAX && !b.auto) continue;' in comp   # what the app sets in is extra
+    assert 'const FRONT_MAX = 8' in CODE and "if (drawn >= FRONT_MAX && !b.auto && !(b.kind === 'begivenhed' && under.has(String(b.event)))) continue;" in comp   # what the app sets in is extra
     # the rhythm (19/10, the owner: 'fast afveksling'): two of one look never together while another can go between
     rhythm = fn('frontRhythm')
     assert 'rest.findIndex(b => LOOK(b.kind) !== prev)' in rhythm
@@ -288,6 +288,23 @@ def test_the_front_pages_service_blocks_speak_its_two_voices():
 def test_dagens_historie_is_its_events_card_when_it_has_one():
     # 20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed' – then 'Ok' to the card leading in its place
     comp = fn('composedHome')
-    assert "const ev = first ? eventOfStory(i) : null;" in comp and "eventCard(ev, 'Dagens historie')" in comp
-    assert "frontBlocks(f.blocks, leadEv && leadEv.id)" in comp          # the event is not set in again below
+    assert "const ev = first ? eventOfStory(i) : null;" in comp and "eventCard(ev, 'Dagens historie', evMore(ev.id))" in comp
+    assert "const pageBlocks = frontBlocks(f.blocks, leadEv && leadEv.id);" in comp          # the event is not set in again below
     assert "eventCard(leadEv, 'Dagens historie')" in fn('fixedHome')
+
+
+def test_one_subject_one_place():
+    # 20/10, the owner: 'forsiden ser lidt roddet ud, emner gentages … ukraine og rusland skal samles med nyheder og
+    # begivenhed, kort nyt gentager i dag også'
+    comp = fn('composedHome')
+    # a list about an event the page shows goes under its card: most of its stories are the event's, or every subject of
+    # its title is ('Rusland og Ukraine' under 'USA, Rusland og krigen i Ukraine')
+    assert "list.filter(i => (eventOfStory(i) || {}).id === e.id).length * 2 > list.length" in comp
+    assert "ws.every(w => sameSubject(w, evSubj(e)))" in comp
+    assert "if (b.kind === 'liste' && into.has(b)) continue;" in comp
+    assert "eventCard(ev, '', evMore(ev.id))" in comp and "function eventCard(e, head = '', more = '')" in CODE
+    # Kort nyt tells no story an event on the page holds, nor one naming a subject of the page
+    more = fn('frontMore')
+    assert "page.ev.has((eventOfStory(i) || {}).id)" in more and "sameSubject(w, page.subj)" in more
+    # 'Iran' is the subject of 'Irans …'; a word any event could carry is no subject
+    assert "(s.length === 4 && w.startsWith(s))" in CODE and "'prote', 'angre'" in CODE

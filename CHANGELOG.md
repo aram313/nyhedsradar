@@ -9,6 +9,16 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **One subject, one place on the front page** (2026-10-20, the owner: 'forsiden ser lidt roddet ud, emner gentages over
+  flere omgange osv. Feks synes jeg ukraine og rusland skal samles med nyheder og begivenhed, kort nyt gentager i dag også').
+  Today's page told Ukraine three times (Dagens historie as its event, the event card, the list 'Rusland og Ukraine'),
+  France twice (the event card and the list 'Frankrig') and Kort nyt said France and Iran again. A list about an event the
+  page shows now goes under that event's card – when most of its stories are the event's, or every subject of its title
+  is (`subjectsOf`, `sameSubject`: the names of four letters and more, words any event could carry left out) – as three
+  rows and 'Alle ›' (`evMore`, `eventCard(e, head, more)`); a card that holds a list takes its place among FRONT_MAX.
+  'Kort nyt' leaves out a story an event on the page holds or one naming a subject of the page (`frontMore(…, page)`).
+  Today: Dagens historie with the Ukraine stories under it, France's card with its own, Iran og Golfen, Palæstina og
+  “israel”, and Kort nyt without France or Iran; no story twice.
 - **Dagens historie is its event page's card when the day's story has one** (2026-10-20, the owner: 'Dagens historie er en
   gentagelse af en begivenhed, måske skulle vi droppe dagens historie?' – my proposal, 'Ok'). The day's story and the
   event page it belongs to stood one above the other (Putin's proposed summit, then 'USA, Rusland og krigen i Ukraine'

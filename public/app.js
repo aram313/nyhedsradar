@@ -1410,10 +1410,12 @@ const mainStory = () => { const top = frontCands(stories()), pkg = mainChoice(to
 // Under the editor's blocks, before the dates: 'Kort nyt', the day's other weighty stories as plain lines; the
 // movement's answer – one on a subject of the page, else the newest – as Khabar's own layer; the markets in one line.
 // used: the stories the page shows (Kort nyt adds its own, so Live's strip does not show them again); onPage: the
-// subjects of the page's blocks (Kort nyt does not repeat them); svar: an answer the editor set in a block of its own.
+// subjects of the page's blocks (Kort nyt does not repeat them); svar: an answer the editor set in a block of its own;
+// page: the events the page shows and its subjects (20/10) – a story of one, or one naming one, is no 'Kort nyt'.
 const BRIEF_N = 5;
-function frontMore(used, onPage, svar) {
-  const same = i => onPage.size && overlap(stems([i.title, i.origTitle].join(' ')), onPage) >= 2;
+function frontMore(used, onPage, svar, page = null) {
+  const same = i => (onPage.size && overlap(stems([i.title, i.origTitle].join(' ')), onPage) >= 2)
+    || (!!page && (page.ev.has((eventOfStory(i) || {}).id) || [...subjectsOf(`${i.title} ${i.title_da || ''}`)].some(w => sameSubject(w, page.subj))));
   // weighty (middle or high) or carried widely and weighty by the books (the radar's 'wide': Sisi's 2030 exit, Tunis),
   // in the order the brain gives them: 'Høj betydning', the editor's picks and the books' wide stories, then a story many
   // outlets carry, then the coverage; one subject once (two words in common), as on the rest of the page
@@ -1551,6 +1553,17 @@ function frontRhythm(blocks) {
 // what the composition lacks the app sets in among its blocks (19/10): the card of an event under way it placed nowhere,
 // and – when it holds too few quotes, developments or numbers – the day's quote, the developments that moved last, an
 // event's first number (one at least, two with three lists or more); set in by the app, they do not count against FRONT_MAX
+// One subject, one place (20/10, the owner: 'forsiden ser lidt roddet ud, emner gentages over flere omgange … ukraine og
+// rusland skal samles med nyheder og begivenhed, kort nyt gentager i dag også'): a block's subjects are the names it
+// carries – an event's kicker and title, a list's title: their words of four letters and more by their first five, the
+// words any event or list could carry left out –; a list about an event the page shows goes under that event's card,
+// and 'Kort nyt' tells no story that names a subject of the page or that an event the page shows holds
+const SUBJ_STOP = new Set(['krig', 'krige', 'melle', 'efter', 'under', 'over', 'nyhed', 'kort', 'dagen', 'flere', 'store',
+  'stort', 'prote', 'angre', 'valg', 'valge', 'aftal', 'forha', 'parla', 'krise', 'kaos', 'uroli', 'samta', 'topmø', 'møde',
+  'mødet', 'begiv', 'udvik', 'situa', 'konfl', 'strid', 'sagen', 'verde', 'lande', 'regio']);
+const subjectsOf = t => new Set([...stems4(String(t || '').replace(/[“”"]/g, ''))].filter(w => !SUBJ_STOP.has(w)));
+// a name of four letters is its own stem: 'Iran' is the subject of 'Irans udenrigsminister'
+const sameSubject = (w, subj) => subj.has(w) || [...subj].some(s => (s.length === 4 && w.startsWith(s)) || (w.length === 4 && s.startsWith(w)));
 // the event page a story belongs to (20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed'): an event
 // under way whose stories hold it – by its id, a member, another outlet's article, or the card its story is now
 const eventOfStory = i => (i && events().find(e => e.status === 'i gang' && (e.stories || []).some(id => id === i.id
@@ -1587,9 +1600,35 @@ function composedHome(all, opts, f) {
   // the day's story belongs to an event page: that page's card leads as Dagens historie (20/10), so the event is told once
   const firstTop = (f.blocks || []).find(b => b && b.kind === 'top');
   const leadEv = eventOfStory(pin || (firstTop && findStory(String(firstTop.story || ''))));
-  for (const b of frontRhythm(frontOrder(frontBlocks(f.blocks, leadEv && leadEv.id)))) {
+  const pageBlocks = frontBlocks(f.blocks, leadEv && leadEv.id);
+  // the events the page shows, and the lists about one of them – most of its stories are the event's, or every subject
+  // of its title is the event's ('Rusland og Ukraine' under 'USA, Rusland og krigen i Ukraine') – set under its card
+  const shownEv = [leadEv, ...pageBlocks.filter(b => b && b.kind === 'begivenhed').map(b => eventOf(b.event))].filter(Boolean);
+  const evSubj = e => subjectsOf(`${e.kicker || ''} ${e.title || ''}`), under = new Map(), into = new Set();
+  for (const b of pageBlocks.filter(x => x && x.kind === 'liste')) {
+    const list = (b.stories || []).map(x => findStory(String(x || ''))).filter(Boolean), ws = [...subjectsOf(b.title)];
+    const ev = shownEv.find(e => (list.length && list.filter(i => (eventOfStory(i) || {}).id === e.id).length * 2 > list.length)
+      || (ws.length && ws.every(w => sameSubject(w, evSubj(e)))));
+    if (ev) { into.add(b); under.set(ev.id, [...(under.get(ev.id) || []), ...(b.stories || [])]); }
+  }
+  const page = { ev: new Set(shownEv.map(e => e.id)),
+    subj: new Set([...shownEv.flatMap(e => [...evSubj(e)]), ...pageBlocks.filter(b => b && b.kind === 'liste').flatMap(b => [...subjectsOf(b.title)])]) };
+  // an event's own stories under its card: three, then 'Alle ›' unfolds the rest in place
+  const evMore = id => {
+    const all = (under.get(id) || []).map(take).filter(Boolean);
+    if (!all.length) return '';
+    const key = 'ev|' + id, list = unfolded.has(key) ? all : all.slice(0, 3);
+    for (const i of all) tell(i.title);
+    const more = all.length > 3 ? `<button class="more" data-unfold="${esc(key)}" aria-expanded="${unfolded.has(key)}">${unfolded.has(key) ? 'Færre' : 'Alle<svg aria-hidden="true"><use href="#i-chev"/></svg>'}</button>` : '';
+    const tag = new Set(list.map(secOf)).size > 1, msec = tag ? mainSec(list) : '';   // as a list: the section only when mixed
+    return `<div class="ev-more">${list.map(i => story(i, n++, { ...opts, tag, msec, top: true, plain: true, sq: true })).join('')}${more}</div>`;
+  };
+  for (const b of frontRhythm(frontOrder(pageBlocks))) {
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
-    if (drawn >= FRONT_MAX && !b.auto) continue;   // overskuelighed før fuldstændighed: at most FRONT_MAX of the editor's blocks
+    if (b.kind === 'liste' && into.has(b)) continue;   // under its event's card
+    // overskuelighed før fuldstændighed: at most FRONT_MAX of the editor's blocks – an event's card that holds a list
+    // takes that list's place, so it is drawn
+    if (drawn >= FRONT_MAX && !b.auto && !(b.kind === 'begivenhed' && under.has(String(b.event)))) continue;
     const before = html.length;
     if (b.kind === 'top') {
       const first = !tops, i = take(first && pin ? pin.id : b.story);
@@ -1598,7 +1637,7 @@ function composedHome(all, opts, f) {
       const ev = first ? eventOfStory(i) : null;
       if (ev) {   // its event's card as Dagens historie, the amir's answer on it under it; the event and the story once
         evShown.add('begivenhed' + ev.id); evShown.add('auto' + ev.id);
-        html += eventCard(ev, 'Dagens historie') + mainAnswer(i, '', svarSet);
+        html += eventCard(ev, 'Dagens historie', evMore(ev.id)) + mainAnswer(i, '', svarSet);
         tell(i.title); mark(ev.title); filled++; drawn++;
         continue;
       }
@@ -1671,12 +1710,12 @@ function composedHome(all, opts, f) {
       html += `<p class="f-line">${esc(String(b.text))}</p>`;   // the front page's texts without the wiki's underlines
     } else if (b.kind === 'begivenhed' || b.kind === 'tal' || b.kind === 'nedtaelling') {
       const ev = eventOf(b.event);
-      if (ev && !evShown.has(b.kind + ev.id)) { evShown.add(b.kind + ev.id); html += b.kind === 'begivenhed' ? eventCard(ev) : b.kind === 'tal' ? numberBlock(ev, b.fact) : countdownBlock(ev); }
+      if (ev && !evShown.has(b.kind + ev.id)) { evShown.add(b.kind + ev.id); html += b.kind === 'begivenhed' ? eventCard(ev, '', evMore(ev.id)) : b.kind === 'tal' ? numberBlock(ev, b.fact) : countdownBlock(ev); }
     }
     if (html.length > before && !b.auto) drawn++;
   }
   // after the blocks: 'Kort nyt', the movement's answer and the markets, an event ahead within a week, the dates
-  if (!calPut && html) html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock();
+  if (!calPut && html) html += frontMore(used, said, svarSet, page) + eventsUnplaced(f.blocks, 'kommende') + calBlock();
   if (filled && !tops) {   // no main block left to draw: the day's main story leads, as on the fixed page
     const m = [mainStory(), ...frontCands(all)].find(i => i && !used.has(i.id));
     if (m) {
@@ -4033,7 +4072,7 @@ function eventText(e) {
 // a number in the card's narrow column: 'over 1.800' as a small 'over' over the figure, so the figure keeps one line
 const QUAL = /^(over|mere end|omkring|cirka|ca\.|næsten|op mod|mindst|under)\s+/i;
 const numHtml = v => { const m = String(v || '').match(QUAL); return m ? `<em class="ev-qual">${esc(m[1])}</em><b>${esc(String(v).slice(m[0].length))}</b>` : `<b>${esc(v)}</b>`; };
-function eventCard(e, head = '') {
+function eventCard(e, head = '', more = '') {
   const live = e.status === 'i gang';
   const nums = (e.facts || []).slice(0, 3);
   const hero = evHero(e);
@@ -4042,7 +4081,7 @@ function eventCard(e, head = '') {
     + (e.dek ? `<span class="ev-cdek">${esc(e.dek)}</span>` : '')
     + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num">${numHtml(f.value)}<small>${esc(f.label)}</small></span>`).join('')}</span>`
       + (evSources(nums).length ? `<span class="ev-nsrc">Tallene: ${esc(evSources(nums).join(', '))}</span>` : '') : '')
-    + `<span class="ev-go">Følg begivenheden<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button></section>`;
+    + `<span class="ev-go">Følg begivenheden<svg aria-hidden="true"><use href="#i-chev"/></svg></span></button>${more}</section>`;
 }
 function numberBlock(e, n = 1) {
   const f = (e.facts || [])[(+n || 1) - 1];

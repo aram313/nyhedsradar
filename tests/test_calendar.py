@@ -302,8 +302,8 @@ def test_the_front_page_shows_what_happens_soon_between_the_news_and_the_develop
     assert 'o.front ? FMT.mon.format(d) : FMT.wd.format(d)' in CODE   # its day says its month (it has no month bands)
     assert "moreLink('Alle', 'kalender')" in block and 'data-cal-go' in fn('calRow')
     # since 19/10 the blocks are set in a rhythm of looks, and the dates come after them all
-    assert "if (!calPut && html) html += frontMore(used, said, svarSet) + eventsUnplaced(f.blocks, 'kommende') + calBlock();" in fn('composedHome')
-    assert 'for (const b of frontRhythm(frontOrder(frontBlocks(f.blocks, leadEv && leadEv.id)))) {' in fn('composedHome')
+    assert "if (!calPut && html) html += frontMore(used, said, svarSet, page) + eventsUnplaced(f.blocks, 'kommende') + calBlock();" in fn('composedHome')
+    assert 'for (const b of frontRhythm(frontOrder(pageBlocks))) {' in fn('composedHome')
     fixed = fn('fixedHome')
     assert fixed.index("blockHead('Døgnets vigtigste'") < fixed.index('calBlock()') < fixed.index('followStrip(own)')
 
