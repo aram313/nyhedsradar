@@ -276,6 +276,27 @@ def weigh_story(meth, st, trivia, actors, skip):
     return tier, sorted(held), sorted(powers), support
 
 
+def learn_misses(learned, misses, items, now, days, text):
+    """The filter editor's misses as learned stories (why 'filter', 20/10: the owner's 'en redaktør, som læser alle
+    kasserede historier og vejer dem mod hjernen'): each a story the radar still keeps, once, while it is younger than
+    the learning's days. (learned, how many added)"""
+    have = {l['id'] for l in learned if l.get('why') == 'filter'}
+    added = 0
+    for x in ((misses or {}).get('learn') or [])[:400] if isinstance(misses, dict) else []:
+        k, at = str((x or {}).get('id') or ''), (x or {}).get('at')
+        if not k or k in have or k not in items or not at:
+            continue
+        try:
+            if ts(at) < now - timedelta(days=days):
+                continue
+        except (AttributeError, TypeError, ValueError):
+            continue
+        learned.append({'id': k, 't': text(items[k]), 'at': at, 'why': 'filter'})
+        have.add(k)
+        added += 1
+    return learned, added
+
+
 def wide_story(it, sources, tiers, trivia):
     """Widely carried and weighty by the books: Live shows it whatever the taste model and the day's count say (the
     owner, 18/10: Sisi's 2030 exit in 14 outlets and Tunisia's biggest protest in years were left out – the taste
@@ -448,6 +469,9 @@ def main():
     health = load(STATE / 'health.json', {})        # source -> runs in a row it failed
     digest = load(os.environ.get('RADAR_DIGEST', CACHE / 'digest.json'), {})  # written by the Claude editor
     live_plan = load(os.environ.get('RADAR_LIVE', CACHE / 'live.json'), {})    # the editor's level for Live (level.py)
+    # the filter editor's misses (scripts/editor.py, filter.json on the digest branch, 20/10): stories the radar left out
+    # that the brain weighs – learned from as from a shared story
+    misses = load(os.environ.get('RADAR_FILTER', CACHE / 'filter.json'), {})
     # the editor's headlines (summaries.json on the digest branch): a notification says what the app shows
     ed_file = load(os.environ.get('RADAR_SUMMARIES', CACHE / 'summaries.json'), {})
     ed_titles, ed_sums = editor_titles(ed_file), (ed_file.get('items') or {}) if isinstance(ed_file, dict) else {}
@@ -550,6 +574,8 @@ def main():
         learned.append({'id': tap['id'], 't': text(it), 'at': NOW.isoformat(), 'why': why})
         learned_ids.add(tap['id'])
         today += 1
+
+    learned, _ = learn_misses(learned, misses, items, NOW, s['learn_days'], text)
 
     base, base_w = load_profile(embed)
     l_emb = load_learned_embeddings(embed, learned)
@@ -778,6 +804,10 @@ def main():
     ranks = {k: np.sort(np.array(ranks_ref[k] if len(ranks_ref.get(k, ())) >= 10 else v, dtype=np.float32))
              for k, v in ranks.items()}
 
+    # the editor's day for Live (level.py): its take brings in a story the taste bar left out too – the filter editor's
+    # misses (20/10) are often such stories – and it passes the caps below
+    day_plan = level.plan(live_plan, local_now(s).date().isoformat(), local_now(s).hour, NOW)
+    taken = lambda it: level.decision(day_plan, {it['id'], *(it.get('members') or [])}) == 'take'  # noqa: E731
     shown, bypassed = [], {}
     for st in sorted(stories, key=lambda st: -st[0]['rank']):
         it = st[0]
@@ -812,6 +842,8 @@ def main():
                 bypassed[day] = bypassed.get(day, 0) + 1
                 it['method'] = True
                 shown.append(it)
+        elif taken(it):
+            shown.append(it)
     # balance: one prolific source may fill at most a few important slots per day (big stories exempt),
     # a busy Telegram channel at most a handful of lines per day, and a source added for its camp's view
     # (scale: false) at most a few cards of its own
@@ -821,6 +853,9 @@ def main():
             per_source[it['source']] = per_source.get(it['source'], 0) + 1
             if per_source[it['source']] > s.get('max_important_per_source', 4):
                 it['important'] = False
+        if taken(it):
+            kept.append(it)
+            continue
         if it['source'] in channel and not it['big']:
             day = (it['source'], int((NOW - ts(it['found'])).total_seconds() // 86400))   # per 24 hours back
             per_channel[day] = per_channel.get(day, 0) + 1
@@ -838,7 +873,7 @@ def main():
         per_sec[it['sec']] = per_sec.get(it['sec'], 0) + 1
     unconfirmed, shown = {}, []
     for it in kept:   # best first
-        if not it['confirmed'] and not it['big']:
+        if not it['confirmed'] and not it['big'] and not taken(it):
             unconfirmed[it['sec']] = unconfirmed.get(it['sec'], 0) + 1
             if unconfirmed[it['sec']] > max(4, per_sec[it['sec']] // 8):
                 continue
@@ -865,7 +900,6 @@ def main():
                 and (it.get('tier') == 6 or any(sections.protect_dk.hits(m['title']) for m in danish))):
             return 'dk'
         return None
-    day_plan = level.plan(live_plan, local_now(s).date().isoformat(), local_now(s).hour, NOW)
     levels = {k: tuple(v) for k, v in s.get('live_levels', {'få': [104, 20], 'normal': [96, 38], 'mange': [88, 72]}).items()}
     on_live, admitted, live_info = level.admit(
         shown, levels, s.get('live_keep_margin', 4), day_plan, admitted, NOW,

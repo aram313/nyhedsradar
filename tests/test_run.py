@@ -236,3 +236,16 @@ def test_the_same_event_in_another_city_is_another_story():
     cities = [find('Protest in Copenhagen'), find('Protest in London'), find('Protests across Europe')]
     assert clusters(e, range(3), 0.75) == [[0, 1, 2]]                                   # no cities known: one story
     assert clusters(e, range(3), 0.75, places=cities, other_city=0.98) == [[0], [1, 2]]   # two cities: two stories
+
+
+def test_the_radar_learns_from_the_filter_editors_misses():
+    # 20/10: a story the radar left out that the filter editor weighed by the brain teaches it, as a shared one does
+    import radar.run as run
+    now = datetime(2026, 10, 20, 20, 0, tzinfo=timezone.utc)
+    items = {'c': {'id': 'c', 'title': 'Italy to deploy 500 troops in Milan', 'summary': ''}}
+    misses = {'learn': [{'id': 'c', 'at': '2026-10-20T07:30:00+00:00'}, {'id': 'gone', 'at': '2026-10-20T07:30:00+00:00'},
+                        {'id': 'c2', 'at': '2026-09-01T07:30:00+00:00'}]}
+    learned, n = run.learn_misses([], misses, {**items, 'c2': items['c']}, now, 30, lambda i: i['title'])
+    assert n == 1 and learned == [{'id': 'c', 't': 'Italy to deploy 500 troops in Milan', 'at': '2026-10-20T07:30:00+00:00', 'why': 'filter'}]
+    assert run.learn_misses(learned, misses, items, now, 30, lambda i: i['title'])[1] == 0   # once
+    assert json.loads((Path(__file__).resolve().parents[1] / 'config' / 'settings.json').read_text(encoding='utf-8'))['learn_weights']['filter'] == 1.2

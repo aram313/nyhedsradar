@@ -644,7 +644,7 @@ def test_push_keeps_the_other_files_of_the_digest_branch(tmp_path, monkeypatch):
         (out / n).write_text(json.dumps({'new': n}), encoding='utf-8')
     monkeypatch.chdir(clone)
     editor.push(out, 'Opdatering 10.10 22.01')
-    assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'front.json',
+    assert git(remote, 'ls-tree', '--name-only', 'digest').split() == sorted(['answers.json', 'digest.json', 'events.json', 'filter.json', 'front.json',
                                                                               'kalender.json', 'lessons.json', 'live.json', 'memo.json', 'moves.json', 'okonomi.json', 'other.json', 'owner.json',
                                                                               'report.json', 'runs.json', 'summaries.json'])
     assert json.loads(git(remote, 'show', 'digest:digest.json')) == {'new': 'digest.json'}
@@ -959,3 +959,47 @@ def test_a_headline_behind_its_storys_numbers_is_given_back():
     # the owner's own headline is his; a count of the whole so far is no count of the day
     assert editor.stale_heads([story], {'h2': {**titles['h2'], 'owner': True}}) == []
     assert editor.stale_heads([{**story, 'summary_da': 'I alt 53 er dræbt siden marts.'}], titles) == []
+
+
+def test_the_filter_editor_reads_what_the_radar_left_out_and_takes_its_misses_in():
+    # 20/10, the owner (Italy's protests, each alone under the line, were not even a footnote): 'en redaktør, som læser
+    # alle kasserede historier og vejer dem mod hjernen og ser om radaren filtrerer rigtigt'
+    from datetime import datetime, timedelta, timezone
+    now = datetime(2026, 10, 20, 20, 0, tzinfo=timezone.utc)
+    at = lambda h: (now - timedelta(hours=h)).isoformat()  # noqa: E731
+    data = {'items': [
+        {'id': 'a', 'members': ['a', 'a2'], 'live': 'rank', 'rank': 120, 'found': at(9), 'title': 'In Live', 'source': 'AFP'},
+        {'id': 'b', 'members': ['b'], 'live': None, 'rank': 96, 'found': at(7), 'title': 'Under the line', 'source': 'AP', 'sec': 'world'},
+        {'id': 'old', 'members': ['old'], 'live': None, 'rank': 99, 'found': at(30), 'title': 'Too old', 'source': 'AP'}]}
+    wire = next(f.get('label') or f['name'] for f in editor.FEEDS if f.get('wire'))
+    raw = {'a2': {'id': 'a2', 'member': True, 'title': 'A member of a', 'found': at(9), 'source': 'BBC'},
+           'c': {'id': 'c', 'title': 'Italy to deploy 500 troops in Milan after weekend unrest', 'found': at(5), 'source': 'Anadolu',
+                 'pct': 40, 'rank': 44, 'sec': 'world'},
+           'w': {'id': 'w', 'title': 'A wire line', 'found': at(5), 'source': wire},
+           'r': {'id': 'r', 'title': 'One the owner removed', 'found': at(5), 'source': 'AP', 'removed': True}}
+    since = editor.filter_since({}, now)
+    assert since == now - timedelta(hours=24)                              # its first run reads a day back
+    below, cut = editor.discarded(data, raw, since, now)
+    assert [i['id'] for i in below] == ['b'] and [i['id'] for i in cut] == ['c']
+    assert editor.filter_card(below[0], 108) == '[b] world · t11 · r96 (12 under) · 1 · AP · Under the line'   # the tier the books give its headline
+    # its update: the miss taken in and kept for the radar to learn from, the wrong one out, its report for the owner
+    find = editor.resolver([*data['items'], *editor.cut_cards(raw, data)])
+    problems = []
+    f, take, drop = editor.filter_file(
+        {'verdict': 'Radaren overså uroen i Italien.', 'misses': [{'id': 'c', 'tier': 5, 'why': 'Uroen breder sig fra Frankrig'}],
+         'wrong': [{'id': 'a', 'why': 'Ingen nyhed'}], 'patterns': ['Én udvikling i flere artikler falder under linjen (c).'],
+         'proposals': ['Læg en udvikling fortalt i flere artikler sammen.'],
+         'rules': [{'id': 'udvikling-i-stykker', 'rule': 'En udvikling fortalt i flere artikler vejes som én.'}]},
+        {}, find, {'a', 'a2'}, now, problems)
+    assert problems == [] and take == ['c'] and drop == ['a']
+    assert f['learn'] == [{'id': 'c', 'at': now.isoformat(timespec='seconds')}] and f['history'][0]['misses'] == 1
+    assert f['misses'][0]['title'] == 'Italy to deploy 500 troops in Milan after weekend unrest' and f['rules'][0]['since'] == '2026-10-20'
+    # a miss is a story out of Live, weighed by a tier of the books
+    problems = []
+    editor.filter_file({'verdict': 'x', 'misses': [{'id': 'a', 'tier': 5, 'why': 'y'}, {'id': 'c', 'tier': 'høj', 'why': 'y'}]},
+                       {}, find, {'a', 'a2'}, now, problems)
+    assert len(problems) == 2
+    # the next run reads from where this one stopped (at least 8 hours back)
+    assert editor.filter_since({'at': at(10)}, now) == now - timedelta(hours=10)
+    assert editor.filter_since({'at': at(2)}, now) == now - timedelta(hours=8)
+    assert editor.runner({'filter': {'verdict': 'x'}}, now) == 'filterredaktør'

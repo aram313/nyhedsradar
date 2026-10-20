@@ -47,6 +47,7 @@ jobs:
             git show FETCH_HEAD:summaries.json > .cache/summaries.json 2>/dev/null || rm -f .cache/summaries.json
             git show FETCH_HEAD:events.json > .cache/events.json 2>/dev/null || rm -f .cache/events.json
             git show FETCH_HEAD:okonomi.json > .cache/okonomi.json 2>/dev/null || rm -f .cache/okonomi.json
+            git show FETCH_HEAD:filter.json > .cache/filter.json 2>/dev/null || rm -f .cache/filter.json
           fi
 
       - uses: actions/setup-python@v5
@@ -91,6 +92,7 @@ jobs:
           RADAR_ANALYSES: '1'                       # follow Hizb ut-Tahrir's new political answers (analyses.py)
           RADAR_READ: '1'                           # read the great stories' articles for their counts (reader.py)
           RADAR_EVENTS: .cache/events.json          # the editor's event pages: their places looked up (places.py)
+          RADAR_FILTER: .cache/filter.json          # the filter editor's misses: the radar learns from them
           ADMIN_KEY: ${{ secrets.ADMIN_KEY }}       # checks the owner's long-press removals from the app (admin.py)
           PROFILE_KEY: ${{ secrets.PROFILE_KEY }}   # encrypts the list of signed-up phones (state/phones.bin)
           PUSH_SUBS: ${{ secrets.PUSH_SUBS }}
@@ -153,7 +155,7 @@ jobs:
 
       - name: Save state
         run: |
-          rm -f .cache/profile.jsonl .cache/digest.json .cache/live.json .cache/summaries.json .cache/events.json .cache/okonomi.json
+          rm -f .cache/profile.jsonl .cache/digest.json .cache/live.json .cache/summaries.json .cache/events.json .cache/okonomi.json .cache/filter.json
           cd state
           git init -q -b data
           git config user.name "radar-bot"

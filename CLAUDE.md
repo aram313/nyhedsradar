@@ -426,6 +426,18 @@ da'wah.
     headline, each topic's line under its headline ('Bygger på …'), 'I nyhederne' under the figures, 'Det kommer' in Lige
     nu (a tap opens the Kalender tab at it, `khabarOpenCal`) and its statement as 'Dagens citat'. Public prompt:
     docs/hjerne/routine-okonomi-prompt.md.
+  - **The filter editor** (Khabar · filterredaktør, 20/10, the owner – after Italy's protests, told by AFP, Xinhua, the
+    Guardian and Al Mayadeen each alone under the line, were not even a footnote: 'Jeg synes at der skal være en
+    redaktør, som læser alle kasserede historier og vejer dem mod hjernen og ser om radaren filtrerer rigtigt'):
+    claude-opus-5-5, cron `30 7,15 * * *` = 08.30 and 16.30 Danish winter time. `editor.py input --filter` lists every
+    story the radar left out since its last run (8–24 hours back, `filter_since`): the pool's stories under Live's line
+    (data.json) and the articles cut before the pool (items.json, `discarded`), ~4,000 a day, beside the brain, the tiers
+    and Live now. Its update's `filter` (`filter_file`): `misses` are taken into Live – an article cut before the pool
+    too (`cut_cards`; run.py's `taken` brings it into the pool and past the caps) – and kept in filter.json `learn`
+    FILTER_KEEP (14) days, which the radar learns from (`run.learn_misses`, learned.json why 'filter', weight 1.2);
+    `wrong` are taken out; `verdict`, `patterns` and `proposals` are its report to the owner (the admin block's 'Radarens
+    filter', `filterHtml`); `rules` its own. Its memo calls the front-page editor's update. Public prompt:
+    docs/hjerne/routine-filter-prompt.md.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
 - Phones sign up themselves: the app posts {kind: sub|unsub, sub, want} to the relay; `push.py` keeps them in

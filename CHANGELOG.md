@@ -9,6 +9,17 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **The filter editor** (2026-10-20, the owner, on Italy's protests – 'Hvorfor er det der sker i italien ikke engang en
+  fodnote?' – and then: 'Jeg synes at der skal være en redaktør, som læser alle kasserede historier og vejer dem mod
+  hjernen og ser om radaren filtrerer rigtigt'). Italy's unrest was told by AFP, Xinhua, the Guardian, Al Mayadeen and
+  Anadolu ('Italy to deploy 500 troops with police powers in Milan', 5 outlets, rank 44) in separate articles, each of
+  the books' 'rest' tier (−4) and alone under the line, so no editor ever saw it. A new routine (Opus, twice a day) reads
+  every story the radar left out since its last run (`editor.py input --filter`: the pool under Live's line and the
+  articles cut before the pool), weighs each by the brain, takes the misses into Live – the radar learns from them
+  (learned.json 'filter') and brings an article it cut before the pool into the pool – takes out what does not belong,
+  leaves the front-page editor a memo and writes the owner a report (filter.json: the verdict, the misses, the patterns
+  of what the radar gets wrong, its proposals for the radar's rules), shown as 'Radarens filter' in his admin block; its
+  clock in 'Kørsler'.
 - **Kalender: 'Aktuelt' in place of 'Det sker snart'** (2026-10-20, the owner: 'Hele oktober måned er nærmest under "sker
   snart" lad os droppe sker snart … og gøre det til aktuelt, for ting der sker eller er under udvikling'). The seven-day
   window held most of the month. 'Aktuelt' holds what happens today and what lasts through today, then – under Alle – the

@@ -5337,10 +5337,25 @@ async function reportHtml() {
       + String(rep.text).split(/\n\s*\n|\n/).filter(x => x.trim()).map(x => `<p class="hint adm-rep">${esc(x.trim())}</p>`).join('');
   } catch { return ''; }
 }
+// the filter editor's report (filter.json on the digest branch, the owner, 20/10: 'en redaktør, som læser alle kasserede
+// historier og vejer dem mod hjernen og ser om radaren filtrerer rigtigt'): its verdict, then – each a row that opens
+// whole at a tap – the stories it took in with why, the patterns of what the radar gets wrong and its proposals
+async function filterHtml() {
+  const f = await getJson(CFG.filterUrl || (CFG.digestUrl || '').replace(/digest\.json$/, 'filter.json'));
+  if (!f || !f.verdict) return '';
+  const row = (head, text) => `<button class="adm-note" aria-expanded="false"><span class="adm-by"><b>${head}</b></span>`
+    + `<span class="adm-tx">${esc(text)}</span></button>`;
+  const got = (f.misses || []).filter(m => m && m.title);
+  return `<h4 class="adm-h">Radarens filter<small>${esc(stamp(f.at))}</small></h4><p class="hint adm-rep">${esc(f.verdict)}</p>`
+    + (got.length ? row(`Taget ind · ${got.length}`, got.map(m => `${m.title} (${m.source}) – ${m.why}`).join(' · ')) : '')
+    + ((f.wrong || []).length ? row(`Taget ud · ${f.wrong.length}`, f.wrong.map(m => `${m.title} – ${m.why}`).join(' · ')) : '')
+    + ((f.patterns || []).length ? row('Hvad radaren overser', f.patterns.join(' ')) : '')
+    + ((f.proposals || []).length ? row('Forslag til radaren', f.proposals.join(' ')) : '');
+}
 // the editors' notes to each other (memo.json on the digest branch, the owner, 18/10: 'tilføj også redaktørernes
 // bemærkninger Senior og chef til admin der'): the senior editor's and the chief editor's, newest first, each a few
 // lines that open whole at a tap
-const NOTE_BY = { 'begivenhedsredaktør': 'Seniorredaktøren', 'chefredaktør': 'Chefredaktøren' };
+const NOTE_BY = { 'begivenhedsredaktør': 'Seniorredaktøren', 'chefredaktør': 'Chefredaktøren', 'filterredaktør': 'Filterredaktøren' };
 const NOTES_SHOWN = 6;
 async function notesHtml() {
   try {
@@ -5356,7 +5371,7 @@ async function notesHtml() {
 // the owner's comments to the editors (18/10) with the answer each got: the radar's list (removed.json on the data
 // branch) and this phone's own not yet through, the editors' answers from owner.json on the digest branch
 const NOTE_EDITOR = { 'begivenhedsredaktør': 'Seniorredaktøren', 'forsideredaktør': 'Forsideredaktøren', 'chefredaktør': 'Chefredaktøren',
-  'økonomiredaktør': 'Økonomiredaktøren' };
+  'økonomiredaktør': 'Økonomiredaktøren', 'filterredaktør': 'Filterredaktøren' };
 const getJson = async url => { try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; } };
 async function commentsHtml() {
   const [st, ans] = await Promise.all([getJson((CFG.dataUrl || '').replace(/data\.json.*$/, 'removed.json')),
@@ -5403,6 +5418,8 @@ const RUNS = [
   { name: 'Seniorredaktøren', by: 'begivenhedsredaktør', what: 'begivenhedssiderne og hele forsiden', utc: [6, 11, 19], always: true },
   { name: 'Økonomiredaktøren', by: 'økonomiredaktør', what: 'Økonomi-siden og kalenderen', utc: [15], always: true },
   { name: 'Chefredaktøren', by: 'chefredaktør', what: 'gennemgår døgnet, fører fejlbogen og skriver rapporten til dig', utc: [4], always: true },
+  { name: 'Filterredaktøren', by: 'filterredaktør', what: 'læser alt, radaren kasserede, vejer det mod hjernen og tager det oversete ind',
+    utc: [7, 15], min: 30, always: true },
   { name: 'Vagtmesteren', what: 'retter kilder, der holder op med at svare', utc: [4], min: 30 },
   { name: 'Økonomi-tallene', what: 'priser, kurser og gæld – hver kilde i sit eget tempo', every: 'i hver radarkørsel',
     last: () => (V('eco') || {}).updated },
@@ -5465,8 +5482,8 @@ async function showStats() {
   const box = $('adminStats'), head = '<h3>Kun for dig</h3><p class="hint adm-help">Hold et element nede – en historie, et tal, en dato, '
     + 'en linje på Økonomi – for at skrive en kommentar til redaktørerne, rette overskriften, vælge billede, flytte eller fjerne det.</p>';
   box.innerHTML = head + '<p class="hint">Henter …</p>';
-  const rep = reportHtml(), mine = commentsHtml(), runs = runsHtml().catch(() => ''), notes = notesHtml();
-  const top = async () => head + (await rep) + (await mine) + (await runs) + (await notes);
+  const rep = reportHtml(), flt = filterHtml().catch(() => ''), mine = commentsHtml(), runs = runsHtml().catch(() => ''), notes = notesHtml();
+  const top = async () => head + (await rep) + (await flt) + (await mine) + (await runs) + (await notes);
   try { const st = await loadStats(); box.innerHTML = (await top()) + statsHtml(st); } catch (e) {
     box.innerHTML = (await top()) + '<h4 class="adm-h">Statistik</h4><p class="hint">' + (e.message === 'key'
       ? 'Statistikken kunne ikke låses op med din admin-kode.'

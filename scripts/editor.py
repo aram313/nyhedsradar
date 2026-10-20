@@ -128,14 +128,15 @@ SUBJECT_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*(?:--[a-z0-9]+(?:-[a-z0-9]+)*
 KEEP_WORD = 'keep'
 FEEDS = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
 DIGEST_FILES = ('digest.json', 'moves.json', 'summaries.json', 'answers.json', 'live.json', 'front.json', 'kalender.json',
-                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json', 'owner.json', 'runs.json')
+                'events.json', 'memo.json', 'lessons.json', 'report.json', 'okonomi.json', 'owner.json', 'runs.json',
+                'filter.json')
 # the two editors' notes to each other (the owner, 18/10: the event editor looks at the front page four times a day, 'hvis
 # den finder forbedringer skal den lave det og give besked til khabar hjernes næste kørsel om vurdering'): memo.json on
 # the digest branch keeps the last MEMOS notes; the input shows those of the last MEMO_HOURS, and a new one from the event
 # editor calls for an update; the owner reads the senior and chief editors' notes in his admin block (18/10), so a couple
 # of days of them are kept
 MEMOS, MEMO_HOURS, MEMO_TEXT = 20, 12, 1500
-EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør', 'økonomiredaktør')
+EDITORS = ('begivenhedsredaktør', 'forsideredaktør', 'chefredaktør', 'økonomiredaktør', 'filterredaktør')
 # the chief editor (the owner, 18/10: one editor once a day on the highest setting – 'ja sæt den op kl 5'): it reads the
 # last day's own text (input --audit), keeps the fejlbog – rules drawn from the editors' mistakes, which every input shows
 # at its top (lessons.json) – and writes the owner a short morning report (report.json, shown in the owner's admin block)
@@ -152,7 +153,7 @@ OWNER_REPLY, OWNER_KEEP, OWNER_OPEN, OWNER_TITLES = 600, 14, 7, 12
 # the runs (19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og andre
 # automationer kører') – every update leaves a line in runs.json on the digest branch (who, when, what it did)
 SCHEDULE = {'forsideredaktør': (5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22), 'begivenhedsredaktør': (6, 11, 19),
-            'økonomiredaktør': (15,), 'chefredaktør': (4,)}
+            'økonomiredaktør': (15,), 'chefredaktør': (4,), 'filterredaktør': (7, 15)}
 RUNS_KEPT = 120
 LESSON_ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,60}$')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
@@ -803,6 +804,8 @@ def runner(draft, now):
         return 'chefredaktør'
     if draft.get('okonomi'):
         return 'økonomiredaktør'
+    if draft.get('filter'):
+        return FILTER
     return next((b for b, hours in SCHEDULE.items() if now.hour in hours), 'forsideredaktør')
 
 
@@ -820,6 +823,9 @@ def run_note(draft):
             parts.append(f"{n(k)} {one if n(k) == 1 else many}")
     if lines:
         parts.append(f"{lines} {'linje' if lines == 1 else 'linjer'} i udviklingen")
+    if isinstance(draft.get('filter'), dict):
+        got = len([x for x in draft['filter'].get('misses') or [] if isinstance(x, dict)])
+        parts.append(f"{got} kasserede {'historie' if got == 1 else 'historier'} taget ind")
     for k, word in (('events', 'begivenheder'), ('calendar', 'kalenderen'), ('okonomi', 'Økonomi'), ('lessons', 'fejlbogen'),
                     ('report', 'rapporten'), ('owner_notes', 'svar til dig')):
         if draft.get(k):
@@ -1101,9 +1107,10 @@ def look(args, now):
                    'rebuilds the wiki and reviews config/method.json powers (the app and the brain read them meanwhile)')
     reasons = verdict(now, last, times, rows, answer, wire, set(picked) | recapped, still, heads, lapse)
     memo_new = next((m for m in (read(args, 'origin/digest', 'memo.json', {}).get('items') or [])
-                     if m.get('by') == EDITORS[0] and now - ts(m.get('at')) < timedelta(hours=MEMO_HOURS)), None)
+                     if m.get('by') in (EDITORS[0], FILTER) and now - ts(m.get('at')) < timedelta(hours=MEMO_HOURS)), None)
     if memo_new:
-        out.append(f"Note from the event editor ({dk(ts(memo_new['at'])):%H.%M}): {clip(memo_new.get('text'), 160)}")
+        out.append(f"Note from the {'filter' if memo_new.get('by') == FILTER else 'event'} editor ({dk(ts(memo_new['at'])):%H.%M}): "
+                   f"{clip(memo_new.get('text'), 160)}")
     # a great event without its page (Begivenheder, 18/10): the widely carried stories grouped by event, and a group
     # whose words tell an event – not a decision or a statement – calls for an update, once
     pages = read(args, 'origin/digest', 'events.json', {}).get('items') or []
@@ -1149,7 +1156,7 @@ def look(args, now):
     if facts_great:
         keys.append(facts_great)
     if memo_new and (last is None or ts(memo_new['at']) > last):
-        reasons.append('besked fra begivenhedsredaktøren')
+        reasons.append('besked fra filterredaktøren' if memo_new.get('by') == FILTER else 'besked fra begivenhedsredaktøren')
         keys.append(f"memo:{memo_new['at']}")
     keys += [f"thin:{page['id']}:{page.get('at')}" for page, _ in thin_pages[:1]]
     keys += [f"counts:{page['id']}:{','.join(nums)}" for page, nums in fresh_counts]
@@ -1817,10 +1824,263 @@ def econ_input(args, now):
     print(f'{WORK / "input.md"}: {len(stories)} economic stories, {len(heads)} without a headline')
 
 
+# ------------------------------------------------------------------ the filter editor
+# The owner, 20/10, when Italy's protests – AFP, Xinhua, the Guardian and Al Mayadeen, each alone under the line – were not
+# even a footnote: 'Jeg synes at der skal være en redaktør, som læser alle kasserede historier og vejer dem mod hjernen og
+# ser om radaren filtrerer rigtigt'. Twice a day (SCHEDULE) the filter editor reads every story the radar left out of Live
+# since its last run – the pool's stories under Live's line and the articles cut before the pool – and weighs them by the
+# brain. Its misses are taken into Live ('take') and kept in filter.json `learn` FILTER_KEEP days, which the radar learns
+# from as from a shared story (learned.json 'filter'); what does not belong in Live it takes out ('drop'). filter.json on
+# the digest branch also holds its report to the owner (the verdict, the misses, the patterns of what the radar gets
+# wrong and its proposals for the radar's rules – the owner's admin block shows it) and its own rules.
+FILTER = 'filterredaktør'
+FILTER_BACK = (8, 24)    # hours it reads back: since its last run, at least 8 and at most 24
+FILTER_LINES = 4000      # stories listed at most; beyond them the ones ranked lowest are counted
+FILTER_MISSES = 40       # misses one run may take in
+FILTER_KEEP = 14         # days a miss is kept for the radar to learn from
+FILTER_RULES = 30        # its own rules
+FILTER_REPORTS = 14      # its earlier verdicts, for the owner
+FILTER_TEXT, FILTER_WHY, FILTER_NOTES = 600, 200, 8
+FILTER_TEMPLATE = {
+    'filter': {
+        'verdict': '<two or three plain Danish sentences to the owner: how well the radar filtered this window, and the '
+                   'weightiest thing it missed>',
+        'misses': [{'id': '<a story the radar left out that the brain weighs: it is taken into Live, and the radar learns '
+                          'from it>',
+                    'tier': '<the books\' tier you weigh it by, 1-13>',
+                    'why': '<a few plain Danish words: who acts, what, and why it weighs>'}],
+        'wrong': [{'id': '<a story in Live that does not belong there – rare: it is taken out>', 'why': '<a few Danish words>'}],
+        'patterns': ['<a pattern in what the radar gets wrong, in Danish, with the ids of one or two stories as examples>'],
+        'proposals': ['<a concrete change to the radar for the owner – a word for a tier, a source\'s weight, a rule – and '
+                      'what it would have caught>'],
+        'rules': [{'id': '<lowercase-with-hyphens; the same id changes a rule, {"id": …, "remove": true} takes it away>',
+                   'rule': '<a rule for your own weighing next time, drawn from what you found>', 'why': '<optional>'}]},
+    'titles': [{'id': '<a miss without a Danish headline>', 'title': '<an informative Danish headline: who did or said what, '
+                                                                     'where – a statement, never a teaser>'}],
+    'memo': {'by': FILTER, 'text': '<optional – to the front-page and senior editors: what you took in and where it may '
+                                   'belong (a list, an event page – widened, when a development reaches more countries –, '
+                                   'Kort nyt by a pick)>'},
+}
+
+
+def filter_since(current, now):
+    """Where the filter editor's reading starts: its last run, at least FILTER_BACK[0] and at most FILTER_BACK[1] hours back."""
+    lo, hi = now - timedelta(hours=FILTER_BACK[1]), now - timedelta(hours=FILTER_BACK[0])
+    try:
+        last = ts((current or {}).get('at'))
+    except (AttributeError, TypeError, ValueError):   # its first run
+        last = lo
+    return max(lo, min(hi, last))
+
+
+def wire_names():
+    return {x for f in FEEDS if f.get('wire') for x in (f.get('name'), f.get('label')) if x}
+
+
+def discarded(data, raw, since, now):
+    """What the radar left out of Live since `since` (by when it found it): (below, cut) – the pool's stories under Live's
+    line (data.json, `live` empty), strongest first, and the articles cut before the pool (items.json: each one that is no
+    other's member and not in the pool), by their rank (else the taste model's percentile); the wire's lines and what the owner removed left
+    out (he has judged those)."""
+    pool = data.get('items') or []
+    when = lambda i: ts(i.get('found') or i.get('published'))  # noqa: E731
+    in_pool = {i['id'] for i in pool} | {m for i in pool for m in i.get('members') or []}
+    below = sorted((i for i in pool if not i.get('live') and not i.get('removed') and since <= when(i) <= now),
+                   key=lambda i: -(i.get('rank') or 0))
+    wires = wire_names()
+    cut = sorted((i for i in ((raw or {}).values() if isinstance(raw, dict) else raw or [])
+                  if isinstance(i, dict) and i.get('id') and i.get('title') and i['id'] not in in_pool and not i.get('member')
+                  and not i.get('removed') and i.get('source') not in wires and since <= when(i) <= now),
+                 key=lambda i: -(i['rank'] if isinstance(i.get('rank'), (int, float)) else i.get('pct') or 0))
+    return below, cut
+
+
+def cut_cards(raw, data):
+    """The articles the radar cut before the pool, as stories the filter editor's take and titles may name."""
+    pool = data.get('items') or []
+    in_pool = {i['id'] for i in pool} | {m for i in pool for m in i.get('members') or []}
+    wires = wire_names()
+    return [{**i, 'members': i.get('members') or [i['id']]} for i in ((raw or {}).values() if isinstance(raw, dict) else raw or [])
+            if isinstance(i, dict) and i.get('id') and i.get('title') and i['id'] not in in_pool and not i.get('member')
+            and i.get('source') not in wires]
+
+
+def filter_card(i, line=None):
+    """One story the radar left out, on one line: id · section · tier · rank (what Live's line needs) · outlets · source ·
+    headline – an article cut before the pool: id · the taste model's percentile · outlets · source · headline."""
+    if 'rank' in i:
+        t = brain.tier_of(i)
+        gap = f" ({round(line - (i.get('rank') or 0))} under)" if isinstance(line, (int, float)) else ''
+        head = f"{i.get('sec')}{f' · t{t}' if t is not None else ''} · r{round(i.get('rank') or 0)}{gap}"
+    else:
+        head = f"p{round(i.get('pct') or 0)}"
+    title = clip(i.get('title_da') or i.get('title_tr') or i.get('title'), 150)
+    return f"[{i['id']}] {head} · {i.get('outlets') or 1} · {clip(i.get('source'), 24)} · {title}"
+
+
+def filter_rule_lines(current):
+    items = (current or {}).get('rules') or []
+    if not items:
+        return []
+    out = ['## Your own rules from earlier runs – weigh by every one', '']
+    out += [f"- [{x['id']}] {x['rule']}" + (f" ({x['why']})" if x.get('why') else '') for x in items]
+    return out + ['']
+
+
+def filter_input(args, now):
+    """The filter editor's input (input --filter): its own rules and its last verdicts, the notes between the editors, the
+    brain, how the radar filters, what Live holds now, and every story the radar left out since its last run."""
+    data = read(args, 'origin/data', 'data.json', {'items': []})
+    raw = read(args, 'origin/data', 'items.json', {})
+    current = read(args, 'origin/digest', 'filter.json', {})
+    since = filter_since(current, now)
+    below, cut = discarded(data, raw, since, now)
+    app = app_of(args)
+    live = read(args, 'origin/digest', 'live.json', {})
+    pool, known = admitted(data, app, now, live)
+    line = the_line(data, app)
+    level = day_level(live, now)
+    lv = line.get('line')
+    noted = answers_of(args)
+    in_live = sorted((i for i in pool if since <= ts(i.get('found') or i.get('published')) <= now), key=lambda i: -(i.get('rank') or 0))
+    out = [f"# The filter editor's material · {date_da(now, True)} kl. {dk(now):%H.%M} (Danish time)", '',
+           f"Every story the radar left out of Live since {dk(since):%d.%m %H.%M} ({ago(now - since)}): {len(below)} in its pool "
+           f"under Live's line, {len(cut)} cut before the pool. Live holds {len(in_live)} of the same hours.", '']
+    out += filter_rule_lines(current)
+    hist = (current or {}).get('history') or []
+    if hist:
+        out += ['## Your last verdicts', ''] + [f"- {dk(ts(h['at'])):%d.%m %H.%M}: {h.get('verdict')} ({h.get('misses', 0)} taken in)"
+                                               for h in hist[:4]] + ['']
+    out += memo_lines(read(args, 'origin/digest', 'memo.json', {}), now)
+    out += brain.section(in_live[:TOP] or pool[:TOP], noted['items'])
+    method = brain.load(brain.METHOD, {})
+    lift = method.get('lift') or {}
+    tiers = method.get('tiers') or {}
+    out += ['## How the radar filters – what you check', '',
+            "Each article is scored by a taste model (its likeness to what the group shares and reads; p = its percentile, 0-100).",
+            "Articles of one story from several outlets become one story; a story's rank is its best percentile, +4 for each "
+            "established outlet beyond the first (at most five), a lift by the books' tier, less for light news (sport, weather, "
+            "celebrities, 30) and for a headline that names no place or actor (10). The pool holds the stories above the "
+            "taste bar (and up to 20 a day of tiers 1-4 and 6 below it); Live holds those of the pool above its line, the big "
+            "ones (4+ outlets) and those the editors take in. A story of one outlet, or one development told by several outlets "
+            "in separate articles, is easily left out – that is what you look for.",
+            f"Live today: level {level.get('level') or 'normal'}, line rank {lv if lv is not None else '?'}.", '',
+            "The tiers (the heaviest a headline shows) and their lift in rank points:"]
+    for k in sorted(tiers, key=int):
+        out.append(f"- {k} ({'+' if (lift.get(k) or 0) > 0 else ''}{lift.get(k, 0)}): {clip((tiers[k] or {}).get('what'), 200)}")
+    out += [f"- 11 ({lift.get('11', -4)}): the rest – a headline that shows none of the tiers above",
+            f"- 12 ({lift.get('12', 0)}): a Danish story that cannot be placed", '']
+    out += [f'## Live now – what the radar let in of the same hours ({len(in_live)}), for comparison', '',
+            'Fields: id · section · tier · rank · outlets · why it is in (rank, big, wide, take, kept, dk) · source · headline', '']
+    for i in in_live:
+        t = brain.tier_of(i)
+        out.append(f"[{i['id']}] {i.get('sec')}{f' · t{t}' if t is not None else ''} · r{round(i.get('rank') or 0)} · "
+                   f"{i.get('outlets') or 1} · {i.get('live') or '?'} · {clip(i.get('source'), 24)} · {clip(headline(i), 150)}")
+    out += ['', f"## Under Live's line – in the radar's pool, not in Live ({len(below)}), strongest first", '',
+            "Fields: id · section · tier · rank (how far under the line) · outlets · source · headline", '']
+    shown = 0
+    for i in below:
+        out.append(filter_card(i, lv))
+        shown += 1
+    room = max(0, FILTER_LINES - shown)
+    out += ['', f'## Cut before the pool – ranked under the taste bar ({len(cut)}), strongest first', '',
+            "Fields: id · section · tier · rank (or p, the taste model's percentile, for an article not yet ranked) · outlets · "
+            "source · headline (as the outlet wrote it – Arabic, Danish, English –, the English of a translated one)", '']
+    out += [filter_card(i) for i in cut[:room]]
+    if len(cut) > room:
+        out.append(f"(+{len(cut) - room} more, ranked lowest, not listed)")
+    out += ['', '## Write /tmp/editor/update.json in exactly this shape (UTF-8 JSON)', '',
+            json.dumps(FILTER_TEMPLATE, ensure_ascii=False, indent=1)]
+    WORK.mkdir(parents=True, exist_ok=True)
+    (WORK / 'input.md').write_text('\n'.join(out), encoding='utf-8')
+    (WORK / 'input.meta').write_text(json.dumps({'digest': '' if args.dir else digest_head(), 'made': now.isoformat()}),
+                                     encoding='utf-8')
+    print(f'{WORK / "input.md"}: {len(below)} under the line, {len(cut)} cut before the pool, {len(in_live)} in Live '
+          f'since {dk(since):%d.%m %H.%M}')
+
+
+def filter_file(entry, current, find, live_ids, now, problems, titles=None):
+    """filter.json as the filter editor's update leaves it, and its misses and wrong ones as take and drop: (file, take,
+    drop) – (None, [], []) for an update without `filter`. titles: the update's own headlines, which the report shows."""
+    if entry is None:
+        return None, [], []
+    if not isinstance(entry, dict):
+        problems.append('filter: an object with verdict, misses, wrong, patterns, proposals and rules – or leave it out')
+        return None, [], []
+    cur = current if isinstance(current, dict) else {}
+    verdict = clean(entry.get('verdict'))
+    if not verdict or len(verdict) > FILTER_TEXT:
+        problems.append(f'filter: verdict – two or three plain Danish sentences to the owner (at most {FILTER_TEXT} characters)')
+    voice.check_voice(verdict, 'filter: verdict', problems)
+
+    def stories(key, need_out):
+        got, seen = [], set()
+        for k, x in enumerate(entry.get(key) or [], 1):
+            it = find.get(str((x or {}).get('id') or '')) if isinstance(x, dict) else None
+            if not it:
+                problems.append(f"filter: {key} {k}: unknown story id {(x or {}).get('id') if isinstance(x, dict) else x!r}")
+                continue
+            if need_out and it['id'] in live_ids:
+                problems.append(f"filter: misses {k}: {it['id']} is in Live already – a miss is a story the radar left out")
+                continue
+            why = clean(x.get('why'))
+            if not why or len(why) > FILTER_WHY:
+                problems.append(f"filter: {key} {k} ({it['id']}): why – a few plain Danish words (at most {FILTER_WHY} characters)")
+                continue
+            tier = x.get('tier')
+            if key == 'misses' and not (isinstance(tier, int) and 1 <= tier <= 13):
+                problems.append(f"filter: misses {k} ({it['id']}): tier – the books' tier you weigh it by, a number 1-13")
+                continue
+            if it['id'] in seen:
+                continue
+            seen.add(it['id'])
+            got.append({'id': it['id'], 'title': clip((titles or {}).get(it['id']) or headline(it), 160), 'source': clean(it.get('source')), 'why': why,
+                        **({'tier': tier} if key == 'misses' else {}), 'at': now.isoformat(timespec='seconds')})
+        return got
+    misses, wrong = stories('misses', True), stories('wrong', False)
+    if len(misses) > FILTER_MISSES:
+        problems.append(f'filter: misses – {len(misses)}, at most {FILTER_MISSES}: the weightiest')
+    texts = {}
+    for key in ('patterns', 'proposals'):
+        v = entry.get(key) or []
+        if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
+            problems.append(f'filter: {key} – a list of plain Danish sentences, or leave it out')
+            v = []
+        texts[key] = [clip(x, FILTER_TEXT) for x in v if clean(x)][:FILTER_NOTES]
+    rules = {x['id']: x for x in cur.get('rules') or [] if isinstance(x, dict) and x.get('id')}
+    for k, x in enumerate(entry.get('rules') or [], 1):
+        if not isinstance(x, dict) or not LESSON_ID.match(str(x.get('id') or '')):
+            problems.append(f'filter: rules {k}: id – lowercase letters, digits and hyphens')
+            continue
+        if x.get('remove'):
+            rules.pop(x['id'], None)
+            continue
+        rule = clean(x.get('rule'))
+        if not rule or len(rule) > LESSON_TEXT:
+            problems.append(f"filter: rules {k} ({x['id']}): rule – one plain sentence or two (at most {LESSON_TEXT} characters)")
+            continue
+        rules[x['id']] = {'id': x['id'], 'rule': rule, **({'why': clip(x['why'], LESSON_TEXT)} if x.get('why') else {}),
+                          'since': (rules.get(x['id']) or {}).get('since') or dk(now).date().isoformat()}
+    if len(rules) > FILTER_RULES:
+        problems.append(f'filter: rules – {len(rules)}, at most {FILTER_RULES}: fold or remove the old ones')
+    keep = now - timedelta(days=FILTER_KEEP)
+    learn = [{'id': m['id'], 'at': m['at']} for m in misses]
+    learn += [x for x in cur.get('learn') or [] if isinstance(x, dict) and x.get('id') and x['id'] not in {m['id'] for m in misses}
+              and ts(x.get('at')) >= keep]
+    hist = [{'at': now.isoformat(timespec='seconds'), 'verdict': verdict, 'misses': len(misses), 'wrong': len(wrong)},
+            *[h for h in cur.get('history') or [] if isinstance(h, dict)]][:FILTER_REPORTS]
+    out = {'at': now.isoformat(timespec='seconds'), 'verdict': verdict, 'misses': misses, 'wrong': wrong, **texts,
+           'rules': list(rules.values())[:FILTER_RULES], 'learn': learn[:400], 'history': hist}
+    return out, [m['id'] for m in misses], [w['id'] for w in wrong]
+
+
 def cmd_input(args):
     now = ts(args.now) if args.now else datetime.now(timezone.utc)
     if getattr(args, 'okonomi', False):
         econ_input(args, now)
+        return
+    if getattr(args, 'filter', False):
+        filter_input(args, now)
         return
     data, lines, moves = material(args)
     digest = read(args, 'origin/digest', 'digest.json', {})
@@ -2839,6 +3099,20 @@ def cmd_publish(args):
     noted = answers_of(args)
     live_now = read(args, 'origin/digest', 'live.json', {})
     pool, known = admitted(data, app_of(args), now, live_now)
+    # the filter editor's update (20/10): its misses are taken into Live – also an article the radar cut before its pool,
+    # which the radar's next pass brings in – and what does not belong is taken out
+    flt, flt_problems = None, []
+    if draft.get('filter') is not None:
+        data = {**data, 'items': [*(data.get('items') or []), *cut_cards(read(args, 'origin/data', 'items.json', {}), data)]}
+        find_all = resolver(data['items'])
+        own = {find_all[str(x['id'])]['id']: clean(x.get('title')) for x in draft.get('titles') or []
+               if isinstance(x, dict) and str(x.get('id')) in find_all and clean(x.get('title'))}
+        flt, take, drop = filter_file(draft['filter'], read(args, 'origin/digest', 'filter.json', {}), find_all,
+                                      {x for i in pool for x in ids_of(i)}, now, flt_problems, own)
+        for f, ids in (('take', take), ('drop', drop)):
+            if ids:
+                given = draft.get(f) if isinstance(draft.get(f), list) else []
+                draft[f] = [*given, *[x for x in ids if x not in given]]
     fetched = read(args, 'origin/data', 'analyses.json', {'items': []})
     fetched = fetched.get('items') if isinstance(fetched, dict) else fetched
     extra = {'live': live_now, 'front': quoted(read(args, 'origin/digest', 'front.json', {})),
@@ -2851,7 +3125,7 @@ def cmd_publish(args):
                                   event_pictures(owner_state(args), data.get('items', [])))
     extra['events'] = {e['id']: e for e in evt['items']}
     days, notes, problems = build(draft, data, lines, moves, now, current.get('editor') or {}, extra)
-    problems += ev_problems
+    problems += ev_problems + flt_problems
     # the page and its own development agree (18/10: the boxes said 150 police injured, 'Forløbet' under them 997): a
     # count this update puts in a page's development, or a page this update changes, leaves no box behind it
     touched = {str(e.get('id')) for e in draft.get('events') or [] if isinstance(e, dict)}
@@ -2923,6 +3197,8 @@ def cmd_publish(args):
         files['okonomi.json'] = oko
     if answered:
         files['owner.json'] = answered
+    if flt:
+        files['filter.json'] = flt
     files['runs.json'] = runs_file(read(args, 'origin/digest', 'runs.json', {}), runner(draft, now), run_note(draft), now)
     out = Path(args.out) if args.out else WORK / 'out'
     out.mkdir(parents=True, exist_ok=True)
@@ -3199,6 +3475,7 @@ def main(argv=None):
     p.add_argument('--now', help='pretend it is this time (ISO 8601)')
     p.add_argument('--audit', action='store_true', help="input: the last day's own text and the chief editor's fields")
     p.add_argument('--okonomi', action='store_true', help="input: the economy editor's material for the Økonomi page")
+    p.add_argument('--filter', action='store_true', help="input: every story the radar left out, for the filter editor")
     p.add_argument('--period', choices=['morgen', 'eftermiddag', 'aften'], help=argparse.SUPPRESS)
     args = p.parse_args(argv)
     {'check': cmd_check, 'gate': cmd_gate, 'input': cmd_input, 'publish': cmd_publish}[args.command](args)
