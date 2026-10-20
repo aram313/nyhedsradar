@@ -469,8 +469,10 @@ da'wah.
   entry) merged by `calItems` – the editor's entry wins on the same date and title, or its id – fetched with the news's
   reload (`VFRESH` cal 30 min, kal 10 min; an unchanged file draws nothing; the page's `SIG` holds its choices). In the
   front page's Economist manner: a red fly title 'Kalender' and one Source Serif 4 line naming what comes next ('Næste:
-  Midtvejsvalg i USA om 17 dage'), then 'Det sker snart' (the next seven days with 'i dag', 'i morgen', 'om 5 dage',
-  'i gang'), then month by month under sticky month headers, and 'Tidligere' (the last 30 days) folded at the foot. A row:
+  Midtvejsvalg i USA om 17 dage'), then 'Aktuelt' (since 20/10, the owner: 'Hele oktober måned er nærmest under "sker
+  snart" … gøre det til aktuelt, for ting der sker eller er under udvikling': the events of today and those under way,
+  then – under Alle – the event pages under way as rows, `calEvRow`, a tap to the page; 'Næste' names one from tomorrow
+  on), then month by month under sticky month headers, and 'Tidligere' (the last 30 days) folded at the foot. A row:
   the day large in tabular figures and the weekday small (a month only: its name), the title, one quiet line – the
   kind with its calm dot (`--c-valg` … each light and dark; red only for an event today or tomorrow, `.ck.near`), the
   place, 'til …', 'forventet' –; a tap opens it in place (one at a time): the why, 'Kilde ›', Del · Kopiér and up to three

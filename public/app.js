@@ -3087,7 +3087,8 @@ const vstate = k => (vd[k] || {}).state || '';
 const SIG = { analyses: () => [answers() && ansGen, !!V('bix'), anQuery, anArea, saved.length, unfolded.has('an|areas'), ansRead.size, vstate('bfull'), vstate('mix'), vstate('ans')].join('|'),
   begreber: () => [!!V('bix'), vstate('bix'), azKind].join('|'),
   // the calendar: its files, the reader's choices, the day – and, with an event open, the news that name it
-  kalender: () => [calGen, vstate('cal'), vstate('kal'), calF, calImp, calPast, [...calOpen].join(','), calFocus, calGone, dkYmd(new Date()),
+  kalender: () => [calGen, vstate('cal'), vstate('kal'), events().filter(e => e.status === 'i gang').map(e => e.id + e.since + e.title).join(','),
+    calF, calImp, calPast, [...calOpen].join(','), calFocus, calGone, dkYmd(new Date()),
     calOpen.size ? `${titlesVer}|${data && data.updated}` : ''].join('|') };
 // The pages are patched, not rebuilt: the new page is laid out as a fragment and set against what stands. A row that
 // has not changed keeps its very elements – its picture, its place, nothing to lay out again –, a changed one gets only
@@ -4220,7 +4221,7 @@ function openOkonomi() {
 // the fixed dates of config/calendar.json – src/radar/calendar.py) and kalender.json (the editor's own entries from the news, digest
 // branch: deadlines, talks, votes, rulings). The editor's entry wins on the same date and title. Reality only: a date,
 // what happens, where, one factual line on why it matters and the source – never a forecast. The top: a red fly title
-// and one serif line naming what comes next; 'Det sker snart' (the next seven days with their countdown); then month by
+// and one serif line naming what comes next; 'Aktuelt' (what happens today or is under way, 20/10); then month by
 // month; 'Tidligere' (the last 30 days) folded at the foot. The dock holds the kinds and the window.
 const CAL_KINDS = { valg: 'Valg', 'topmøde': 'Topmøde', centralbank: 'Centralbank', frist: 'Frist', retssag: 'Retssag',
   forhandling: 'Forhandling', dansk: 'Danmark', andet: 'Andet' };
@@ -4327,10 +4328,19 @@ function calStories(e) {
   }
   return out;
 }
+// an event page under way as a calendar row (20/10): its day large ('12 · dag'), its title, 'I gang' with the live dot and
+// its kicker; a tap opens its page
+function calEvRow(e, today) {
+  const d = e.since ? today - calDay(e.since) + 1 : 0;
+  const day = d >= 1 ? `<b>${d}</b><small>dag</small>` : '<b class="mo">nu</b><small>i gang</small>';
+  return `<div class="ce w2" id="cv-${esc(e.id)}"><div class="row"><button class="hit" data-event="${esc(e.id)}" aria-label="${esc(`${e.title}, ${evState(e).toLowerCase()}`)}"></button>`
+    + `<span class="cd" aria-hidden="true">${day}</span><span class="tx" aria-hidden="true"><span class="h">${esc(e.title)}</span>`
+    + `<span class="m"><span class="ck near" data-k="andet"><i></i>I gang</span>${e.kicker ? `<span>${esc(e.kicker)}</span>` : ''}<span>Følg begivenheden ›</span></span></span></div></div>`;
+}
 // the share: '17/10 · Midtvejsvalg i USA – <why> – via khabar.nu/?kalender=<id>'
 const calText = e => `${calDm(e)} · ${e.title}${e.place && !e.title.includes(e.place) ? ` (${e.place})` : ''}${e.why ? ' – ' + e.why : ''} – via khabar.nu/?kalender=${encodeURIComponent(e.id)}`;
 function kalenderPage() {
-  need('cal'); need('kal');
+  need('cal'); need('kal'); need('evt');
   const today = calToday(), all = calItems();
   if (!all.length) {
     if (waiting('cal')) return loadingBlock('Henter kalenderen …');
@@ -4344,16 +4354,23 @@ function kalenderPage() {
     calFocus = '';
   }
   const shown = all.filter(e => calIn(calF, e) && (!calImp || calWOf(e) > 1)), up = shown.filter(e => calEnd(e) >= today);
-  const soon = up.filter(e => calExact(e) && calDay(e.date) - today <= 7), soonIds = new Set(soon.map(e => e.id));
+  // 'Aktuelt' (20/10, the owner: 'Hele oktober måned er nærmest under "sker snart" lad os droppe sker snart … og gøre det
+  // til aktuelt, for ting der sker eller er under udvikling'): the calendar's events of today and those lasting through
+  // it, then – under Alle – the event pages Khabar follows while they are under way; from tomorrow on, every event
+  // stands under its month
+  const soon = up.filter(e => calExact(e) && calDay(e.date) <= today), soonIds = new Set(soon.map(e => e.id));
   const later = up.filter(e => !soonIds.has(e.id));
+  const going = calF ? [] : events().filter(e => e.status === 'i gang');
   const past = shown.filter(e => calEnd(e) < today && calEnd(e) >= today - 30).reverse();
-  const next = up.find(e => calExact(e) && calDay(e.date) >= today) || up.find(e => calExact(e));   // not one under way
+  // what comes next: from tomorrow (today's stand under Aktuelt), else today's, else one under way
+  const next = up.find(e => calExact(e) && calDay(e.date) > today) || up.find(e => calExact(e) && calDay(e.date) >= today) || up.find(e => calExact(e));
   const name = (CAL_FILTERS.find(f => f[0] === calF) || CAL_FILTERS[0])[1];
   let h = `<header class="cal-top" id="cal-top"><p class="cal-fly">Kalender${calF ? ' · ' + esc(name) : ''}</p>`
     + `<h2 class="cal-next">${next ? `Næste: ${esc(next.title)} ${calCount(next, today)}` : 'Intet planlagt foreløbig'}</h2></header>`;
   if (calGone) h += `<p class="notice" id="cal-gone"><svg aria-hidden="true"><use href="#i-clock"/></svg><span>Begivenheden er ikke længere i kalenderen.</span></p>`;
-  h += `<section class="block cal-soon" id="cal-soon">${blockHead('Det sker snart')}`
-    + (soon.length ? soon.map(e => calRow(e, today, { count: true })).join('') : '<p class="cal-none">Intet planlagt de næste syv dage.</p>') + '</section>';
+  h += `<section class="block cal-soon" id="cal-soon">${blockHead('Aktuelt')}`
+    + (soon.length || going.length ? soon.map(e => calRow(e, today, { count: true })).join('') + going.map(e => calEvRow(e, today)).join('')
+      : '<p class="cal-none">Intet sker i dag.</p>') + '</section>';
   let month = '';
   for (const e of later) {
     const m = e.date.slice(0, 7);   // a year alone gets its own band after its December

@@ -9,6 +9,12 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Kalender: 'Aktuelt' in place of 'Det sker snart'** (2026-10-20, the owner: 'Hele oktober måned er nærmest under "sker
+  snart" lad os droppe sker snart … og gøre det til aktuelt, for ting der sker eller er under udvikling'). The seven-day
+  window held most of the month. 'Aktuelt' holds what happens today and what lasts through today, then – under Alle – the
+  event pages Khabar follows while they are under way, each a row with its day ('12 · dag'), 'I gang' and 'Følg
+  begivenheden ›' that opens its page (`calEvRow`); everything from tomorrow on stands under its month, and the top line's
+  'Næste' names the first event from tomorrow.
 - **One subject, one place on the front page** (2026-10-20, the owner: 'forsiden ser lidt roddet ud, emner gentages over
   flere omgange osv. Feks synes jeg ukraine og rusland skal samles med nyheder og begivenhed, kort nyt gentager i dag også').
   Today's page told Ukraine three times (Dagens historie as its event, the event card, the list 'Rusland og Ukraine'),

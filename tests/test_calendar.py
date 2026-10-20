@@ -258,7 +258,11 @@ def test_the_two_files_are_merged_and_the_editor_wins():
 def test_the_page_names_what_comes_next_then_the_week_then_the_months():
     page = fn('kalenderPage')
     assert '<p class="cal-fly">Kalender' in page and 'class="cal-next">${next ? `Næste: ${esc(next.title)} ${calCount(next, today)}`' in page
-    assert "blockHead('Det sker snart')" in page and 'calDay(e.date) - today <= 7' in page
+    # 'Aktuelt' since 20/10 (the owner: 'Hele oktober måned er nærmest under "sker snart" … gøre det til aktuelt, for ting
+    # der sker eller er under udvikling'): today's events and those under way, then the event pages under way
+    assert "blockHead('Aktuelt')" in page and 'calExact(e) && calDay(e.date) <= today' in page
+    assert "events().filter(e => e.status === 'i gang')" in page and 'calEvRow(e, today)' in page
+    assert 'data-event="${esc(e.id)}"' in fn('calEvRow') and "'Det sker snart'" not in page
     assert 'class="cal-mh"' in page and 'Tidligere' in page and 'today - 30' in page
     count = CODE.split('const calCount = ')[1].split('\n')[0]
     assert "'i dag'" in count and "'i morgen'" in count and '`om ${n} dage`' in count
