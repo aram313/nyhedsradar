@@ -220,6 +220,9 @@ da'wah.
   `a<yyyymmdd>-<id>`, `sid` the story's), events frozen at their day (`e._day`, `arkEvent`); the ways in are `arkRow` at
   the front page's foot and `arkLinkFor` under an earlier day on Udvikling. Today is the front page itself: the list
   holds the days before it.
+- **Dagens historie as an event's card** (20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed'): when the
+  day's first main story belongs to an event under way (`eventOfStory`), `eventCard(ev, 'Dagens historie')` leads in its
+  place (composedHome and fixedHome), and the event is kept from being set in again (`frontBlocks(…, leadEv.id)`).
 - **The front page's rhythm** (19/10, the owner: 'fast afveksling'): `frontRhythm` (no two of one look together while
   another can go between) over `frontOrder` (the order of weight) over `frontBlocks` (the unplaced event's card and, when
   the composition has none, a quote, else a development, else a number, `auto` – extra to FRONT_MAX). **A headline its

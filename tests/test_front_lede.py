@@ -283,3 +283,11 @@ def test_the_front_pages_service_blocks_speak_its_two_voices():
     assert '.page.fp .ce .ck i, .page.fp .ce .ck-d { display: none; }' in RULES
     assert re.search(r'\.page\.fp \.ce \.cd b \{[^}]*font-family: var\(--display\)', RULES)
     assert re.search(r'\.page\.fp \.foot \{[^}]*font-style: italic', RULES)
+
+
+def test_dagens_historie_is_its_events_card_when_it_has_one():
+    # 20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed' – then 'Ok' to the card leading in its place
+    comp = fn('composedHome')
+    assert "const ev = first ? eventOfStory(i) : null;" in comp and "eventCard(ev, 'Dagens historie')" in comp
+    assert "frontBlocks(f.blocks, leadEv && leadEv.id)" in comp          # the event is not set in again below
+    assert "eventCard(leadEv, 'Dagens historie')" in fn('fixedHome')

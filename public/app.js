@@ -1551,8 +1551,12 @@ function frontRhythm(blocks) {
 // what the composition lacks the app sets in among its blocks (19/10): the card of an event under way it placed nowhere,
 // and – when it holds too few quotes, developments or numbers – the day's quote, the developments that moved last, an
 // event's first number (one at least, two with three lists or more); set in by the app, they do not count against FRONT_MAX
-function frontBlocks(blocks) {
-  const out = (blocks || []).filter(Boolean), placed = new Set(out.filter(b => b.event).map(b => String(b.event)));
+// the event page a story belongs to (20/10, the owner: 'Dagens historie er en gentagelse af en begivenhed'): an event
+// under way whose stories hold it – by its id, a member, another outlet's article, or the card its story is now
+const eventOfStory = i => (i && events().find(e => e.status === 'i gang' && (e.stories || []).some(id => id === i.id
+  || (i.members || []).includes(id) || (i.also || []).some(a => a.id === id) || (findStory(id) || {}).id === i.id))) || null;
+function frontBlocks(blocks, leading = '') {
+  const out = (blocks || []).filter(Boolean), placed = new Set([...out.filter(b => b.event).map(b => String(b.event)), leading].filter(Boolean));
   const ev = events().find(x => x.status === 'i gang' && !placed.has(x.id));
   if (ev) out.push({ kind: 'begivenhed', event: ev.id, auto: true });
   // one such block at least, two when the page has three lists or more (so they do not all stand together)
@@ -1580,7 +1584,10 @@ function composedHome(all, opts, f) {
   // the answer the editor set in a block of its own is not said again under a main story, nor in an opened story
   const svarSet = String((f.blocks.find(b => b && b.kind === 'svar') || {}).nr || '');
   if (svarSet) frontAns.add(svarSet);
-  for (const b of frontRhythm(frontOrder(frontBlocks(f.blocks)))) {
+  // the day's story belongs to an event page: that page's card leads as Dagens historie (20/10), so the event is told once
+  const firstTop = (f.blocks || []).find(b => b && b.kind === 'top');
+  const leadEv = eventOfStory(pin || (firstTop && findStory(String(firstTop.story || ''))));
+  for (const b of frontRhythm(frontOrder(frontBlocks(f.blocks, leadEv && leadEv.id)))) {
     if (!b || !FRONT_KINDS.has(b.kind)) continue;
     if (drawn >= FRONT_MAX && !b.auto) continue;   // overskuelighed før fuldstændighed: at most FRONT_MAX of the editor's blocks
     const before = html.length;
@@ -1588,6 +1595,13 @@ function composedHome(all, opts, f) {
       const first = !tops, i = take(first && pin ? pin.id : b.story);
       if (!i) continue;   // its story left Live: the next main block is the day's story
       tops++;
+      const ev = first ? eventOfStory(i) : null;
+      if (ev) {   // its event's card as Dagens historie, the amir's answer on it under it; the event and the story once
+        evShown.add('begivenhed' + ev.id); evShown.add('auto' + ev.id);
+        html += eventCard(ev, 'Dagens historie') + mainAnswer(i, '', svarSet);
+        tell(i.title); mark(ev.title); filled++; drawn++;
+        continue;
+      }
       // the editor's headline for the front page; the owner's pick wears its own, and so does a story he titled himself
       const t = ownerTitleOf(i) || (first && pin && pin.id !== (findStory(b.story) || {}).id) ? '' : String(b.title || '');
       const shown = t ? { ...i, title: t, kw: [...new Set([...(i.kw || []), ...(i.kw_da || [])])] } : i;
@@ -1878,7 +1892,12 @@ function fixedHome(all, opts) {
   const same = i => pkg && i !== lead && overlap(stems([i.title, i.origTitle, i.title_da].join(' ')), pkg.ts) >= 3;
   const pin = pinnedQuote();
   let pq = null, own = null;
-  if (lead) {
+  evShown.clear(); need('evt');
+  const leadEv = eventOfStory(lead);
+  if (leadEv) {   // the day's story belongs to an event page: its card leads as Dagens historie (20/10)
+    evShown.add('auto' + leadEv.id);
+    html += eventCard(leadEv, 'Dagens historie') + mainAnswer(lead, '', '');
+  } else if (lead) {
     // a Danish outlet's headline for the package when the story has one
     const dk = lead.lang !== 'da' && lead.how !== 'ed' && (lead.also || []).find(a => a.group === 'dk' && !curious(a.title));
     const shown = dk ? { ...lead, title: dk.title, origTitle: dk.title, source: dk.source, kw: [] } : lead;
@@ -1904,7 +1923,6 @@ function fixedHome(all, opts) {
   const dk = pick(news.filter(i => secOf(i) === 'dk' && i.confirmed !== 0 && hours(i) < 24 && !onPage.has(i.id) && !same(i) && dkMatters(i, tops)), 2);
   if (dk.length) html += `<section class="block">${blockHead('Danmark')}${dk.map((i, n) => story(i, n + 5, { ...opts, tag: false, top: true, plain: true, sq: true, fl: !n })).join('')}</section>`;
   dk.forEach(i => onPage.add(i.id));
-  evShown.clear(); need('evt');
   html += eventsUnplaced([], 'i gang') + frontMore(onPage, new Set(), '') + eventsUnplaced([], 'kommende') + calBlock();   // the day in brief, the movement, the markets; then the dates
   html += followStrip(own);   // not the main story's own development again
   html += nowStrip(3, onPage);
@@ -4015,11 +4033,11 @@ function eventText(e) {
 // a number in the card's narrow column: 'over 1.800' as a small 'over' over the figure, so the figure keeps one line
 const QUAL = /^(over|mere end|omkring|cirka|ca\.|næsten|op mod|mindst|under)\s+/i;
 const numHtml = v => { const m = String(v || '').match(QUAL); return m ? `<em class="ev-qual">${esc(m[1])}</em><b>${esc(String(v).slice(m[0].length))}</b>` : `<b>${esc(v)}</b>`; };
-function eventCard(e) {
+function eventCard(e, head = '') {
   const live = e.status === 'i gang';
   const nums = (e.facts || []).slice(0, 3);
   const hero = evHero(e);
-  return `<section class="block ev-b">${blockHead(esc(e.kicker || 'Begivenhed'))}<button class="ev-card${hero ? ' pic' : ''}" data-event="${esc(e.id)}">`
+  return `<section class="block ev-b${head ? ' ev-lead' : ''}">${blockHead(esc(head || e.kicker || 'Begivenhed'))}<button class="ev-card${hero ? ' pic' : ''}" data-event="${esc(e.id)}">`
     + (hero || `<span class="ev-state${live ? ' live' : ''}">${live ? '<i aria-hidden="true"></i>' : ''}${esc(evState(e))}</span><span class="ev-ct">${esc(e.title)}</span>`)
     + (e.dek ? `<span class="ev-cdek">${esc(e.dek)}</span>` : '')
     + (nums.length ? `<span class="ev-nums">${nums.map(f => `<span class="ev-num">${numHtml(f.value)}<small>${esc(f.label)}</small></span>`).join('')}</span>`

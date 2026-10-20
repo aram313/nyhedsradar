@@ -9,6 +9,13 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Dagens historie is its event page's card when the day's story has one** (2026-10-20, the owner: 'Dagens historie er en
+  gentagelse af en begivenhed, måske skulle vi droppe dagens historie?' – my proposal, 'Ok'). The day's story and the
+  event page it belongs to stood one above the other (Putin's proposed summit, then 'USA, Rusland og krigen i Ukraine'
+  with the same lead). When the first main story belongs to an event under way (`eventOfStory`: the event's stories by
+  id, member, another outlet's article or the card they are now), that event's card leads under 'Dagens historie' with
+  the amir's answer on it, and neither the story nor the card comes again below; a day whose story has no event page
+  keeps the story as before. The composed and the fixed front page alike.
 - **The front page alternates, and a headline its story has outgrown is caught** (2026-10-19, the owner chose two of my
   proposals: 'fast afveksling' and the check on stale headlines). The composed page sorted its blocks by kind, so the
   event cards stood together and the lists after them; now `frontRhythm` keeps the order of weight but never sets two
