@@ -357,3 +357,18 @@ def test_a_page_may_have_no_boxes_and_a_weak_one_is_never_demanded():
     assert not [p for p in problems if 'box' in p], problems
     assert out['items'][0]['facts'] == []
     assert events.FACT_RULE.startswith('only numbers of news value') and "'8 anholdte bosættere'" in events.FACT_RULE
+
+
+def test_a_page_counts_from_when_its_development_began():
+    # 20/10, the owner: 'Kaos i frankrig siger det har varet i 4 dage, men protesterne er vel længere tid end det ?' – the
+    # page counted from the weekend's riots; its stories say the protests began a month before at the high schools
+    out, problems = make([{**RIOTS, 'since': '2026-09'}])
+    assert not problems and out['items'][0]['since'] == '2026-09'          # a month only, when the stories give no day
+    for bad in ('2026-9', '2026-11-01'):
+        assert make([{**RIOTS, 'since': bad}])[1], bad                       # not a date; a day ahead
+    later = {'id': 'jp', 'title': "France's worst violence in decades",
+             'summary': "The protests in France began last month at high schools in Paris' working-class northern suburbs."}
+    told = events.began_in([later, {'id': 'x', 'title': 'x', 'summary': 'Fresh clashes broke out in Paris on Sunday.'}], None, None)
+    assert told[0].startswith('The protests in France began last month')    # a beginning with its time first
+    assert events.named_here(RIOTS, [later, {'id': 'y', 'title': 'Rain in Oslo'}]) == [later]
+

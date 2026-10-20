@@ -50,7 +50,7 @@ Khabar weighs the news by the order of importance in the political books it is b
      tells what happened, where, the counts and what was said, in four to six paragraphs when the material holds it.
      Name in your last line the page you made, or why none. At
      most five pages under way or ahead; most later updates change only a page's numbers and stories. Each: `id`, `title`, `kicker` (where or what),
-     `status` (i gang | kommende | afsluttet), `since` (the day it began) or `date` (the day it happens, kommende),
+     `status` (i gang | kommende | afsluttet), `since` (the day its development began, as its stories tell it – not the day of its latest turn: the input says under each page what its stories say of its beginning; YYYY-MM when they give only the month – 'the protests began last month' makes it the month before) or `date` (the day it happens, kommende),
      `dek` (one factual line), `facts` (at most six boxes: `label`, `value`, `note` – who says it, `ids`), `places`,
      `quotes`, `stories` (its story ids in Live, the weightiest first), `topic` (a recap topic: its timeline) and
      `article` (at most six paragraphs, each with its `ids`): the event told objectively, as the group's culture

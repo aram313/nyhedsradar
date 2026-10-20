@@ -194,7 +194,9 @@ da'wah.
 - `scripts/events.py` – **Begivenheder** (2026-10-18, the owner: 'undersider hvor vi følger med i begivenheder med
   faktabokse'; 'objektive til selve begivenheden, ligesom vi får beskrevet i vores thaqafah … fakta, begivenhed og
   tal'): the editor's `events` in an update become `events.json` on the digest branch (in `DIGEST_FILES`; at most
-  `MAX_EVENTS` 5, a page kept `EVENT_KEEP` 4 days after its last change, merged by id, `remove` removes one). **A fact box
+  `MAX_EVENTS` 5, a page kept `EVENT_KEEP` 4 days after its last change, merged by id, `remove` removes one; `since` is the
+  day its development began – a month, YYYY-MM, when the stories give no day –, and the input says under each page what
+  the stories say of its beginning, `began_in`, 20/10). **A fact box
   holds a number of news value only – the event's size as a whole – and a page may have none** (19/10, the owner:
   'enten findes bedre faktatal ellers ingen skal vises. dette skal være en generel regel'; `FACT_RULE`): the tool never
   asks for boxes because the stories carry numbers (that demand made weak boxes). Every number in a fact's
@@ -295,7 +297,8 @@ da'wah.
   (Tyrkiet, Iran, Malaysia, USA) are curated. Every central bank's rate decision is of low weight (the owner, 18/10:
   'abstrakt'). Reality only: what happens, where, one factual line on why it matters – never a forecast. **Dates in the
   news (18/10):** `editor.py input` lists, under 'Dates in the news', the stories of the last two days that name a
-  coming day (`date_in`) with an event's word, or a deadline's own word without one (`DEADLINE`, `EVENTISH`), each with
+  coming day (`date_in`; since 20/10 also a weekday or 'tomorrow' read from the story's own day when its sentence speaks
+  of what is to come, `day_named`, `FUTURE`) with an event's word, or a deadline's own word without one (`DEADLINE`, `EVENTISH`), each with
   what the calendar holds on that day; the editor decides on every line (the routine prompt says so).
 - `src/radar/energy.py` (2026-10-17, owner's request: an OSINT page for oil, fuel and the real market; the energy chat was merged into this project's main chat the same day;
   the same day made **the economy page**, the owner: "en femte fane med olie, diesel og benzinpriser … generelle
@@ -436,7 +439,8 @@ da'wah.
     too (`cut_cards`; run.py's `taken` brings it into the pool and past the caps) – and kept in filter.json `learn`
     FILTER_KEEP (14) days, which the radar learns from (`run.learn_misses`, learned.json why 'filter', weight 1.2);
     `wrong` are taken out; `verdict`, `patterns` and `proposals` are its report to the owner (the admin block's 'Radarens
-    filter', `filterHtml`); `rules` its own. Its memo calls the front-page editor's update. Public prompt:
+    filter', `filterHtml`); `rules` its own; `calendar` – the planned events the stories out of Live name (its input lists
+    the calendar and their 'Dates in the news', 20/10: the Doha defence pact). Its memo calls the front-page editor's update. Public prompt:
     docs/hjerne/routine-filter-prompt.md.
   - `trig_01A5Nc5cQACxsN2mpYAqymwE` caretaker: daily 04:30 UTC, repairs/disables feeds in config/feeds.json,
     appends a line to docs/radar-status.md.
@@ -482,9 +486,8 @@ da'wah.
   reload (`VFRESH` cal 30 min, kal 10 min; an unchanged file draws nothing; the page's `SIG` holds its choices). In the
   front page's Economist manner: a red fly title 'Kalender' and one Source Serif 4 line naming what comes next ('Næste:
   Midtvejsvalg i USA om 17 dage'), then 'Aktuelt' (since 20/10, the owner: 'Hele oktober måned er nærmest under "sker
-  snart" … gøre det til aktuelt, for ting der sker eller er under udvikling': the events of today and those under way,
-  then – under Alle – the event pages under way as rows, `calEvRow`, a tap to the page; 'Næste' names one from tomorrow
-  on), then month by month under sticky month headers, and 'Tidligere' (the last 30 days) folded at the foot. A row:
+  snart" … gøre det til aktuelt, for ting der sker eller er under udvikling', then 'kun planlagte møder osv.': the planned
+  events of today and those under way – no event pages; 'Næste' names one from tomorrow on), then month by month under sticky month headers, and 'Tidligere' (the last 30 days) folded at the foot. A row:
   the day large in tabular figures and the weekday small (a month only: its name), the title, one quiet line – the
   kind with its calm dot (`--c-valg` … each light and dark; red only for an event today or tomorrow, `.ck.near`), the
   place, 'til …', 'forventet' –; a tap opens it in place (one at a time): the why, 'Kilde ›', Del · Kopiér and up to three

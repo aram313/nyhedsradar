@@ -73,7 +73,7 @@ def test_danish_politics_is_shown_and_everyday_news_is_not(tmp_path, monkeypatch
     monkeypatch.setattr(run, 'Translator', NoTranslator)
     monkeypatch.setattr(run.feedback, 'pull', lambda since: ([], since))
     items = [make_item(1, 'Regeringen vil stramme reglerne for statsborgerskab markant', 'DR Politik')]
-    items += [make_item(10 + i, f'Vejret bliver {w} og blæsende i weekenden', 'TV 2 Fyn')
+    items += [make_item(10 + i, f'Vejret bliver {w} og blæsende i weekenden', 'TV 2 Kosmopol')   # a regional station (TV 2 Fyn left the sources 20/10)
               for i, w in enumerate(['koldt', 'vådt', 'gråt', 'mildt', 'køligt', 'klamt'])]
     items += [make_item(20 + i, f'Mand anholdt efter indbrud i {by} i nat', 'TV 2 Nord')
               for i, by in enumerate(['Aalborg', 'Hjørring', 'Skagen', 'Thisted', 'Brønderslev'])]

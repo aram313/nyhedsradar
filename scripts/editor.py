@@ -1841,6 +1841,7 @@ FILTER_KEEP = 14         # days a miss is kept for the radar to learn from
 FILTER_RULES = 30        # its own rules
 FILTER_REPORTS = 14      # its earlier verdicts, for the owner
 FILTER_TEXT, FILTER_WHY, FILTER_NOTES = 600, 200, 8
+FILTER_DATES = 40        # dates the discarded stories name, at most
 FILTER_TEMPLATE = {
     'filter': {
         'verdict': '<two or three plain Danish sentences to the owner: how well the radar filtered this window, and the '
@@ -1857,6 +1858,9 @@ FILTER_TEMPLATE = {
                    'rule': '<a rule for your own weighing next time, drawn from what you found>', 'why': '<optional>'}]},
     'titles': [{'id': '<a miss without a Danish headline>', 'title': '<an informative Danish headline: who did or said what, '
                                                                      'where – a statement, never a teaser>'}],
+    'calendar': [{'date': 'YYYY-MM-DD (or YYYY-MM with "approx": true)', 'title': '<what happens, in Danish: reality only>',
+                  'kind': ' | '.join(CAL_KINDS), 'place': '<the country or city>', 'why': '<one factual line: why it matters – '
+                  'never a forecast>', 'ids': ['<the story ids it comes from>'], 'weight': '<3, 2 or leave out>'}],
     'memo': {'by': FILTER, 'text': '<optional – to the front-page and senior editors: what you took in and where it may '
                                    'belong (a list, an event page – widened, when a development reaches more countries –, '
                                    'Kort nyt by a pick)>'},
@@ -1989,6 +1993,15 @@ def filter_input(args, now):
     out += [filter_card(i) for i in cut[:room]]
     if len(cut) > room:
         out.append(f"(+{len(cut) - room} more, ranked lowest, not listed)")
+    # the planned events the discarded stories name (20/10: Anadolu's 'expected to be signed Wednesday' – the four states'
+    # defence pact in Doha – was cut before the pool, so no editor saw its day): every story of the last two days out of
+    # Live, whatever this run's window
+    cal_now, kal_now = read(args, 'origin/data', 'calendar.json', {}), read(args, 'origin/digest', 'kalender.json', {})
+    out += ['']
+    out += calendar_lines(cal_now, kal_now, now)
+    later_out = [i for i in [*below, *cut] if in_48h(i, now)]
+    older = discarded(data, raw, now - timedelta(hours=48), since)
+    out += news_dates([*later_out, *older[0], *older[1]], cal_now, kal_now, now, most=FILTER_DATES)
     out += ['', '## Write /tmp/editor/update.json in exactly this shape (UTF-8 JSON)', '',
             json.dumps(FILTER_TEMPLATE, ensure_ascii=False, indent=1)]
     WORK.mkdir(parents=True, exist_ok=True)
@@ -2176,7 +2189,8 @@ def cmd_input(args):
     evt_now = read(args, 'origin/digest', 'events.json', {'items': []})
     find_any = {**resolver([*pool, *items]), **wire_stories(lines)}.get
     out += event_pages.lines(evt_now, now, find_any, headline, teaser_of, development(moves, now),
-                             read(args, 'origin/data', 'places.json', {}).get('places') or {})
+                             read(args, 'origin/data', 'places.json', {}).get('places') or {},
+                             [*pool, *items, *(read(args, 'origin/data', 'items.json', {}) or {}).values()])
     out += event_pages.great_lines(great_groups(pool, evt_now.get('items') or [], now), headline, teaser_of)
     out += [f'## Al Jazeera wire lines since the last update – {len(wire)}, oldest first', '',
             'Fields: [id] Danish date and time · Arabic original (machine English, only a hint)', '']
@@ -2991,7 +3005,46 @@ DEADLINE = re.compile(r'\b(?:frist(?:en)?|udløber|ultimatum|deadline|expire[sd]
                       r'inden for \d+ (?:dage|timer)|within \d+ (?:days|hours)|senest (?:den|på)|no later than)\b', re.I)
 EVENTISH = re.compile(r'\b(?:høring(?:en)?|hearing|topmøde(?:t)?|summit|møde(?:t)?|meeting|talks|forhandling(?:er)?|'
                       r'referendum|valg(?:et)?|election|retssag|trial|afstemning|truce|våbenhvile(?:n)?|ceasefire|'
-                      r'aftale(?:n)?|deal|agreement|sanktion(?:er)?|sanctions?|told(?:en)?|tariffs?)\b', re.I)
+                      r'aftale(?:n)?|deal|agreement|sanktion(?:er)?|sanctions?|told(?:en|satser?|mur)|told på|tariffs?|'
+                      r'pact|pagt(?:en)?|memorandum|sign(?:s|ed|ing)?|ink|underskriv\w*|visit(?:s)?|besøg(?:er)?|'
+                      r'conference|konference(?:n)?|forum)\b', re.I)
+# a coming weekday or tomorrow, read from the story's own day (20/10, the owner: 'hvordan har vi misset mødet i doha på
+# onsdag?' – Anadolu: 'expected to be signed Wednesday'): a weekday never after 'last', 'past' or 'sidste'
+WEEKDAYS = (('mandag', 'monday', 'الاثنين'), ('tirsdag', 'tuesday', 'الثلاثاء'), ('onsdag', 'wednesday', 'الأربعاء'),
+            ('torsdag', 'thursday', 'الخميس'), ('fredag', 'friday', 'الجمعة'), ('lørdag', 'saturday', 'السبت'),
+            ('søndag', 'sunday', 'الأحد'))
+WEEKDAY = re.compile(r'(?<!\blast )(?<!\bpast )(?<!\bsidste )(?<!\bforrige )\b(' + '|'.join(w for d in WEEKDAYS for w in d[:2]) + r')\b'
+                     r'|(' + '|'.join(d[2] for d in WEEKDAYS) + r')', re.I)
+TOMORROW = re.compile(r'\b(?:i morgen|tomorrow)\b|غدا', re.I)
+# a weekday names a coming day only in a sentence that speaks of what is to come ('to be signed Wednesday', 'skal på
+# onsdag', 'set to meet on Thursday'); 'on Monday, police said' is a day just passed
+FUTURE = re.compile(r'\b(?:will|shall|to be|is to|are to|to (?:visit|sign|hold|meet|begin|start|open|host|attend|travel|vote|'
+                    r'decide|announce|discuss|kick off|take part)|expected|set to|scheduled|planned|due|next|upcoming|ahead of|'
+                    r'kicks? off|skal|vil|ventes|forventes|planlagt|næste|kommende|'
+                    r'på (?:mandag|tirsdag|onsdag|torsdag|fredag|lørdag|søndag))\b|سوف|المقبل|القادم|المقبلة|القادمة', re.I)
+
+
+def sentence_at(text, k):   # the sentence of text around position k
+    start = max(text.rfind('. ', 0, k), text.rfind(' · ', 0, k), text.rfind('! ', 0, k), text.rfind('? ', 0, k))
+    ends = [e for e in (text.find('. ', k), text.find(' · ', k)) if e >= 0]
+    return text[start + 1 if start >= 0 else 0:min(ends) if ends else len(text)]
+
+
+def day_named(text, base, today):
+    """The coming day a story names by its weekday ('on Wednesday') or as tomorrow, counted from the story's own day
+    `base`: within its week, today or later; else None."""
+    if not base:
+        return None
+    m = next((m for m in WEEKDAY.finditer(text or '') if FUTURE.search(sentence_at(text, m.start()))), None)
+    if m:
+        name = (m.group(1) or m.group(2)).lower()
+        k = next(n for n, d in enumerate(WEEKDAYS) if name in d)
+        d = base + timedelta(days=(k - base.weekday()) % 7)
+        return d if d >= today else None
+    if TOMORROW.search(text or ''):
+        d = base + timedelta(days=1)
+        return d if d >= today else None
+    return None
 
 
 def date_in(text, today):
@@ -3017,7 +3070,7 @@ def date_in(text, today):
     return None
 
 
-def news_dates(stories, cal, kal, now, titles=None):
+def news_dates(stories, cal, kal, now, titles=None, most=None):
     """Lines for the input: stories naming a coming day or a deadline, the day if one is named, and what the calendar
     holds then ('kalenderen har: …' or 'ikke i kalenderen')."""
     today = dk(now).date()
@@ -3032,6 +3085,9 @@ def news_dates(stories, cal, kal, now, titles=None):
         d = date_in(text, today)
         if d == today:
             d = None   # today's day is mostly the story's own dateline
+        if d is None:   # 'on Wednesday', 'tomorrow' – from the story's own day (20/10); today's is under way
+            d = day_named(text, dk(ts(i.get('published') or i['found'])).date(), today)
+            d = None if d == today else d
         cue = DEADLINE.search(text) or (EVENTISH.search(text) if d else None)
         if not cue:
             continue   # a day without a deadline's or an event's word is a figure or a dateline
@@ -3044,11 +3100,12 @@ def news_dates(stories, cal, kal, now, titles=None):
     rows.sort()
     if not rows:
         return []
-    return [f'## Dates in the news – {min(len(rows), NEWS_DATES_MAX)} stories of the last two days that name a coming day or a deadline',
+    most = most or NEWS_DATES_MAX
+    return [f'## Dates in the news – {min(len(rows), most)} stories of the last two days that name a coming day or a deadline',
             '', 'Decide on every line: a planned event of weight the calendar lacks goes into "calendar" (its date, a title that',
             'says what happens, kind, place, a factual why, the story ids); a line that is no planned event (a day already',
             'passed, an anniversary, a figure) is skipped without a word. The first lines name a day the calendar lacks.', '',
-            *[r[2] for r in rows[:NEWS_DATES_MAX]], '']
+            *[r[2] for r in rows[:most]], '']
 
 
 def digest_head():

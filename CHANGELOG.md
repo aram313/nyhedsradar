@@ -9,6 +9,27 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **21 sources removed** (2026-10-20, the owner: 'Har vi måske for mange kilder …' – then 'Ja fjern dem'). Over three
+  days none of their ~600 articles a day reached Live: four regional TV stations (TV 2 Øst, TV 2 Østjylland, TV Syd, TV 2
+  Fyn), seven large state or regional agencies (AllAfrica, APP, WAM, Yonhap, AKIpress, Antara, QNA), three duplicate
+  searches (Reuters' and AP's on Google News, now that Reuters comes direct; the Danish deadlines' scout) and seven
+  nearly silent feeds (Libya Review, Libya Herald, France 24, Myanmar Now, DR Regionale, Politiken Indland, Ekstra Bladet
+  Nyheder). 122 sources remain; the governments' channels wait for the filter editor's view.
+- **A weekday is a date in the news** (2026-10-20, the owner: 'hvordan har vi misset mødet i doha på onsdag?'). Anadolu's
+  'expected to be signed Wednesday' (Türkiye, Qatar, Pakistan and Indonesia's defence pact in Doha) was cut before the
+  pool, and 'Dates in the news' knew only '21 October', never 'Wednesday'. `editor.day_named` reads a weekday or
+  'tomorrow' from the story's own day when its sentence speaks of what is to come (`FUTURE`: 'to be signed', 'skal på
+  onsdag'); the event words know a signing, a pact, a visit, a conference ('told' only as the Danish tariff). The filter
+  editor's input lists the calendar and the dates every story out of Live names (40 lines), and its update may add them
+  to the calendar.
+- **An event page counts from when its development began** (2026-10-20, the owner: 'Kaos i frankrig siger det har varet i
+  4 dage, men protesterne er vel længere tid end det ?'). The page counted from the weekend's riots, while its stories
+  say the protests began a month before at the high schools. The input says under each page what the stories – its own
+  and the others naming its places – say of its beginning (`events.began_in`, `named_here`; a beginning with its time
+  first); `since` may be a month (YYYY-MM: 'I gang siden september'), never a day ahead; the editors' prompts say so.
+- **Kalender's 'Aktuelt' holds planned events only** (2026-10-20, the owner: 'Under kalender skal der ikke være
+  begivenheder under aktuelt, kun planlagte møder osv.'): the event pages under way are gone from it (`calEvRow`
+  removed); today's planned events and those lasting through today stay.
 - **The filter editor** (2026-10-20, the owner, on Italy's protests – 'Hvorfor er det der sker i italien ikke engang en
   fodnote?' – and then: 'Jeg synes at der skal være en redaktør, som læser alle kasserede historier og vejer dem mod
   hjernen og ser om radaren filtrerer rigtigt'). Italy's unrest was told by AFP, Xinhua, the Guardian, Al Mayadeen and

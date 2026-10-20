@@ -1003,3 +1003,16 @@ def test_the_filter_editor_reads_what_the_radar_left_out_and_takes_its_misses_in
     assert editor.filter_since({'at': at(10)}, now) == now - timedelta(hours=10)
     assert editor.filter_since({'at': at(2)}, now) == now - timedelta(hours=8)
     assert editor.runner({'filter': {'verdict': 'x'}}, now) == 'filterredaktør'
+
+
+def test_a_weekday_names_a_coming_day_when_the_sentence_speaks_of_what_is_to_come():
+    # 20/10, the owner: 'hvordan har vi misset mødet i doha på onsdag?' – Anadolu: 'expected to be signed Wednesday'
+    from datetime import date
+    mon, tue = date(2026, 10, 19), date(2026, 10, 20)
+    text = 'Memorandum of understanding between Türkiye, Qatar, Pakistan and Indonesia expected to be signed Wednesday'
+    assert editor.day_named(text, tue, tue) == date(2026, 10, 21)
+    assert editor.day_named('Ministrene mødes på onsdag i Doha', mon, tue) == date(2026, 10, 21)
+    assert editor.day_named('On Monday, police said three were arrested', tue, tue) is None       # a day just passed
+    assert editor.day_named('The crown prince is to begin a visit to Greece tomorrow', tue, tue) == date(2026, 10, 21)
+    assert editor.EVENTISH.search(text) and not editor.EVENTISH.search('the coach told reporters')
+

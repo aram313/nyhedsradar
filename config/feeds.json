@@ -200,15 +200,6 @@
   "fit": 1.15
  },
  {
-  "name": "France 24",
-  "lang": "en",
-  "url": "https://www.france24.com/en/middle-east/rss",
-  "group": "west",
-  "sec": "me",
-  "camp": "fr",
-  "fit": 1.05
- },
- {
   "name": "DW",
   "lang": "en",
   "url": "https://rss.dw.com/rdf/rss-en-world",
@@ -335,16 +326,6 @@
   "sec": "world",
   "camp": "uk",
   "fit": 1.05
- },
- {
-  "name": "AP",
-  "lang": "en",
-  "type": "gnews",
-  "query": "site:apnews.com when:1d",
-  "group": "west",
-  "sec": "world",
-  "camp": "us",
-  "fit": 1.0
  },
  {
   "name": "Times of Israel",
@@ -481,28 +462,6 @@
   "fit": 0.95
  },
  {
-  "name": "DR Regionale",
-  "lang": "da",
-  "outlet": "DR",
-  "url": "https://www.dr.dk/nyheder/service/feeds/regionale",
-  "group": "dk",
-  "sec": "dk",
-  "label": "DR",
-  "camp": "dk",
-  "fit": 0.8
- },
- {
-  "name": "Politiken Indland",
-  "lang": "da",
-  "outlet": "Politiken",
-  "url": "https://politiken.dk/rss/indland.rss",
-  "group": "dk",
-  "sec": "dk",
-  "label": "Politiken",
-  "camp": "dk",
-  "fit": 0.85
- },
- {
   "name": "Politiken Udland",
   "lang": "da",
   "outlet": "Politiken",
@@ -514,36 +473,6 @@
   "fit": 0.85
  },
  {
-  "name": "Ekstra Bladet Nyheder",
-  "lang": "da",
-  "outlet": "Ekstra Bladet",
-  "url": "https://ekstrabladet.dk/rssfeed/nyheder/",
-  "group": "dk",
-  "label": "Ekstra Bladet",
-  "camp": "dk",
-  "fit": 0.8
- },
- {
-  "name": "TV 2 Øst",
-  "lang": "da",
-  "url": "https://www.tv2east.dk/rss",
-  "group": "dk",
-  "sec": "dk",
-  "outlet": "TV 2 regionalt",
-  "camp": "dk",
-  "fit": 0.7
- },
- {
-  "name": "TV 2 Fyn",
-  "lang": "da",
-  "url": "https://www.tv2fyn.dk/rss",
-  "group": "dk",
-  "sec": "dk",
-  "outlet": "TV 2 regionalt",
-  "camp": "dk",
-  "fit": 0.7
- },
- {
   "name": "TV 2 Nord",
   "lang": "da",
   "url": "https://www.tv2nord.dk/rss",
@@ -552,26 +481,6 @@
   "outlet": "TV 2 regionalt",
   "camp": "dk",
   "fit": 0.7
- },
- {
-  "name": "TV 2 Østjylland",
-  "lang": "da",
-  "url": "https://www.tv2ostjylland.dk/rss",
-  "group": "dk",
-  "sec": "dk",
-  "outlet": "TV 2 regionalt",
-  "camp": "dk",
-  "fit": 0.7
- },
- {
-  "name": "TV Syd",
-  "lang": "da",
-  "url": "https://www.tvsyd.dk/rss",
-  "group": "dk",
-  "sec": "dk",
-  "outlet": "TV 2 regionalt",
-  "camp": "dk",
-  "fit": 0.6
  },
  {
   "name": "TASS",
@@ -818,18 +727,6 @@
   "fit": 1.05
  },
  {
-  "name": "APP",
-  "label": "Associated Press of Pakistan",
-  "lang": "en",
-  "url": "https://www.app.com.pk/feed/",
-  "group": "official",
-  "camp": "pk",
-  "voice": "officiel",
-  "sec": "world",
-  "scale": false,
-  "fit": 0.8
- },
- {
   "name": "Ariana News",
   "lang": "en",
   "url": "https://www.ariananews.af/feed/",
@@ -838,26 +735,6 @@
   "sec": "world",
   "scale": false,
   "fit": 1.05
- },
- {
-  "name": "AKIpress",
-  "lang": "en",
-  "url": "https://akipress.com/rss/news_en.rss",
-  "group": "east",
-  "camp": "central_asia",
-  "sec": "world",
-  "scale": false,
-  "fit": 0.8
- },
- {
-  "name": "AllAfrica",
-  "lang": "en",
-  "url": "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf",
-  "group": "west",
-  "camp": "au",
-  "sec": "world",
-  "scale": false,
-  "fit": 1.0
  },
  {
   "name": "WAFA",
@@ -901,16 +778,6 @@
   ]
  },
  {
-  "name": "Antara",
-  "lang": "en",
-  "url": "https://en.antaranews.com/rss/news.xml",
-  "group": "mena",
-  "camp": "id",
-  "sec": "world",
-  "scale": false,
-  "fit": 0.85
- },
- {
   "name": "SVT Nyheter",
   "lang": "sv",
   "url": "https://www.svt.se/nyheter/rss.xml",
@@ -951,19 +818,6 @@
   "fit": 1.15
  },
  {
-  "name": "Reuters seneste time",
-  "label": "Reuters",
-  "outlet": "Reuters",
-  "lang": "en",
-  "type": "gnews",
-  "query": "site:reuters.com when:1h",
-  "locale": "en-US:US",
-  "group": "west",
-  "sec": "world",
-  "camp": "uk",
-  "fit": 1.1
- },
- {
   "name": "AP seneste time",
   "label": "AP",
   "outlet": "AP",
@@ -998,32 +852,6 @@
   "sec": "world",
   "camp": "us",
   "fit": 1.1
- },
- {
-  "name": "QNA",
-  "label": "Qatar News Agency",
-  "lang": "en",
-  "url": "https://qna.org.qa/en/Pages/RSS-Feeds/Qatar",
-  "group": "official",
-  "voice": "officiel",
-  "scale": false,
-  "camp": "qa",
-  "sec": "me",
-  "fit": 1.0
- },
- {
-  "name": "WAM",
-  "label": "WAM (Emiraterne)",
-  "lang": "en",
-  "type": "gnews",
-  "query": "site:wam.ae when:1d",
-  "locale": "en-US:US",
-  "group": "official",
-  "voice": "officiel",
-  "scale": false,
-  "camp": "ae",
-  "sec": "me",
-  "fit": 0.6
  },
  {
   "name": "SIS Egypt",
@@ -1361,16 +1189,6 @@
   "fit": 0.9
  },
  {
-  "name": "Libya Herald",
-  "lang": "en",
-  "url": "https://libyaherald.com/feed/",
-  "group": "mena",
-  "sec": "me",
-  "camp": "ly",
-  "scale": false,
-  "fit": 0.7
- },
- {
   "name": "Dabanga",
   "lang": "en",
   "url": "https://www.dabangasudan.org/en/feed",
@@ -1378,16 +1196,6 @@
   "camp": "sd",
   "scale": false,
   "fit": 0.7
- },
- {
-  "name": "Yonhap",
-  "lang": "en",
-  "url": "https://en.yna.co.kr/RSS/news.xml",
-  "group": "east",
-  "sec": "world",
-  "camp": "kr",
-  "scale": false,
-  "fit": 0.6
  },
  {
   "name": "Ukrinform",
@@ -1490,17 +1298,6 @@
   ]
  },
  {
-  "name": "Libya Review",
-  "label": "Libya Review",
-  "lang": "en",
-  "url": "https://libyareview.com/feed/",
-  "group": "mena",
-  "camp": "ly",
-  "sec": "me",
-  "scale": false,
-  "fit": 0.85
- },
- {
   "name": "North Press Agency",
   "label": "North Press",
   "lang": "en",
@@ -1530,17 +1327,6 @@
   "group": "mena",
   "camp": "krd",
   "sec": "me",
-  "scale": false,
-  "fit": 0.9
- },
- {
-  "name": "Myanmar Now",
-  "label": "Myanmar Now",
-  "lang": "en",
-  "url": "https://myanmar-now.org/en/feed/",
-  "group": "west",
-  "camp": "mm",
-  "sec": "world",
   "scale": false,
   "fit": 0.9
  },
@@ -1608,19 +1394,6 @@
   "locale": "en-US:US",
   "group": "west",
   "sec": "world",
-  "fit": 0.9
- },
- {
-  "name": "Scout · frister DK",
-  "label": "Google News",
-  "lang": "da",
-  "type": "gnews",
-  "scout": true,
-  "scale": false,
-  "query": "(frist OR udløber OR afstemning OR topmøde OR finanslov) (regeringen OR Folketinget OR EU) when:1d",
-  "locale": "da-DK:DK",
-  "group": "dk",
-  "sec": "dk",
   "fit": 0.9
  }
 ]

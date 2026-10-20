@@ -9,7 +9,9 @@ events.json on the digest branch: {'updated', 'items': [event]}. An event, as an
   title     what is happening, in Danish (at most TITLE characters): 'Uroligheder i Frankrig'
   kicker    the small label over it: where or what (at most KICKER): 'Frankrig'
   status    'i gang' (under way), 'kommende' (ahead: a vote, a summit – with 'date') or 'afsluttet' (over)
-  since     YYYY-MM-DD, the day it began (i gang, afsluttet); date: YYYY-MM-DD, the day it happens (kommende)
+  since     YYYY-MM-DD, the day its development began (i gang, afsluttet) – YYYY-MM when the stories give only the
+            month (20/10: 'Kaos i Frankrig' counted 4 days from the weekend's riots, while its stories say the protests
+            began a month before at the high schools); date: YYYY-MM-DD, the day it happens (kommende)
   dek       one factual line of what is happening and why it matters (at most DEK) – reality, never a forecast
   facts     at most FACTS boxes: {label, value, note, ids} – 'Demonstranter' · '550.000' · 'ifølge indenrigsministeriet';
             numbers of news value only (FACT_RULE; the owner, 19/10: 'faktatallene … har ikke nyhedsværdi, derfor skal
@@ -49,6 +51,16 @@ MAX_EVENTS = 5          # events at a time: the great ones, not every story
 EVENT_KEEP = 4          # days an event stays after its last change
 ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,80}$')
 DAY = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+MONTH = re.compile(r'^\d{4}-\d{2}$')
+# what a page's stories say of when its development began ('began last month', 'weeks of protests', 'siden 2. oktober')
+BEGAN = re.compile(r'\b(?:began|begun|started|erupted|broke out|since (?:early |mid-|late )?(?:january|february|march|april|may|'
+                   r'june|july|august|september|october|november|december|\w+day|last)|weeks? of|months? of|for (?:weeks|months)|'
+                   r'(?:second|third|fourth|fifth) week|begyndte|startede|brød ud|siden (?:\d|starten|begyndelsen|januar|februar|'
+                   r'marts|april|maj|juni|juli|august|september|oktober|november|december)|i (?:flere )?uger|ugers)\b', re.I)
+# a beginning with its time ('began last month', 'started in September', 'weeks of protests'): said first
+WHEN = re.compile(r'\b(?:last (?:month|week|year)|ago|in (?:january|february|march|april|may|june|july|august|september|october|'
+                  r'november|december)|on (?:\d|january|february|march|april|may|june|july|august|september|october|november|'
+                  r'december)|weeks?|months?|sidste (?:måned|uge)|siden|for \d+|uger|måneder)\b', re.I)
 NUMBER = re.compile(r'\d+(?:[.,\s]\d{3})*(?:[.,]\d+)?')
 
 
@@ -513,8 +525,10 @@ def events_file(entries, current, find, now, today, problems, voice=None, chosen
                 problems.append(f'{where}: date – YYYY-MM-DD, the day it happens')
             elif date.fromisoformat(day) < today:
                 problems.append(f"{where}: {day} has passed – status 'afsluttet', or remove it")
-        elif since and not DAY.match(since):
-            problems.append(f'{where}: since – YYYY-MM-DD, the day it began')
+        elif since and not (DAY.match(since) or MONTH.match(since)):
+            problems.append(f'{where}: since – YYYY-MM-DD, the day its development began (YYYY-MM when only the month is known)')
+        elif since and since > today.isoformat()[:len(since)]:
+            problems.append(f'{where}: since {since} lies ahead – the day its development began')
         if voice:
             for field, val in (('title', title), ('kicker', kicker)):
                 if val:
@@ -796,7 +810,30 @@ def map_line(e, places):
     return out
 
 
-def lines(current, now, find=None, head=None, teaser=None, development=None, places=None):
+def began_in(stories, head, teaser, most=4):
+    """What a page's stories say of when its development began: up to `most` short sentences ('The protests in France
+    began last month at high schools …')."""
+    found = []
+    for it in stories:
+        texts = [teaser(it) if teaser else '', it.get('summary') or '',
+                 *[x.get('t') or '' for x in it.get('said') or [] if isinstance(x, dict)]]
+        for text in texts:
+            for part in re.split(r'(?<=[.!?])\s+', str(text or '')):
+                m = BEGAN.search(part)
+                if m and part.strip()[:160] not in [f[1] for f in found]:
+                    found.append((0 if WHEN.search(part) else 1, part.strip()[:160]))
+    return [t for _, t in sorted(found, key=lambda f: f[0])[:most]]
+
+
+def named_here(e, stories):
+    """The radar's other stories that name a page's places or its kicker (an outlet's article on the same development
+    that the page does not list)."""
+    names = [n for n in [*(e.get('places') or []), e.get('kicker') or ''] if len(n) >= 4]
+    rx = re.compile(r'\b(?:' + '|'.join(re.escape(n) for n in names) + r')\b', re.I) if names else None
+    return [it for it in stories or [] if rx and rx.search(' '.join(str(it.get(k) or '') for k in ('title', 'summary', 'title_tr')))]
+
+
+def lines(current, now, find=None, head=None, teaser=None, development=None, places=None, pool=None):
     """The input's view of the event pages: what each says now, so an update changes only what the news moved – and,
     for a page under way, its stories' material (with find, head and teaser) and its development's lines (development:
     {topic name: [recap lines]}), with the counts there the boxes do not show yet."""
@@ -826,6 +863,10 @@ def lines(current, now, find=None, head=None, teaser=None, development=None, pla
         if places is not None and map_line(e, places):
             out.append(map_line(e, places))
         if find and e.get('status') == 'i gang':
+            own = [it for it in (find(x) for x in e.get('stories') or []) if it]
+            began = began_in([*own, *named_here(e, [it for it in pool or [] if it not in own])], head, teaser)
+            out.append(f"    Since {e.get('since') or '–'}: the day its development began, not its latest turn – "
+                       + (f"its stories say: {' | '.join(began)}" if began else 'its stories say nothing of its beginning'))
             told = [it for it in (find(x) for x in (e.get('stories') or [])[:4]) if it]
             for it in told:
                 out.append(f"    [{it['id']}] {it.get('outlets') or 1} outlets · {it.get('source') or '?'} · {head(it)}")

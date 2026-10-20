@@ -63,7 +63,8 @@ def test_a_scout_keeps_the_outlet_google_names():
     import json
     src = json.loads((Path(__file__).resolve().parents[1] / 'config' / 'feeds.json').read_text(encoding='utf-8'))
     scouts = [f for f in src if f.get('scout')]
-    assert len(scouts) >= 4 and all(f['type'] == 'gnews' and f.get('scale') is False and 'when:1d' in f['query'] for f in scouts)
+    # four scouts until 20/10, when the Danish deadlines' search (nothing found in three days) left with the noise
+    assert len(scouts) >= 3 and all(f['type'] == 'gnews' and f.get('scale') is False and 'when:1d' in f['query'] for f in scouts)
 
 
 def test_an_outlets_news_sitemap_gives_its_newest_articles_of_the_sections_we_follow():

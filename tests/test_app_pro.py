@@ -387,3 +387,10 @@ def test_live_is_one_list_whose_rows_show_their_weight():
     assert re.search(r'\.story\.tick\.w2 > \.row::after \{[^}]*width: 3px; background: var\(--red-deep\)', RULES)   # a darker edge, no ground
     # 'Topnyhed' is now 'Høj betydning', in the rows, the notifications' switch and the screen reader's label
     assert "'<span class=\"big\">Høj betydning</span>'" in fn('meta') and 'Topnyhed' not in INDEX
+
+
+def test_an_event_under_way_since_a_month_says_the_month():
+    # 20/10: a page whose stories give only the month it began ('began last month') says 'I gang siden september'
+    st = fn('evState')
+    assert "e.since.length === 7" in st and 'I gang siden ${' in st and 'I gang · dag ${d}' in st
+
