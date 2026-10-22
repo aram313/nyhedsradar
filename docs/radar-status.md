@@ -12,3 +12,4 @@
 - 2026-10-19: Radaren kører. Seneste kørsel 06:36 dansk tid. 143 kilder, 1 i stykker: ONA (Oman News Agency) har fejlet 538 kørsler i træk og kan ikke testes fra sandboxen – sat til disabled. Enab Baladi, US Treasury og Scout · frister DK har 0 emner (ok). Danmark 79 · Mellemøsten 254 · Verden 378. (2 stats-tests fejler i sandboxen pga. pyo3/cryptography, uafhængigt af feeds.)
 - 2026-10-20: Alt kører. Seneste kørsel 04:37 UTC. 142 kilder, 0 i stykker (Scout · frister DK har 0 emner, men svarer). Danmark 79 · Mellemøsten 288 · Verden 546.
 - 2026-10-21: Alt kører. Seneste kørsel 04:36 UTC. 121 kilder, 0 i stykker. Danmark 90 · Mellemøsten 349 · Verden 555.
+- 2026-10-22: Alt kører. Seneste kørsel 04:36 UTC. 121 kilder, 0 i stykker. Danmark 105 · Mellemøsten 395 · Verden 658.
