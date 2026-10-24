@@ -1,0 +1,1985 @@
+{
+ "at": "2026-10-24T15:41:36+00:00",
+ "verdict": "Radaren holdt dagens hovedspor, men lod igen stormagternes handlinger med få artikler falde: forhandlingernes sted, den brudte Oleshky-våbenhvile, Kinas krav om USA's investeringsbegrænsninger og de 24 Patriot-missiler. Det tungeste mis er USA og Iran: Irans advarsel mod krigsskibene, hangarskibet i Det Arabiske Hav og USA's rejsevejledninger for hele regionen. Uroen i Milano og Tirana kom kun i stykker.",
+ "misses": [
+  {
+   "id": "b350b8f13378473a",
+   "title": "Rusland og Ukraine beskylder hinanden for natlige angreb trods lokal våbenhvile",
+   "source": "Anadolu",
+   "why": "Våbenhvilen ved Oleshky, som USA mæglede, brydes – 6 medier, kun 2 under linjen",
+   "tier": 1,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "69461c9effdafc42",
+   "title": "Forhandlinger mellem Ukraine, USA og Rusland kan holdes i Abu Dhabi eller Schweiz",
+   "source": "Ukrainska Pravda",
+   "why": "Stedet for trepartsforhandlingerne USA-Rusland-Ukraine: Abu Dhabi eller Schweiz (4 medier)",
+   "tier": 1,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "70840c0a53e06be0",
+   "title": "Moskva vil have Europas sikkerhed gennemgået i samtalerne med USA's udsendinge",
+   "source": "Kyiv Post",
+   "why": "Moskva vil have Europas sikkerhed på bordet i samtalerne med USA's udsendinge",
+   "tier": 1,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "e0d4de55cd3ab0c5",
+   "title": "Kina opfordrer USA til at standse de udvidede begrænsninger på investeringer i udlandet",
+   "source": "Reuters",
+   "why": "Kina kræver, at USA standser nye begrænsninger på investeringer – USA-Kina teknologi (3 medier)",
+   "tier": 1,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "88cefebf95cc9ad5",
+   "title": "Trump søger samtaler med Kim Jong-un forud for APEC-topmødet",
+   "source": "The New Nation",
+   "why": "Trump søger samtaler med Kim før APEC, mens Kim er i Kina",
+   "tier": 1,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "3451c6a9097de651",
+   "title": "Iran: Vi lader ikke amerikanske krigsskibe komme tæt på, mens Trump overvejer nye angreb",
+   "source": "Al Jazeera",
+   "why": "Iran advarer amerikanske krigsskibe, mens Trump overvejer nye angreb (også IRGC og Al Jazeera arabisk)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "737aa9a24eb7c3f6",
+   "title": "Hangarskibet USS George Washington ruster sig i Det Arabiske Hav",
+   "source": "سكاي نيوز عربية",
+   "why": "USA's hangarskib George Washington i Det Arabiske Hav forud for et muligt angreb på Iran",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "5c9969e92911763a",
+   "title": "USA udsender rejsevejledninger for hele Mellemøsten med henvisning til trusler fra houthierne",
+   "source": "Al-Monitor",
+   "why": "USA udsender rejsevejledninger for hele Mellemøsten (3 medier; også Irak og Jordan)",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "329f0d99977f6ad3",
+   "title": "Pezeshkian giver USA skylden for den midlertidige aftales sammenbrud og vil have nye forsøg",
+   "source": "Reuters",
+   "why": "Pezeshkian giver USA skylden for den midlertidige aftales sammenbrud",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "a4c798375c45cbeb",
+   "title": "Zelenskyj: Ukraine har kun fået 24 Patriot-missiler fra USA på tre måneder",
+   "source": "Ukrainska Pravda",
+   "why": "Næste trin i USA's nedskæring: kun 24 Patriot-missiler på tre måneder",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "49a1ebea0e548efe",
+   "title": "Ukraine melder om stabil forbindelse til vigtigt satellitsystem",
+   "source": "BT",
+   "why": "Starlink genoprettet i Ukraine – 13 medier, 12 under linjen",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "62970e3a9f9715b8",
+   "title": "Barrack anklager druzisk sheik for at udnytte “israelsk” støtte, mens vejen til Damaskus lukkes",
+   "source": "الجزيرة",
+   "why": "USA's udsending Barrack anklager druzisk sheik for at udnytte “israelsk” støtte; vejen Suwayda-Damaskus lukket",
+   "tier": 2,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "6a4adc2c0dbc5f45",
+   "title": "Netanyahu skifter “israels” holdning til fordel for Argentina i striden om Falklandsøerne",
+   "source": "Jerusalem Post",
+   "why": "Netanyahu støtter Argentina mod Storbritannien om Falklandsøerne (3 medier)",
+   "tier": 3,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "abf92a1df7b30b8a",
+   "title": "Rusland afviser krav om at evakuere sine specialister fra Irans atomanlæg",
+   "source": "IRNA",
+   "why": "Rusland afviser at trække sine atomspecialister ud af Iran (2 medier)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "90828874b9927697",
+   "title": "Iran-venlige fraktioner i Irak støtter Teheran og anklager USA for at krænke luftrummet",
+   "source": "Rudaw",
+   "why": "Irakiske fraktioner bakker Iran op og anklager USA for luftrumskrænkelser midt i striden om deres våben",
+   "tier": 4,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "a250b5f242a0d94d",
+   "title": "Bagdad mistænker “israel” for at have ramt kinesiske luftforsvarssystemer hos irakiske fraktioner",
+   "source": "Asharq Al-Awsat",
+   "why": "Bagdad mistænker “israel” for angreb på kinesisk luftforsvar hos irakiske fraktioner",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "33504fe0dab9ad87",
+   "title": "Tyrkiet overdrager gradvist basen Bashiqa-Zilkan til Irak",
+   "source": "TRT World",
+   "why": "Tyrkiet overdrager Bashiqa-basen til Irak – udenlandske tropper i Irak",
+   "tier": 7,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "dacafc5d9a57566d",
+   "title": "Hizbollah lover igen ikke at gribe ind til støtte for Teheran",
+   "source": "Asharq Al-Awsat",
+   "why": "Hizbollah lover igen ikke at gribe ind for Iran ved et angreb",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "3e0a6cca8cfe497e",
+   "title": "Over 1.500 palæstinensere drevet fra deres hjem i Hebron siden fredag",
+   "source": "Middle East Eye",
+   "why": "Nyt tal til Vestbredden-siden: over 1.500 drevet ud i Hebron (4 medier)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "fd009bedbd9b02f8",
+   "title": "Melmangel i Gaza efter “israelske” begrænsninger på nødhjælpen",
+   "source": "QudsN",
+   "why": "Melmangel i Gaza efter “israels” begrænsninger på nødhjælpen",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b09ad386508cccb7",
+   "title": "Tyrkiet indleder retssag mod Netanyahu og 34 andre for opbringningen af Sumud-flotillen",
+   "source": "Jerusalem Post",
+   "why": "Tyrkisk retssag mod Netanyahu og 34 andre for opbringningen af flotillen",
+   "tier": 7,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "e1399cf88b6234c5",
+   "title": "Netanyahu foreslår kryptovaluta for at omgå sanktioner",
+   "source": "Al Jazeera",
+   "why": "Netanyahu vil bruge kryptovaluta til at omgå sanktioner",
+   "tier": 7,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "dccde3bf39f0e314",
+   "title": "Otte islamiske og europæiske lande enes om nyt diplomatisk tiltag efter møde i Istanbul",
+   "source": "الجزيرة",
+   "why": "Saudi-Arabien, Egypten, Tyrkiet og Pakistan med europæiske stater om nyt diplomatisk skridt efter Istanbul-mødet (også R4/E4-linjerne)",
+   "tier": 7,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "c9ae23bd8774c430",
+   "title": "Egypten om Tyrkiets og Libyens havaftale: »Blæk på papir«",
+   "source": "Ahram Online",
+   "why": "Egypten afviser Tyrkiets og Libyens havaftale (også SIS og Sky News Arabia)",
+   "tier": 9,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "21b78ffa6efd6d72",
+   "title": "Merz anklager Rusland for at forsøge at destabilisere Tyskland",
+   "source": "Anadolu",
+   "why": "Merz anklager Rusland for at destabilisere Tyskland (3 medier)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b4181b0549afcac2",
+   "title": "Rusland advarer om fast svar, efter at Moldova har udvist en diplomat",
+   "source": "Anadolu",
+   "why": "Rusland truer Moldova efter udvisning af diplomat",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "ed52c7b6300595f3",
+   "title": "Ukrainska Pravda: Rusland finansierede i hemmelighed et gasprojekt i Alaska",
+   "source": "Ukrainska Pravda",
+   "why": "Afsløring: Rusland finansierede i hemmelighed gasprojekt i Alaska",
+   "tier": 8,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "024de60c34398cd1",
+   "title": "EU vil finansiere to tredjedele af Ukraines ekstra behov på 70 mia. euro",
+   "source": "Inkorr",
+   "why": "EU overtager to tredjedele af Ukraines ekstra behov på 70 mia. euro",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "cc7b4b770b1f2449",
+   "title": "ICC's anklager: Domstolen gør store fremskridt trods amerikanske sanktioner",
+   "source": "The Guardian",
+   "why": "ICC arbejder videre trods USA's sanktioner",
+   "tier": 7,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "ef7d31aab3712281",
+   "title": "Kenyas præsident Ruto rejser til topmødet mellem Rusland og Afrika",
+   "source": "www.standardmedia.co.ke",
+   "why": "Rusland samler Afrika til tredje topmøde i Moskva – fortalt i seks stykker",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "7d840957cd2b7838",
+   "title": "Saudi-Arabien opsnapper og ødelægger to ballistiske missiler fra houthierne",
+   "source": "سكاي نيوز عربية",
+   "why": "Houthiernes ballistiske missiler mod Saudi-Arabien; faremeldinger for Mekka og Jeddah (3 medier)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "15a21500392afc8b",
+   "title": "Menneskeretsgruppe: To børn dræbt og tre civile såret i houthiangreb i Taiz",
+   "source": "Anadolu",
+   "why": "Houthiangreb i Taiz dræber to børn – belejringen af Taiz",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "451bf4a5ff884822",
+   "title": "Tusinder demonstrerer i Tyrkiet mod anholdelser af journalister og lukning af medier",
+   "source": "AFP",
+   "why": "Tusinder protesterer i Tyrkiet mod anholdelser af journalister og lukkede medier",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "cd4dcbb52d319ab0",
+   "title": "Sikkerhedsstyrker sat ind i Milano før endnu en dag med protester",
+   "source": "Al Jazeera",
+   "why": "Uroen i Europa: sikkerhedsstyrker i Milano, 150 ransagninger i 21 byer (4 medier)",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "9434b11a4c82efa3",
+   "title": "Demonstranter kaster sten i Tirana, mens studerende slutter sig til protesten mod regeringen",
+   "source": "AP seneste time",
+   "why": "Uroen i Europa: studerende med i protesterne mod regeringen i Tirana",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b78d1231de6cf991",
+   "title": "Ilhan Omar stemmer, mens Trump angriber hende igen under en føderal efterforskning",
+   "source": "Al Jazeera",
+   "why": "Trump angriber igen Ilhan Omar under føderal efterforskning",
+   "tier": 6,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "5129b34a2152c1e5",
+   "title": "Egyptens Dar al-Ifta lancerer global fatwa-platform med over ti millioner fatwaer",
+   "source": "Ahram Online",
+   "why": "Egyptens statslige Dar al-Ifta lancerer global fatwa-platform",
+   "tier": 6,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b5884c7692b6f8da",
+   "title": "Tyskland sælger ud af sine strategiske oliereserver for at dæmpe markederne",
+   "source": "الجزيرة",
+   "why": "Tyskland sælger strategiske oliereserver for at dæmpe markederne under Hormuz-krisen",
+   "tier": 9,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "d00e2ec183f2376d",
+   "title": "Naturgas på højeste pris i fire år",
+   "source": "BT",
+   "why": "Naturgas på højeste pris i fire år – Hormuz-krisen i Danmark",
+   "tier": 9,
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "2d7e71a5502245ef",
+   "title": "306 dræbt af droneangreb i Sudan",
+   "source": "سكاي نيوز عربية",
+   "why": "Sudan: 306 dræbt af droneangreb",
+   "tier": 5,
+   "at": "2026-10-24T15:41:36+00:00"
+  }
+ ],
+ "wrong": [],
+ "patterns": [
+  "USA's skridt mod Iran (hangarskib, rejsevejledninger, svar på Irans advarsler) falder igen, fordi hvert medie fortæller et stykke – 737aa9a24eb7c3f6, 5c9969e92911763a.",
+  "Forhandlingssporet USA-Rusland-Ukraine ligger under linjen, når overskriften nævner sted eller våbenhvile frem for Trump og Putin – 69461c9effdafc42, b350b8f13378473a.",
+  "Starlink-sagen lå igen 12 under linjen med 13 medier: radaren læser den som teknik, ikke som USA's magt over Ukraines krig – 49a1ebea0e548efe.",
+  "Rusland og Afrika-topmødet og R4/E4-mødet i Istanbul kom i fem-seks enkeltartikler fra statsmedier og små kilder, ingen over linjen – ef7d31aab3712281, dccde3bf39f0e314.",
+  "Irak-linjer om udenlandske tropper og fraktionernes våben fra Asharq Al-Awsat, Rudaw og TRT rangerer lavt – a250b5f242a0d94d, 33504fe0dab9ad87."
+ ],
+ "proposals": [
+  "Giv 'aircraft carrier', 'hangarskib', 'travel advisory' og 'evacuat*' med USA i overskriften tier 2 – ville have fanget 737aa9a24eb7c3f6 og 5c9969e92911763a.",
+  "Giv 'Starlink' og 'Starshield' med Ukraine tier 2 (USA's/Musks kontrol med krigen) – ville have fanget 49a1ebea0e548efe.",
+  "Giv 'truce' og 'våbenhvile' med Rusland og Ukraine tier 1, når USA mægler – ville have fanget b350b8f13378473a.",
+  "Giv 'Russia-Africa summit' tier 5 og saml artiklerne om det som én historie – ville have fanget ef7d31aab3712281.",
+  "Giv 'outbound investment' med Kina og USA tier 1 – ville have fanget e0d4de55cd3ab0c5."
+ ],
+ "rules": [
+  {
+   "id": "stormagt-alene",
+   "rule": "Søg hver gang efter USA's, Kinas, Ruslands, Frankrigs og Storbritanniens handlinger med én eller to artikler under linjen (flåde, sanktioner, forbud, baser, aftaler) – de er de hyppigste mis.",
+   "why": "20/10: DeepSeek-forbud, hangarskib, Sabina-revet faldt alle",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "europa-uro",
+   "rule": "Når uro i ét europæisk land står i Live, søg efter samme uro i andre lande (Italien, Portugal, Spanien, Albanien, Belgien, Grækenland, Serbien) og efter staternes efterforskning af udenlandsk indblanding, og tag den stærkeste artikel ind.",
+   "why": "22/10 og 24/10: Milano og Tirana faldt igen",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "udsending-udmelding",
+   "rule": "Amerikanske udsendinges udmeldinger om USA's rolle (Barrack, Witkoff) er politiske handlinger, ikke citater – vej dem som tier 2.",
+   "why": "20/10: Barrack om sikkerhedsgarant og Syrien",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "islam-udland",
+   "rule": "Gennemgå de arabiske linjer fra Quds/Al Jazeera for handlinger mod moskéer, adhan, Al-Aqsa og slør – de kommer sjældent på engelsk.",
+   "why": "20/10: Ben-Gvir mod adhan, Ikrima Sabri",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "begivenhed-tal",
+   "rule": "Søg efter nye tal (dræbte, savnede, fordrevne) til begivenhedssider, som redaktørerne siger mangler en kilde, og tag den stærkeste artikel ind.",
+   "why": "20/10: Shabwa 73 dræbt, 14 savnet faldt, mens Houthi-siden manglede kilde",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "maegling-iran",
+   "rule": "Nye forslag og budskaber gennem mæglerne (Qatar, Pakistan, Oman) mellem USA og Iran er tier 2 og tages ind, når Live ikke har dem.",
+   "why": "20/10: nyt fredsforslag faldt",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "hormuz-iran",
+   "rule": "Søg hver gang efter Araghchis og IRGC's udmeldinger om Hormuz, kabler og forhandlingerne med USA – tag den stærkeste ind, når Live ikke har den.",
+   "why": "21/10: Araghchi om Hormuz og om syvdagesforslaget faldt",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "yemen-stykker",
+   "rule": "Saml Yemen-linjerne (Taiz, Kahbub, Bab el-Mandeb, droner mod Saudi-Arabien, Iraks grænse) og tag de handlinger ind, som Houthi-siden ikke har.",
+   "why": "21/10: saudiske angreb på fiskere og kampene i Kahbub faldt",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "mange-medier-under",
+   "rule": "En historie med 5 eller flere medier under linjen er altid et mis-kandidat – tjek den først.",
+   "why": "21/10: Starlink med 8 medier lå 30 under",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "hijab-stat",
+   "rule": "Søg hver gang efter staters forbud mod hijab og tørklæde (Aserbajdsjan, Irak, Europa, Centralasien) på alle sprog – tier 6, altid ind.",
+   "why": "21/10: Aserbajdsjans skoleforbud og 31 tyrkere nægtet indrejse lå i stykker under linjen",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "skibsangreb",
+   "rule": "Saml UKMTO- og søfartsmeldinger om angreb på skibe ved Hormuz, Oman, Faw og Bab el-Mandeb, og tag den med flest medier ind.",
+   "why": "21/10: fire separate tankskibsangreb, intet i Live",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "krigen-udvides",
+   "rule": "Når en ny stat overvejer at gå ind i en krig (Egypten, Syrien i Yemen), er det tier 4-5 og altid et mis, også med én kilde.",
+   "why": "21/10: AFP om Egypten og MEMO om Syrien faldt",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "nyt-trin",
+   "rule": "Når Live har en historie i en tidligere form, søg efter dens næste trin eller nye tal (flere skibe, et parlament der godkender, en dom) og tag det ind som eget mis.",
+   "why": "22/10: syv tankskibe og Egyptens parlamentsmandat faldt",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "dk-rusland",
+   "rule": "Danske historier om Rusland, forsvar og våbenkøb er dansk udenrigspolitik og skal i Live – søg dem i 'Cut before the pool'.",
+   "why": "22/10: våbenkøb og ambassadebetaling faldt",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "stat-mod-muslimer-udland",
+   "rule": "Søg hver gang efter staters handlinger mod muslimske medier, skoler og ytringer om Palæstina i Storbritannien, Frankrig, Italien og Egypten – tier 6, altid ind.",
+   "why": "22/10: 5Pillars-stemplingen, britiske skoler og Sisis religionsundervisning lå alle under linjen",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "usa-muslimske-politikere",
+   "rule": "Handlinger mod muslimske politikere i USA (Ilhan Omar, Abdul El-Sayed) samles fra alle medier, og den mest informative artikel tages ind.",
+   "why": "22/10: razziaen hos Ilhan Omar i fem artikler, ingen i Live",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "netanyahu-planer",
+   "rule": "Netanyahus og ministrenes udsagn om planer (regimeskifte i Iran, fordrivelse fra Gaza, kontrol, annektering, våben til bosættere) tages ind som eget mis, også fra Clash Report.",
+   "why": "22/10: regimeskifte og fordrivelse faldt",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "usa-tropper",
+   "rule": "Søg hver gang efter USA's troppeflytninger, evakueringer og flådeskridt i Mellemøsten på alle sprog – tier 2, altid ind.",
+   "why": "23/10: 9.000 soldater og evakueringen af diplomatfamilier faldt",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "hebron-foelger",
+   "rule": "Efter et angreb, som Live har, søg efter statens svar (lukninger, spærringer, ministres krav) og tag det ind som eget mis.",
+   "why": "23/10: lukningen af Hebron og Ben-Gvirs krav faldt",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "usa-kina-teknologi",
+   "rule": "Søg hver gang efter USA's tiltag mod Kina i teknologi, forskning, biler og investeringer (Reuters, Global Times, Xinhua, MOFCOM) – tier 1, tag den stærkeste ind.",
+   "why": "23/10: forskningsinstitutioner, bioteknologi og BYD-forbud lå i stykker",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "frankrig-tab",
+   "rule": "Frankrigs handlinger og tab uden for Europa (Algeriet, Irak, Sahel, Libanon) er tier 3 – søg dem også på arabisk.",
+   "why": "23/10: Algeriets eksportstop og forsvarsaftalen med Irak faldt",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "tidligere-hersker",
+   "rule": "Domme over og handlinger mod tidligere herskere (Assad m.fl.) er tier 4 og altid ind.",
+   "why": "23/10: Assads dødsdom lå 30 under",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "atomvaaben",
+   "rule": "Søg hver gang efter atomvåben, udstationering og afskrækkelse (Polen, Tyskland, NATO, Frankrig) – tier 1, altid ind, også fra TASS alene.",
+   "why": "24/10: Polens plan om franske og amerikanske atomvåben lå 37 under",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "irak-tropper",
+   "rule": "Iraks meldinger om udenlandske tropper (USA, Tyrkiet) og fraktionernes våben er tier 2-4 – tag den stærkeste ind.",
+   "why": "24/10: 'ingen amerikanske tropper tilbage' og fraktionsfristen faldt",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "oliepris",
+   "rule": "Olieprisens spring ved en Hormuz-krise (flere medier) tages ind, når Live ikke har prisen.",
+   "why": "24/10: højeste oliepris siden april med 7 medier faldt",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "r4-diplomati",
+   "rule": "Møder mellem Saudi-Arabien, Egypten, Tyrkiet og Pakistan (R4) og med europæiske stater samles, og den stærkeste artikel tages ind – tier 7.",
+   "why": "24/10: Istanbul-mødet lå i fem stykker",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "rusland-afrika",
+   "rule": "Ruslands og Kinas topmøder med Afrika eller Asien samles fra alle små kilder – tag den mest informative ind, tier 5.",
+   "why": "24/10: Rusland-Afrika-topmødet i seks stykker",
+   "since": "2026-10-24"
+  }
+ ],
+ "learn": [
+  {
+   "id": "b350b8f13378473a",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "69461c9effdafc42",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "70840c0a53e06be0",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "e0d4de55cd3ab0c5",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "88cefebf95cc9ad5",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "3451c6a9097de651",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "737aa9a24eb7c3f6",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "5c9969e92911763a",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "329f0d99977f6ad3",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "a4c798375c45cbeb",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "49a1ebea0e548efe",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "62970e3a9f9715b8",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "6a4adc2c0dbc5f45",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "abf92a1df7b30b8a",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "90828874b9927697",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "a250b5f242a0d94d",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "33504fe0dab9ad87",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "dacafc5d9a57566d",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "3e0a6cca8cfe497e",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "fd009bedbd9b02f8",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b09ad386508cccb7",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "e1399cf88b6234c5",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "dccde3bf39f0e314",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "c9ae23bd8774c430",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "21b78ffa6efd6d72",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b4181b0549afcac2",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "ed52c7b6300595f3",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "024de60c34398cd1",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "cc7b4b770b1f2449",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "ef7d31aab3712281",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "7d840957cd2b7838",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "15a21500392afc8b",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "451bf4a5ff884822",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "cd4dcbb52d319ab0",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "9434b11a4c82efa3",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b78d1231de6cf991",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "5129b34a2152c1e5",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "b5884c7692b6f8da",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "d00e2ec183f2376d",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "2d7e71a5502245ef",
+   "at": "2026-10-24T15:41:36+00:00"
+  },
+  {
+   "id": "cb5201f748982c0d",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "2315a99bdd017636",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "55f80575f357b144",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "3b881801586d92e3",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "6db1ea78dafce6bc",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "259c01683b6d287f",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "89bbac6c4d2af254",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "a87e8b5e9a7a5f3e",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "f786fdbb5b5132e5",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "166adf1d1ff0a46b",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "b37466e42d3a8caf",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "2858687f6b9d1ed4",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "330c4d5507a5b26f",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "d1880d140a4b5cb3",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "ca54f30ae71b854d",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "fd355af54ba5078b",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "698040ced9751509",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "801654ce2756769d",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "03e83e08f0603f5e",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "e16e5830b965a943",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "22415ac5436cf224",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "486bfd6c606d6191",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "5f645af64dfc8c15",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "e04649dc1d7b707b",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "422c742e3a880f5b",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "8ba101a4f8c9018a",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "59e100375d59c4e9",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "d3dcb6b74796f573",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "27dd2e2ae0d99cda",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "b780a214f5b5daed",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "7b956567a0f024a9",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "182992f6c1d4bf16",
+   "at": "2026-10-24T07:41:00+00:00"
+  },
+  {
+   "id": "4cd2338c9d13a7ba",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "c61f3acd69c5d1a6",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "7dd0c30df191a374",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "1dc9a9ee2b769539",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "0b54d8dd3bdb9c11",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "79965a836dfb988f",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "76bfd5ba9969ed95",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "674781b3881dd70d",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "9dda16ee9ebbed2e",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "44d2e240c4372b89",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "39983cb524961efb",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "a86bf301ee1429fa",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "ad9259425ae5a6a5",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "2eddfb62e20df0c2",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "953b7c3ba257448c",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "83e02e49cfb1357e",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "ece97222cc2ac595",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "d33c5732e2df5941",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "662d0ead1742357b",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "1e64f494d44825a4",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "5a5077fcdc324ed2",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "6eb331632e07ff67",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "3a9d7ab5ae9ddc5e",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "c426ba3e01a18773",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "1273741d43a33653",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "dd2f644cf489860f",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "0633f48a812f65ec",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "79ec1c593b855678",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "5bf16b150558d0c9",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "457d312f4a044772",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "ee5f3401d2833e3a",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "02a3549225598c8d",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "f03a90f0f5f195b6",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "6040c6c9061ccd95",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "7b25093fd6a15882",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "09a65d48f84fc76d",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "ad2cf0ab1efe0a86",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "5caaf68837d6e195",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "9f31c2f18bdf2b39",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "8b8afadb4bd6eba1",
+   "at": "2026-10-23T15:42:41+00:00"
+  },
+  {
+   "id": "a2b2714948be9032",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "2a48de37524af0b5",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "3f216ebd31835374",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "ede3cfd799111504",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "3b0c302a10643e0f",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "505b777806d0d2df",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "5a51b20958b571fd",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "bad80453587153b8",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "2f00acf753a59a89",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "f4a0bb3f11a3d42b",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "1ca716e4a8bc724a",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "6db28abcc30d1e02",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "25904bcdb726f243",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "b44c240bf1e355e2",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "ba6cffedc8ec6889",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "1a0b264178a2f41f",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "d2e4254600c4aa21",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "0c7dbb8a78d26dba",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "ff0815c84b61f2fa",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "0b904a701075efc2",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "0357a33aedc04ca4",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "030e304ef542cc86",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "79b3c6c24a25a019",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "abb6eabb16fca35d",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "e31709dc736078c0",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "fa52a26c6dda749f",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "a4fdb41a2d953f7a",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "17fe5c0bb47ddae2",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "b17b1c3368b044c6",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "44c75cea373809cf",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "5ea7fc35b301fd35",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "5118bf6fb9136b44",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "1a464a8769a0e9f3",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "b669c5f05e70d2f4",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "0c70108708f1bc0d",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "3606d98e6893f172",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "bd18fcec1634eb54",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "906cc11dc9d7cb26",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "62e0ea66206e6ae4",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "424b0733ce1c7392",
+   "at": "2026-10-23T07:42:24+00:00"
+  },
+  {
+   "id": "60590ef4fe8c2b0d",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "89bad4fa5b83d778",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "b49046ac32c4aac5",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "f0316fad8d160218",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "97c64bbbcfa2f005",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "1be2a48e9b68156d",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "039a220661abc7e9",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "538188f0eaf32092",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "2d0566d0017d95e3",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "5f7e932e02b6b53f",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "07acb7db05425a1f",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "09422a36551f5aaa",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "3b96e45ff6b3dbc4",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "49dc91f76502a699",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "c4684a444f432a31",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "be7bf7172b99c68c",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "233f790f98966a93",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "a45df23caf4e0833",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "600931a26417bc34",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "e735ce9c98962c94",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "6bdd56f307286171",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "5da9c5f24472be60",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "b0be7d833dc339d3",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "96d7c43e7f85eb03",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "b698e43e24fc6e2b",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "9c1d376c47c006bb",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "df97ed29eec2c882",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "c0cc5846e8252bb3",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "62712aedf426345e",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "88a118436b0fa2dc",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "3d2ca1286ed116ae",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "960936854e09a791",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "95271e58ffda9bff",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "4ca838e6cd1a19e0",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "18129f0a8f6b8055",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "e64c22195640e944",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "935415ac118cb862",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "ccc7345c1679fde9",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "5cf39e6465e3b2a1",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "16d2579e37e2b6bb",
+   "at": "2026-10-22T15:43:32+00:00"
+  },
+  {
+   "id": "3d0da365d6b140dd",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "05a1a8d794cad3d6",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "4dca0266c4ffcca0",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "7e105359c37a2f8d",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "1be9888e200d2975",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "443d08bbb2e688f2",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "d6569764b1f2320d",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "45d305d4fdd27d0c",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "f3d46353890ddc5b",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "302ae8ec56cad498",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "67835b2e32972e9f",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "4d80de0526be9f0e",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "b21327a242b670e4",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "23147289d81c50b2",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "73ff86889bf0ac32",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "86ab8f785380e928",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "a39ae8602494a27b",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "8a33204b64df6930",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "6027b5b2513c1449",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "cae71e32519dbe7d",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "c21a32266b473eed",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "8a2f00ca1033ff95",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "31cdf408a65b7c2f",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "df4c87d938ae3fd0",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "a97505af1807698d",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "48fe9b9849f94e92",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "f0d1969e41b11753",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "fc19aba7d31ada56",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "fa891fd7df8b2046",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "e82d1f9a76791913",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "16d4df85d738ec1f",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "1c6a24029128ab44",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "5f935eb9abf0be20",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "a9f447c71b47f8f1",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "007bab0d8b5b2a99",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "a6b86e41d749abb4",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "f2d50b11fd4ed91a",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "0b177dd71e9bd2c3",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "87bdf7d190cbb880",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "261b50a8208e4b2f",
+   "at": "2026-10-22T07:42:04+00:00"
+  },
+  {
+   "id": "aa004334f4298260",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "8fe09d3a0ef91ef0",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "b1c428607a7f091e",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "d9408a0ec0ba9164",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "dec6c0349f6d60f5",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "bfe32a2c6d790f82",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "7949a7a0d2215759",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "c238490da4466489",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "597399cbddf1dbca",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "dd9071f606373cb1",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "6da08c6f62447ef6",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "acae8c515e768d86",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "7631237b3892bb84",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "c81403a11ac2f3b3",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "4e2005b1a78bae3a",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "925eb26a91d3f7f4",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "f4a70a464fd7949d",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "9187fc61ead044eb",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "bd73a351a03a97d5",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "88a9cb7113bbeef1",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "4a4fd2165112bd01",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "7f7aeeccbdb4a999",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "9dba79f3e091575b",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "3b98f69794dfa964",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "1ec24cd873e3cf26",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "3577cd0d93c6ab8b",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "c4314e5d0ddaea0d",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "5754b27d32e6877b",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "7efdc2a6e789f053",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "ea9399e6db46c27e",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "3448fdbe5e93aabb",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "3b0ca4f873702a71",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "6672b4519d77f650",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "4ea36d9cdac52e02",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "82b22ef36ed448ce",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "449e36202618fd03",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "44165a4f32abb09b",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "f51ae3ea8506dc5c",
+   "at": "2026-10-21T15:42:14+00:00"
+  },
+  {
+   "id": "418b7b7200c2741f",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "22c52333a684eb35",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "a771cbedc7f58431",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "537415260b62f896",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "b844c866fbe1ee40",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "7bf312b6962ad057",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "68ae6fd2583b84f2",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "db42d47c32e88844",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "65a6bdb468959a5f",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "4f2bf3ba04efbdaa",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "b08568b90ff2510e",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "f572ac21d98102ff",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "3b4b1466a458fb30",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "6af507c348ebb646",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "a05365e272b27fa9",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "f98491ec529ce9da",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "49201b67d95d148d",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "762d9d137a23a761",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "e963b9370f4251d0",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "383f1356a25c7d82",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "d57f92fea0e15920",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "62669680a2a8373c",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "8f5c4479cb57027d",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "90d33a0da6cc32d6",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "79703776e3b8a6fa",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "471a5b23023ffa93",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "8dd557db4d24cd1f",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "58b925d844c6d150",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "738a65361875ad72",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "d0df2df88577cf94",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "1bec5ef788547f1c",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "a77ecc29fb34b72c",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "e7cc50b8b2bbd776",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "7440b3f7cca97c28",
+   "at": "2026-10-21T07:42:22+00:00"
+  },
+  {
+   "id": "4107af454d41702c",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "2211bfacd71ed337",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "9543613e3c7aa7ed",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "cc4a4f362db434dd",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "beb2e4080a5d46fd",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "d81d90b373d52c6b",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "f9a233fd1ca4612b",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "d017194dc6ccc16e",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "e13d29f53b3e932f",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "8507861a8ef35121",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "0b842e9801fd3e1c",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "81ad6d02337fdee6",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "8862c453e3a4eb0c",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "ce7e73683a21d726",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "35c60083da212a09",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "a790c6a625b3575e",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "85051fbd9e32e251",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "39ec5298164e568e",
+   "at": "2026-10-20T21:00:35+00:00"
+  },
+  {
+   "id": "d68581fc21fd522e",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "336f06a222770b5a",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "3b2a5269473fb432",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "df37c7b266d36ec5",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "3c683250b0b2eade",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "0744751ae6b965bb",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "4ca7603f8e84356a",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "06e614afad6a94d2",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "8e92162cfcccb9db",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "46ea59e6bb02901f",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "8ca1af13c03f5896",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "258fddbf9dac4f04",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "0f70e7615542001f",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "ad6d9b420c9ae750",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "2d78e968c4eca833",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "c4a23308b0d27493",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "ebce735a0ab937ca",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "17036c0014956d8a",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "66ab1f5d5934b531",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "2d77a31dbe858998",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "efab8a85f4c77128",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "1b306fed1f13c9f9",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "f7aaa35815443184",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "aa1f831cee1ed152",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "bfdf3fa198bfcfeb",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "f57ab267b9e04589",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "86b54bb16134fd77",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "cfa0e7ce7db4e8e9",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "3057ffadf4adb135",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "c2ce1cd746e0954b",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "72ad03488fb8c6dc",
+   "at": "2026-10-20T20:32:39+00:00"
+  },
+  {
+   "id": "f476655cdf76dfb2",
+   "at": "2026-10-20T20:32:39+00:00"
+  }
+ ],
+ "history": [
+  {
+   "at": "2026-10-24T15:41:36+00:00",
+   "verdict": "Radaren holdt dagens hovedspor, men lod igen stormagternes handlinger med få artikler falde: forhandlingernes sted, den brudte Oleshky-våbenhvile, Kinas krav om USA's investeringsbegrænsninger og de 24 Patriot-missiler. Det tungeste mis er USA og Iran: Irans advarsel mod krigsskibene, hangarskibet i Det Arabiske Hav og USA's rejsevejledninger for hele regionen. Uroen i Milano og Tirana kom kun i stykker.",
+   "misses": 40,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-24T07:41:00+00:00",
+   "verdict": "Radaren holdt nattens hovedspor, men lod igen stormagternes handlinger med én eller to artikler falde: Polens plan om franske og amerikanske atomvåben, Iraks melding om, at ingen amerikanske tropper er tilbage, og Trumps 200 %-told på Rusland og Ukraine. Det tungeste mis er Hormuz: søminerne mod to supertankskibe (6 medier), rekorden for skibsangreb og olieprisen (7 medier). Staters handlinger mod muslimer (britiske skoler, hijab i Aserbajdsjan, Indiens vælgerlister) kom igen kun i stykker.",
+   "misses": 32,
+   "wrong": 1
+  },
+  {
+   "at": "2026-10-23T15:42:41+00:00",
+   "verdict": "Radaren holdt eftermiddagens hovedspor, men lod igen stormagternes handlinger med én eller to artikler falde, især USA–Kina: tiltagene mod kinesisk forskning og bioteknologi og BYD-forbuddet på en base i Japan. Det tungeste mis er dødsdommen over Assad i Damaskus (tier 4), 30 point under linjen. Staters handlinger mod islam og muslimer (Ibrahimi-moskéen, Al-Aqsa, niqab i Wales, muftier i Grækenland) kom igen kun i stykker.",
+   "misses": 40,
+   "wrong": 1
+  },
+  {
+   "at": "2026-10-23T07:42:24+00:00",
+   "verdict": "Radaren holdt nattens hovedspor (Iran, Hebron, Ukraine, Frankrig), men lod igen USA's egne handlinger med én eller to artikler falde: 9.000 soldater sendt på skibe mod Mellemøsten, evakueringen af diplomaters familier fra regionen, USA's nedskæring af Patriot-missiler til Ukraine og Nord Stream-tilbuddet til Rusland. Det tungeste mis er troppeflytningen og evakueringen, som sammen med Trumps ord om nye angreb viser USA's forberedelse af en ny runde mod Iran. Starlink-sagen med 11 medier lå igen 12 point under linjen, og protestbølgen i Tunesien, Albanien, Serbien og Italien kom kun i stykker.",
+   "misses": 40,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-22T15:43:32+00:00",
+   "verdict": "Radaren holdt dagens hovedspor, men lod igen stormagtshandlinger med én kilde falde: Trumps afkald på Graham-sanktionerne mod Rusland, Moskvas tilbud om at mægle mellem Iran og USA og den forlængede Lukoil-frist. Det tungeste mis er Netanyahus ord om at vælte regimet i Iran og fordrive palæstinensere fra Gaza via tredjelande. Statens handlinger mod muslimer (britiske skoler, 5Pillars, Ilhan Omar) kom kun i stykker.",
+   "misses": 40,
+   "wrong": 1
+  },
+  {
+   "at": "2026-10-22T07:42:04+00:00",
+   "verdict": "Radaren holdt nattens hovedspor, men lod igen stormagtshandlinger med én kilde falde: Kremls melding om trepartsforhandlinger mellem Kina, Rusland og USA ved APEC (6 medier), Trump om kontakt med Rusland og Kina om Iran, Lukoil-samtalerne og Kina om Cuba. Det tungeste mis er APEC-meldingen; desuden faldt Egyptens parlamentsmandat til at forsvare Saudi-Arabien, Aserbajdsjans hijab-sag og protestbølgens spring til Grækenland.",
+   "misses": 40,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-21T15:42:14+00:00",
+   "verdict": "Radaren holdt dagens hovedspor, men lod igen stormagtshandlinger med én eller to artikler falde: Kina mod USA's arrestordre på Raúl Castro (7 medier), Kinas rolle i Ukraine-forhandlingerne og Storbritanniens anklage mod Irans Revolutionsgarde. Det tungeste mis er Yemen-krigens udvidelse: Egypten overvejer at gå med i Saudi-Arabiens krig mod houthierne. Aserbajdsjans hijabforbud (tier 6) kom kun i stykker.",
+   "misses": 39,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-21T07:42:22+00:00",
+   "verdict": "Radaren holdt nattens hovedspor, men lod igen stormagtshandlinger og Irans udmeldinger med én artikel falde: Lavrov om USA's forslag, USA's G20-invitation til Rusland, Araghchi om Hormuz og Quad-topmødet. Det tungeste mis er Starlink-sagen: otte medier fortæller, at Musk beordrede nedsat tjeneste til Ukraines militær, men den lå 30 point under linjen. Yemen-krigen og Ikrima Sabris udelukkelse fra al-Aqsa kom kun i stykker.",
+   "misses": 34,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-20T21:00:35+00:00",
+   "verdict": "Radaren holdt de store linjer (Ukraine, Iran, Hormuz, Libanon-samtalerne), men lod igen stormagtshandlinger med én artikel falde: Rusland siger, der ingen samtaler er med USA om våbenkontrol, Witkoff rejser til Rusland onsdag for et topmøde mellem tre ledere, og mæglerne har sendt et nyt fredsforslag til Iran og USA. Desuden faldt Erdoğans fremlæggelse af Mekka-forsvarsaftalen for parlamentet og Anadolus Shabwa-tal (73 dræbt, 14 savnet), som Houthi-siden mangler en kilde til.",
+   "misses": 18,
+   "wrong": 0
+  },
+  {
+   "at": "2026-10-20T20:32:39+00:00",
+   "verdict": "Radaren fangede døgnets store linjer (Ukraine-topmødet, Yemen, Iran, valget i “israel”), men lod en række stormagtshandlinger falde, fordi hver kun havde én eller to artikler: USA's DeepSeek-forbud (13 medier), et nyt amerikansk hangarskib til Mellemøsten, Barracks udmelding om at USA trækker sig som sikkerhedsgarant, og Macrons rundrejse i Golfen med diesel- og forsvarsaftaler. Uroen i Europa blev kun fortalt som fransk, selv om Italien sætter 500 soldater ind i Milano og AP beskriver uro fra Spanien til Albanien.",
+   "misses": 32,
+   "wrong": 2
+  }
+ ]
+}

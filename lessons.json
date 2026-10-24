@@ -1,0 +1,113 @@
+{
+ "updated": "2026-10-24T04:09:23+00:00",
+ "items": [
+  {
+   "id": "overskrift-foerst-det-tunge",
+   "rule": "Hver kørsel: skriv overskrift til HELE listen 'Headlines to write' (… of N), ikke kun det nye siden sidst – begynd fra toppen (den er stærkest først) og tag også de gamle nederst. Sæt aldrig en historie som pick eller på forsiden uden din overskrift. Ingen historie i Live må vente over 12 timer.",
+   "why": "22-23/10: noterne sagde 'overskrifter til alle 4 ventende', mens 52 ventede; pick 8 (dieselaftalen) ventede 15 timer, Sisi og Berlingskes Putin-historie (12 medier) 35 timer, Brad Lander 35 timer.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "overskrift-foelger-laes-artiklen",
+   "rule": "Overskriften siger nyheden i den første artikel (den 'Læs' åbner; i auditten den efter '←') – læs den på ny, den kan skifte. 'X:' kun med den første artikels medie; gengiver et medie et andet, skriv 'Rapport:'. Står der Libanon i artiklen, står der Libanon i overskriften.",
+   "why": "22-23/10 igen: '“israelsk” artilleri beskyder Shuja'iyya' over Middle East Eyes '“israeli” military shells southern Lebanon'; 'Kyiv Independent: gødningsindustri' over WKEF's 'Trump foreslår oliesanktioner'; 'Det Hvide Hus: … afsnit 338' over BT's 'USA fjerner nogle canadiske toldsatser'.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "tal-kun-fra-baerende-historie",
+   "rule": "Et tal på en begivenhedsside citerer den historie, der bærer tallet nu. Når en historie forsvinder eller ændrer sig, så find en anden, der bærer tallet, eller fjern boksen – lad aldrig en boks citere en historie, som ikke har tallet.",
+   "why": "Frankrig-sidens 550.000, 110.000 og 110 stod på en BT-historie, der ikke længere bar dem.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "aldrig-the-hindu",
+   "rule": "Skriv aldrig 'ifølge The Hindu' eller 'The Hindu citerer' – find tallet eller udsagnet hos en anden kilde, eller lad det ude.",
+   "why": "To resuméer (moskéen i Mikhmas, Frankrig) havde The Hindu som kilde.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ingen-distance-citationstegn",
+   "rule": "Når en kilde skriver et ord i citationstegn uden at sige, hvem der siger det ('en \"fejlslagen\" samfundsmodel'), så skriv det uden citationstegn eller med den, der siger det.",
+   "why": "BT's 'fejlslagen' stod i citationstegn i et resumé, efter at det var rettet på begivenhedssiden.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ejerens-titel-paa-siden",
+   "rule": "Når ejeren har skrevet en begivenhedssides titel, er det sidens titel fra næste ændring: skriv hans titel i 'title'.",
+   "why": "Ejeren omdøbte Frankrig-siden til 'Kaos i Frankrig'.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "begivenhedskort-har-tal",
+   "rule": "En begivenhedsside på forsiden skal have en underlinje, der siger det vigtigste nye. Faktabokse kun med tal af nyhedsværdi for begivenheden som helhed (dræbte, sårede, anholdte, demonstranter, fordrevne, stemmer) – ellers ingen bokse. En dato er aldrig en boks.",
+   "why": "Valgsiden havde boksen 'Valgdag: 27. oktober'; ejeren 19/10: hellere ingen bokse end svage.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ingen-meta-i-resume",
+   "rule": "Et resumé siger, hvem der gjorde eller sagde hvad – aldrig noget om medierne ('flere medier bringer', 'X og Y gengiver', 'X ser på', 'X analyserer', 'ifølge medierne', 'Artiklen handler om'), og det slutter aldrig med, hvem der ellers bringer historien. Hellere intet resumé.",
+   "why": "23/10 igen: 'Flere danske medier bringer forslaget', 'Flere medier bringer meldingen', 'Meduza og Kyiv Post gengiver oplysningerne', 'Reuters ser på …', 'Berlingske analyserer …', 'ifølge medierne'.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "samme-faktum-samme-tal",
+   "rule": "Når to historier fortæller det samme, giver overskrifterne samme tal – det, den første artikel giver. Når den første artikels tal vokser (53 → 58 dræbt), skriv overskriften og sidens boks om med det nye tal og hvem der giver det.",
+   "why": "Shabwa stod med 53, 'op mod 40' og 58 i tre overskrifter; Katie Zacharia blev fyret efter 'ti' og 'fire' dage.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "kicker-et-land",
+   "rule": "En begivenhedssides kicker er ét land eller ét sted ('Yemen', aldrig 'Saudi-Arabien og Yemen'). Kortets steder slås op i kickerens land, så skriv kun steder i det land.",
+   "why": "Houthi-siden havde 0 prikker på kortet: ingen af stederne kunne slås op i 'Saudi-Arabien og Yemen'.",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "ingen-dato-uden-kilde",
+   "rule": "Skriv aldrig en dato i en overskrift, et resumé eller kalenderen, som historien ikke selv siger. 'Mandag' eller 'næste uge' gør du ikke selv til en dato.",
+   "why": "'Egyptens parlament udsætter afstemning … til 26. oktober' – kilden sagde kun, at samtalerne genoptages mandag.",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "islam-i-nyhederne-vejer",
+   "rule": "Når en stormagts leder eller en regering kobler uro, valg eller politik til muslimer, islam eller indvandrere ('Paris bliver snart en muslimsk by', Det Muslimske Broderskab i et amerikansk valg), så har historien gruppens vægt (tier 6): overskrift med det samme, tag den ind i Live, og overvej den til forsiden.",
+   "why": "Trumps og Vances udtalelser om Frankrig ventede seks timer og stod uden for Live; Michigan-historien blev ikke set.",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "kilde-i-samme-saetning",
+   "rule": "En påstand fra unavngivne kilder eller én part (embedsmænd, efterretninger, en minister) står altid med hvem der siger den i samme sætning – i overskrift og resumé. Skriv aldrig deres forklaring af et motiv som faktum.",
+   "why": "Resumé: 'Formålet er at påvirke USA's midtvejsvalg' – sagt af iranske embedsmænd til Reuters, skrevet som faktum.",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "golfens-sikkerhed-vejer",
+   "rule": "Når en magt sender styrker, kampfly eller diplomater ind i eller ud af Golfen, eller stater i den muslimske verden indgår en forsvarspagt, er det en plan, ikke en hændelse: overskrift med det samme, og overvej det til picks og forsiden.",
+   "why": "21-22/10: Storbritanniens kampfly og Tyrkiets mandat til Saudi-Arabien ventede 17-35 timer uden overskrift; forsvarspagten Tyrkiet–Qatar–Indonesien–Pakistan (14 medier) stod hverken blandt picks eller på forsiden.",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "plan-for-et-folk-vejer",
+   "rule": "Når en regeringsleder siger, at han arbejder på at fordrive et folk, flytte en befolkning eller ændre en stats grænser eller styre (Netanyahu om at fordrive palæstinensere fra Gaza via tredjelande, at vælte Irans styre), er det en plan, ikke en udtalelse: overvej den til picks og forsiden samme dag.",
+   "why": "22/10: Netanyahus ord om at arbejde med tredjelande for at fordrive palæstinensere fra Gaza fik overskrift, men kom hverken blandt picks eller på forsiden.",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "resume-kun-til-nyheder",
+   "rule": "Brug ikke resuméer på sladder, en læsers stjålne bil, støj i tog eller et programafsnit – spring dem over og tag den næste historie af vægt på listen.",
+   "why": "22/10: resuméer til en Venstre-politikers stjålne bil, TikTok-støj i fly, Informations sladderspalte og BT's valgpanel.",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "varslet-operation-begynder-side",
+   "rule": "Når en varslet militæroperation, offensiv eller fordrivelse begynder (wire-linjer om stormede byer, evakuerede familier, 'operationen er begyndt'), laver den kørsel, der ser det først, begivenhedssiden – vent ikke på næste begivenhedsredaktør. 'Hold øje' i noterne er ikke nok.",
+   "why": "23-24/10: Vestbredden-operationen stod som 'hold øje' i fire noter; den begyndte kl. 23 (Hebron, 15 byer stormet), uden side før kl. 05.",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "hvem-goer-hvad-ordret",
+   "rule": "Læs kildens overskrift ordret: hvem gør hvad mod hvem. Vend aldrig subjekt og objekt, og læg ingen vurdering ind, som kilden ikke har ('grund til håb' over 'ikke overrasket'; 'ventes at lette' om noget, der er sket).",
+   "why": "23/10: 'Kina river Europas teknologi ud af vindmøller' blev til 'Kinesiske komponenter fjernes fra europæiske vindmøller'; JP-korrespondentens 'ikke overrasket' blev 'grund til håb'; Anadolus 'USA løfter told' blev 'ventes at lette'.",
+   "since": "2026-10-24"
+  }
+ ]
+}

@@ -1,0 +1,264 @@
+{
+ "updated": "2026-10-24T16:03:41+00:00",
+ "items": [
+  {
+   "id": "ed-2026-10-22-foerste-russiske-tankskib-med-diesel-afg",
+   "date": "2026-10-22",
+   "w": 2,
+   "title": "Første russiske tankskib med diesel afgår til USA",
+   "kind": "andet",
+   "place": "Rusland",
+   "why": "Den første last på 40.000 tons diesel fra Rusland til USA, efter at USA lettede sanktionerne.",
+   "link": "https://www.aa.com.tr/en/world/moscow-says-1st-tanker-with-40-000-tons-of-russian-diesel-to-depart-for-us-thursday/4096015",
+   "ids": [
+    "f9b0c121cc08d270"
+   ],
+   "at": "2026-10-21T15:10:14+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-23-tyrkiet-er-vaert-for-r4-og-r4-e3-moeder",
+   "date": "2026-10-23",
+   "w": 2,
+   "title": "Tyrkiet er vært for R4- og R4+E3-møder i Istanbul",
+   "kind": "forhandling",
+   "place": "Istanbul",
+   "why": "Udenrigsministre fra regionen mødes med Storbritannien, Frankrig og Tyskland efter angrebene på Saudi-Arabien.",
+   "link": "https://www.aa.com.tr/en/turkiye/turkish-foreign-minister-to-host-top-diplomats-in-r4-r4-e3-meetings-in-istanbul-on-friday/4097039",
+   "ids": [
+    "09422a36551f5aaa",
+    "7ed48a36087394f1"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-23-tyrkisk-domstol-indleder-retssag-mod-net",
+   "date": "2026-10-23",
+   "w": 2,
+   "title": "Tyrkisk domstol indleder retssag mod Netanyahu og 34 andre “israelske” topfolk",
+   "kind": "retssag",
+   "place": "Tyrkiet",
+   "why": "En stat fører retssag mod “israels” regeringschef og ledere for krigen i Gaza.",
+   "link": "https://t.me/QudsNen/242893",
+   "ids": [
+    "b0be7d833dc339d3"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-24-ny-demonstration-i-frankrig-efter-weeken",
+   "date": "2026-10-24",
+   "w": 2,
+   "title": "Ny demonstration i Frankrig efter weekendens optøjer",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "Regeringen har lovet en massiv politiindsats efter de værste optøjer i Frankrig i årevis.",
+   "link": "https://www.aa.com.tr/en/europe/france-estimates-damage-from-weekend-protest-violence-at-up-to-hundreds-of-millions-of-euros/4095333",
+   "ids": [
+    "43cc37f72e18834c",
+    "e26dbcde5bc1ba92"
+   ],
+   "at": "2026-10-21T11:16:01+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-26-kinas-kommunistparti-holder-plenarmoede",
+   "date": "2026-10-26",
+   "title": "Kinas kommunistparti holder plenarmøde 26.-29. oktober",
+   "kind": "andet",
+   "place": "Beijing, Kina",
+   "why": "Partiets centralkomité samles om Kinas kurs, mens handelsstriden med USA skærpes.",
+   "link": "https://www.reuters.com/world/china/how-chinas-october-26-29-communist-party-plenum-works-2026-10-23/",
+   "ids": [
+    "0b8c471f8ba07794"
+   ],
+   "at": "2026-10-23T15:42:41+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-26-slovakiet-genoptager-konsultationerne-me",
+   "date": "2026-10-26",
+   "title": "Slovakiet genoptager konsultationerne med Rusland",
+   "kind": "forhandling",
+   "place": "Slovakiet",
+   "why": "Slovakiet genoptager samtalerne med Rusland i et nyt brud med sine EU-partnere.",
+   "link": "https://www.reuters.com/business/energy/slovakia-restart-consultations-with-russia-new-break-with-eu-allies-2026-10-21/",
+   "ids": [
+    "2f3214b0eec72016"
+   ],
+   "at": "2026-10-22T07:42:04+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-27-frankrig-holder-konference-til-stoette-f",
+   "date": "2026-10-27",
+   "w": 2,
+   "title": "Frankrig holder konference til støtte for Libanons hær",
+   "kind": "topmøde",
+   "place": "Frankrig",
+   "why": "Frankrig samler stater om Libanons hær, mens “israel” angriber det sydlige Libanon.",
+   "link": "https://www.lemonde.fr/en/france/article/2026/10/21/macron-says-france-to-organize-conference-to-support-lebanese-army_6760987_7.html",
+   "ids": [
+    "b17b1c3368b044c6"
+   ],
+   "at": "2026-10-23T07:42:24+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-27-parlamentsvalg-i-israel",
+   "date": "2026-10-27",
+   "w": 3,
+   "title": "Parlamentsvalg i “israel”",
+   "kind": "valg",
+   "place": "“israel”",
+   "why": "USA's præsident har offentligt støttet Netanyahu og knyttet valget til USA's kampagne mod Iran.",
+   "link": "https://www.bt.dk/udland/trump-kalder-netanyahu-en-fantastisk-kriger-inden-valg?referrer=RSS",
+   "ids": [
+    "e012ed9856d2af5a"
+   ],
+   "at": "2026-10-18T17:52:25+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-31-studerende-og-oppositionspartier-i-tyskl",
+   "date": "2026-10-31",
+   "title": "Studerende og oppositionspartier i Tyskland kalder til masseprotester",
+   "kind": "andet",
+   "place": "Tyskland",
+   "why": "Tysklands føderale studenterkonference deler mange af kravene fra protesterne i Frankrig og Italien.",
+   "link": "https://www.aa.com.tr/en/europe/german-student-representatives-and-opposition-parties-call-for-mass-protests-on-oct-31/4097883",
+   "ids": [
+    "ec320c4e4e11431c"
+   ],
+   "at": "2026-10-23T04:07:42+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-rusland-usa-og-ukraine-genoptager-trepar",
+   "date": "2026-11",
+   "approx": true,
+   "w": 3,
+   "title": "Rusland, USA og Ukraine holder trepartsforhandlinger i Abu Dhabi",
+   "kind": "forhandling",
+   "place": "Abu Dhabi",
+   "why": "Kreml siger, at forhandlingerne er planlagt til første halvdel af november og skal handle om Ruslands og Ukraines sikkerhed efter en fredsaftale.",
+   "link": "https://www.aa.com.tr/en/eurasia/kremlin-says-trilateral-ukraine-peace-talks-scheduled-for-1st-half-of-november-in-abu-dhabi/4098424",
+   "ids": [
+    "c1aa4c343047ba3a"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-03-midtvejsvalg-i-usa",
+   "date": "2026-11-03",
+   "w": 3,
+   "title": "Midtvejsvalg i USA",
+   "kind": "valg",
+   "place": "USA",
+   "why": "Valget afgør flertallet i Kongressen i Trumps sidste to år; amerikanske embedsmænd siger ifølge The Atlantic og CNN, at angrebsplaner mod Iran er klar til efter valget.",
+   "link": "https://www.aa.com.tr/en/us-israel-iran-war/trump-says-us-not-negotiating-with-iran-something-will-happen-fairly-soon-/4096596",
+   "ids": [
+    "e22eaee991149c85",
+    "250f6cc4be87e085"
+   ],
+   "at": "2026-10-23T04:07:42+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-12-sikkerhedsaftalen-med-usa-om-groenland-f",
+   "date": "2026-11-12",
+   "w": 2,
+   "title": "Sikkerhedsaftalen med USA om Grønland førstebehandles i Folketinget",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen giver USA lov til at etablere to nye baser i Grønland.",
+   "link": "https://www.bt.dk/politik/groenland-aftale-med-usa-skal-debatteres-i-folketinget-om-tre-uger",
+   "ids": [
+    "3f4ee4e778b876d2",
+    "72d0662648bd5ca1"
+   ],
+   "at": "2026-10-22T09:03:45+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-18-apec-topmoede",
+   "date": "2026-11-18",
+   "w": 3,
+   "title": "APEC-topmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Kreml siger, at Kina, Rusland og USA er åbne for trepartssamtaler ved topmødet, og Putin har foreslået et møde med Trump i Kina.",
+   "link": "https://www.aa.com.tr/en/politics/kremlin-says-china-russia-us-open-to-trilateral-talks-at-apec-summit/4096229",
+   "ids": [
+    "3d0da365d6b140dd",
+    "2260726c7e25fc8c"
+   ],
+   "at": "2026-10-22T04:08:21+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "w": 2,
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml.",
+   "link": "https://www.reuters.com/business/energy/us-extends-deadline-buyers-lukoil-foreign-assets-until-november-21-2026-10-22/",
+   "ids": [
+    "97c64bbbcfa2f005"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "w": 3,
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027.",
+   "link": "https://www.france24.com/en/russia-agrees-to-resume-trilateral-peace-talks-on-ukraine-war",
+   "ids": [
+    "795c911280f064ea"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-26-eu-s-ledere-droefter-penge-til-ukraine-f",
+   "date": "2026-11-26",
+   "title": "EU's ledere drøfter penge til Ukraine for 2027 og EU's næste budget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's stats- og regeringschefer mødes 26.-27. november om Ukraines finansiering for 2027 og EU's næste budget.",
+   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOU2VSNmItZVdUY0hnTHdRZm8yVWlRLXFJR05UeTJNcUpBS0g4LWFKT2JxOWNpNnNNTUpzTk5mLW04aFVDcUVyeGhDV0pncFpZRWlkbnBtLWJxbnRQQkRhRXBvN2xZa0Rma0ZZd0EzOWhDMG9vOHhhcWoyeDFTU1F6c1JFZmJLbGcyaGdSSVhYOF9FcFU4WVlTUlZiTzdoNzRDenhya3N3ckNKbm5teHpEWGJR?oc=5",
+   "ids": [
+    "6d0e069466a4d8e1"
+   ],
+   "at": "2026-10-22T07:42:04+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-g20-topmoede-i-miami",
+   "date": "2026-12",
+   "approx": true,
+   "w": 3,
+   "title": "G20-topmøde i Miami",
+   "kind": "topmøde",
+   "place": "Miami, USA",
+   "why": "Trump vil ifølge The Atlantic have en fredsaftale mellem Rusland og Ukraine underskrevet under topmødet, og Rubio siger, at Putin kan deltage.",
+   "link": "https://tass.com/world/2205771",
+   "ids": [
+    "a3e22059badd37db",
+    "d0bfb087ae46b82b"
+   ],
+   "at": "2026-10-22T04:08:21+00:00",
+   "src": "ed"
+  }
+ ]
+}

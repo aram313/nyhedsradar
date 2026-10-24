@@ -1,0 +1,140 @@
+{
+ "at": "2026-10-24T15:07:18+00:00",
+ "dag": {
+  "text": "Olieprisen nåede det højeste i over fem måneder på frygt for, at USA genoptager angrebene på Iran, skriver The Guardian; Brent er steget 6,7 procent i denne uge (BT). Irans Revolutionsgarde siger, at to supertankskibe med over 4,5 millioner tønder råolie er ramt af søminer i Hormuzstrædet. USA fjerner tolden på nogle canadiske varer forud for midtvejsvalget.",
+  "ids": [
+   "6db1ea78dafce6bc",
+   "3b881801586d92e3",
+   "354b1e9f25b8fd1c",
+   "5ec23b4c8a76b59a"
+  ],
+  "src": [
+   "BT",
+   "Anadolu",
+   "Al-Monitor"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Irans Revolutionsgarde siger, at to supertankskibe er ramt af søminer i Hormuzstrædet, og Reuters skriver, at angrebene på skibe i strædet nåede rekordniveau i oktober. Trump sagde, at USA kunne tage al Irans olie.",
+   "ids": [
+    "3b881801586d92e3",
+    "a86bf301ee1429fa",
+    "76bfd5ba9969ed95"
+   ],
+   "src": [
+    "Anadolu",
+    "Reuters",
+    "Clash Report"
+   ],
+   "stories": [
+    "6db1ea78dafce6bc",
+    "3b881801586d92e3",
+    "a86bf301ee1429fa"
+   ]
+  },
+  "fuel": {
+   "text": "Den første russiske diesel fra aftalen mellem Putin og Trump er på et tankskib mod New York. Ruslands vicepremierminister Aleksandr Novak siger, at russiske selskaber kan eksportere 500.000 ton diesel allerede i oktober.",
+   "ids": [
+    "5ec23b4c8a76b59a",
+    "d8a4df7514fbb6de"
+   ],
+   "src": [
+    "Al-Monitor",
+    "TASS"
+   ],
+   "stories": [
+    "5ec23b4c8a76b59a",
+    "d8a4df7514fbb6de",
+    "dd3cb40ff76b13ba"
+   ]
+  },
+  "kris": {
+   "text": "USA fjerner tolden på nogle canadiske varer forud for midtvejsvalget og indfører told på blandt andet gulvtæpper. Trump har nævnt told på 200 procent på Ukraine og Rusland for at tvinge en fred igennem, og Netanyahu siger, at “israel” skal forberede sig på sanktioner, også mod bankerne.",
+   "ids": [
+    "354b1e9f25b8fd1c",
+    "e58e280846795087",
+    "99a5b79a780c44d2"
+   ],
+   "src": [
+    "BT",
+    "Ukrinform",
+    "Middle East Eye"
+   ],
+   "stories": [
+    "354b1e9f25b8fd1c",
+    "e58e280846795087",
+    "99a5b79a780c44d2"
+   ]
+  },
+  "debt": {
+   "text": "Moody's vurderer Frankrigs kreditværdighed, mens uroen i landet presser de franske statsobligationer, skriver MarketWatch. BT skriver, at Frankrigs gæld skaber bekymring i Bruxelles.",
+   "ids": [
+    "a0cb2aa301e22026"
+   ],
+   "src": [
+    "BT"
+   ],
+   "stories": [
+    "a0cb2aa301e22026",
+    "f665597ff2505e80",
+    "6be9063039edb7f0"
+   ]
+  },
+  "ai": {
+   "text": "Teheran advarer Washington, dets allierede og de globale markeder om prisen ved en ny krig, og truslerne rækker fra Hormuz til datacentre, skriver Al-Monitor.",
+   "ids": [
+    "6576b16ae251cfda"
+   ],
+   "src": [
+    "Al-Monitor"
+   ],
+   "stories": [
+    "6576b16ae251cfda"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "fed-2026-10-28",
+   "date": "2026-10-28",
+   "title": "Fed: rentebeslutning",
+   "kind": "centralbank",
+   "place": "USA",
+   "why": "Den amerikanske centralbank fastsætter USA's styringsrente efter et todages møde."
+  },
+  {
+   "id": "ecb-2026-10-29",
+   "date": "2026-10-29",
+   "title": "ECB: rentebeslutning",
+   "kind": "centralbank",
+   "place": "Eurozonen",
+   "why": "Den Europæiske Centralbank fastsætter eurozonens renter; Danmarks Nationalbank følger normalt ECB, når den ændrer renten."
+  },
+  {
+   "id": "opec-plus-2026-11-01",
+   "date": "2026-11-01",
+   "title": "OPEC+-landene mødes om olieproduktionen i december",
+   "kind": "topmøde",
+   "place": "Virtuelt møde",
+   "why": "OPEC+ samler OPEC-landene – bl.a. Saudi-Arabien, Irak, Iran, Kuwait og Emiraterne – og Rusland og flere andre olielande. Mødet fastsætter, hvor meget olie landene producerer; det påvirker olieprisen, benzinprisen i Danmark og statsbudgetterne i Golfen og Rusland."
+  },
+  {
+   "id": "ed-2026-10-26-kinas-kommunistparti-holder-plenarmoede",
+   "date": "2026-10-26",
+   "title": "Kinas kommunistparti holder plenarmøde 26.-29. oktober",
+   "kind": "andet",
+   "place": "Beijing, Kina",
+   "why": "Partiets centralkomité samles om Kinas kurs, mens handelsstriden med USA skærpes."
+  }
+ ],
+ "citat": {
+  "who": "Donald Trump, USA's præsident, om Iran",
+  "text": "Vi kunne, hvis vi ville, bare tage al olien. Vi kunne tage hele landet.",
+  "ids": [
+   "76bfd5ba9969ed95"
+  ],
+  "u": "https://t.me/ClashReport/102680",
+  "s": "Clash Report"
+ }
+}

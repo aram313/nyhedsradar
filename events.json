@@ -1,0 +1,699 @@
+{
+ "updated": "2026-10-24T16:03:41+00:00",
+ "items": [
+  {
+   "id": "frankrig-uroligheder-2026-10",
+   "title": "Kaos i Frankrig",
+   "kicker": "Frankrig",
+   "status": "i gang",
+   "dek": "Nye demonstrationer lørdag under massiv sikkerhed: 70.000 politifolk og sikkerhedsstyrker sættes ind, Lyon og Marseille har forbudt protester, og Macron kalder et skyderi vest for Paris et racistisk terrorangreb.",
+   "since": "2026-10-17",
+   "topic": "Uroligheder i Frankrig",
+   "facts": [
+    {
+     "label": "Anholdte lørdag",
+     "value": "135",
+     "note": "ifølge Frankrigs indenrigsminister, tidligt lørdag eftermiddag",
+     "ids": [
+      "c06f144986f5874c"
+     ],
+     "src": [
+      "Jyllands-Posten",
+      "Ekstra Bladet",
+      "Anadolu",
+      "Xinhua",
+      "Bernama",
+      "BT",
+      "North Press",
+      "LBCI",
+      "Sky News Arabia"
+     ]
+    }
+   ],
+   "places": [
+    "Paris",
+    "Marseille",
+    "Limoges",
+    "Lyon",
+    "Lille",
+    "Bordeaux",
+    "Trappes",
+    "Wattignies",
+    "Douai",
+    "Denain",
+    "Nice",
+    "Frankrig"
+   ],
+   "quotes": [],
+   "stories": [
+    "5a16fcecd4d0e388",
+    "39cf3ef7e72ca024",
+    "cfa9fc43ac01a9ed",
+    "1ced08aa9f2445e8",
+    "e2fe34d34bf0a6ae",
+    "751305ce35132a67",
+    "3b93742b79a5a683",
+    "5a3022f9b5b09b3b",
+    "24ae1c9340089274",
+    "50ba3c19fc468fb1",
+    "86ab8f785380e928",
+    "b6076ad733bbcbdb",
+    "69b4b0c45865f64d",
+    "88e2338191b838f9"
+   ],
+   "article": [
+    {
+     "text": "Landsdækkende demonstrationer mod høje leveomkostninger og forholdene i skolerne endte lørdag i sammenstød med politiet, plyndringer og brande i flere franske byer.",
+     "ids": [
+      "24ae1c9340089274",
+      "3b93742b79a5a683"
+     ],
+     "src": [
+      "Ekstra Bladet",
+      "AFP"
+     ]
+    },
+    {
+     "text": "Rådhuset i Limoges brændte, og butikker blev plyndret i blandt andet Paris, Lyon og Marseille.",
+     "ids": [
+      "24ae1c9340089274"
+     ],
+     "src": [
+      "Ekstra Bladet"
+     ]
+    },
+    {
+     "text": "Regeringen har indført udgangsforbud i flere byer for at forhindre vold ved nye protester, oplyser borgmestrene i Paris og Marseille, Emmanuel Grégoire og Benoît Payan. Paris har forlænget udgangsforbuddet i dele af byen til mandag.",
+     "ids": [
+      "3b93742b79a5a683",
+      "39cf3ef7e72ca024"
+     ],
+     "src": [
+      "AFP",
+      "DR"
+     ]
+    },
+    {
+     "text": "Lyon og Marseille forbyder protester lørdag, og politiet i Paris har forbudt optog i dele af hovedstaden. Macron siger, at demonstrationer anmeldt af folk, han kalder uden legitimitet, bliver forbudt. Louvre, Orsay og Picasso-museet i Paris lukker lørdag.",
+     "ids": [
+      "1ced08aa9f2445e8",
+      "39cf3ef7e72ca024",
+      "751305ce35132a67",
+      "e2fe34d34bf0a6ae"
+     ],
+     "src": [
+      "BT",
+      "DR",
+      "AP",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "70.000 politifolk og sikkerhedsstyrker sættes ind ved de nye demonstrationer lørdag, oplyser indenrigsministeren. Renten på Frankrigs tiårige statsobligation steg onsdag over 5 % for første gang siden 2002.",
+     "ids": [
+      "5a16fcecd4d0e388",
+      "86ab8f785380e928"
+     ],
+     "src": [
+      "AFP",
+      "DR",
+      "BT",
+      "The New Arab",
+      "Al Mayadeen English",
+      "Reuters",
+      "LBCI"
+     ]
+    },
+    {
+     "text": "Fredag blev én dræbt og flere såret, da en bilist skød mod folk på gaden i Trappes og La Verrière vest for Paris. Indenrigsministeren kalder det en klar terrorforbrydelse, og præsident Macron kalder skyderiet et racistisk terrorangreb og et vendepunkt for republikken.",
+     "ids": [
+      "cfa9fc43ac01a9ed",
+      "b04206421b295881"
+     ],
+     "src": [
+      "Jyllands-Posten"
+     ]
+    }
+   ],
+   "pic": "https://img.lemde.fr/2026/10/17/720/0/8640/4320/644/322/60/0/0ec05b7_ftp-1-pwpqpfj6o1m6-eff6b9e095d84cb192d2b9a07aa31096-0-d1bffc5b1e894e779935f8bba081704e.jpg",
+   "pf": [
+    0.208,
+    0.654,
+    2.0,
+    1,
+    0.15
+   ],
+   "pl": "lab759f513435d56c.jpg",
+   "at": "2026-10-24T13:03:06+00:00"
+  },
+  {
+   "id": "houthi-saudi-krig-2026-10",
+   "title": "Houthiernes krig mod Saudi-Arabien",
+   "kicker": "Yemen",
+   "status": "i gang",
+   "dek": "Houthierne angriber saudiske byer og olieanlæg; Saudi Aramco beder ifølge Reuters' kilder ansatte forlade hovedkontoret i Dhahran, og IOM tæller over 268.000 fordrevne i Yemen.",
+   "since": "2026-10-01",
+   "topic": "Golfen og Saudi-Arabien",
+   "facts": [
+    {
+     "label": "Fordrevet i Yemen",
+     "value": "over 268.000",
+     "note": "ifølge Den Internationale Organisation for Migration (IOM)",
+     "ids": [
+      "6666830d6ad16765"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "places": [
+    "Shabwa",
+    "Aden",
+    "Taiz",
+    "Ibb",
+    "Abyan",
+    "Yemen"
+   ],
+   "quotes": [],
+   "stories": [
+    "05ae46a4795345cf",
+    "79d04f45582f364e",
+    "59eaf1e448a2c4f0",
+    "d0d7bc9def9afdf8",
+    "1bc6523f8bdfb6c2"
+   ],
+   "article": [
+    {
+     "text": "Den saudi-ledede koalition siger, at den har opsnappet et ballistisk missil, som houthierne affyrede mod Riyadh. Koalitionens talsmand oplyser hverken affyringssted eller skader.",
+     "ids": [
+      "05ae46a4795345cf"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "En er meldt dræbt i et angreb på en lufthavn i Saudi-Arabien. Houthibevægelsen har de seneste uger angrebet landets lufthavne, og USA trækker ansatte hjem.",
+     "ids": [
+      "79d04f45582f364e"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "USA har beordret nogle diplomater og deres familier ud af Saudi-Arabien midt i houthiernes angreb. Tyrkiet, Qatar, Indonesien og Pakistan har underskrevet en pagt om forsvarssamarbejde.",
+     "ids": [
+      "59eaf1e448a2c4f0",
+      "d0d7bc9def9afdf8"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Egyptens præsident Sisi siger, at Egypten vil forsvare Saudi-Arabien, men udelukker et angreb på Yemen.",
+     "ids": [
+      "1bc6523f8bdfb6c2"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Den Internationale Organisation for Migration siger, at over 268.000 er fordrevet i Yemen, mens kampene trappes op, og at 3.836 er flygtet til Djibouti.",
+     "ids": [
+      "6666830d6ad16765"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "pic": "https://english.aawsat.com/s3/files/styles/414x217/public/2026-10/1843732_0.jpeg.webp",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "pl": "lfe1fb14c7471d163.jpg",
+   "at": "2026-10-24T05:04:10+00:00"
+  },
+  {
+   "id": "iran-hormuz-2026-10",
+   "title": "Opgøret mellem USA og Iran om Hormuz",
+   "kicker": "Iran",
+   "status": "i gang",
+   "dek": "USA evakuerer diplomater og deres familier fra Mellemøsten, Trumps rådgivere har ifølge CNN angrebsplaner mod Iran klar, og Iran truer Golfens undersøiske kabler.",
+   "since": "2026-10",
+   "topic": "Iran og angrebet",
+   "facts": [
+    {
+     "label": "Tankskibe ramt ved Hormuz",
+     "value": "7",
+     "note": "ifølge iranske statsmedier",
+     "ids": [
+      "dfe3a071bdefe859"
+     ],
+     "src": [
+      "Daily Sabah"
+     ]
+    }
+   ],
+   "places": [
+    "Sirik",
+    "Teheran",
+    "Iran"
+   ],
+   "quotes": [
+    {
+     "who": "Donald Trump, USA's præsident",
+     "text": "De fleste synes at mene, at det bliver efter valget, og vi får se, hvad der sker.",
+     "ids": [
+      "e22eaee991149c85"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "stories": [
+    "751e64fe3b28ddef",
+    "88d2618c670f2eaa",
+    "a87e8b5e9a7a5f3e",
+    "128c2ea1abdaa98a",
+    "f02ace7db8ac88d5",
+    "1a787a335f0989e6",
+    "5cebfec956d4e8cb",
+    "27cbe31d28189fa6",
+    "2858687f6b9d1ed4",
+    "e22eaee991149c85",
+    "dfe3a071bdefe859",
+    "0c7c1cbea9183990",
+    "b61829a4ed665d64",
+    "c55115be3e0d1966",
+    "250f6cc4be87e085",
+    "4752ff8a0dd0ca47",
+    "0113a9bf75d83bcb"
+   ],
+   "article": [
+    {
+     "text": "USA's udenrigsministerium har beordret diplomater og andre føderalt ansatte til at forlade Saudi-Arabien og skærer ned på personalet ved andre missioner i regionen. Ifølge et notat fra USA's nationale efterretningsdirektør til udenrigsminister Marco Rubio har Iran kraftigt øget sine forsøg på at ramme amerikanske embedsmænd.",
+     "ids": [
+      "751e64fe3b28ddef",
+      "1a787a335f0989e6"
+     ],
+     "src": [
+      "New York Times",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Amerikanske embedsmænd siger til New York Times, at truslen mod amerikanere i Mellemøsten er på det højeste niveau siden krigens start i februar. Irans stabschef siger, at Iran ikke vil tillade amerikanske krigsskibe at sejle ind i Golfen igen, og tolv lande, heriblandt Iran, Rusland, Kina og Pakistan, fordømmer ifølge IRNA angreb og trusler mod atomanlæg under IAEA's tilsyn.",
+     "ids": [
+      "099ad477b8d3716d",
+      "f7451183408894ee",
+      "3653b7be5478a432"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Syv olietankskibe er i brand eller beskadiget i Hormuzstrædet efter at være blevet ramt eller have ramt søminer natten til torsdag, oplyser Iran. Irans revolutionsgarde siger, at den har angrebet fire skibe i Den Persiske Golf, og der er hørt eksplosioner ved Sirik i det sydlige Iran.",
+     "ids": [
+      "dfe3a071bdefe859",
+      "b61829a4ed665d64",
+      "a40f33297bfdc5ba"
+     ],
+     "src": [
+      "Daily Sabah",
+      "BT"
+     ]
+    },
+    {
+     "text": "Revolutionsgarden truer med at ramme amerikanske baser som gengæld for, at USA ledsager skibe gennem Hormuz. Iran har bedt FN's Sikkerhedsråd fordømme USA's maritime blokade og kræver den ophævet med det samme.",
+     "ids": [
+      "c55115be3e0d1966",
+      "0113a9bf75d83bcb"
+     ],
+     "src": [
+      "Naharnet",
+      "IRNA"
+     ]
+    },
+    {
+     "text": "Amerikanske embedsmænd siger til CNN, at Trumps rådgivere i samarbejde med “israel” har forberedt angrebsplaner mod Iran, som kan sættes i gang, når præsidenten godkender dem. USA's ambassadør i Tyrkiet, Tom Barrack, siger, at et angreb kan komme i weekenden, mens Trump siger, at USA måske gennemfører »endnu en lille Epic Fury«. Tyrkiets udenrigsminister Hakan Fidan siger, at et nyt angreb vil udvide konflikten.",
+     "ids": [
+      "88d2618c670f2eaa",
+      "128c2ea1abdaa98a",
+      "f02ace7db8ac88d5",
+      "27cbe31d28189fa6"
+     ],
+     "src": [
+      "BT",
+      "Anadolu",
+      "Middle East Monitor"
+     ]
+    },
+    {
+     "text": "To højtstående iranske embedsmænd siger til Reuters, at Iran har detaljerede planer om at ramme undersøiske kabler i Golfen, hvis krigen genoptages. Tysklands udenrigsminister siger, at Tyskland, Frankrig og Storbritannien er klar til at forhandle med Iran, og Irans udenrigsminister siger, at præsident Pezeshkian rejser til Rusland i næste uge for at mødes med Putin.",
+     "ids": [
+      "5cebfec956d4e8cb",
+      "2858687f6b9d1ed4",
+      "b79477f22e4bbb59"
+     ],
+     "src": [
+      "Middle East Eye",
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "pic": "https://billeder.jyllands-posten.dk/pictures/image/19751011/eq4uby/ALTERNATES/master-3_2/israel-palestinianshezbollah-iran",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "at": "2026-10-24T06:12:56+00:00",
+   "pl": "l5dd01f27820050f2.jpg"
+  },
+  {
+   "id": "israel-vestbredden-2026-10",
+   "title": "“israels” militæroperation på Vestbredden",
+   "kicker": "Vestbredden",
+   "status": "i gang",
+   "dek": "“israels” militær har tvunget 250 familier fra deres hjem i Hebron, rykket ind i 15 byer i nord og river bygninger ned nær stedet for fredagens angreb.",
+   "since": "2026-10-23",
+   "topic": "Vestbredden",
+   "facts": [
+    {
+     "label": "Familier tvunget fra hjem",
+     "value": "250",
+     "note": "ifølge Al Jazeera",
+     "ids": [
+      "8c50854e4ed047d6"
+     ],
+     "src": [
+      "Al Arabiya"
+     ]
+    },
+    {
+     "label": "Byer stormet i nord",
+     "value": "15",
+     "note": "ifølge Al Jazeeras korrespondent",
+     "ids": [
+      "f4ea4c945546fc08"
+     ],
+     "src": [
+      "Al Jazeera"
+     ],
+     "was": {
+      "value": "13",
+      "when": "kl. 00.51",
+      "ids": [
+       "b4528e7335ddb6f0"
+      ]
+     }
+    },
+    {
+     "label": "Anholdte palæstinensere",
+     "value": "70",
+     "note": "ifølge Den Palæstinensiske Fangeklub, fra fredag til lørdag morgen",
+     "ids": [
+      "96aa6fbd4476a716"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "places": [
+    "Hebron",
+    "Nablus",
+    "Jenin",
+    "Tubas",
+    "Aqqaba",
+    "Qaffin",
+    "Burqin",
+    "Arraba",
+    "Tuqu'",
+    "al-Bira",
+    "Qalqilya",
+    "Vestbredden"
+   ],
+   "quotes": [
+    {
+     "who": "Benjamin Netanyahu, “israels” premierminister",
+     "text": "Militæret vil gå fra hus til hus og ødelægge terroristernes infrastruktur.",
+     "ids": [
+      "a3ddb1d05f3f1be9"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "stories": [
+    "a3ddb1d05f3f1be9",
+    "408562d2bf9e0da9",
+    "6d1c632451e16102",
+    "a0b717c2d602c76a",
+    "df6425df30f87517",
+    "1a8f9f488dc0abae",
+    "e9c00f5bad345fa6",
+    "0633f48a812f65ec"
+   ],
+   "article": [
+    {
+     "text": "“israels” militær har indledt en militæroperation i Hebron efter angrebet fredag, hvor to “israelske” soldater og de to palæstinensiske angribere blev dræbt. Ifølge militæret deltager efterretningstjenesten Shin Bet og grænsepolitiet, og styrkerne går efter snesevis af mål over hele Vestbredden.",
+     "ids": [
+      "3bbdfdb2924ec199",
+      "cfe333f87e3179a8",
+      "aee53e7f857935bd",
+      "a396726f38026b86"
+     ],
+     "src": [
+      "AFP",
+      "Al Jazeera",
+      "Al Arabiya"
+     ]
+    },
+    {
+     "text": "Premierminister Benjamin Netanyahu har beordret Vestbredden lukket og Hebron omringet og siger, at militæret vil gå fra hus til hus. Finansminister Bezalel Smotrich har beordret bygninger nær stedet for angrebet revet ned.",
+     "ids": [
+      "a3ddb1d05f3f1be9",
+      "6d1c632451e16102",
+      "0633f48a812f65ec"
+     ],
+     "src": [
+      "DR",
+      "Al-Monitor",
+      "BT"
+     ]
+    },
+    {
+     "text": "Styrkerne har ifølge Al Jazeeras korrespondent beordret hundredvis af familier i Ein Deir Bahha-området i Hebron til at forlade deres hjem, og beboere i al-Jalda-kvarteret er begyndt at blive evakueret. WAFA melder om en nedrevet beboelsesejendom i Hebron og lukkede veje.",
+     "ids": [
+      "d1ee72b57716d9ec",
+      "b8e62576cd237742",
+      "e9c00f5bad345fa6"
+     ],
+     "src": [
+      "Al Jazeera",
+      "The Guardian"
+     ]
+    },
+    {
+     "text": "Ifølge Al Jazeera er 250 familier i Hebron tvunget til at forlade deres hjem under den skærpede blokade af byen. En sikkerhedskilde siger til “israels” hærradio, at evakueringen er midlertidig og afgrænset, indtil »terrorens infrastruktur« er fjernet.",
+     "ids": [
+      "8c50854e4ed047d6",
+      "95a131e0031fc40b"
+     ],
+     "src": [
+      "Al Arabiya"
+     ]
+    },
+    {
+     "text": "I det nordlige Vestbredden er styrkerne ifølge Al Jazeeras korrespondent rykket ind i 15 byer og landsbyer, blandt andet Nablus, Tubas, Aqqaba, Qaffin, Burqin og Arraba, og har anholdt snesevis af palæstinensere.",
+     "ids": [
+      "f4ea4c945546fc08",
+      "d65928098e8bda0f",
+      "5055c0259f058118",
+      "da2c1add4c790395",
+      "2d9a4fb2d46b18f8",
+      "0fb2b769c6cdc437",
+      "a0b717c2d602c76a"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Lørdag begyndte “israel” ifølge AP at rive palæstinensiske bygninger ned nær Hebron, hvor angrebet fandt sted. Den Palæstinensiske Fangeklub oplyser, at styrkerne har anholdt 70 palæstinensere på Vestbredden fra fredag til lørdag morgen, og ifølge Al Jazeeras korrespondent har styrkerne gennemsøgt huse i al-Bira. Operationen kommer fire dage før parlamentsvalget i “israel” tirsdag.",
+     "ids": [
+      "408562d2bf9e0da9",
+      "96aa6fbd4476a716",
+      "f00488340ea4b780",
+      "6d1c632451e16102"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "pic": "https://www.thenationalnews.com/resizer/v2/FP3BZLWHJ4OVPJVTSR5C72YN24.jpg?auth=fb6b662125bf0228c428194a876aeb5bb87fa39b8fbd7a9b4bcfc0025177a882&smart=true&width=5500&height=3667",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "pl": "l21cd8d4d91104c71.jpg",
+   "at": "2026-10-24T11:12:02+00:00"
+  },
+  {
+   "id": "knessetvalg-2026-10-27",
+   "title": "Parlamentsvalget i “israel”",
+   "kicker": "“israel”",
+   "status": "kommende",
+   "dek": "“israel” vælger et nyt Knesset 27. oktober; Trump har givet Netanyahu sin fulde anbefaling, mens vicepræsident JD Vance afslår at støtte ham.",
+   "date": "2026-10-27",
+   "topic": "Valget i “israel”",
+   "facts": [
+    {
+     "label": "Mandater til flertal",
+     "value": "61",
+     "note": "Knessets flertal, ifølge Asharq Al-Awsat",
+     "ids": [
+      "f49d8d2be4e6f274"
+     ],
+     "src": [
+      "DR"
+     ],
+     "of": "120"
+    },
+    {
+     "label": "Hver blok i målingerne",
+     "value": "50-52 mandater",
+     "note": "Netanyahus koalition og oppositionen, ifølge meningsmålingerne",
+     "ids": [
+      "f49d8d2be4e6f274"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "label": "Arabiske vælgeres andel",
+     "value": "ca. 17 procent",
+     "note": "ifølge DR",
+     "ids": [
+      "f49d8d2be4e6f274"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "places": [
+    "Jerusalem",
+    "Tel Aviv"
+   ],
+   "quotes": [
+    {
+     "who": "Donald Trump, USA's præsident",
+     "text": "Du er den mand, jeg vil have ved min side, Bibi.",
+     "ids": [
+      "3a06d9e33458c24e"
+     ],
+     "src": [
+      "Jyllands-Posten"
+     ]
+    }
+   ],
+   "stories": [
+    "f49d8d2be4e6f274",
+    "a03a253d52a65234",
+    "24cfb3c95cc11609",
+    "b2d3cbeb3612025e",
+    "4c691ffc2f7a0572",
+    "3a06d9e33458c24e",
+    "d4f81c0eb06af7f1"
+   ],
+   "article": [
+    {
+     "text": "“israel” holder parlamentsvalg 27. oktober. USA's præsident Donald Trump har givet premierminister Benjamin Netanyahu sin fulde anbefaling, og i en video af et opkald mellem de to siger Trump: »Du er den mand, jeg vil have ved min side, Bibi.« Netanyahu siger, at han intet har tilbudt Trump for anbefalingen.",
+     "ids": [
+      "a03a253d52a65234",
+      "3a06d9e33458c24e"
+     ],
+     "src": [
+      "Jyllands-Posten"
+     ]
+    },
+    {
+     "text": "Det kræver 61 af Knessets 120 mandater at få flertal, og i meningsmålingerne står Netanyahus koalition og oppositionen, med den tidligere hærchef Gadi Eisenkot i spidsen, med omkring 50-52 mandater hver. Arabiske borgere udgør cirka 17 procent af vælgerne, og deres valgdeltagelse kan få betydning for, hvem der kan danne regering, oplyser DR.",
+     "ids": [
+      "f49d8d2be4e6f274"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "USA's vicepræsident JD Vance afslår at støtte Netanyahu før valget. »Jeg går ikke imod at støtte ham. Jeg går ikke ind for at støtte ham. Jeg blander mig ikke i “israelske” valg,« siger Vance.",
+     "ids": [
+      "24cfb3c95cc11609"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "USA's forsvarsminister Pete Hegseth mødte mandag Netanyahu på et uanmeldt besøg på en luftbase i det sydlige “israel”, oplyser kilder til Axios. Ifølge en amerikansk embedsmand til CNN mødte han også forsvarsminister Katz.",
+     "ids": [
+      "b2d3cbeb3612025e"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "text": "Yisrael Beiteinus leder Avigdor Lieberman kritiserer Trump for anbefalingen af Netanyahu.",
+     "ids": [
+      "a03a253d52a65234"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "text": "Netanyahu siger, at angrebene på Iran fortsætter, hvis han vinder valget.",
+     "ids": [
+      "d4f81c0eb06af7f1"
+     ],
+     "src": [
+      "BT"
+     ]
+    }
+   ],
+   "pic": "https://asset.dr.dk/drdk/umbraco-images/vohlnvxx/20261019-090113-7.jpg?im=AspectCrop=(1200,675),xPosition=.5,yPosition=.5;Resize=(1200,675)&impolicy=medium",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "pl": "la2c2e562033f3b4e.jpg",
+   "at": "2026-10-22T06:15:35+00:00"
+  }
+ ]
+}

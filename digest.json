@@ -1,0 +1,431 @@
+{
+ "date": "2026-10-24",
+ "title": "Politiske nyheder – 24. oktober 2026",
+ "created": "2026-10-24T16:03:41+00:00",
+ "updates": [
+  "2026-10-24T04:09:23+00:00",
+  "2026-10-24T04:09:44+00:00",
+  "2026-10-24T05:04:10+00:00",
+  "2026-10-24T06:12:56+00:00",
+  "2026-10-24T07:03:54+00:00",
+  "2026-10-24T07:41:00+00:00",
+  "2026-10-24T08:03:19+00:00",
+  "2026-10-24T09:03:27+00:00",
+  "2026-10-24T10:03:29+00:00",
+  "2026-10-24T11:12:02+00:00",
+  "2026-10-24T12:03:14+00:00",
+  "2026-10-24T13:03:06+00:00",
+  "2026-10-24T14:03:10+00:00",
+  "2026-10-24T15:07:18+00:00",
+  "2026-10-24T15:41:36+00:00",
+  "2026-10-24T16:03:41+00:00"
+ ],
+ "topics": [
+  {
+   "name": "Trump og Rusland",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Zelenskyj",
+     "text": "Ukraines præsident siger, at Trump og Putin har ret gode relationer, og at det er Trumps eget valg.",
+     "link": "https://t.me/ClashReport/102764",
+     "source": "Clash Report",
+     "at": "2026-10-24T05:55:12+00:00",
+     "added": "2026-10-24T06:12:56+00:00",
+     "id": "596c9ea8d5b0b44c",
+     "kind": "s"
+    },
+    {
+     "who": "Zelenskyj",
+     "text": "Ukraines præsident siger, at Kiev er klar til at afslutte krigen hurtigst muligt, men ikke vil anerkende russisk-besat område som russisk.",
+     "link": "https://www.pravda.com.ua/eng/news/2026/10/24/8059494/",
+     "source": "Ukrainska Pravda",
+     "at": "2026-10-24T01:12:00+00:00",
+     "added": "2026-10-24T05:04:10+00:00",
+     "id": "819059cd41015917",
+     "kind": "s"
+    },
+    {
+     "who": "Marco Rubio",
+     "text": "USA's udenrigsminister siger, at krigen handler om Ruslands forsøg på at tage Donbas, mens Ukraine nægter at afgive området.",
+     "link": "https://www.pravda.com.ua/eng/news/2026/10/24/8059489/",
+     "source": "Ukrainska Pravda",
+     "at": "2026-10-23T22:26:00+00:00",
+     "added": "2026-10-24T06:12:56+00:00",
+     "id": "b8279cf31e749540",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Iran og angrebet",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Ruslands ambassade i Iran",
+     "text": "Ambassaden afviser meldinger om, at russisk personale ved atomkraftværket i Bushehr evakueres.",
+     "link": "https://t.me/MFARussia/32924",
+     "source": "Ruslands udenrigsministerium",
+     "at": "2026-10-24T11:05:01+00:00",
+     "added": "2026-10-24T11:12:02+00:00",
+     "id": "0953f9584e4d5b78",
+     "kind": "s"
+    },
+    {
+     "who": "USA's udenrigsministerium",
+     "text": "Ministeriet advarer om mulige angreb i Irak.",
+     "link": "https://t.me/Alarabiya/168147",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T10:16:01+00:00",
+     "added": "2026-10-24T11:12:02+00:00",
+     "id": "e4e182834e2c0a23",
+     "kind": "w"
+    },
+    {
+     "who": "IRNA",
+     "text": "Tolv lande, heriblandt Iran, Rusland, Kina og Pakistan, fordømmer angreb og trusler mod atomanlæg under IAEA's tilsyn.",
+     "link": "https://en.irna.ir/news/86301408/Twelve-countries-condemn-attacks-threats-against-nuclear-facilities",
+     "source": "IRNA",
+     "at": "2026-10-24T06:04:06+00:00",
+     "added": "2026-10-24T06:12:56+00:00",
+     "id": "3653b7be5478a432",
+     "kind": "s"
+    },
+    {
+     "who": "Irans stabschef",
+     "text": "Iran vil ikke tillade amerikanske krigsskibe at sejle ind i Golfen igen.",
+     "link": "https://t.me/AjaNews/518333",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T04:38:10+00:00",
+     "added": "2026-10-24T05:04:10+00:00",
+     "id": "f7451183408894ee",
+     "kind": "w"
+    },
+    {
+     "who": "New York Times",
+     "text": "Amerikanske embedsmænd siger til avisen, at truslen mod amerikanere i Mellemøsten er på det højeste niveau siden krigens start i februar, og at irandske planer omfatter mulige mål i Europa.",
+     "link": "https://t.me/AjaNews/518328",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T04:23:42+00:00",
+     "added": "2026-10-24T05:04:10+00:00",
+     "id": "099ad477b8d3716d",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Vestbredden",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Den Palæstinensiske Fangeklub",
+     "text": "“israelske” styrker har anholdt 70 palæstinensere på Vestbredden fra fredag til lørdag morgen.",
+     "link": "https://t.me/AjaNews/518362",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T10:15:15+00:00",
+     "added": "2026-10-24T11:12:02+00:00",
+     "id": "96aa6fbd4476a716",
+     "kind": "w"
+    },
+    {
+     "who": "AP",
+     "text": "“israel” river palæstinensiske bygninger ned nær Hebron efter fredagens dødelige angreb.",
+     "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPbEdIX1Y5RGc4bEZHWlAybjl3NXdzR3F1YjNfZ3M4UnZzQVlsQms3aDExR2JiU1RfWWt2VTRKTnNFSHpfUWhia1BHU0RCbjFwV0gzcHB1Y0l3T25rREg3bVZGNWc2Zm9JSGdTSDROZWw1VDdlOFZwNC1fX2ZjMzJ6U3U2ZFAyVV8zMzhNZWprazZZWUVaeG01cHg4SG9VR2dLUjdrQ0c0cVFGb3l0NURuZXdYUmtDR2JIYW1wOUxidDVMdlN1X29MbFVGanpnRUpqMExoNEk3SFduUQ?oc=5",
+     "source": "AP",
+     "at": "2026-10-24T09:57:00+00:00",
+     "added": "2026-10-24T11:12:02+00:00",
+     "id": "408562d2bf9e0da9",
+     "kind": "s"
+    },
+    {
+     "who": "WAFA: Den palæstinensiske regering",
+     "text": "Den siger, at “israels” optrapning på Vestbredden kræver omgående international indgriben.",
+     "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5uQVFCXzZxQ1hIZ1lySHR3Rmg0ZlpmRkJWNEVJd1lrb21OZVJURTctcENZTjM3aGNYZlJnS3RfY1lzYVlrTW9PODV1Z2RZYjRhQUdjSllzaw?oc=5",
+     "source": "WAFA",
+     "at": "2026-10-24T09:11:14+00:00",
+     "added": "2026-10-24T10:03:29+00:00",
+     "id": "2851eed03ac4fdf1",
+     "kind": "s"
+    },
+    {
+     "who": "“israels” hærradio",
+     "text": "En sikkerhedskilde siger, at evakueringen af beboere i Hebron er midlertidig og afgrænset.",
+     "link": "https://t.me/AjaNews/518339",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T06:05:15+00:00",
+     "added": "2026-10-24T06:12:56+00:00",
+     "id": "95a131e0031fc40b",
+     "kind": "w"
+    },
+    {
+     "who": "Al Jazeera",
+     "text": "250 familier i Hebron er tvunget til at forlade deres hjem under den skærpede blokade af byen.",
+     "link": "https://t.me/Alarabiya/168131",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T05:58:49+00:00",
+     "added": "2026-10-24T06:12:56+00:00",
+     "id": "8c50854e4ed047d6",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Netanyahu og sanktioner",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Netanyahu",
+     "text": "“israels” premierminister siger, at landet skal forberede sig på mulige sanktioner, herunder bankesanktioner, og opbygge en alternativ økonomi.",
+     "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPVnVmSE5QN3VheGpKeGlTalpkdWFwZTBKU2txQUFVNWVIWFlMTEUzaGJjcXhTU2NxTDZTWU1SbExxNGpsYzJDY1FKS3hYV2RBUERndXozRW1EY2xfckFYSWRodllqUmNIVnptRlJEbXZCcEE1cGd2Mi1GNUpEWGcxdWlyQ2NlSXdRVDFmMVVORUtNWlNjbEtIcmlkSTNLa3h6YXVFVWRGSTB4aGczWTZZQ3d6Zm9rVmVFbHJ5N0dYVktwUQ?oc=5",
+     "source": "Middle East Eye",
+     "at": "2026-10-24T05:13:00+00:00",
+     "added": "2026-10-24T07:03:54+00:00",
+     "id": "99a5b79a780c44d2",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Iran og USA",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Wall Street Journal, ifølge amerikanske embedsmænd",
+     "text": "USA har evakueret personale fra militærbaser i Mellemøsten; Trump hælder til at genoptage større operationer mod Iran, men har ikke truffet en endelig beslutning.",
+     "link": "https://t.me/AjaNews/518396",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T15:46:45+00:00",
+     "added": "2026-10-24T16:03:41+00:00",
+     "id": "9d33f2f23406df5e",
+     "kind": "w"
+    },
+    {
+     "who": "Wall Street Journal, ifølge amerikanske embedsmænd",
+     "text": "Trump er blevet briefet om muligheder, der omfatter angreb på iranske atomanlæg og øer under Teherans kontrol; USA's krigsskibe i Mellemøsten gør sig klar til mulige angreb inden for uger.",
+     "link": "https://t.me/AjaNews/518394",
+     "source": "Al Jazeera",
+     "at": "2026-10-24T15:42:19+00:00",
+     "added": "2026-10-24T16:03:41+00:00",
+     "id": "3c182e9ef44374e1",
+     "kind": "w"
+    }
+   ]
+  }
+ ],
+ "ids": [
+  "00ac6cf0278fabe3",
+  "01688a871d780046",
+  "037b87256c2b8a9f",
+  "048818a2c65454c9",
+  "053652105c1a53f8",
+  "06dfd3f2a2cdf938",
+  "099ad477b8d3716d",
+  "0fb2b769c6cdc437",
+  "12d5690318c13249",
+  "15d17d887c76d645",
+  "1672a72fd60af808",
+  "189ae9af9d8509b6",
+  "18d2b082091c0782",
+  "1a1f4991d3b33df4",
+  "1c36b2f37b2dd207",
+  "1ce5c4fc55c34f79",
+  "1e7cc1e85e40aefd",
+  "1e977d9b01037ffc",
+  "1f4eed518c76f26c",
+  "1fd0d99562019b84",
+  "2395474c12b6e704",
+  "23b6069414997d99",
+  "24a87d34b83b2be5",
+  "27cb3a0fd9b3ca78",
+  "2d9a4fb2d46b18f8",
+  "2e13d09f6df9bb71",
+  "2f6c76ae06637dba",
+  "3124f9681abf0b98",
+  "313faa5cf9d530fc",
+  "34bd1fb522421b4d",
+  "385c77af0e3f1c9e",
+  "3a23360e56d73e84",
+  "3c182e9ef44374e1",
+  "3ebaebf3577f8768",
+  "3f99fdc0175bf532",
+  "431ad7f9adc03007",
+  "441bb9e24503c936",
+  "49cb5b406523c296",
+  "4fcb1cea9e3d57c7",
+  "5055c0259f058118",
+  "512557c10323d11b",
+  "51efa791852211a0",
+  "520f4c768d2520f1",
+  "531521e5fe149569",
+  "55b88ef177ffce10",
+  "565a47b00b79dee8",
+  "56cdf4a0971d9542",
+  "5ad266ba4bb4265c",
+  "5c887fc53b2ed394",
+  "5cc6e657805ae885",
+  "618b888b88364a9d",
+  "65560b174220f4c4",
+  "65ffb198219a8215",
+  "6c0af92c41033c0a",
+  "6f35f0247a7e2dc2",
+  "6ffcdbeed814b3cd",
+  "73978fe7f925473a",
+  "746651650dd1c6d5",
+  "7525c0bd7fd30236",
+  "770ff7f0244b6bab",
+  "79c09c6bf71d3503",
+  "7bf59f9a091d0e1f",
+  "7c73b49c9c937c03",
+  "7cb915bffe0b3b26",
+  "84ed35b220bcc0bf",
+  "87a8406e61061270",
+  "881b0ae7e435ffe4",
+  "893036e242c8c367",
+  "8c50854e4ed047d6",
+  "8cd9bf59b6bb2fa6",
+  "8dca207814cc0e72",
+  "8ede3a9f8dcf9769",
+  "90ffe3574c4a827c",
+  "9221f209b9ea543e",
+  "928adcf6e13f173a",
+  "947c6ad8cdfb6745",
+  "95a131e0031fc40b",
+  "967e7090b24214ad",
+  "96aa6fbd4476a716",
+  "96f32c21b12b364b",
+  "99b4c740a2f6b05a",
+  "9ac1241e0c01d03a",
+  "9b76719478b262a5",
+  "9c8e147c1e2c2c39",
+  "9d33f2f23406df5e",
+  "9de1464cada90678",
+  "a2a22dd57e060258",
+  "a3256c6e0dee567d",
+  "a384199781488c85",
+  "a396726f38026b86",
+  "a8fdcd56d8f921c0",
+  "aa0577d5275717f3",
+  "ac331236fd495712",
+  "ae5572f2edda3c44",
+  "aee53e7f857935bd",
+  "af4af5cb526b3c32",
+  "afb104f34eaa76ef",
+  "b4528e7335ddb6f0",
+  "b745c676b0de8a01",
+  "b79a75f70b052b63",
+  "b8e62576cd237742",
+  "b99a141bccc51e79",
+  "ba7465ef58812235",
+  "bf78c2817f4b7315",
+  "c0fb2e0604e92a7b",
+  "c4090c43b6d0e638",
+  "c5c83614b5a9af9b",
+  "cfae92d5861602ac",
+  "cfe333f87e3179a8",
+  "d0d4f388c914f7af",
+  "d1ee72b57716d9ec",
+  "d52b5c185ef872f3",
+  "d5869e43b457287f",
+  "d5d271e1758e3c04",
+  "d5ed89dc13614c03",
+  "d65928098e8bda0f",
+  "d776024ced55134a",
+  "d839918c5696d8a9",
+  "da2c1add4c790395",
+  "da948cbda4a74fc3",
+  "de433ad5a3a7b53d",
+  "de9e6614afd6392b",
+  "e0c59dd6ba23d1aa",
+  "e0cd77c2d31c64b0",
+  "e104569f800a2e5c",
+  "e15b4d3dc8bb8e16",
+  "e2372c353acebf1b",
+  "e341d7d620263258",
+  "e4a79d008d92ed7e",
+  "e4e182834e2c0a23",
+  "e6a4da98f54fd06e",
+  "e9a6ab9921b1631c",
+  "ed56a1a83c277eb5",
+  "f00488340ea4b780",
+  "f1f97383e6544801",
+  "f2b19c21061bf02c",
+  "f2fc805cfb80ccf5",
+  "f3fc505477b1b2a3",
+  "f4ea4c945546fc08",
+  "f6445edaea7c10e7",
+  "f7451183408894ee",
+  "f75eceb27379f680",
+  "f9835d39f8e407eb",
+  "fad283955f9f308c",
+  "fb545195927754d5",
+  "ffc8f9f27d175ea6"
+ ],
+ "period": "aften",
+ "whatsapp": "Politiske nyheder – 24. oktober 2026\n\nTrump og Rusland\n\n- Zelenskyj: Ukraines præsident siger, at Trump og Putin har ret gode relationer, og at det er Trumps eget valg.\n\n- Zelenskyj: Ukraines præsident siger, at Kiev er klar til at afslutte krigen hurtigst muligt, men ikke vil anerkende russisk-besat område som russisk.\n\n- Marco Rubio: USA's udenrigsminister siger, at krigen handler om Ruslands forsøg på at tage Donbas, mens Ukraine nægter at afgive området.\n\nIran og angrebet\n\n- Ruslands ambassade i Iran: Ambassaden afviser meldinger om, at russisk personale ved atomkraftværket i Bushehr evakueres.\n\n- USA's udenrigsministerium: Ministeriet advarer om mulige angreb i Irak.\n\n- IRNA: Tolv lande, heriblandt Iran, Rusland, Kina og Pakistan, fordømmer angreb og trusler mod atomanlæg under IAEA's tilsyn.\n\n- Irans stabschef: Iran vil ikke tillade amerikanske krigsskibe at sejle ind i Golfen igen.\n\n- New York Times: Amerikanske embedsmænd siger til avisen, at truslen mod amerikanere i Mellemøsten er på det højeste niveau siden krigens start i februar, og at irandske planer omfatter mulige mål i Europa.\n\nVestbredden\n\n- Den Palæstinensiske Fangeklub: “israelske” styrker har anholdt 70 palæstinensere på Vestbredden fra fredag til lørdag morgen.\n\n- AP: “israel” river palæstinensiske bygninger ned nær Hebron efter fredagens dødelige angreb.\n\n- WAFA: Den palæstinensiske regering: Den siger, at “israels” optrapning på Vestbredden kræver omgående international indgriben.\n\n- “israels” hærradio: En sikkerhedskilde siger, at evakueringen af beboere i Hebron er midlertidig og afgrænset.\n\n- Al Jazeera: 250 familier i Hebron er tvunget til at forlade deres hjem under den skærpede blokade af byen.\n\nNetanyahu og sanktioner\n\n- Netanyahu: “israels” premierminister siger, at landet skal forberede sig på mulige sanktioner, herunder bankesanktioner, og opbygge en alternativ økonomi.\n\nIran og USA\n\n- Wall Street Journal, ifølge amerikanske embedsmænd: USA har evakueret personale fra militærbaser i Mellemøsten; Trump hælder til at genoptage større operationer mod Iran, men har ikke truffet en endelig beslutning.\n\n- Wall Street Journal, ifølge amerikanske embedsmænd: Trump er blevet briefet om muligheder, der omfatter angreb på iranske atomanlæg og øer under Teherans kontrol; USA's krigsskibe i Mellemøsten gør sig klar til mulige angreb inden for uger.",
+ "push": null,
+ "editor": {
+  "created": "2026-10-24T16:03:41+00:00",
+  "lede": "“israels” militær tvinger 250 familier ud i Hebron og rykker ind i 15 byer på Vestbredden, mens USA evakuerer diplomater forud for et muligt angreb på Iran.",
+  "lede_at": "2026-10-24T06:12:56+00:00",
+  "lede_ids": [
+   "a3ddb1d05f3f1be9",
+   "df6425df30f87517",
+   "751e64fe3b28ddef"
+  ],
+  "picks": [
+   {
+    "id": "4f582a0bae74534c",
+    "why": "USA's fredsplan for Ukraine, tier 2"
+   },
+   {
+    "id": "b8279cf31e749540",
+    "why": "USA om Ruslands krig, tier 1"
+   },
+   {
+    "id": "751e64fe3b28ddef",
+    "why": "USA evakuerer fra Golfen, tier 2"
+   },
+   {
+    "id": "a3ddb1d05f3f1be9",
+    "why": "“israels” operation på Vestbredden"
+   },
+   {
+    "id": "5ec23b4c8a76b59a",
+    "why": "Putin-Trump-aftale, tier 1"
+   },
+   {
+    "id": "128c2ea1abdaa98a",
+    "why": "USA varsler angreb på Iran"
+   },
+   {
+    "id": "8d3cafbb6bce1d79",
+    "why": "Netanyahus plan for Gazas befolkning"
+   }
+  ],
+  "moves": [],
+  "quotes": [
+   {
+    "who": "Abbas Araghchi, Irans udenrigsminister",
+    "text": "Iran er parat til at give diplomatiet en chance til, hvis vi ser stærke beviser på et oprigtigt ønske fra USA om en retfærdig og hæderlig løsning, der varigt afslutter denne konflikt.",
+    "sec": "me",
+    "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxObTFkQUVFN29WQjVwSVlXRTdGQW53N0N3Q0t5Ry1VZU9KTHRpWHJxSFpCZmlBZ25VQTBXN1BCQ1AyX1EyNHpMNTItN0RRVUttRW53eXBISnhPWlZ1dVdxYWNBRG1lT1l1SWd3YkxhTVFkMy1BUUg4VVY5a2libm5nUmxGLVMtb21pMm1tb1Qxa0M5SXR2UU9rUkVfTHJCT2JSRkhrMFl4VUwzSDlOQmlRRWlmV216OG9tdGdmeTZQTGlmZlNoaTNHSHV2bWp4ckM2aEl4amE2VWNEcFQxcDZ1NWIzSmdlWUE4YUlzaERKXzNGdkJsdTRGbUVxMTI?oc=5",
+    "id": "q1"
+   },
+   {
+    "who": "Donald Trump, USA's præsident",
+    "text": "De fleste synes at mene, at det bliver efter valget, og vi får se, hvad der sker.",
+    "sec": "world",
+    "link": "https://www.aa.com.tr/en/us-israel-iran-war/trump-says-us-not-negotiating-with-iran-something-will-happen-fairly-soon-/4096596",
+    "id": "q2"
+   },
+   {
+    "who": "Den Internationale Valutafond (IMF)",
+    "text": "Et usædvanligt niveau af usikkerhed kaster sin skygge over de økonomiske udsigter.",
+    "sec": "world",
+    "link": "https://t.me/AjaNews/518020",
+    "okonomi": true,
+    "id": "q3"
+   }
+  ]
+ }
+}

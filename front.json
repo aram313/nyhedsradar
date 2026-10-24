@@ -1,0 +1,49 @@
+{
+ "updated": "2026-10-24T16:03:41+00:00",
+ "lede": "“israels” militær tvinger 250 familier ud i Hebron og rykker ind i 15 byer på Vestbredden, mens USA evakuerer diplomater forud for et muligt angreb på Iran.",
+ "lede_ids": [
+  "a3ddb1d05f3f1be9",
+  "df6425df30f87517",
+  "751e64fe3b28ddef"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "title": "Rusland accepterer at genoptage trepartsforhandlingerne med USA og Ukraine",
+   "story": "795c911280f064ea",
+   "with": [
+    "4f582a0bae74534c"
+   ],
+   "timeline": "Trump og Rusland",
+   "picture": true
+  },
+  {
+   "kind": "begivenhed",
+   "event": "iran-hormuz-2026-10"
+  },
+  {
+   "kind": "liste",
+   "title": "Golfen og Saudi-Arabien",
+   "stories": [
+    "59eaf1e448a2c4f0",
+    "1bc6523f8bdfb6c2",
+    "05ae46a4795345cf"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Gaza",
+   "stories": [
+    "8d3cafbb6bce1d79",
+    "499bc48c93915889",
+    "16c2e40e96c82f5e"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "nedtaelling",
+   "event": "knessetvalg-2026-10-27"
+  }
+ ]
+}
