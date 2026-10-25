@@ -15,3 +15,4 @@
 - 2026-10-22: Alt kører. Seneste kørsel 04:36 UTC. 121 kilder, 0 i stykker. Danmark 105 · Mellemøsten 395 · Verden 658.
 - 2026-10-23: Radaren kører. Seneste kørsel 04:36 UTC. 121 kilder, 1 i stykker: Ariana News (51 fejlede kørsler; kunne ikke verificeres fra sandkassen, da værten er blokeret – uændret). Danmark 109 · Mellemøsten 394 · Verden 653.
 - 2026-10-24: Radaren kører. Seneste kørsel 04:36 UTC. 121 kilder, 1 i stykker: Ariana News (343 fejlede kørsler; kunne ikke verificeres fra sandkassen, da værten er blokeret – uændret). Danmark 97 · Mellemøsten 403 · Verden 648.
+- 2026-10-25: Radaren kører. Seneste kørsel 04:36 UTC. 121 kilder, 1 i stykker: Ariana News (639 fejlede kørsler; kunne ikke verificeres fra sandkassen, da værten er blokeret – uændret). Danmark 93 · Mellemøsten 349 · Verden 567.
