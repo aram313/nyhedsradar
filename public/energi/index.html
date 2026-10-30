@@ -632,6 +632,7 @@ let D = null, lastUpdated = null;
 const open = new Set(), folds = new Set(), openTile = {};
 const range = store.get('enRange', {});
 let curveOf = 'brent', newsAll = false, crisisAll = false;
+const CRISIS_ROWS = 5;   // the Nyheder topic's rows before 'Flere nyheder'
 const openNews = new Set();   // the stories unfolded here (one Khabar's Live does not hold)
 
 // ---- numbers and time ----------------------------------------------------------------------------------------------
@@ -1419,11 +1420,12 @@ function topicHtml(T) {
         + `<a class="ec-q" href="${esc(Q.u || '#')}" target="_blank" rel="noopener"${Q.i ? ` data-story="${esc(Q.i)}"` : ''}><blockquote>»${esc(qi(Q.text))}«</blockquote>`
         + `<figcaption>${by}</figcaption></a>${Q.i && openNews.has(Q.i) ? storyX({ i: Q.i, u: Q.u, s: Q.s || Q.who || '' }, ' quote') : ''}</figure>`;
     }
-    // one week at a time (the owner, 18/10: 'for mange nyheder … vis 1 uge af gangen, og resten kan foldes ud')
-    const since = Date.now() - 7 * 864e5, week = rest.filter(n => new Date(n.p) >= since), older = rest.length - week.length;
-    h += news(crisisAll ? rest : week, older ? 'Ingen andre nyheder den seneste uge.' : lead ? 'Ingen andre nyheder om finans og økonomi den seneste måned.'
+    // five at a time, the newest (the owner, 30/10: 'nyheder har alt for mange linjer'; before, 18/10: 'vis 1 uge af
+    // gangen, og resten kan foldes ud' – a week was still ~30 rows): the rest unfolds in place
+    const more = rest.length - CRISIS_ROWS;
+    h += news(crisisAll ? rest : rest.slice(0, CRISIS_ROWS), lead ? 'Ingen andre nyheder om finans og økonomi den seneste måned.'
       : 'Ingen nyheder om finans og økonomi den seneste måned.', true, 'crisisMore');
-    if (!crisisAll && older) h += `<button class="en-showmore" id="crisisMore">Ældre nyheder (${older})${CHEV}</button>`;
+    if (!crisisAll && more > 0) h += `<button class="en-showmore" id="crisisMore">Flere nyheder (${more})${CHEV}</button>`;
   } else {
     const tiles = tilesOf(T.id);
     base = baseOf(tiles);

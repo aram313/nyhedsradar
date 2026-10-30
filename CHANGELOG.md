@@ -9,6 +9,10 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+- **Økonomi: the Nyheder topic shows five stories** (2026-10-30, the owner: 'den nyheder har alt for mange linjer'). It
+  showed the whole week – about 30 rows; now the five newest under the headline story, and 'Flere nyheder (N)' unfolds
+  the rest in place (`CRISIS_ROWS` in public/energi/index.html).
+
 - **21 sources removed** (2026-10-20, the owner: 'Har vi måske for mange kilder …' – then 'Ja fjern dem'). Over three
   days none of their ~600 articles a day reached Live: four regional TV stations (TV 2 Øst, TV 2 Østjylland, TV Syd, TV 2
   Fyn), seven large state or regional agencies (AllAfrica, APP, WAM, Yonhap, AKIpress, Antara, QNA), three duplicate
