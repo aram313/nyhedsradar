@@ -1,0 +1,102 @@
+{
+ "at": "2026-10-31T15:08:10+00:00",
+ "dag": {
+  "text": "Et tankskib blev lørdag ramt af et uidentificeret projektil i Hormuzstrædet, oplyser UKMTO, efter at Irans Revolutionsgarde sagde, at fire tankskibe brød i brand. USA's finansministerium siger i en rapport, som Axios har set, at blokaden og sanktionerne har lammet Irans økonomi. Rusland forlænger forbuddet mod det meste af sin dieseleksport til og med januar 2027.",
+  "ids": [
+   "941364547be49f37",
+   "2f9c8100967ad6c7",
+   "9f96bcb90801f368",
+   "c702091133cd7dd1"
+  ],
+  "src": [
+   "Anadolu",
+   "Axios",
+   "Clash Report"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Irans Revolutionsgarde siger, at et fjerde tankskib med over 2 millioner tønder råolie ramte en mine i Hormuzstrædet. De Forenede Arabiske Emirater har standset olieudslippet fra et beskadiget tankskib og renser kysten ved Umm Al Quwain, Ras Al Khaimah, Ajman og Sharjah.",
+   "ids": [
+    "2f9c8100967ad6c7",
+    "7a519e3de52a74f5"
+   ],
+   "src": [
+    "Anadolu"
+   ],
+   "stories": [
+    "941364547be49f37",
+    "2f9c8100967ad6c7",
+    "7a519e3de52a74f5"
+   ]
+  },
+  "fuel": {
+   "text": "Rusland forlænger forbuddet mod det meste af sin dieseleksport til og med januar 2027; vicepremierminister Novak venter, at eksporten stiger til 2,15 millioner tons i november. New Jerseys guvernør Mikie Sherrill truer med at blokere russiske dieselleverancer til USA.",
+   "ids": [
+    "c702091133cd7dd1",
+    "316d82eb9241dc75"
+   ],
+   "src": [
+    "Clash Report",
+    "TASS"
+   ],
+   "stories": [
+    "c702091133cd7dd1",
+    "316d82eb9241dc75",
+    "a558024c2bfef55a"
+   ]
+  },
+  "kris": {
+   "text": "Trump siger, at USA ikke løfter sanktionerne mod Ruslands direkte investeringsfond foreløbig. Ukraine har frigjort 2,9 milliarder euro fra EU, men 6 milliarder dollar og et IMF-eftersyn er stadig i fare, ifølge overvågningsrapporten RRR4U.",
+   "ids": [
+    "c6bc4a9aebd67306",
+    "28e9a9f8366696f3"
+   ],
+   "src": [
+    "TASS",
+    "Kyiv Post"
+   ],
+   "stories": [
+    "9f96bcb90801f368",
+    "c6bc4a9aebd67306",
+    "28e9a9f8366696f3"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "opec-plus-2026-11-01",
+   "date": "2026-11-01",
+   "title": "OPEC+-landene mødes om olieproduktionen i december",
+   "kind": "topmøde",
+   "place": "Virtuelt møde",
+   "why": "OPEC+ samler OPEC-landene – bl.a. Saudi-Arabien, Irak, Iran, Kuwait og Emiraterne – og Rusland og flere andre olielande. Mødet fastsætter, hvor meget olie landene producerer; det påvirker olieprisen, benzinprisen i Danmark og statsbudgetterne i Golfen og Rusland."
+  },
+  {
+   "id": "ed-2026-11-03-midtvejsvalg-i-usa",
+   "date": "2026-11-03",
+   "title": "Midtvejsvalg i USA",
+   "kind": "valg",
+   "place": "USA",
+   "why": "Hele Repræsentanternes Hus og en tredjedel af Senatet er på valg; Trump og hans embedsmænd kobler valget til beslutningen om Iran."
+  },
+  {
+   "id": "cop31-2026",
+   "date": "2026-11-09",
+   "end": "2026-11-20",
+   "title": "FN's klimatopmøde COP31",
+   "kind": "topmøde",
+   "place": "Antalya, Tyrkiet",
+   "why": "FN's årlige klimakonference; Tyrkiet er vært, og Australien leder forhandlingerne."
+  }
+ ],
+ "citat": {
+  "who": "Abbas Araghchi, Irans udenrigsminister",
+  "text": "Vi benægter ikke det økonomiske pres, men vi vil ikke overgive os eller opgive vores værdighed.",
+  "ids": [
+   "56aa899bf77cbe98"
+  ],
+  "u": "https://t.me/ClashReport/103728",
+  "s": "Clash Report"
+ }
+}

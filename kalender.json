@@ -1,0 +1,311 @@
+{
+ "updated": "2026-10-31T19:12:46+00:00",
+ "items": [
+  {
+   "id": "ed-2026-10-30-60-dagesfristen-efter-usa-s-war-powers-l",
+   "date": "2026-10-30",
+   "w": 2,
+   "title": "60-dagesfristen efter USA's War Powers-lov udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Loven giver præsidenten 60 dage til en militær operation uden Kongressens godkendelse.",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOTkdDMVo0RFZ3Z0RfTXUtbzhnOGlTSXVEaFRIcWpHcWFwb2R3SU03bDIydVFjSks5WTlKSG1UdzdBbWUyTUtUTGZMdXBQQkU0VHZKejhLTlZVN3c0X05rSk5ram9mNHFZYVpjMm1Jdk1iZTFCUjE3SjhLS1ROa2htQUw1cDhFMXkzdnBQcENFcjVJbnplRTJ5ZC1n0gGfAUFVX3lxTE0xRHBkNGdJT1E0dk5Jb1dodlR5YnhMMDV3VWNVeEFDaFNfaU54SDVYUFVfQ0otVkxFOXZYQk5WWjhKYktQbEpqaEt1Q3hyV0ZfMU9kanVUY2pOLXpWODRpb3pEdl9LQ3I1eWFYQVpvYmtVbHU4VndKNlQzVV9acEVVVktCZDdPUXgyQnRoZU5DOVJOTGJacGJpdW5HWGJMYw?oc=5",
+   "ids": [
+    "49c4d47d94cb0a8c"
+   ],
+   "at": "2026-10-25T07:44:03+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-30-g20-landenes-udenrigsministre-moedes-i-a",
+   "date": "2026-10-30",
+   "w": 3,
+   "title": "G20-landenes udenrigsministre mødes i Atlanta med USA som vært",
+   "kind": "topmøde",
+   "place": "Atlanta, USA",
+   "why": "Ruslands udenrigsminister Lavrov deltager i mødet i USA, mens USA og Rusland forhandler om Ukraine og olie.",
+   "link": "https://meduza.io/en/news/2026/10/29/from-the-u-s-sanctions-list-to-the-g20-table-moscow-says-russian-foreign-minister-sergey-lavrov-will-attend-talks-in-atlanta",
+   "ids": [
+    "5219db81fd496b31"
+   ],
+   "at": "2026-10-30T04:10:17+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-31-ny-protestdag-i-frankrig-efter-ugers-uro",
+   "date": "2026-10-31",
+   "w": 2,
+   "title": "Ny protestdag i Frankrig efter ugers uro",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "Regeringen kalder lørdagen en dag med risiko for nye sammenstød; over 500 blev såret ved protesterne lørdagen før.",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOQ29JWE91SUo5Q1BiMHhCZFdKRHhVWWV0YlV2STRCV3ZTNXZCcUVBTzMya0k1QmxyWkpVTWFWNzBscEZ2NXd3ZElSS3gzUEpNUER4ajlyX1d6cVpyMzJ3ZWpITEJJd0RSVU1hb181SkRfTnJWSWUtZEl6WVVxeXcxNnYteUdzanBEak5xOXA4aDkzdUV6bENXeEdSLUlOM3FPZklLdnV6TF9CR3c?oc=5",
+   "ids": [
+    "7d4d8cc68c573d89",
+    "239b15558232dc7e",
+    "3c19ec0957df33aa"
+   ],
+   "at": "2026-10-28T19:16:07+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-31-studerende-og-oppositionspartier-i-tyskl",
+   "date": "2026-10-31",
+   "title": "Studerende og oppositionspartier i Tyskland kalder til masseprotester",
+   "kind": "andet",
+   "place": "Tyskland",
+   "why": "Tysklands føderale studenterkonference deler mange af kravene fra protesterne i Frankrig og Italien.",
+   "link": "https://www.aa.com.tr/en/europe/german-student-representatives-and-opposition-parties-call-for-mass-protests-on-oct-31/4097883",
+   "ids": [
+    "ec320c4e4e11431c"
+   ],
+   "at": "2026-10-23T04:07:42+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-10-31-zelenskyj-moedes-med-erdo-an-i-tyrkiet",
+   "date": "2026-10-31",
+   "title": "Zelenskyj mødes med Erdoğan i Tyrkiet",
+   "kind": "forhandling",
+   "place": "Tyrkiet",
+   "why": "Tyrkiet er en af mæglerne mellem Ukraine og Rusland.",
+   "link": "https://www.aa.com.tr/en/russia-ukraine-war/ukraines-zelenskyy-due-in-turkiye-on-saturday-for-talks-with-turkish-president-erdogan-/4106688",
+   "ids": [
+    "e4f1a25f0220bf7e"
+   ],
+   "at": "2026-10-30T15:47:22+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-rusland-usa-og-ukraine-genoptager-trepar",
+   "date": "2026-11",
+   "approx": true,
+   "w": 3,
+   "title": "Rusland, USA og Ukraine holder trepartsforhandlinger i Abu Dhabi",
+   "kind": "forhandling",
+   "place": "Abu Dhabi",
+   "why": "Kreml siger, at forhandlingerne er planlagt til første halvdel af november og skal handle om Ruslands og Ukraines sikkerhed efter en fredsaftale.",
+   "link": "https://www.aa.com.tr/en/eurasia/kremlin-says-trilateral-ukraine-peace-talks-scheduled-for-1st-half-of-november-in-abu-dhabi/4098424",
+   "ids": [
+    "c1aa4c343047ba3a"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-01-anden-runde-af-praesidentvalget-i-bulgar",
+   "date": "2026-11-01",
+   "title": "Anden runde af præsidentvalget i Bulgarien",
+   "kind": "valg",
+   "place": "Bulgarien",
+   "why": "Præsident Iliana Jotova møder tidligere premierminister Andrej Gjurov i et valg, der deler vælgerne om krigen i Ukraine.",
+   "link": "https://www.aa.com.tr/en/europe/bulgarias-presidential-election-heads-to-nov-1-runoff/4100531",
+   "ids": [
+    "14191eb2d947e374"
+   ],
+   "at": "2026-10-27T04:08:48+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-01-den-lokale-vaabenhvile-i-oleshky-udloebe",
+   "date": "2026-11-01",
+   "w": 2,
+   "title": "Den lokale våbenhvile i Oleshky udløber",
+   "kind": "frist",
+   "place": "Oleshky, Ukraine",
+   "why": "Ifølge Ukraine gælder våbenhvilen i den besatte by til 1. november.",
+   "link": "https://meduza.io/en/news/2026/10/27/ukraine-says-ceasefire-in-oleshky-will-last-until-november-1",
+   "ids": [
+    "5b0c002fe34b1e74"
+   ],
+   "at": "2026-10-27T15:53:37+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-01-omans-sultan-besoeger-kina",
+   "date": "2026-11-01",
+   "w": 2,
+   "title": "Omans sultan besøger Kina",
+   "kind": "andet",
+   "place": "Kina",
+   "why": "Oman mægler mellem USA og Iran og ligger ved Hormuzstrædet.",
+   "link": "https://www.aa.com.tr/en/asia-pacific/omans-sultan-to-visit-china/4106742",
+   "ids": [
+    "0919603082d85130"
+   ],
+   "at": "2026-10-30T15:47:22+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-03-midtvejsvalg-i-usa",
+   "date": "2026-11-03",
+   "w": 3,
+   "title": "Midtvejsvalg i USA",
+   "kind": "valg",
+   "place": "USA",
+   "why": "Hele Repræsentanternes Hus og en tredjedel af Senatet er på valg; Trump og hans embedsmænd kobler valget til beslutningen om Iran.",
+   "link": "https://t.me/ClashReport/103687",
+   "ids": [
+    "637fa4031584f527",
+    "f6880ffb4fba8204"
+   ],
+   "at": "2026-10-31T04:10:15+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-03-trumps-pause-i-angreb-paa-iran-udloeber",
+   "date": "2026-11-03",
+   "w": 3,
+   "title": "Trumps pause i angreb på Iran udløber med midtvejsvalget",
+   "kind": "frist",
+   "place": "USA / Iran",
+   "why": "Rapporter siger, at USA har udskudt en ny militær aktion mod Iran til efter midtvejsvalget.",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE9IWnEwZW9ybXNxYTVZX1pLT0JLX291bHJBVHk5a1UxRG42M19yUm9UNWI2ckVPTW9VeUkwZFlsblR1Q2dta1RpUWw5SVVfUlFRNzYxTENWZllVSU82VkRZYnFoVWdPWjN0QmM0?oc=5",
+   "ids": [
+    "02ac145947ae853a"
+   ],
+   "at": "2026-10-31T15:42:14+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-10-det-nye-knesset-tages-i-ed-i-israel",
+   "date": "2026-11-10",
+   "w": 2,
+   "title": "Det nye Knesset tages i ed i “israel”",
+   "kind": "valg",
+   "place": "Jerusalem",
+   "why": "Ingen blok fik de 61 mandater, der giver flertal, ved valget 27. oktober: Netanyahus blok fik 53, Eisenkots 48 og de arabiske partier 19.",
+   "link": "https://www.aa.com.tr/en/middle-east/over-29-000-double-envelope-ballots-counted-in-israeli-election-around-6-of-total/4104596",
+   "ids": [
+    "9026a28cb878a494",
+    "32aaa2f2194571ba"
+   ],
+   "at": "2026-10-30T04:10:17+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-12-sikkerhedsaftalen-med-usa-om-groenland-f",
+   "date": "2026-11-12",
+   "w": 2,
+   "title": "Sikkerhedsaftalen med USA om Grønland førstebehandles i Folketinget",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen giver USA lov til at etablere to nye baser i Grønland.",
+   "link": "https://www.bt.dk/politik/groenland-aftale-med-usa-skal-debatteres-i-folketinget-om-tre-uger",
+   "ids": [
+    "3f4ee4e778b876d2",
+    "72d0662648bd5ca1"
+   ],
+   "at": "2026-10-22T09:03:45+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-kontaktgruppen-for-ukraines-forsvar-moed",
+   "date": "2026-11-17",
+   "title": "Kontaktgruppen for Ukraines forsvar mødes i Bruxelles",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "Gruppen samler de vestlige staters våbenhjælp til Ukraine.",
+   "link": "https://www.ukrinform.net/rubric-polytics/4179365-next-udcg-meeting-to-take-place-in-brussels-on-nov-17.html",
+   "ids": [
+    "2976a4b170716f60",
+    "0df4703991499508"
+   ],
+   "at": "2026-10-30T07:42:08+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-18-apec-topmoede",
+   "date": "2026-11-18",
+   "w": 3,
+   "title": "APEC-topmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Kreml siger, at Kina, Rusland og USA er åbne for trepartssamtaler ved topmødet, og Putin har foreslået et møde med Trump i Kina.",
+   "link": "https://www.aa.com.tr/en/politics/kremlin-says-china-russia-us-open-to-trilateral-talks-at-apec-summit/4096229",
+   "ids": [
+    "3d0da365d6b140dd",
+    "2260726c7e25fc8c"
+   ],
+   "at": "2026-10-22T04:08:21+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "w": 2,
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml.",
+   "link": "https://www.reuters.com/business/energy/us-extends-deadline-buyers-lukoil-foreign-assets-until-november-21-2026-10-22/",
+   "ids": [
+    "97c64bbbcfa2f005"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "w": 3,
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027.",
+   "link": "https://www.france24.com/en/russia-agrees-to-resume-trilateral-peace-talks-on-ukraine-war",
+   "ids": [
+    "795c911280f064ea"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-29-parlamentsvalg-i-spanien",
+   "date": "2026-11-29",
+   "title": "Parlamentsvalg i Spanien",
+   "kind": "valg",
+   "place": "Spanien",
+   "why": "Premierminister Pedro Sánchez går til valg efter landets anden store togulykke på mindre end et år.",
+   "link": "https://www.berlingske.dk/internationalt/sanchez-gik-til-valg-paa-perfekt-maerkesag-nu-smadrer-togtragedie-hans-snedige-plan?referrer=RSS",
+   "ids": [
+    "6339a020f876322c"
+   ],
+   "at": "2026-10-29T04:09:48+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-g20-topmoede-i-miami",
+   "date": "2026-12",
+   "approx": true,
+   "w": 3,
+   "title": "G20-topmøde i Miami",
+   "kind": "topmøde",
+   "place": "Miami, USA",
+   "why": "Trump vil ifølge The Atlantic have en fredsaftale mellem Rusland og Ukraine underskrevet under topmødet, og Rubio siger, at Putin kan deltage.",
+   "link": "https://tass.com/world/2205771",
+   "ids": [
+    "a3e22059badd37db",
+    "d0bfb087ae46b82b"
+   ],
+   "at": "2026-10-22T04:08:21+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2027-06-usa-s-frist-for-irak-til-at-afvaebne-de",
+   "date": "2027-06",
+   "approx": true,
+   "w": 2,
+   "title": "USA's frist for Irak til at afvæbne de væbnede grupper udløber",
+   "kind": "frist",
+   "place": "Irak",
+   "why": "Ifølge Farhad Atrushi har USA sat fristen og truet med sanktioner, hvis grupperne ikke er afvæbnet.",
+   "link": "https://www.kurdistan24.net/en/story/948943/us-gives-iraq-until-june-2027-to-disarm-armed-groups-or-face-sanctions-farhad-atrushi",
+   "ids": [
+    "fd499c416e670f64"
+   ],
+   "at": "2026-10-28T07:42:13+00:00",
+   "src": "ed"
+  }
+ ]
+}

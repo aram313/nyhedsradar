@@ -1,0 +1,743 @@
+{
+ "updated": "2026-10-31T19:12:46+00:00",
+ "items": [
+  {
+   "id": "frankrig-uroligheder-2026-10",
+   "title": "Kaos i Frankrig",
+   "kicker": "Frankrig",
+   "status": "i gang",
+   "dek": "Omkring 320.000 protesterede lørdag i Frankrig mod høje leveomkostninger ifølge indenrigsministeriet, og politi og demonstranter stødte sammen i Paris.",
+   "since": "2026-09",
+   "topic": "Uroligheder i Frankrig",
+   "facts": [
+    {
+     "label": "Demonstranter lørdag",
+     "value": "omkring 320.000",
+     "note": "ifølge indenrigsministeriet",
+     "ids": [
+      "67edadb9d8fb95fb"
+     ],
+     "src": [
+      "Xinhua",
+      "BT"
+     ]
+    },
+    {
+     "label": "Sikkerhedsstyrker indsat",
+     "value": "70.000",
+     "note": "ifølge indenrigsminister Laurent Nuñez",
+     "ids": [
+      "970c1e7d832a76d6"
+     ],
+     "src": [
+      "BT"
+     ]
+    }
+   ],
+   "places": [
+    "Paris",
+    "Marseille",
+    "Lyon",
+    "Bordeaux",
+    "Lille",
+    "Toulouse",
+    "Montpellier",
+    "Nantes",
+    "Tours",
+    "Limoges",
+    "Nice",
+    "Frankrig"
+   ],
+   "quotes": [],
+   "stories": [
+    "67edadb9d8fb95fb",
+    "970c1e7d832a76d6",
+    "3985f8f9b5867058"
+   ],
+   "article": [
+    {
+     "text": "Over 300.000 mennesker protesterede lørdag i Frankrig mod høje leveomkostninger, oplyser indenrigsministeriet, der på landsplan anslår tallet til omkring 320.000. I Paris deltog ifølge ministeriet 70.000 i en overvejende fredelig demonstration, og politi og demonstranter stødte sammen.",
+     "ids": [
+      "67edadb9d8fb95fb"
+     ],
+     "src": [
+      "BT",
+      "Xinhua",
+      "The Guardian",
+      "SVT Nyheter",
+      "Daily Sabah"
+     ]
+    },
+    {
+     "text": "Politiet i Paris meldte kl. 14.00 om 27 anholdte. En uge tidligere meldte politiet om 217 anholdelser.",
+     "ids": [
+      "67edadb9d8fb95fb"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "Frankrig havde sat 70.000 sikkerhedsstyrker ind til protesterne, efter at indenrigsminister Laurent Nuñez torsdag advarede om en meget høj risiko for uroligheder. De gule veste vendte tilbage på gaderne under parolen »Act III – Halloween« efter optøjer og plyndringer i de seneste uger, oplyser AFP.",
+     "ids": [
+      "970c1e7d832a76d6",
+      "3985f8f9b5867058"
+     ],
+     "src": [
+      "BT",
+      "AFP"
+     ]
+    }
+   ],
+   "pic": "https://akamai-aptoma-production.bmcdn.dk/users/berlingske/images/165847714.webp?t[strip]=true&t[quality]=70&accessToken=a995c588e4a2452c123a472618453d4b05a1c350066441990c85c9f18594d9d4",
+   "pf": [
+    0.5,
+    0.4,
+    1.502,
+    0,
+    0
+   ],
+   "pl": "ld82d4bf907abfdfb.jpg",
+   "at": "2026-10-31T19:12:46+00:00"
+  },
+  {
+   "id": "houthi-saudi-krig-2026-10",
+   "title": "Houthiernes krig mod Saudi-Arabien",
+   "kicker": "Yemen",
+   "status": "i gang",
+   "dek": "Koalitionen siger, at den har skudt houthi-droner ned over Medina, Riyadh og Østprovinsen, efter at houthierne angreb lufthavnene i Aden og Dammam og USA beordrede personale ud af Saudi-Arabien.",
+   "since": "2026-10-01",
+   "topic": "Golfen og Saudi-Arabien",
+   "facts": [],
+   "places": [
+    "Aden",
+    "Taiz",
+    "Sanaa",
+    "Saada",
+    "Al-Hazm",
+    "Mokha",
+    "Shabwa",
+    "Hodeida",
+    "Lahij",
+    "Yemen"
+   ],
+   "quotes": [],
+   "stories": [
+    "c70f1b174d584d3b",
+    "d49c57eb44989829",
+    "101e425a10e60f87",
+    "bc54c6748d38195b",
+    "8fa79d01fbb95292",
+    "a0d5f57905b85506",
+    "e711dade4e5b5327",
+    "6e070090ced96116"
+   ],
+   "article": [
+    {
+     "text": "Den saudisk-ledede koalition siger, at den fredag har opsnappet og ødelagt en houthi-drone over Medina-regionen; houthierne afviser at have angrebet kongeriget. Koalitionen siger også, at den har skudt en drone ned over den olierige Østprovins og lørdag morgen en fjendtlig drone i Riyadh-regionen.",
+     "ids": [
+      "c70f1b174d584d3b",
+      "8fa79d01fbb95292",
+      "cffee37655b7eae9"
+     ],
+     "src": [
+      "Al-Monitor",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Houthierne har angrebet lufthavnen og præsidentpaladset i Aden, hvor Yemens saudistøttede regering har sæde, med ballistiske missiler, siger Yemens hær. Houthierne har også angrebet lufthavnen i Dammam i Saudi-Arabien.",
+     "ids": [
+      "d49c57eb44989829",
+      "101e425a10e60f87"
+     ],
+     "src": [
+      "Anadolu",
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Houthierne siger, at de har udført seks angreb på saudiske lufthavne og olieanlæg, heriblandt raffinaderiet i Ras Tanura; Saudi-Arabien har ikke bekræftet angrebet på Ras Tanura. Koalitionen siger, at den har ødelagt ballistiske missiler, krydsermissiler og to droner affyret mod Saudi-Arabien.",
+     "ids": [
+      "101e425a10e60f87",
+      "a0d5f57905b85506"
+     ],
+     "src": [
+      "Middle East Eye",
+      "Asharq Al-Awsat"
+     ]
+    },
+    {
+     "text": "USA's ambassade i Riyadh har beordret ikke-nødvendigt personale og deres familier til at forlade Saudi-Arabien med henvisning til houthiernes angreb på civile lufthavne og anden kritisk infrastruktur.",
+     "ids": [
+      "bc54c6748d38195b"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Yemens hær siger, at 336 houthi-krigere er dræbt i 1.087 operationer under offensiven »Dawn of Yemen«. Mindst syv er dræbt i saudiske luftangreb på to huse i al-Masahin i Taiz, oplyser Yemens sundhedsministerium ifølge Al Mayadeen.",
+     "ids": [
+      "e711dade4e5b5327",
+      "6e070090ced96116"
+     ],
+     "src": [
+      "Anadolu",
+      "Kurdistan24"
+     ]
+    }
+   ],
+   "pic": "http://www.sabanew.net/upload/thumbs/179344893332132170.jpeg",
+   "pf": [
+    0.5,
+    0.4,
+    1.576,
+    0,
+    0
+   ],
+   "pl": "l1cde7c01628ab519.jpg",
+   "at": "2026-10-31T06:13:13+00:00"
+  },
+  {
+   "id": "iran-hormuz-2026-10",
+   "title": "Opgøret mellem USA og Iran om Hormuz",
+   "kicker": "Iran",
+   "status": "i gang",
+   "dek": "Rubio siger, at forhandlingerne med Iran aldrig er stoppet, mens Irans øverste leder beder hæren svare uden geografiske grænser, og Netanyahu ifølge “israelsk” tv presser Trump til et angreb efter midtvejsvalget.",
+   "since": "2026-10",
+   "topic": "Iran og USA",
+   "facts": [
+    {
+     "label": "Krigens pris for USA",
+     "value": "47 mia. $",
+     "note": "ifølge Pentagon",
+     "ids": [
+      "35b6fc33daf466fc"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "places": [
+    "Bandar Abbas",
+    "Qeshm",
+    "Sirik",
+    "Teheran",
+    "Iran"
+   ],
+   "map": {
+    "km": 400,
+    "focus": [
+     "Bandar Abbas",
+     "Qeshm",
+     "Sirik"
+    ]
+   },
+   "quotes": [
+    {
+     "who": "Marco Rubio, USA's udenrigsminister",
+     "text": "Forhandlingerne med Iran er aldrig stoppet.",
+     "ids": [
+      "2d644e4313693b40"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "who": "Mojtaba Khamenei, Irans øverste leder",
+     "text": "Hvis fjenderne indleder militære angreb, vil vores styrker og vores folk bestemme deres afslutning og vilkår.",
+     "ids": [
+      "f046ed8d4e34fcb0"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "Donald Trump",
+     "text": "Der er samtaler. De vil gerne tale.",
+     "ids": [
+      "fb4d5349b59e4e75"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    }
+   ],
+   "stories": [
+    "9530136c5557244b",
+    "2d644e4313693b40",
+    "e5264672b6a1880b",
+    "36f811a7c8b2c431",
+    "e84b708c9bf7026a",
+    "1ac54fd8b079375b",
+    "506cf1e4b11fd0cb",
+    "fb4d5349b59e4e75",
+    "9f96bcb90801f368",
+    "7e3217859d54e337",
+    "da9d5431dbf40813",
+    "30e222352d11ed04",
+    "10f3f3ad1da4b877",
+    "6a5cb286af9ef4d0",
+    "75cdf73cc24d4b45",
+    "35b6fc33daf466fc",
+    "f4ee7f9aa34994a4"
+   ],
+   "article": [
+    {
+     "text": "USA's udenrigsminister Marco Rubio siger, at forhandlingerne med Iran aldrig er stoppet, og at USA foretrækker diplomati. En amerikansk delegation skal ifølge The New Arab deltage i forhandlingerne med Iran. Irans Mohsen Rezaee siger, at der foreligger et bedre amerikansk forslag, hvor Washington er villig til at acceptere Irans syv betingelser.",
+     "ids": [
+      "2d644e4313693b40",
+      "e5264672b6a1880b",
+      "f12c680e7759f79c"
+     ],
+     "src": [
+      "Anadolu",
+      "The New Arab",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Qatarske mæglere har holdt 12 timers samtaler i Teheran for at genoplive forhandlingerne mellem USA og Iran, mens Washington vejer militære muligheder, oplyser Axios. Pakistans hær er forsigtigt optimistisk om sin mægling mellem Iran og USA, siger dens talsmand til Reuters.",
+     "ids": [
+      "e84b708c9bf7026a",
+      "9530136c5557244b",
+      "1ac54fd8b079375b"
+     ],
+     "src": [
+      "Anadolu",
+      "Clash Report",
+      "Jerusalem Post"
+     ]
+    },
+    {
+     "text": "Irans øverste leder Mojtaba Khamenei har pålagt de væbnede styrkers chefer at møde enhver trussel med et øjeblikkeligt svar uden geografiske begrænsninger og at opdatere målbanken, så USA's og “israels” aktiver er inden for rækkevidde. Iranske medier siger, at USA har angrebet to fiskerbåde ud for øen Qeshm; ifølge en lokal embedsmand er de savnede fiskere fundet.",
+     "ids": [
+      "655d6488fb6d771c",
+      "bc8e050163bb8f75",
+      "97a69f2802a63ae0",
+      "1b7bfe23274576e1",
+      "f55f0e8f22e46db2"
+     ],
+     "src": [
+      "Al Arabiya",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "En amerikansk embedsmand siger til Axios, at Trump kan beordre et større angreb på Iran, hvis Republikanerne lider tab ved midtvejsvalget. Ti amerikanske militære fragtfly er landet på luftbaserne Ovda og Nevatim i det sydlige “israel”, ifølge en rapport, og Netanyahu presser ifølge den “israelske” tv-kanal Kan Trump til at indlede en operation mod Iran straks efter midtvejsvalget.",
+     "ids": [
+      "e84b708c9bf7026a",
+      "506cf1e4b11fd0cb",
+      "36f811a7c8b2c431"
+     ],
+     "src": [
+      "Anadolu",
+      "Middle East Monitor",
+      "Jerusalem Post"
+     ]
+    },
+    {
+     "text": "Irans Revolutionsgarde siger, at fire tankskibe har fået brande efter at have ramt miner ved Hormuz, og at gardens styrker har skudt en amerikansk rekognosceringsdrone ned over øen Qeshm. CENTCOM kalder gardens påstand om en ødelagt amerikansk dronebåd i Hormuz falsk og siger, at 144 handelsskibe har ændret kurs, siden søblokaden mod Iran blev genoptaget.",
+     "ids": [
+      "7384495a6235d560",
+      "da73ed781b69d3cf",
+      "20b4ad9f8cd69054",
+      "7e3217859d54e337",
+      "d4fefa8dd012f5a0"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Ifølge Pentagon har krigen mod Iran kostet amerikanske skatteydere 47 mia. dollar. Den amerikanske olieindustri har ifølge New York Times tjent over 130 mia. dollar under krigen, næsten tre gange så meget som i samme periode i 2025.",
+     "ids": [
+      "35b6fc33daf466fc",
+      "75cdf73cc24d4b45"
+     ],
+     "src": [
+      "New York Times",
+      "Middle East Eye",
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "pic": "https://www.middleeastmonitor.com/wp-content/uploads/2026/10/AA-20261027-42878661-42878656-DAILY_LIFE_CONTINUES_IN_TEHRAN_AMID_ANTIISRAEL_BANNERS_AND_ELECTION_DEBATE.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "pl": "l772d19e765976098.jpg",
+   "at": "2026-10-31T19:12:46+00:00"
+  },
+  {
+   "id": "israel-vestbredden-2026-10",
+   "title": "“israels” militæroperation på Vestbredden",
+   "kicker": "Vestbredden",
+   "status": "i gang",
+   "dek": "“israel” har sprængt hjem i Hebron, hvor operationen ifølge Reuters har fordrevet over 3.000 palæstinensere, og belejringen går ind i sin ottende dag.",
+   "since": "2026-10-23",
+   "topic": "Vestbredden",
+   "facts": [
+    {
+     "label": "Fordrevet i Hebron",
+     "value": "over 3.000",
+     "note": "ifølge Reuters",
+     "ids": [
+      "57c1633868e0ac71"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    }
+   ],
+   "places": [
+    "Hebron",
+    "Yatta",
+    "Beita",
+    "Nablus",
+    "Burqa",
+    "Jenin",
+    "Tulkarm",
+    "Ramallah",
+    "Al-Mughayyir",
+    "Qalqilya"
+   ],
+   "quotes": [],
+   "stories": [
+    "57c1633868e0ac71",
+    "64744e5ce35d02a0",
+    "fc27b507b94f98f1",
+    "eb0f888a11a704b1",
+    "9c073c1c1fd951da",
+    "7571aab13bd1378f",
+    "027fcb42ed65dfaf",
+    "c28794dfab31a6db",
+    "33ce326e84aae244"
+   ],
+   "article": [
+    {
+     "text": "“israel” sprængte fredag hjemmene til de to palæstinensere, der dræbte to “israelske” soldater ved et checkpoint i Hebron i sidste uge. Operationen i Hebron har ifølge Reuters fordrevet over 3.000 palæstinensere, og ifølge WAFA skete sprængningerne i et belejret kvarter.",
+     "ids": [
+      "57c1633868e0ac71"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Belejringen af Hebron går ind i sin ottende dag. “israelske” bosættere har angrebet olivenhøstere og bygget en ny forpost, oplyser Middle East Eye.",
+     "ids": [
+      "64744e5ce35d02a0"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Ved razziaer og bosætterangreb på Vestbredden er 14 palæstinensere anholdt og to såret, og hjem er revet ned. I Jenin og Tulkarm har “israelske” styrker ifølge WAFA stormet byer og anholdt flere palæstinensere.",
+     "ids": [
+      "fc27b507b94f98f1",
+      "eb0f888a11a704b1"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "I Beita syd for Nablus har “israelske” styrker sprængt de palæstinensiske fanger Ibrahim og Zakaria Dawouds hjem i luften efter at have tvunget deres familier ud. I Qalqilya har styrkerne revet ejendomme ned og hældt cement i en landmands brønd, som “israel” tidligere kaldte en tunnel.",
+     "ids": [
+      "9c073c1c1fd951da",
+      "7571aab13bd1378f"
+     ],
+     "src": [
+      "QudsN"
+     ]
+    },
+    {
+     "text": "I Burqa nordvest for Nablus blev en palæstinensisk mand såret, da bosættere overfaldt ham, oplyser Palæstinensisk Røde Halvmåne.",
+     "ids": [
+      "027fcb42ed65dfaf"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    }
+   ],
+   "pic": "https://www.middleeastmonitor.com/wp-content/uploads/2026/10/AA-20261030-42917043-42917032-ISRAELI_FORCES_DEMOLISH_HOMES_OF_TWO_PALESTINIANS_IN_WEST_BANK_PALESTINE-1.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "pl": "l6cca95e98d5081db.jpg",
+   "at": "2026-10-31T04:10:15+00:00"
+  },
+  {
+   "id": "knessetvalg-2026-10-27",
+   "title": "Parlamentsvalget i “israel”",
+   "kicker": "“israel”",
+   "status": "i gang",
+   "dek": "Alle stemmer er talt op: Netanyahus blok får 53 mandater, Eisenkots 48 og de arabiske partier 19; ingen blok har de 61, der giver flertal, og Knesset tages i ed 10. november.",
+   "since": "2026-10-27",
+   "topic": "Valget i “israel”",
+   "facts": [
+    {
+     "label": "Mandater, Netanyahus blok",
+     "value": "53",
+     "note": "efter optællingen af alle stemmer",
+     "ids": [
+      "7ca885995a0dc713",
+      "4ff242b2670d42a4"
+     ],
+     "src": [
+      "DR",
+      "Ekstra Bladet"
+     ]
+    },
+    {
+     "label": "Mandater, Eisenkots blok",
+     "value": "48",
+     "note": "efter optællingen af alle stemmer",
+     "ids": [
+      "7ca885995a0dc713",
+      "4ff242b2670d42a4"
+     ],
+     "src": [
+      "DR",
+      "Ekstra Bladet"
+     ]
+    },
+    {
+     "label": "Mandater, arabiske partier",
+     "value": "19",
+     "note": "efter optællingen af alle stemmer",
+     "ids": [
+      "7ca885995a0dc713",
+      "4ff242b2670d42a4"
+     ],
+     "src": [
+      "DR",
+      "Ekstra Bladet"
+     ]
+    }
+   ],
+   "places": [
+    "Jerusalem",
+    "Tel Aviv",
+    "Lod",
+    "Kafr Manda",
+    "Tayibe",
+    "Nazareth"
+   ],
+   "quotes": [
+    {
+     "who": "Isaac Herzog, “israels” præsident",
+     "text": "Vi skal gøre alt, hvad vi kan, for at undgå endnu et valg.",
+     "ids": [
+      "c5046d21d463b8c9"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "who": "Næstformanden i den centrale valgkommission",
+     "text": "Likud skal holde op med sine påstande efter at have mistet 15 mandater.",
+     "ids": [
+      "0b290d582e0ecae9"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "stories": [
+    "4ff242b2670d42a4",
+    "32aaa2f2194571ba",
+    "181130d2428d6484",
+    "7ca885995a0dc713",
+    "94f4348d77583676"
+   ],
+   "article": [
+    {
+     "text": "Alle stemmer ved valget til Knesset er talt op. Netanyahus blok har 53 mandater, mens oppositionsblokken under Gadi Eisenkot får 48; ingen af dem har de 61 mandater, der skal til for et flertal.",
+     "ids": [
+      "4ff242b2670d42a4",
+      "7ca885995a0dc713",
+      "181130d2428d6484"
+     ],
+     "src": [
+      "Kurdistan24",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "De to arabiske partier får 19 mandater og står mellem de to blokke. Med dem har oppositionen 67 mandater, men tre af de fire partier i Eisenkots blok har udelukket et samarbejde med de arabiske partier.",
+     "ids": [
+      "181130d2428d6484",
+      "7ca885995a0dc713",
+      "40d3a7118835366e",
+      "32aaa2f2194571ba"
+     ],
+     "src": [
+      "Middle East Monitor",
+      "Kurdistan24",
+      "Anadolu",
+      "Jerusalem Post"
+     ]
+    },
+    {
+     "text": "Den centrale valgkomité har offentliggjort det endelige valgresultat, og Knesset tages i ed 10. november. Demokraternes leder Yair Golan har mødt en arabisk partileder for at fremskynde dannelsen af en alternativ regering, efter at Netanyahus blok ikke fik flertal.",
+     "ids": [
+      "94f4348d77583676",
+      "e9c13cc5ff5b459f"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Likud påstår, at de arabiske partiers rekordresultat delvis skyldes valgsvindel. Eisenkot anklager Netanyahu for at ville gøre valgresultatet illegitimt og lover, at han ikke vil tillade, at Knessets edsaflæggelse blokeres. Ifølge en rapport har “israelsk” politi intet fundet, der støtter Likuds påstande.",
+     "ids": [
+      "181130d2428d6484",
+      "86a75b7777f6866b",
+      "c5046d21d463b8c9"
+     ],
+     "src": [
+      "Politiken",
+      "Al-Monitor",
+      "Berlingske"
+     ]
+    },
+    {
+     "text": "Den nationale sikkerhedsminister Itamar Ben-Gvir opfordrer til, at de arabiske partiers ledere straks anholdes. Qatars udenrigsministerium afviser anklager om, at Qatar har blandet sig i valget, som »latterlige og farlige«. Spilleplatformen Polymarket undersøger mistænkelige væddemål på valget, placeret kort før valgstederne lukkede.",
+     "ids": [
+      "c5046d21d463b8c9",
+      "030bc2e08653725c",
+      "1972b41a4bd2aeac"
+     ],
+     "src": [
+      "Berlingske",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "USA's præsident Donald Trump siger, at hans støtte hjalp Netanyahu ved valget. Ifølge Israel Hayom har Trump stillet “israel” et ultimatum om at danne en samlingsregering.",
+     "ids": [
+      "d44cfeda39c4cbb2",
+      "c5046d21d463b8c9"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    }
+   ],
+   "pic": "https://img-cdn-p.ekstrabladet.dk/p-image/LaayjMX4DmidrG50IrepUSbM2fVRFrrECQOuiC2z-1Q/AAADQxRtt_g/ekstrabladet/11337504/fs_p1334/",
+   "pf": [
+    0.5,
+    0.4,
+    1.779,
+    0,
+    0
+   ],
+   "pl": "lf24fe7df9f74968e.jpg",
+   "at": "2026-10-31T13:03:48+00:00"
+  },
+  {
+   "id": "brasilien-valg-2026-10",
+   "title": "Lula genvalgt som Brasiliens præsident",
+   "kicker": "Brasilien",
+   "status": "afsluttet",
+   "dek": "Luiz Inácio Lula da Silva vandt anden runde over Flávio Bolsonaro og får en fjerde periode; Bolsonaros parti har anerkendt nederlaget.",
+   "since": "2026-10-04",
+   "facts": [
+    {
+     "label": "Lulas stemmer",
+     "value": "51,8 %",
+     "note": "ifølge valgresultatet",
+     "ids": [
+      "d6eeefce1893e23c"
+     ],
+     "src": [
+      "DR",
+      "BT"
+     ]
+    },
+    {
+     "label": "Bolsonaros stemmer",
+     "value": "48,2 %",
+     "note": "ifølge valgresultatet",
+     "ids": [
+      "d6eeefce1893e23c"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "places": [
+    "Brasília",
+    "Rio de Janeiro",
+    "São Paulo",
+    "Brasilien"
+   ],
+   "quotes": [],
+   "stories": [
+    "d6eeefce1893e23c",
+    "48d65ebc131549a0",
+    "a1766e250f727520"
+   ],
+   "article": [
+    {
+     "text": "Præsident Luiz Inácio Lula da Silva har vundet anden runde af præsidentvalget i Brasilien med 51,8 procent af stemmerne mod Flávio Bolsonaros 48,2 procent og får en fjerde embedsperiode.",
+     "ids": [
+      "d6eeefce1893e23c"
+     ],
+     "src": [
+      "DR",
+      "BT"
+     ]
+    },
+    {
+     "text": "Ved første runde i begyndelsen af oktober fik Bolsonaro 47 procent af stemmerne og Lula 45,2 procent.",
+     "ids": [
+      "d6eeefce1893e23c"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "Bolsonaro krævede valget annulleret, og Trump kaldte valget svindel. Lederen af Bolsonaros parti har siden anerkendt nederlaget, og EU's ledere har hilst Lulas sejr velkommen.",
+     "ids": [
+      "48d65ebc131549a0",
+      "a1766e250f727520"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "pic": "https://akamai-aptoma-production.bmcdn.dk/users/berlingske/images/165357572.webp?t[strip]=true&t[quality]=70&accessToken=979e262216afb03d0e8b77ca133024d08813be3feec6c2fe8f4d88e305c80ebc",
+   "pf": [
+    0.706,
+    0.341,
+    1.778,
+    1,
+    0.207
+   ],
+   "at": "2026-10-27T04:08:48+00:00",
+   "pl": "lc530a3d4aaa45a22.jpg"
+  }
+ ]
+}

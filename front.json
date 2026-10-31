@@ -1,0 +1,69 @@
+{
+ "updated": "2026-10-31T19:12:46+00:00",
+ "lede": "Rubio siger, at forhandlingerne med Iran aldrig er stoppet, mens Irans øverste leder beder hæren svare uden geografiske grænser; over 300.000 protesterede i Frankrig ifølge indenrigsministeriet.",
+ "lede_ids": [
+  "2d644e4313693b40",
+  "",
+  "67edadb9d8fb95fb"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "title": "Qatars mæglere i Teheran for at genoplive forhandlingerne mellem USA og Iran",
+   "story": "9530136c5557244b",
+   "with": [
+    "e84b708c9bf7026a"
+   ],
+   "timeline": "Iran og USA",
+   "picture": true
+  },
+  {
+   "kind": "begivenhed",
+   "event": "houthi-saudi-krig-2026-10"
+  },
+  {
+   "kind": "liste",
+   "title": "Forberedelserne mod Iran",
+   "stories": [
+    "506cf1e4b11fd0cb",
+    "36f811a7c8b2c431",
+    "1ac54fd8b079375b",
+    "fb4d5349b59e4e75"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Rusland, USA og Ukraine",
+   "stories": [
+    "a21eaa18570b6073",
+    "cc7fc93575fea851",
+    "693b6c6a2f54b096",
+    "c6bc4a9aebd67306"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Gaza og Vestbredden",
+   "stories": [
+    "57c1633868e0ac71",
+    "89a51f024757a85d",
+    "64744e5ce35d02a0",
+    "798b6446184eefa2"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Muslimer i politikken",
+   "stories": [
+    "695ed9dd7549a6c6",
+    "ee3dcb70d432506a",
+    "4bcca907520c84c1",
+    "046f10b02ceb5f5c"
+   ],
+   "style": "kompakt"
+  }
+ ]
+}

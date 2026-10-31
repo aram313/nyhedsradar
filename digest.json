@@ -1,0 +1,565 @@
+{
+ "date": "2026-10-31",
+ "title": "Politiske nyheder – 31. oktober 2026",
+ "created": "2026-10-31T19:12:46+00:00",
+ "updates": [
+  "2026-10-31T04:10:15+00:00",
+  "2026-10-31T05:03:57+00:00",
+  "2026-10-31T06:13:13+00:00",
+  "2026-10-31T07:03:18+00:00",
+  "2026-10-31T07:42:13+00:00",
+  "2026-10-31T08:03:25+00:00",
+  "2026-10-31T09:03:03+00:00",
+  "2026-10-31T10:03:43+00:00",
+  "2026-10-31T11:11:47+00:00",
+  "2026-10-31T12:03:31+00:00",
+  "2026-10-31T13:03:48+00:00",
+  "2026-10-31T14:03:18+00:00",
+  "2026-10-31T15:08:10+00:00",
+  "2026-10-31T15:42:14+00:00",
+  "2026-10-31T16:03:59+00:00",
+  "2026-10-31T17:02:57+00:00",
+  "2026-10-31T18:03:39+00:00",
+  "2026-10-31T19:12:46+00:00"
+ ],
+ "topics": [
+  {
+   "name": "Iran og USA",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Mohsen Rezaee",
+     "text": "Der foreligger et bedre amerikansk forslag, hvor Washington er villig til at acceptere Irans syv betingelser.",
+     "link": "https://t.me/AjaNews/519437",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T19:04:05+00:00",
+     "added": "2026-10-31T19:12:46+00:00",
+     "id": "f12c680e7759f79c",
+     "kind": "w"
+    },
+    {
+     "who": "CENTCOM",
+     "text": "144 handelsskibe har ændret kurs, siden søblokaden mod Iran blev genoptaget.",
+     "link": "https://t.me/AjaNews/519436",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T18:47:39+00:00",
+     "added": "2026-10-31T19:12:46+00:00",
+     "id": "d4fefa8dd012f5a0",
+     "kind": "w"
+    },
+    {
+     "who": "Mohsen Rezaee",
+     "text": "Et møde i Teheran mellem Iran, Pakistan, Saudi-Arabien og Tyrkiet har drøftet sikkerhedsordninger for regionen.",
+     "link": "https://t.me/AjaNews/519435",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T18:47:39+00:00",
+     "added": "2026-10-31T19:12:46+00:00",
+     "id": "c11b53221db9bd09",
+     "kind": "w"
+    },
+    {
+     "who": "The New Arab",
+     "text": "En amerikansk delegation skal ifølge mediet deltage i forhandlingerne med Iran i Doha.",
+     "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQNTZVZWE5eGlFSzR0VlNtc2FvWDVNY1ZsQkROVWlfVEMxMXU0X0I0SnhoNFFJUm8tT05tamRHU3k3U0pKN2tuQzRmR2tVRi14a0RQNUpCenU2aVMyeW9KU0JGN0w3eF9OV3JyWWIyOFhubHRDQzJvTTZqSXpNSkFmdEVicDBjenpITlQw?oc=5",
+     "source": "The New Arab",
+     "at": "2026-10-31T17:49:37+00:00",
+     "added": "2026-10-31T18:03:39+00:00",
+     "id": "e5264672b6a1880b",
+     "kind": "s"
+    },
+    {
+     "who": "USA's udenrigsminister Marco Rubio",
+     "text": "Forhandlingerne med Iran er aldrig stoppet, og USA foretrækker diplomati; der er ingen fast tidsplan.",
+     "link": "https://www.aa.com.tr/en/americas/rubio-says-iran-talks-have-never-stopped-stresses-us-preference-for-diplomacy/4107578",
+     "source": "Anadolu",
+     "at": "2026-10-31T17:43:15+00:00",
+     "added": "2026-10-31T19:12:46+00:00",
+     "id": "2d644e4313693b40",
+     "kind": "s"
+    },
+    {
+     "who": "Iransk ambassadør i Egypten Ferdowsipour",
+     "text": "Iran opgiver ikke sine syv betingelser for en aftale med USA, herunder en afslutning på alle krige i regionen.",
+     "link": "https://en.irna.ir/news/86308576/Iran-will-not-abandon-its-seven-conditions-for-deal-with-US",
+     "source": "IRNA",
+     "at": "2026-10-31T16:27:17+00:00",
+     "added": "2026-10-31T17:02:57+00:00",
+     "id": "72be38dda3b02479",
+     "kind": "s"
+    },
+    {
+     "who": "Araghchi",
+     "text": "En iransk delegation er rejst til Doha, og hans assistenter er i Qatar for at fortsætte konsultationerne.",
+     "link": "https://t.me/AjaNews/519391",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T12:59:02+00:00",
+     "added": "2026-10-31T13:03:48+00:00",
+     "id": "4bd221a1bd2b7a22",
+     "kind": "w"
+    },
+    {
+     "who": "Irans udenrigsminister Araghchi til Al Jazeera",
+     "text": "Iran har læst Vances brev nøje; der er ingen planer om at mødes med amerikanske embedsmænd, og Iran afgør, om forhandlingerne er direkte eller indirekte, når Washington har godkendt Irans vilkår.",
+     "link": "https://t.me/AjaNews/519385",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T12:51:05+00:00",
+     "added": "2026-10-31T13:03:48+00:00",
+     "id": "42a66fe68a2451f7",
+     "kind": "w"
+    },
+    {
+     "who": "Irans øverste leder Mojtaba Khamenei",
+     "text": "Pålægger de væbnede styrkers chefer at svare på enhver trussel øjeblikkeligt og uden geografiske begrænsninger og at opdatere målbanken.",
+     "link": "https://t.me/Alarabiya/168697",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T10:53:11+00:00",
+     "added": "2026-10-31T11:11:47+00:00",
+     "id": "655d6488fb6d771c",
+     "kind": "w"
+    },
+    {
+     "who": "Iranske medier",
+     "text": "USA har angrebet to fiskerbåde nær øen Qeshm; de savnede fiskere er fundet.",
+     "link": "https://t.me/Alarabiya/168696",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T10:34:12+00:00",
+     "added": "2026-10-31T11:11:47+00:00",
+     "id": "1b7bfe23274576e1",
+     "kind": "w"
+    },
+    {
+     "who": "Al Jazeera",
+     "text": "Iran studerer vicepræsident Vances forslag og venter en ny forhandlingsrunde.",
+     "link": "https://t.me/Alarabiya/168693",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T10:16:00+00:00",
+     "added": "2026-10-31T11:11:47+00:00",
+     "id": "d8801de59c491f18",
+     "kind": "w"
+    },
+    {
+     "who": "Irans udenrigsminister Araghchi",
+     "text": "Svarer kansler Merz, der sagde at krigen har kostet europæiske virksomheder og forbrugere over 100 mia. euro, at Merz hilste bombardementerne velkommen.",
+     "link": "https://t.me/almayadeenenglish/26566",
+     "source": "Al Mayadeen English",
+     "at": "2026-10-31T08:32:48+00:00",
+     "added": "2026-10-31T09:03:03+00:00",
+     "id": "c7f2bb48e14b81cf",
+     "kind": "s"
+    },
+    {
+     "who": "Iraqi News Agency",
+     "text": "Pentagon overvejer at flytte militærbaser til områder længere fra Irans rækkevidde.",
+     "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPa3NuVkZSUmNNU3FFaXp6NnBXOXFBQk9WQ3ZOX0FoZEJWMWNXMFFULU1jV2tqd2xOVXBpaHRhZklpU0IxaElFSU95VWo5YVVlR2Z0OUw4R2pZYm10S0tVZGVZSkw0T0E5UWhPRUoxMUxxSFVidVh1ZlFsQ0Z0STZJOTZNd1VwcHg4R1ZBX0E2VHk5cXZ1RDdIcWNUdzZnMVFTM09OU2x0SHYyaG9rZXEyMzAtd2IwNXZBUmxNUGpjcnY1SHdLTlR3?oc=5",
+     "source": "Iraqi News Agency",
+     "at": "2026-10-31T08:31:49+00:00",
+     "added": "2026-10-31T09:03:03+00:00",
+     "id": "53fa03e0e1357251",
+     "kind": "s"
+    },
+    {
+     "who": "Kan",
+     "text": "Netanyahu presser Trump til at indlede en operation mod Iran straks efter midtvejsvalget.",
+     "link": "https://t.me/stand4palestine/2746",
+     "source": "Stand 4 Palestine",
+     "at": "2026-10-31T07:48:15+00:00",
+     "added": "2026-10-31T11:11:47+00:00",
+     "id": "3e93f5fbda8dd03d",
+     "kind": "s"
+    },
+    {
+     "who": "Bevæbnet irakisk gruppe",
+     "text": "Advarer USA mod at bruge Iraks luftrum til et angreb på Iran og truer med et kraftigt svar.",
+     "link": "https://english.aawsat.com/node/5335811",
+     "source": "Asharq Al-Awsat",
+     "at": "2026-10-31T05:59:21+00:00",
+     "added": "2026-10-31T07:03:18+00:00",
+     "id": "a1f5c051339ba3d8",
+     "kind": "s"
+    },
+    {
+     "who": "Axios",
+     "text": "Qatars mæglere har holdt 12 timers samtaler i Teheran for at genoplive forhandlingerne mellem USA og Iran, mens Washington vejer militære muligheder.",
+     "link": "https://www.aa.com.tr/en/americas/trump-may-order-major-iran-strike-if-republicans-suffer-losses-in-midterm-election-report/4107024",
+     "source": "Anadolu",
+     "at": "2026-10-31T05:08:04+00:00",
+     "added": "2026-10-31T06:13:13+00:00",
+     "id": "e84b708c9bf7026a",
+     "kind": "s"
+    },
+    {
+     "who": "Irans udenrigsminister",
+     "text": "Vores styrker vil ramme dem, der tør angribe landet, og der er ikke længere røde linjer.",
+     "link": "https://t.me/AjaNews/519356",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T04:16:57+00:00",
+     "added": "2026-10-31T05:03:57+00:00",
+     "id": "81deddb3bfb4b538",
+     "kind": "w"
+    },
+    {
+     "who": "Trump",
+     "text": "Der er samtaler, og Teheran vil tale, siger han.",
+     "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPQk02MGl3Qkg1bElYWXZVNTN3Tl9lU2xyMTNNNExGOXl1QWZwbkU4NkVxRnRwc1JjWmlUQi1CdGVOYnRvdGhPa1JhdzgxTmV6SGFlNzlxTDNYZG5SNThrbVloY0M0T1hsZVk3alBQeHhUcVY3WDFCa2dYMkhLVnZJT21BUzNTLWQ0YXc4ckgta2wtdjQzOVg4X3ZiNUFLTlBGR0Fv?oc=5",
+     "source": "Middle East Eye",
+     "at": "2026-10-31T00:19:00+00:00",
+     "added": "2026-10-31T05:03:57+00:00",
+     "id": "fb4d5349b59e4e75",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Golfen og Saudi-Arabien",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Den saudisk-ledede koalition",
+     "text": "Luftforsvaret har opsnappet og ødelagt en fjendtlig drone i Riyadh-regionen.",
+     "link": "https://t.me/AjaNews/519357",
+     "source": "Al Jazeera",
+     "at": "2026-10-31T05:40:57+00:00",
+     "added": "2026-10-31T06:13:13+00:00",
+     "id": "cffee37655b7eae9",
+     "kind": "w"
+    }
+   ]
+  },
+  {
+   "name": "Trump og Rusland",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Lavrov",
+     "text": "Samtalen med Rubio ved G20-mødet i Atlanta var »ikke dårlig, men kort«.",
+     "link": "https://www.aa.com.tr/en/asia-pacific/russian-foreign-minister-says-he-had-not-bad-though-brief-talks-with-rubio-on-g20-sidelines/4107014",
+     "source": "Anadolu",
+     "at": "2026-10-31T00:55:13+00:00",
+     "added": "2026-10-31T06:13:13+00:00",
+     "id": "54b183fe7a2df4a5",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Syrien og “israel”",
+   "section": "me",
+   "lines": [
+    {
+     "who": "Syriens udenrigsminister Shaibani",
+     "text": "“israel” har udført over 1.000 angreb på Syrien på under to år; han kræver en tilbagevenden til linjerne fra før 8. december 2024 og til aftalen fra 1974.",
+     "link": "https://www.aa.com.tr/en/middle-east/israel-carried-out-over-1-000-attacks-on-syria-in-less-than-2-years-says-syrian-foreign-minister/4107245",
+     "source": "Anadolu",
+     "at": "2026-10-31T10:48:07+00:00",
+     "added": "2026-10-31T11:11:47+00:00",
+     "id": "378920188a818db6",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Sikkerhedsrådet",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Rusland og USA",
+     "text": "Begge har nedlagt veto mod rivaliserende FN-resolutioner om Vestsahara, så fredsbevarelsesmissionen står i limbo.",
+     "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQdUNBTnV0ak81ajRNTDZDQ00wazhMcWIwVFplM0dDaXdWZ3VCRTIxUkVHVmRnaVpybjk0ZTdESUdHQW95QnlzTmYtNzZ3RS1pS3VBOTd2STBXTDg1MVB0blB0N0tyMF9FS1NOTFZUSGRyeEtDMU82ZGltekkyUkdyTlVMNU5fVDl0US1qOEc0V2NPZUhTcWtRQ2dUaXBHUHhqRHg0WGhzN0t5bnVuNk9yaGdES2xPUFJ6QV96bHNhMFh5NHFm?oc=5",
+     "source": "Middle East Eye",
+     "at": "2026-10-31T11:51:00+00:00",
+     "added": "2026-10-31T13:03:48+00:00",
+     "id": "98ddb14781de921c",
+     "kind": "s"
+    },
+    {
+     "who": "Rusland og USA",
+     "text": "Begge nedlægger veto mod rivaliserende FN-resolutioner om Vestsahara og efterlader fredsbevarelsesmissionen i limbo.",
+     "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQYmRjZjdXU1F1RnBKdV9oOUJZYVJxSGpOeUNYMlFwMm5QdVFDS01vMmlBMHp2dXVLRVNIYUhCTHJPSVhERkU1NHlETGxWR0ZvZ0VWQ3ZQbzYxQXRWbUd3Z2k3UlFfTktkc2ZxZTNlSUVvNzBudVBQckVQbUdSVDRURFQ4ZnhKZw?oc=5",
+     "source": "The New Arab",
+     "at": "2026-10-30T23:26:11+00:00",
+     "added": "2026-10-31T09:03:03+00:00",
+     "id": "8f0b74de86212fa7",
+     "kind": "s"
+    }
+   ]
+  },
+  {
+   "name": "Uroligheder i Frankrig",
+   "section": "world",
+   "lines": [
+    {
+     "who": "Frankrigs indenrigsministerium",
+     "text": "Omkring 320.000 protesterede lørdag mod høje leveomkostninger; politiet i Paris meldte om 27 anholdte kl. 14.00.",
+     "link": "https://www.bt.dk/udland/politi-og-demonstranter-stoeder-sammen-i-paris?referrer=RSS",
+     "source": "BT",
+     "at": "2026-10-31T16:44:47+00:00",
+     "added": "2026-10-31T19:12:46+00:00",
+     "id": "67edadb9d8fb95fb",
+     "kind": "s"
+    }
+   ]
+  }
+ ],
+ "ids": [
+  "00f9912eba8c5111",
+  "015e34917d2d0653",
+  "01cc029630b2297e",
+  "0611610c99ec4b72",
+  "062eb01e808dcf23",
+  "07a443177989c98a",
+  "09d720568e8d02f4",
+  "0a17ae163e72dc02",
+  "0b1eb92873138d9b",
+  "0c2edcb85f5cfe4c",
+  "0dd60f2ae841ad20",
+  "0eef09a034c2876e",
+  "0fb4752d48539132",
+  "12b97d4b806f1f36",
+  "1593b79662db8749",
+  "178b601ab806de8b",
+  "17c281f51ba5bd0d",
+  "17f45e1f53201979",
+  "1b109364f00a7cc2",
+  "1b76f071fbb9dd0c",
+  "1b7bfe23274576e1",
+  "1bc11ed08c283548",
+  "1c431446694516a2",
+  "1f021b28aec51139",
+  "21570e765f2e588c",
+  "217a92acf6523f7a",
+  "2197e8ff52a70f18",
+  "226469c47c9bacbd",
+  "22975bc20df700a4",
+  "2514cb2177cca408",
+  "26639920efa1f041",
+  "266a9b25198c9333",
+  "27d5dff6df0148a9",
+  "29b409876fdcf558",
+  "2ba8db623126de42",
+  "2d07a8346bf4d042",
+  "2d980a2b6542ead6",
+  "3027dae4020ecde3",
+  "30a9a4c937e2181e",
+  "316b7562e2bda4dc",
+  "33d24f158cacb181",
+  "359dd10bfcd7cbd0",
+  "372aaa3afe132824",
+  "390e1223a0f46580",
+  "39324d96c05f444d",
+  "3a8a5052fc23613e",
+  "3de2c6b54eaddf83",
+  "40c3d5e82002ea44",
+  "41f8b60dd9ce3d21",
+  "42a66fe68a2451f7",
+  "44c104862258fd87",
+  "45205c4a66f9bbfe",
+  "45c64213ee80467c",
+  "45d53f356e376254",
+  "4bd221a1bd2b7a22",
+  "4c9bb9fa26eae84c",
+  "4d01ed991acf56e4",
+  "4e5c845c436a2c34",
+  "4f071a280f6a5c05",
+  "4feee7a09aefcb9f",
+  "50295ca4bb055cb2",
+  "556f82ad83bcb9e3",
+  "59c29cc2d1b90682",
+  "5a349229d4761f93",
+  "5af7135b6a79ba4d",
+  "5b10ccc9564fd6c8",
+  "5bdccdca4c756a11",
+  "5cfc5d3b52988d12",
+  "5d0bb6cb0c81fb8c",
+  "5d8e69e8a9010c7c",
+  "5db5efb8f102588f",
+  "5e3ad53328c74bfc",
+  "5edbb36d8936f1a4",
+  "5f50272deea19397",
+  "634144bcfbe0a0e4",
+  "64e9eb8d33c92bc7",
+  "65311b53eae6526b",
+  "655d6488fb6d771c",
+  "66918699b35c5239",
+  "69780af32eea7df2",
+  "6c519b3701283782",
+  "6d9b38dacec28b67",
+  "6f2341096bd97a6b",
+  "6f675d637e31598a",
+  "70194ad0e74f27cf",
+  "71664fac3eceee87",
+  "71f506754c7f7f8a",
+  "73e815f653ddf34b",
+  "752c234791ffcd65",
+  "79adfa6e07ff27ce",
+  "7c5f0c16d0f62bea",
+  "7c8197ae87f59068",
+  "805f2030dc1185a5",
+  "8169b701c4e39219",
+  "81deddb3bfb4b538",
+  "842596171d56226c",
+  "851ed424ffcbece3",
+  "85db1bc291ecb2a3",
+  "8614e2043065afd6",
+  "86597a6e7321cc01",
+  "86c6983dc6f0a169",
+  "8bf66e4860cdd58d",
+  "8c6f6ccd068ce78d",
+  "8d7a69ffa522dc73",
+  "906f028afa0362d8",
+  "9348e1d075d4a2bc",
+  "9356ee9a2888efc2",
+  "93c513e565ed9d52",
+  "94c84b71d4e272d7",
+  "9536a54a2ed4f14d",
+  "97a69f2802a63ae0",
+  "9908ed05d16b1688",
+  "9a1f7861fe1f9aff",
+  "9c936c0eba55b121",
+  "9eab0a7412d67b87",
+  "a0328ff59a58602d",
+  "a14d5e8c608e0d2b",
+  "a20e388700dd9419",
+  "a41acdfbdacf7f29",
+  "a4b3727e9e8b2cdd",
+  "a50fe6ab25af5f71",
+  "a8a2a1fa8e66a198",
+  "a8eee31c9dab41f4",
+  "a9b2a578d45a0a90",
+  "ab02ac00417c5ea0",
+  "af0331fcdc30f3b7",
+  "af74976fccedb80b",
+  "afccaa5dc17a9e35",
+  "b5de2b5cc6007ceb",
+  "b5f452833cd8e9de",
+  "b81e5849fa126823",
+  "b82ffb978756f155",
+  "bc8e050163bb8f75",
+  "c02b8cde78a5fb29",
+  "c11b53221db9bd09",
+  "c438998d795910a5",
+  "c870dd97a11b69a8",
+  "c9c94d22ee4418d3",
+  "cb9d1d1351cd48b1",
+  "cbb7bee1b6cc3e60",
+  "cd36468a5e44f06f",
+  "ce1c567119427617",
+  "ce46b4d3eeaa55c1",
+  "ce8538da108ad13b",
+  "cee8e4b472ae2f5c",
+  "cffee37655b7eae9",
+  "d083c0a7dbda5546",
+  "d0eecc8475c25211",
+  "d12b08e16645dd51",
+  "d24b7bc0fa09cfc0",
+  "d35c31f06d05acc0",
+  "d43f0e1154cd8cb5",
+  "d4edd2f961ffb032",
+  "d4fefa8dd012f5a0",
+  "d52b4a891e5cb0d0",
+  "d5a38d0cc7855b14",
+  "d5ab86cbea6096a0",
+  "d7af18c18fe4c69b",
+  "d8801de59c491f18",
+  "d95692fac1c343f1",
+  "d9acdf574766bc82",
+  "d9cb8c1df420270a",
+  "e176bb3f844ae425",
+  "e1ca356cf7b44409",
+  "e679af51ac06bdac",
+  "e962ec3efe7f92b2",
+  "e9669be1de6ca5ff",
+  "ec153e37ddd25572",
+  "ecb351eb86a8cb17",
+  "eda737f4da8f1645",
+  "eec5e86d04859aea",
+  "efc71c6af36f34dd",
+  "f046ed8d4e34fcb0",
+  "f12c680e7759f79c",
+  "f13497403526831a",
+  "f1912fb5a2b1dfb0",
+  "f265ed5b700165f3",
+  "f55f0e8f22e46db2",
+  "f7d2454768e696e1",
+  "f895c6b8d3d7d683",
+  "ff57b09413a10fdd",
+  "ffe5681e5dce1b5a"
+ ],
+ "period": "aften",
+ "whatsapp": "Politiske nyheder – 31. oktober 2026\n\nIran og USA\n\n- Mohsen Rezaee: Der foreligger et bedre amerikansk forslag, hvor Washington er villig til at acceptere Irans syv betingelser.\n\n- CENTCOM: 144 handelsskibe har ændret kurs, siden søblokaden mod Iran blev genoptaget.\n\n- Mohsen Rezaee: Et møde i Teheran mellem Iran, Pakistan, Saudi-Arabien og Tyrkiet har drøftet sikkerhedsordninger for regionen.\n\n- The New Arab: En amerikansk delegation skal ifølge mediet deltage i forhandlingerne med Iran i Doha.\n\n- USA's udenrigsminister Marco Rubio: Forhandlingerne med Iran er aldrig stoppet, og USA foretrækker diplomati; der er ingen fast tidsplan.\n\n- Iransk ambassadør i Egypten Ferdowsipour: Iran opgiver ikke sine syv betingelser for en aftale med USA, herunder en afslutning på alle krige i regionen.\n\n- Araghchi: En iransk delegation er rejst til Doha, og hans assistenter er i Qatar for at fortsætte konsultationerne.\n\n- Irans udenrigsminister Araghchi til Al Jazeera: Iran har læst Vances brev nøje; der er ingen planer om at mødes med amerikanske embedsmænd, og Iran afgør, om forhandlingerne er direkte eller indirekte, når Washington har godkendt Irans vilkår.\n\n- Irans øverste leder Mojtaba Khamenei: Pålægger de væbnede styrkers chefer at svare på enhver trussel øjeblikkeligt og uden geografiske begrænsninger og at opdatere målbanken.\n\n- Iranske medier: USA har angrebet to fiskerbåde nær øen Qeshm; de savnede fiskere er fundet.\n\n- Al Jazeera: Iran studerer vicepræsident Vances forslag og venter en ny forhandlingsrunde.\n\n- Irans udenrigsminister Araghchi: Svarer kansler Merz, der sagde at krigen har kostet europæiske virksomheder og forbrugere over 100 mia. euro, at Merz hilste bombardementerne velkommen.\n\n- Iraqi News Agency: Pentagon overvejer at flytte militærbaser til områder længere fra Irans rækkevidde.\n\n- Kan: Netanyahu presser Trump til at indlede en operation mod Iran straks efter midtvejsvalget.\n\n- Bevæbnet irakisk gruppe: Advarer USA mod at bruge Iraks luftrum til et angreb på Iran og truer med et kraftigt svar.\n\n- Axios: Qatars mæglere har holdt 12 timers samtaler i Teheran for at genoplive forhandlingerne mellem USA og Iran, mens Washington vejer militære muligheder.\n\n- Irans udenrigsminister: Vores styrker vil ramme dem, der tør angribe landet, og der er ikke længere røde linjer.\n\n- Trump: Der er samtaler, og Teheran vil tale, siger han.\n\nGolfen og Saudi-Arabien\n\n- Den saudisk-ledede koalition: Luftforsvaret har opsnappet og ødelagt en fjendtlig drone i Riyadh-regionen.\n\nTrump og Rusland\n\n- Lavrov: Samtalen med Rubio ved G20-mødet i Atlanta var »ikke dårlig, men kort«.\n\nSyrien og “israel”\n\n- Syriens udenrigsminister Shaibani: “israel” har udført over 1.000 angreb på Syrien på under to år; han kræver en tilbagevenden til linjerne fra før 8. december 2024 og til aftalen fra 1974.\n\nSikkerhedsrådet\n\n- Rusland og USA: Begge har nedlagt veto mod rivaliserende FN-resolutioner om Vestsahara, så fredsbevarelsesmissionen står i limbo.\n\n- Rusland og USA: Begge nedlægger veto mod rivaliserende FN-resolutioner om Vestsahara og efterlader fredsbevarelsesmissionen i limbo.\n\nUroligheder i Frankrig\n\n- Frankrigs indenrigsministerium: Omkring 320.000 protesterede lørdag mod høje leveomkostninger; politiet i Paris meldte om 27 anholdte kl. 14.00.",
+ "push": null,
+ "editor": {
+  "created": "2026-10-31T19:12:46+00:00",
+  "lede": "Rubio siger, at forhandlingerne med Iran aldrig er stoppet, mens Irans øverste leder beder hæren svare uden geografiske grænser; over 300.000 protesterede i Frankrig ifølge indenrigsministeriet.",
+  "lede_at": "2026-10-31T19:12:46+00:00",
+  "lede_ids": [
+   "2d644e4313693b40",
+   "",
+   "67edadb9d8fb95fb"
+  ],
+  "picks": [
+   {
+    "id": "9530136c5557244b",
+    "why": "Qatars mægling mellem USA og Iran, tier 2"
+   },
+   {
+    "id": "506cf1e4b11fd0cb",
+    "why": "USA sender militærfly til “israel” før et muligt angreb, tier 2"
+   },
+   {
+    "id": "e84b708c9bf7026a",
+    "why": "Trumps angrebsmuligheder efter midtvejsvalget, tier 2"
+   },
+   {
+    "id": "3e93f5fbda8dd03d",
+    "why": "Netanyahu presser på for et angreb på Iran, tier 5"
+   },
+   {
+    "id": "57c1633868e0ac71",
+    "why": "“israels” operation i Hebron fordriver tusinder, tier 5"
+   },
+   {
+    "id": "695ed9dd7549a6c6",
+    "why": "Protest mod islamofobi i Frankrig efter angreb, tier 6"
+   },
+   {
+    "id": "cc7fc93575fea851",
+    "why": "USA sælger 500 Patriot-missiler til Ukraine, tier 2"
+   },
+   {
+    "id": "ed92ca57fb62fd94",
+    "why": "Houthi-drone over Medina, tier 5"
+   }
+  ],
+  "moves": [],
+  "quotes": [
+   {
+    "who": "Donald Trump",
+    "text": "Der er samtaler. De vil gerne tale.",
+    "sec": "world",
+    "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPQk02MGl3Qkg1bElYWXZVNTN3Tl9lU2xyMTNNNExGOXl1QWZwbkU4NkVxRnRwc1JjWmlUQi1CdGVOYnRvdGhPa1JhdzgxTmV6SGFlNzlxTDNYZG5SNThrbVloY0M0T1hsZVk3alBQeHhUcVY3WDFCa2dYMkhLVnZJT21BUzNTLWQ0YXc4ckgta2wtdjQzOVg4X3ZiNUFLTlBGR0Fv?oc=5",
+    "id": "q1"
+   },
+   {
+    "who": "Irans udenrigsminister",
+    "text": "Vores styrker vil ramme dem, der tør angribe landet, og der er ikke længere røde linjer.",
+    "sec": "me",
+    "link": "https://t.me/AjaNews/519356",
+    "id": "q2"
+   },
+   {
+    "who": "Sergej Lavrov",
+    "text": "Samtalen med Rubio var ikke dårlig, men kort.",
+    "sec": "world",
+    "link": "https://www.aa.com.tr/en/asia-pacific/russian-foreign-minister-says-he-had-not-bad-though-brief-talks-with-rubio-on-g20-sidelines/4107014",
+    "id": "q3"
+   },
+   {
+    "who": "Pakistans hærs talsmand",
+    "text": "Vi er forsigtigt optimistiske om mæglingen mellem Iran og USA.",
+    "sec": "me",
+    "link": "https://www.al-monitor.com/originals/2026/10/exclusive-pakistan-military-cautiously-optimistic-iran-us-mediation",
+    "id": "q4"
+   }
+  ]
+ }
+}
