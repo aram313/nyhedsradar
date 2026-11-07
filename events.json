@@ -1,0 +1,859 @@
+{
+ "updated": "2026-11-07T20:03:17+00:00",
+ "items": [
+  {
+   "id": "frankrig-uroligheder-2026-10",
+   "title": "Kaos i Frankrig",
+   "kicker": "Frankrig",
+   "status": "i gang",
+   "dek": "Næsten 600.000 demonstrerede på bevægelsens største dag, 448 blev anholdt; lørdag går titusindvis på gaden for fjerde lørdag i træk med 70.000 betjente sat ind.",
+   "since": "2026-09",
+   "topic": "Uroligheder i Frankrig",
+   "facts": [
+    {
+     "label": "Demonstranter",
+     "value": "næsten 600.000",
+     "note": "ifølge Nam News Network",
+     "ids": [
+      "1722b89443864449"
+     ],
+     "src": [
+      "Bernama"
+     ]
+    },
+    {
+     "label": "Anholdte",
+     "value": "448",
+     "note": "ifølge de franske myndigheder",
+     "ids": [
+      "83767bf9a9afa346"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "label": "Sårede politifolk",
+     "value": "53",
+     "note": "ifølge de franske myndigheder",
+     "ids": [
+      "83767bf9a9afa346"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "places": [
+    "Paris",
+    "Lyon",
+    "Rennes",
+    "Toulouse",
+    "Marseille",
+    "Nantes",
+    "Grenoble",
+    "Bordeaux",
+    "Lille",
+    "Montpellier",
+    "Frankrig"
+   ],
+   "quotes": [],
+   "stories": [
+    "a35b41cd2c4f6383",
+    "00f968cc972ed3fd",
+    "1722b89443864449",
+    "83767bf9a9afa346",
+    "d6341f69676faeb6"
+   ],
+   "article": [
+    {
+     "text": "Næsten 600.000 mennesker demonstrerede over hele Frankrig på protestbevægelsens hidtil største dag, oplyser Nam News Network.",
+     "ids": [
+      "1722b89443864449"
+     ],
+     "src": [
+      "Bernama"
+     ]
+    },
+    {
+     "text": "De franske myndigheder oplyser, at 448 blev anholdt, og at 53 politifolk blev såret. De beskriver torsdagens marcher som overvejende fredelige, men med spændinger i Paris, Lyon, Rennes og Toulouse.",
+     "ids": [
+      "83767bf9a9afa346"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Lørdag går titusindvis på gaden for fjerde lørdag i træk. 70.000 politibetjente er sendt ud over hele landet, og politiet har grebet ind mod en forbudt demonstration.",
+     "ids": [
+      "00f968cc972ed3fd",
+      "a35b41cd2c4f6383"
+     ],
+     "src": [
+      "BT",
+      "North Press",
+      "TASS",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Demonstranterne kræver bedre offentlige tjenester, herunder uddannelse, og protesterer mod de stigende leveomkostninger.",
+     "ids": [
+      "d6341f69676faeb6"
+     ],
+     "src": [
+      "AFP"
+     ]
+    },
+    {
+     "text": "De Gule Veste opfordrer til massiv civil ulydighed, og regeringen forsøger at forhindre en gentagelse af urolighederne i oktober.",
+     "ids": [
+      "a35b41cd2c4f6383",
+      "d6341f69676faeb6"
+     ],
+     "src": [
+      "DR",
+      "AFP"
+     ]
+    }
+   ],
+   "pic": "https://img.lemde.fr/2026/11/07/637/0/7645/3822/644/322/60/0/7f2c575_ftp-1-k1w273fbdj8g-5527411-01-06.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    2.0,
+    0,
+    0
+   ],
+   "pl": "lf6c15223e0cb3f57.jpg",
+   "at": "2026-11-07T19:12:39+00:00"
+  },
+  {
+   "id": "houthi-saudi-krig-2026-10",
+   "title": "Houthiernes krig mod Saudi-Arabien",
+   "kicker": "Yemen",
+   "status": "i gang",
+   "dek": "Mindst 22 er dræbt i saudiske angreb i Sanaa-provinsen og 30 ved et marked i Taiz; koalitionen har skudt et houthi-krydsermissil ned over Riyadh-regionen.",
+   "since": "2026-10-01",
+   "topic": "Golfen og Saudi-Arabien",
+   "facts": [],
+   "places": [
+    "Sanaa",
+    "Taiz",
+    "Aden",
+    "Al-Hazm",
+    "Saada",
+    "Mokha",
+    "Shabwa",
+    "Hodeida",
+    "Lahij",
+    "Yemen"
+   ],
+   "quotes": [],
+   "stories": [
+    "57d862bf3c11054f",
+    "78cf161095115e57",
+    "16e7da52ff71d5b4",
+    "8da66b898b87ef61",
+    "bd0c20327969aa9f",
+    "d0eb5f72910571cd"
+   ],
+   "article": [
+    {
+     "text": "Mindst 22 mennesker er dræbt i saudiske angreb mod Yemen, oplyser houthierne. Tallet lød først på 11 dræbte, blandt dem kvinder og børn, i luftangreb på boliger i Al-Shariyah-området i Sanaa-provinsen.",
+     "ids": [
+      "57d862bf3c11054f"
+     ],
+     "src": [
+      "Ahram Online",
+      "Middle East Eye",
+      "BT",
+      "Daily Sabah"
+     ]
+    },
+    {
+     "text": "Mindst 30 mennesker er dræbt i et angreb på et marked i Taiz-provinsen. Houthierne giver saudiske luftangreb skylden, mens regeringsstyrkerne og de lokale myndigheder siger, at houthierne skød vilkårligt.",
+     "ids": [
+      "78cf161095115e57"
+     ],
+     "src": [
+      "AFP",
+      "Xinhua",
+      "Middle East Eye",
+      "Shafaq News",
+      "LBCI"
+     ]
+    },
+    {
+     "text": "Den saudisk-ledede koalition siger, at dens luftforsvar har skudt et krydsermissil ned, som houthierne affyrede mod Riyadh-regionen.",
+     "ids": [
+      "16e7da52ff71d5b4"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Syrien giver Saudi-Arabien militær rådgivning og træning under houthiernes angreb og har sendt et begrænset antal militærfolk til kongeriget, siger to syriske militærkilder til Reuters.",
+     "ids": [
+      "8da66b898b87ef61"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Tyrkiets parlament har godkendt Mekka-forsvarspagten med Saudi-Arabien og Pakistan.",
+     "ids": [
+      "bd0c20327969aa9f"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Wall Street Journal har bragt, at houthierne har krævet 51 milliarder dollar af Saudi-Arabien og officiel anerkendelse for at stoppe fjendtlighederne. Saudi-Arabien afviser oplysningerne kategorisk.",
+     "ids": [
+      "d0eb5f72910571cd"
+     ],
+     "src": [
+      "Middle East Monitor",
+      "Dawn"
+     ]
+    }
+   ],
+   "pic": "https://www.lbcgroup.tv/uploadImages/DocumentImages/Doc-P-966684-639295731774195725.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "pl": "l13a594f71cb40cf4.jpg",
+   "at": "2026-11-07T19:12:39+00:00"
+  },
+  {
+   "id": "iran-hormuz-2026-10",
+   "title": "Opgøret mellem USA og Iran om Hormuz",
+   "kicker": "Iran",
+   "status": "i gang",
+   "dek": "Trump bekræfter nye begrænsede angreb på Irans luftforsvar på Qeshm, og Iran siger, at det har skudt en amerikansk drone ned; Qatar siger, at parterne fortsat arbejder hen imod en aftale.",
+   "since": "2026-10",
+   "topic": "Iran og USA",
+   "facts": [],
+   "places": [
+    "Qeshm",
+    "Bandar Abbas",
+    "Bandar Khamir",
+    "Bandar Lengeh",
+    "Sirik",
+    "Iran"
+   ],
+   "map": {
+    "km": 400,
+    "focus": [
+     "Qeshm",
+     "Bandar Abbas",
+     "Bandar Lengeh"
+    ]
+   },
+   "quotes": [
+    {
+     "who": "Qatars premierminister",
+     "text": "Mæglingen mellem USA og Iran fortsætter og forhindrer, at situationen løber løbsk.",
+     "ids": [
+      "a6c375dbf54bc2fa"
+     ],
+     "src": [
+      "Iraqi News Agency"
+     ]
+    }
+   ],
+   "stories": [
+    "582ce33c70ac1319",
+    "ed0f8640f10d395b",
+    "b21339b2ba71b08e",
+    "a6c375dbf54bc2fa",
+    "7da82bec4015b3fa",
+    "180fa99b98c47df1",
+    "3758df590c783fee",
+    "1b8c84f150c6f90f",
+    "083ed7a4e19c8234",
+    "404893a39d5b0fb8",
+    "0086273e9a75711f",
+    "81d7430df037b5d9",
+    "aa37dd1a2088761a",
+    "e9c830676605cdcb"
+   ],
+   "article": [
+    {
+     "text": "Præsident Trump bekræfter, at USA har gennemført en ny runde begrænsede angreb på Iran og ramt et luftforsvarsanlæg på øen Qeshm. Han siger, at USA »kunne blive besætter« i Iran, og overvejer efter et møde med sine sikkerhedsrådgivere, om angrebene skal genoptages i stor skala.",
+     "ids": [
+      "ed0f8640f10d395b",
+      "582ce33c70ac1319"
+     ],
+     "src": [
+      "Anadolu",
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Vicepræsident JD Vance er i næsten daglig kontakt med mæglere fra Qatar og Pakistan og leder arbejdet for en ny våbenhvile og genoptagne atomforhandlinger, siger kilder til Axios. Iran gennemgår forslag om sit atomprogram, siger embedsmænd til AP.",
+     "ids": [
+      "7da82bec4015b3fa",
+      "3758df590c783fee"
+     ],
+     "src": [
+      "Anadolu",
+      "AP"
+     ]
+    },
+    {
+     "text": "Qatars udenrigsministerium siger, at premierministeren har gjort det klart, at parterne fortsat arbejder hen imod en aftale. Qatar afviser meldinger om, at USA og Iran ikke har kunnet nå en aftale. Iran kræver konkrete amerikanske skridt, før nye forhandlinger kan begynde.",
+     "ids": [
+      "a6c375dbf54bc2fa",
+      "180fa99b98c47df1",
+      "e9c830676605cdcb"
+     ],
+     "src": [
+      "Iraqi News Agency",
+      "Middle East Eye",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Irans hær siger, at luftforsvaret har skudt en amerikansk MQ-9-drone ned over Qeshm. Irans flåde melder brand i et olietankskib, der ramte en mine øst for Hormuzstrædet, og Revolutionsgarden siger, at to olietankskibe er i brand efter at have ramt miner. USA's udenrigsministerium opfordrer amerikanere i Mellemøsten til skærpet årvågenhed.",
+     "ids": [
+      "b21339b2ba71b08e",
+      "a252de98d9eb15df",
+      "404893a39d5b0fb8",
+      "0086273e9a75711f"
+     ],
+     "src": [
+      "Anadolu",
+      "Köklü Değişim",
+      "IRNA"
+     ]
+    },
+    {
+     "text": "Irans sikkerhedsrådssekretær Mohsen Rezaei har i Moskva overbragt Putin et budskab fra Irans øverste leder. Rezaei siger, at mødet handlede om sikkerheden efter krigen, og Putin tilbød at hjælpe med at afslutte krigen.",
+     "ids": [
+      "083ed7a4e19c8234"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    }
+   ],
+   "pic": "https://english.aawsat.com/s3/files/styles/414x217/public/2026-11/1869896_0.jpeg.webp",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "pl": "lf4d8e0f6e286477d.jpg",
+   "at": "2026-11-07T11:11:35+00:00"
+  },
+  {
+   "id": "knessetvalg-2026-10-27",
+   "title": "Valget og regeringsdannelsen i “israel”",
+   "kicker": "“israel”",
+   "status": "i gang",
+   "dek": "67 af Knessets 120 medlemmer anbefaler Eisenkot og 46 Netanyahu, der nu foreslår en enhedsregering; præsident Herzog meddeler søndag, hvem der skal forsøge at danne regering.",
+   "since": "2026-10-27",
+   "topic": "Valget i “israel”",
+   "facts": [
+    {
+     "label": "Anbefaler Eisenkot",
+     "value": "67",
+     "note": "ifølge præsident Herzog",
+     "ids": [
+      "0696aa5f6d2e12db",
+      "fb022443a286a7b0"
+     ],
+     "src": [
+      "Anadolu",
+      "Politiken"
+     ],
+     "of": "120"
+    },
+    {
+     "label": "Anbefaler Netanyahu",
+     "value": "46",
+     "note": "ifølge præsident Herzog",
+     "ids": [
+      "0696aa5f6d2e12db",
+      "fb022443a286a7b0"
+     ],
+     "src": [
+      "Anadolu"
+     ],
+     "of": "120"
+    }
+   ],
+   "places": [
+    "Jerusalem",
+    "Tel Aviv",
+    "Lod",
+    "Kafr Manda",
+    "Tayibe",
+    "Nazareth"
+   ],
+   "quotes": [
+    {
+     "who": "Gadi Eisenkot",
+     "text": "Vil Likud og dets allierede have en enhedsregering, må de bryde alliancen med ekstremisterne og gå ind i en regering ledet af mig.",
+     "ids": [
+      "7aaeef96ac89c645"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "stories": [
+    "5dac7f0b935e5438",
+    "0696aa5f6d2e12db",
+    "58fb0e32b6762c80",
+    "bc56026393d044a8",
+    "fb022443a286a7b0",
+    "eb2bc29b51b70b57"
+   ],
+   "article": [
+    {
+     "text": "Benjamin Netanyahu opfordrer for første gang siden valget til en enhedsregering og advarer mod en koalition med islamister. Oppositionslederen Gadi Eisenkot svarer, at Likud og dets allierede må bryde med ekstremisterne og gå ind i en regering ledet af ham.",
+     "ids": [
+      "5dac7f0b935e5438"
+     ],
+     "src": [
+      "Jerusalem Post"
+     ]
+    },
+    {
+     "text": "Partier med 67 af Knessets 120 medlemmer har anbefalet Eisenkot, mens partier med 46 mandater bakker op om Netanyahu, oplyser præsident Herzog. Han meddeler søndag, hvem der får til opgave at danne regering.",
+     "ids": [
+      "0696aa5f6d2e12db",
+      "fb022443a286a7b0"
+     ],
+     "src": [
+      "Politiken",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Hverken Netanyahu eller Eisenkot fik flertal ved valget 27. oktober. Eisenkot har ophævet sit veto mod de ultraortodokse partier, men fastholder sin modstand mod de arabiske partier.",
+     "ids": [
+      "fb022443a286a7b0"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "text": "I Tel Aviv er demonstranter gået på gaden for en regering med de arabiske partier.",
+     "ids": [
+      "bc56026393d044a8"
+     ],
+     "src": [
+      "Times of Israel"
+     ]
+    },
+    {
+     "text": "Netanyahu siger, at der er alvorlig mistanke om udenlandsk indblanding i valget. Valgudvalget har godkendt det endelige resultat og siger, at det ikke fandt uregelmæssigheder.",
+     "ids": [
+      "eb2bc29b51b70b57"
+     ],
+     "src": [
+      "Middle East Monitor"
+     ]
+    }
+   ],
+   "pic": "https://www.skynewsarabia.com/images/v1/2026/11/04/1902507/1200/630/1-1902507.JPG",
+   "pf": [
+    0.421,
+    0.413,
+    1.905,
+    1,
+    0.302
+   ],
+   "at": "2026-11-07T19:12:39+00:00"
+  },
+  {
+   "id": "abu-dhabi-ukraine-samtaler-2026-11",
+   "title": "Trepartsforhandlinger om Ukraine i Abu Dhabi",
+   "kicker": "Abu Dhabi",
+   "status": "kommende",
+   "dek": "Putin har bekræftet, at Rusland, USA og Ukraine forhandler i Abu Dhabi tirsdag og onsdag; Polen og EU kræver, at Europa er med i enhver aftale om sin sikkerhed.",
+   "date": "2026-11-10",
+   "topic": "Krigen i Ukraine",
+   "facts": [],
+   "places": [
+    "Abu Dhabi"
+   ],
+   "quotes": [],
+   "stories": [
+    "f1cd576f8975d7dd",
+    "28df56e574b90247",
+    "55e22de87874d1bb",
+    "d2551194f4e27965",
+    "a48ce46ab5d0e54b",
+    "359748646b4f8fac",
+    "7ace68836578e477",
+    "bde44f0886062759"
+   ],
+   "article": [
+    {
+     "text": "Ruslands præsident Vladimir Putin bekræftede fredag, at en ny runde trepartsforhandlinger mellem Rusland, USA og Ukraine begynder tirsdag i Abu Dhabi. Ifølge russiske statsmedier holdes forhandlingerne tirsdag og onsdag i De Forenede Arabiske Emiraters hovedstad.",
+     "ids": [
+      "f1cd576f8975d7dd",
+      "1d086a511977314d"
+     ],
+     "src": [
+      "Anadolu",
+      "Daily Sabah"
+     ]
+    },
+    {
+     "text": "Præsident Trump siger efter et møde i Washington med Putins udsending, at en stor aftale om Ukraine er på vej, og at den kan omfatte hele Europa.",
+     "ids": [
+      "28df56e574b90247"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "Trumps udsending Steve Witkoff siger, at Washington samler Ukraines og Ruslands delegationer i Abu Dhabi for at drøfte en afslutning på krigen og sikkerhedsordninger for Ukraine.",
+     "ids": [
+      "bde44f0886062759"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Ukraines præsident Volodymyr Zelenskyj advarer mod den sikkerhedsramme mellem Europa og Rusland, som Washington har foreslået: »Vi vil ikke have et nyt Jalta«. Han siger, at krigens afslutning og Ukraines sikkerhed skal komme først.",
+     "ids": [
+      "55e22de87874d1bb"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Polens udenrigsminister Radosław Sikorski afviser enhver sikkerhedsaftale forhandlet uden Ukraine og Europa og kræver en våbenhvile før samtaler med Moskva. EU's udenrigschef Kaja Kallas siger, at Europa ikke vil gennemføre aftaler, der er indgået uden EU's deltagelse.",
+     "ids": [
+      "d2551194f4e27965",
+      "a48ce46ab5d0e54b"
+     ],
+     "src": [
+      "Kyiv Post",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Kreml anklager Europa for ikke at kunne beslutte, hvem der skal tale for det ved fremtidige forhandlinger om Ukraines sikkerhed.",
+     "ids": [
+      "7ace68836578e477"
+     ],
+     "src": [
+      "Reuters"
+     ]
+    }
+   ],
+   "pic": "https://www.skynewsarabia.com/images/v1/2026/09/29/1894956/1200/630/1-1894956.JPG",
+   "pf": [
+    0.533,
+    0.329,
+    1.905,
+    1,
+    0.325
+   ],
+   "at": "2026-11-07T04:10:11+00:00",
+   "pl": "lf00ebec60388f86b.jpg"
+  },
+  {
+   "id": "midtvejsvalg-usa-2026-11",
+   "title": "Midtvejsvalget i USA",
+   "kicker": "USA",
+   "status": "afsluttet",
+   "dek": "Demokraterne har vundet flertal i begge kamre i Kongressen og guvernørposter som Texas; Hakeem Jeffries stiller op som formand for Repræsentanternes Hus.",
+   "since": "2026-11-03",
+   "topic": "Midtvejsvalget i USA",
+   "facts": [
+    {
+     "label": "Huset: Dem. mod Rep.",
+     "value": "249 mod 150",
+     "note": "foreløbige tal onsdag eftermiddag",
+     "ids": [
+      "484553ccd54369c9"
+     ],
+     "src": [
+      "BT"
+     ],
+     "of": "435"
+    },
+    {
+     "label": "Senatet: Dem. mod Rep.",
+     "value": "54 mod 44",
+     "note": "foreløbige tal onsdag eftermiddag",
+     "ids": [
+      "484553ccd54369c9"
+     ],
+     "src": [
+      "BT"
+     ],
+     "of": "100"
+    }
+   ],
+   "places": [
+    "Washington",
+    "Michigan",
+    "Texas",
+    "North Carolina",
+    "South Carolina",
+    "Georgia",
+    "Iowa",
+    "Ohio",
+    "Alaska",
+    "USA"
+   ],
+   "quotes": [
+    {
+     "who": "Donald Trump til Wall Street Journal",
+     "text": "Iran var en del af det. Jeg gjorde det rigtige. Jeg ville have gjort det igen.",
+     "ids": [
+      "fab0c5d4ed904aa2"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "who": "Donald Trump til Fox News",
+     "text": "Demokraterne har taget kontrol over Kongressen, men de er ikke i en position, hvor de kan påtvinge deres vilje.",
+     "ids": [
+      "6a08249564bf76c1"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "James Talarico, valgt demokratisk senator i Texas",
+     "text": "Vi har bevist, at alle verdens penge ikke kan stå imod vores folks vilje.",
+     "ids": [
+      "9229d0e4dba1a291"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "stories": [
+    "484553ccd54369c9",
+    "fdf4264ae882fa4e",
+    "933cc2e99a9d26f1",
+    "acb832fd1c8b0ff6",
+    "a974ca2512b4f137",
+    "128beafda149e9f3",
+    "fab0c5d4ed904aa2",
+    "b96ff4f62fb90796",
+    "551835850a08d75a",
+    "1e497a458ad08c65",
+    "21a14a8c5b9fbf15"
+   ],
+   "article": [
+    {
+     "text": "Demokraterne står til mindst 249 af de 435 pladser i Repræsentanternes Hus mod Republikanernes 150 og til 54 af Senatets 100 pladser mod 44, viser de foreløbige tal onsdag eftermiddag dansk tid. Der skal 218 mandater til flertal i Huset og 51 i Senatet; før valget havde Trumps Republikanere flertal i begge kamre. I Alaska venter senatsvalget og guvernørvalget stadig på flere stemmer.",
+     "ids": [
+      "484553ccd54369c9",
+      "f105ecf5bc1c025f"
+     ],
+     "src": [
+      "AP"
+     ]
+    },
+    {
+     "text": "Demokraten Roy Cooper slog Michael Whatley i North Carolina, Annie Andrews slog Darlene Graham i South Carolina, og James Talarico vandt over Ken Paxton i Texas. I Texas tabte guvernør Greg Abbott til demokraten Gina Hinojosa, og Demokraterne vandt også guvernørvalgene i blandt andet Iowa, Georgia og Ohio.",
+     "ids": [
+      "d5f62c59706c449e",
+      "b3c525e8aecd990c",
+      "182b3555adcac2a2",
+      "7f4d24968f005804",
+      "484553ccd54369c9"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "I Michigan slog demokraten Abdul El-Sayed republikaneren Mike Rogers og blev den første muslim valgt til USA's Senat. Den 42-årige læge hører til Demokraternes progressive fløj. Den proisraelske lobby Aipac brugte gennem sin Super PAC omkring 30 millioner dollar i primærvalget på at forsøge at stoppe ham.",
+     "ids": [
+      "a974ca2512b4f137",
+      "399d25337f886f30"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "Trump lykønsker Demokraterne og siger til New York Times og Fox News, at han accepterer resultaterne. Til CBS News siger han, at han er klar til at bruge sit veto mod Demokraternes lovforslag, og at Republikanerne havde vundet med et jordskred, hvis han selv havde stået på stemmesedlen.",
+     "ids": [
+      "f18d571f85d0b10d",
+      "27e2e2a36fddb133",
+      "18118d3e203a80a9",
+      "412d5ffd2909c0eb",
+      "21a14a8c5b9fbf15"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "Trump siger onsdag, at Iran-krigen var det værd, selv om han erkender, at den spillede en rolle i nederlaget. Vicepræsident J.D. Vance siger, at Iran-krigen var årsagen til, at Republikanerne tabte. Irans chefforhandler siger, at amerikanernes stemme er et nej til krig.",
+     "ids": [
+      "acb832fd1c8b0ff6",
+      "933cc2e99a9d26f1",
+      "fab0c5d4ed904aa2",
+      "224cfacfa842e071"
+     ],
+     "src": [
+      "Al-Monitor",
+      "DR"
+     ]
+    },
+    {
+     "text": "Demokraternes leder i Repræsentanternes Hus, Hakeem Jeffries, meddeler, at han stiller op som formand for Huset, når den nye Kongres samles.",
+     "ids": [
+      "128beafda149e9f3"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://akamai-aptoma-production.bmcdn.dk/users/berlingske/images/166248756.webp?t[strip]=true&t[resize][width]=1440&t[quality]=70&accessToken=54ed44664b4aa41ddf0d232375562d748dc4fa683ce4f5e63dcf12a6875d28d9",
+   "pf": [
+    0.5,
+    0.4,
+    1.502,
+    0,
+    0
+   ],
+   "at": "2026-11-05T06:14:01+00:00"
+  },
+  {
+   "id": "israel-vestbredden-2026-10",
+   "title": "“israels” militæroperation på Vestbredden",
+   "kicker": "Vestbredden",
+   "status": "afsluttet",
+   "dek": "“israelske” styrker har trukket sig ud af Hebron efter en militæroperation på ti dage, og fordrevne familier vender hjem; FN registrerede 397 bosætterangreb i oktober, det højeste tal i 20 år.",
+   "since": "2026-10-23",
+   "topic": "Vestbredden",
+   "facts": [
+    {
+     "label": "Bosætterangreb i oktober",
+     "value": "397",
+     "note": "ifølge FN's kontor for humanitære anliggender (OCHA)",
+     "ids": [
+      "e2e370c73c0ac124"
+     ],
+     "src": [
+      "Middle East Monitor"
+     ]
+    }
+   ],
+   "places": [
+    "Hebron",
+    "Nablus",
+    "Jenin",
+    "Betlehem",
+    "Beita",
+    "Ramallah",
+    "Birzeit",
+    "Tulkarm",
+    "Burqa",
+    "Qalqilya",
+    "Yatta"
+   ],
+   "quotes": [
+    {
+     "who": "Hebrons borgmester til Al Jazeera",
+     "text": "Livet er begyndt at vende tilbage til byen, og de studerende er på vej til deres skoler og universiteter.",
+     "ids": [
+      "9910a6bf05b7722b"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "stories": [
+    "9bdb3e82b6168622",
+    "e2e370c73c0ac124",
+    "375c3cdea6f0e2ff",
+    "f08306549e4fa574",
+    "8fa43d0d99854ab4",
+    "9cd90edc98a54cf8"
+   ],
+   "article": [
+    {
+     "text": "“israelske” styrker har trukket sig ud af Hebron efter en militæroperation på ti dage, siger guvernøren Khaled Dudin, og familier, der blev tvunget fra deres hjem, kan vende tilbage.",
+     "ids": [
+      "9bdb3e82b6168622",
+      "893a806a4e694fe4"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Styrkerne trækker sig ud af kvartererne Deir Halah og al-Jalda og resten af byen, siger borgmesteren til Al Jazeera. Indbyggerne er begyndt at vende hjem, studerende tager til skoler og universiteter, og kommunen opgør skaderne på boliger og bygninger.",
+     "ids": [
+      "b84b60b016c56a7f",
+      "2bc943dde9cc2ce4",
+      "9910a6bf05b7722b",
+      "e305b5e109ddc821"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "FN's kontor for humanitære anliggender, OCHA, har registreret 397 bosætterangreb med skader på mennesker eller ejendom på Vestbredden i oktober, det højeste antal for en måned, siden FN begyndte registreringen i 2006. Myndigheden for modstand mod muren og bosættelserne opgør 3.133 overgreb fra “israelske” styrker og bosættere i samme måned.",
+     "ids": [
+      "e2e370c73c0ac124",
+      "1b22f2770c016ce5"
+     ],
+     "src": [
+      "Middle East Monitor"
+     ]
+    },
+    {
+     "text": "“israelske” styrker har revet et mindesmærke for dræbte palæstinensere ned syd for Nablus, oplyser WAFA. I Birzeit nord for Ramallah er en palæstinenser anholdt i sit hjem.",
+     "ids": [
+      "f08306549e4fa574",
+      "9cd90edc98a54cf8"
+     ],
+     "src": [
+      "WAFA"
+     ]
+    }
+   ],
+   "pic": "https://www.al-monitor.com/sites/default/files/styles/social_media_share/public/2026-11/2026-11-02T142634Z_1_LYNXNPEMA11E0_RTROPTP_3_ISRAEL-PALESTINIANS-HEBRON.JPG?h=603532df&itok=d-wnaU9q",
+   "pf": [
+    0.5,
+    0.4,
+    1.911,
+    0,
+    0
+   ],
+   "at": "2026-11-03T04:07:53+00:00"
+  }
+ ]
+}

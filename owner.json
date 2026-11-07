@@ -1,0 +1,67 @@
+{
+ "items": {
+  "n1792427563910": {
+   "by": "økonomiredaktør",
+   "text": "Rettet til: »Olieprisen falder, da Trumps pause i sanktioner kan give mere russisk brændstof på markedet«.",
+   "done": true,
+   "at": "2026-10-19T16:41:22+00:00",
+   "ref": "oko:oil:nyhed"
+  },
+  "n1792427591794": {
+   "by": "økonomiredaktør",
+   "text": "Rettet til: »Irans Revolutionsgarde: Olietankskib ramte en mine og brød i brand i Hormuzstrædet«.",
+   "done": true,
+   "at": "2026-10-19T16:41:22+00:00",
+   "ref": "oko:oil:nyhed"
+  },
+  "n1792427628443": {
+   "by": "økonomiredaktør",
+   "text": "Ny overskrift: »Ukraine angriber Rusland med over 1.000 droner; olieanlæg ved Sankt Petersborg i brand«.",
+   "done": true,
+   "at": "2026-10-19T16:41:22+00:00",
+   "ref": "oko:oil:nyhed"
+  },
+  "n1792427676592": {
+   "by": "økonomiredaktør",
+   "text": "Gennemset og rettet til: »Franske aktier falder over 1 % efter voldelige protester i Frankrig«.",
+   "done": true,
+   "at": "2026-10-19T16:41:22+00:00",
+   "ref": "oko:mkt:nyhed"
+  },
+  "n1792390018295": {
+   "by": "forsideredaktør",
+   "text": "Billedvalget er radarens, ikke redaktørens, og jeg kan ikke låse det her. Du kan vælge parlamentets billede ved at holde historien nede; så følger radaren dit valg.",
+   "done": false,
+   "at": "2026-10-19T07:05:19+00:00",
+   "ref": "story:8dc7dc056ac86352"
+  },
+  "n1792387816331": {
+   "by": "begivenhedsredaktør",
+   "text": "Stederne på siden ligger alle på Vestbredden, men appens kort viser altid mindst et lands bredde omkring dem – det er appens kode, ikke siden, så zoomen må rettes i appen.",
+   "done": false,
+   "at": "2026-10-19T06:14:31+00:00",
+   "ref": "ev:vestbredden-olivenhoest-2026-10:kort"
+  },
+  "n1792389728250": {
+   "by": "begivenhedsredaktør",
+   "text": "Boksen med de 52 dage er fjernet; siden har nu kun valgdagen som fakta, til der kommer tal, der siger noget om valget.",
+   "done": true,
+   "at": "2026-10-19T06:14:31+00:00",
+   "ref": "ev:knessetvalg-2026-10-27:fakta"
+  },
+  "n1792389916960": {
+   "by": "begivenhedsredaktør",
+   "text": "Linjen i forløbet er stadig Al Jazeeras (deres kanal står som kilde), men hvilken artikel et tryk åbner, vælger appen selv ud fra ordene – det må rettes i appen.",
+   "done": false,
+   "at": "2026-10-19T06:14:31+00:00",
+   "ref": "ev:frankrig-uroligheder-2026-10:forløbet"
+  },
+  "n1792362768753": {
+   "by": "chefredaktør",
+   "text": "Siden om valget i “israel” har fået en skarpere underlinje, flere fakta, flere historier og en længere artikel, så kortet på forsiden har mere at vise. Selve kortets udseende er appens layout og kan ikke ændres herfra – det er givet videre som et ønske til appens design.",
+   "done": false,
+   "at": "2026-10-19T04:12:37+00:00",
+   "ref": "ev:knessetvalg-2026-10-27"
+  }
+ }
+}

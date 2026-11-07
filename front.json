@@ -1,0 +1,80 @@
+{
+ "updated": "2026-11-07T20:03:17+00:00",
+ "lede": "Herzog udpeger Eisenkot til at danne ny regering efter valget; Iran advarer USA mod en ny krig, og Rusland sender delegation til Abu Dhabi tirsdag.",
+ "lede_ids": [
+  "9b4a3b186c126b8f",
+  "7e0e2760ba349e61",
+  "f8104a1704175212"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "title": "Trump bekræfter nye amerikanske angreb på Irans Qeshm: »Det er ikke en krig«",
+   "story": "1fe54fee79406c64",
+   "with": [
+    "a6c375dbf54bc2fa"
+   ],
+   "timeline": "Iran og USA",
+   "picture": true
+  },
+  {
+   "kind": "begivenhed",
+   "event": "knessetvalg-2026-10-27"
+  },
+  {
+   "kind": "liste",
+   "title": "Iran og USA",
+   "stories": [
+    "12dce7407b9f8866",
+    "7e0e2760ba349e61",
+    "4bbde150473b41a2",
+    "7da82bec4015b3fa",
+    "b21339b2ba71b08e",
+    "d34fe83b37692991",
+    "3758df590c783fee",
+    "e9c830676605cdcb"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Stormagterne",
+   "stories": [
+    "28df56e574b90247",
+    "f1cd576f8975d7dd",
+    "e7207f1a9a05aa8b",
+    "c0757d60e7ff0ab0",
+    "f8104a1704175212",
+    "083ed7a4e19c8234",
+    "359748646b4f8fac",
+    "a05e5ce67a0d748b"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Golfen og Yemen",
+   "stories": [
+    "57d862bf3c11054f",
+    "78cf161095115e57",
+    "bd0c20327969aa9f",
+    "8da66b898b87ef61",
+    "16e7da52ff71d5b4",
+    "d0eb5f72910571cd"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Palæstina og “israel”",
+   "stories": [
+    "ee7d395049fd95cc",
+    "9a2c1b4df80757f3",
+    "0c7e616dbb73850c",
+    "381ee97f7694a472",
+    "22398e064f217226"
+   ],
+   "style": "kompakt"
+  }
+ ]
+}

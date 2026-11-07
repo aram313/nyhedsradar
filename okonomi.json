@@ -1,0 +1,153 @@
+{
+ "at": "2026-11-07T15:07:42+00:00",
+ "dag": {
+  "text": "Irans flåde siger, at et olietankskib brød i brand efter at have ramt en mine øst for Hormuzstrædet, og Irans hær siger, at strædet forbliver lukket, indtil USA accepterer Teherans betingelser. USA har indført nye sanktioner mod netværk, der skaffer Iran penge, og Kina modsætter sig USA's sanktioner mod kinesiske firmaer. Ingen russisk diesel er nået frem til USA efter Trumps aftale med Putin.",
+  "ids": [
+   "a820cf124fe959d9",
+   "cddecffd9143c5ce",
+   "1ed61bc0c753865d",
+   "352596d154c85e37",
+   "c0757d60e7ff0ab0",
+   "5805658a2588812c"
+  ],
+  "src": [
+   "IRNA",
+   "Al Jazeera",
+   "USA's udenrigsministerium",
+   "Anadolu"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Et olietankskib er brudt i brand efter at have ramt en mine øst for Hormuzstrædet, og Irans hær siger, at strædet forbliver lukket, indtil USA accepterer Teherans betingelser. Qatar arbejder på en plan, hvor strædet kan genåbnes mod FN-inspektioner af Irans atomanlæg.",
+   "ids": [
+    "790fc1c619e70772",
+    "404893a39d5b0fb8",
+    "cddecffd9143c5ce",
+    "6da1f10b9d2e06df"
+   ],
+   "src": [
+    "Middle East Eye",
+    "IRNA",
+    "The Guardian"
+   ],
+   "stories": [
+    "790fc1c619e70772",
+    "404893a39d5b0fb8",
+    "cddecffd9143c5ce"
+   ]
+  },
+  "fuel": {
+   "text": "Ingen russisk diesel er nået frem til USA efter Trumps aftale med Putin: tankskibe har ændret kurs, og købere frygter retssager. Droner har ramt raffinaderierne i Saratov og Afipskij i Rusland, og i Danmark har regeringen ingen kommentarer til, hvad den vil gøre ved benzinpriserne.",
+   "ids": [
+    "5805658a2588812c",
+    "cc33a71d74c6ae83",
+    "71a5453dc0d1c414"
+   ],
+   "src": [
+    "Al Jazeera",
+    "Clash Report",
+    "Jyllands-Posten"
+   ],
+   "stories": [
+    "5805658a2588812c",
+    "cc33a71d74c6ae83",
+    "71a5453dc0d1c414"
+   ]
+  },
+  "mkt": {
+   "text": "Trump giver Demokraternes sejr ved midtvejsvalget skylden for faldet i teknologiaktierne. Amerikanske kongresmedlemmer lover at rulle Trumps told tilbage, og senator Ron Wyden siger, at der er overvældende støtte til at ophæve tolden mod Canada.",
+   "ids": [
+    "ea54eb530399a33c",
+    "728fe9b7a7515cc7",
+    "530fef8747ab676a",
+    "2fd1dd018cc93af6"
+   ],
+   "src": [
+    "DR",
+    "Politiken",
+    "Xinhua",
+    "Jerusalem Post"
+   ],
+   "stories": [
+    "ea54eb530399a33c",
+    "530fef8747ab676a",
+    "2fd1dd018cc93af6"
+   ]
+  },
+  "ai": {
+   "text": "USA's regering frygter, at Nvidias topchef Jensen Huang er kommet tæt på en kinesisk kvinde, som amerikansk efterretning mener er rekrutteret til at spionere for Kina, og han er indkaldt til et lukket møde med amerikanske toppolitikere.",
+   "ids": [
+    "19834cb62b743fde"
+   ],
+   "src": [
+    "Berlingske"
+   ],
+   "stories": [
+    "19834cb62b743fde"
+   ]
+  },
+  "kris": {
+   "text": "USA har sanktioneret otte canadiske pengeoverførselsfirmaer og otte udbydere af digitale aktiver for at hjælpe Iran, og Kina kræver, at USA retter op på sanktionerne mod kinesiske firmaer over Cuba. Paraguays præsident Santiago Peña er afsat efter en bankskandale, der har frosset millioners konti.",
+   "ids": [
+    "352596d154c85e37",
+    "fc576d2e53d72071",
+    "c0757d60e7ff0ab0",
+    "e75a76f620b67084"
+   ],
+   "src": [
+    "USA's udenrigsministerium",
+    "Anadolu",
+    "Ekstra Bladet"
+   ],
+   "stories": [
+    "c0757d60e7ff0ab0",
+    "fc576d2e53d72071",
+    "e75a76f620b67084"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "ed-2026-11-10-kinas-pause-i-eksportrestriktionerne-paa",
+   "date": "2026-11-10",
+   "title": "Kinas pause i eksportrestriktionerne på sjældne jordarter udløber",
+   "kind": "frist",
+   "place": "Kina",
+   "why": "Sjældne jordarter fra Kina bruges i USA's industri og våbenproduktion."
+  },
+  {
+   "id": "ed-2026-11-rusland-usa-og-ukraine-genoptager-trepar",
+   "date": "2026-11-10",
+   "title": "USA mægler ved trepartsforhandlinger mellem Rusland og Ukraine i Abu Dhabi",
+   "kind": "forhandling",
+   "place": "Abu Dhabi",
+   "why": "Rusland, USA og Ukraine forhandler om en afslutning på krigen; Putin har bekræftet mødet."
+  },
+  {
+   "id": "ed-2026-11-18-apec-topmoede",
+   "date": "2026-11-18",
+   "title": "APEC-topmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Kina bekræfter drøftelser om et møde mellem Xi, Trump og Putin, muligvis ved topmødet i Shenzhen."
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml."
+  }
+ ],
+ "citat": {
+  "who": "Mohammad Akraminia, talsmand for Irans hær",
+  "text": "Irans væbnede styrker har kontrol over Hormuzstrædet, som forbliver lukket, indtil USA accepterer Teherans betingelser.",
+  "ids": [
+   "cddecffd9143c5ce"
+  ],
+  "u": "https://en.irna.ir/news/86314322/Strait-of-Hormuz-will-stay-closed-until-US-accepts-its-terms",
+  "s": "IRNA"
+ }
+}

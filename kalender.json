@@ -1,0 +1,341 @@
+{
+ "updated": "2026-11-07T20:03:17+00:00",
+ "items": [
+  {
+   "id": "ed-2026-11-05-landsdaekkende-strejke-og-protestdag-i-f",
+   "date": "2026-11-05",
+   "title": "Landsdækkende strejke- og protestdag i Frankrig",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "Macron har indkaldt Det Nationale Forsvarsråd forud for dagen; Anadolu skriver om op til 700.000 demonstranter.",
+   "link": "https://www.aa.com.tr/en/europe/french-president-convenes-national-defense-council-ahead-of-planned-nationwide-protests/4111716",
+   "ids": [
+    "dc2b23a276014d55",
+    "c22260381c9c643b"
+   ],
+   "at": "2026-11-04T15:41:43+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-05-repraesentanter-for-ukraine-og-rusland-m",
+   "date": "2026-11-05",
+   "w": 2,
+   "title": "Repræsentanter for Ukraine og Rusland mødes i Det Hvide Hus på Melania Trumps initiativ",
+   "kind": "forhandling",
+   "place": "Washington",
+   "why": "Et møde mellem Ukraine og Rusland med USA som vært, ugen før trepartsforhandlingerne i Abu Dhabi.",
+   "link": "https://www.bt.dk/udland/ukraine-og-rusland-skal-moedes-i-det-hvide-hus-melania-trump-staar-bag?referrer=RSS",
+   "ids": [
+    "2e748bcd483068b6"
+   ],
+   "at": "2026-11-03T19:15:51+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-06-60-dages-fristen-efter-usa-s-war-powers",
+   "date": "2026-11-06",
+   "w": 3,
+   "title": "60-dages-fristen efter USA's War Powers-lov udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Loven giver præsidenten 60 dage til militære operationer uden Kongressens godkendelse.",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOTkdDMVo0RFZ3Z0RfTXUtbzhnOGlTSXVEaFRIcWpHcWFwb2R3SU03bDIydVFjSks5WTlKSG1UdzdBbWUyTUtUTGZMdXBQQkU0VHZKejhLTlZVN3c0X05rSk5ram9mNHFZYVpjMm1Jdk1iZTFCUjE3SjhLS1ROa2htQUw1cDhFMXkzdnBQcENFcjVJbnplRTJ5ZC1n0gGfAUFVX3lxTE0xRHBkNGdJT1E0dk5Jb1dodlR5YnhMMDV3VWNVeEFDaFNfaU54SDVYUFVfQ0otVkxFOXZYQk5WWjhKYktQbEpqaEt1Q3hyV0ZfMU9kanVUY2pOLXpWODRpb3pEdl9LQ3I1eWFYQVpvYmtVbHU4VndKNlQzVV9acEVVVktCZDdPUXgyQnRoZU5DOVJOTGJacGJpdW5HWGJMYw?oc=5",
+   "ids": [
+    "49c4d47d94cb0a8c"
+   ],
+   "at": "2026-11-06T07:43:10+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-08-erdo-an-besoeger-aserbajdsjan-paa-sejrsd",
+   "date": "2026-11-08",
+   "w": 2,
+   "title": "Erdoğan besøger Aserbajdsjan på Sejrsdagen",
+   "kind": "andet",
+   "place": "Aserbajdsjan",
+   "why": "Besøget sker midt i striden mellem Tyrkiet og Aserbajdsjan om tørklædeforbuddet.",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxOQ1ZMRW9UdHhXeUN5MklIS3pmcHJRMXh2X1U5STZlNmx2NElVeWMyUDJQUlhVbHdYR1hwNlZRaHQxd0xxellHWkxqcTJqdmxZQXFTZzlZUnhWR0FwTDk1UFlGRzExS1dQcWY3cDc2aEhZN0FrWnp3ZFVHTTFDMmFWZXN2M055Zw?oc=5",
+   "ids": [
+    "673908a99dd86d3c"
+   ],
+   "at": "2026-11-05T15:41:52+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-08-praesident-herzog-meddeler-hvem-der-skal",
+   "date": "2026-11-08",
+   "w": 2,
+   "title": "Præsident Herzog meddeler, hvem der skal forsøge at danne regering i “israel”",
+   "kind": "valg",
+   "place": "Jerusalem",
+   "why": "Med de arabiske partiers støtte anbefaler 67 af Knessets 120 medlemmer Gadi Eisenkot frem for Netanyahu.",
+   "link": "https://www.nytimes.com/2026/11/05/world/middleeast/israel-herzog-prime-minister.html",
+   "ids": [
+    "69a66921076d36df",
+    "fb84d4e25cfc7bcd"
+   ],
+   "at": "2026-11-06T11:14:18+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-10-csto-s-udenrigsministerraad-holder-faell",
+   "date": "2026-11-10",
+   "w": 2,
+   "title": "CSTO's udenrigsministerråd holder fællesmøde i Moskva",
+   "kind": "topmøde",
+   "place": "Moskva",
+   "why": "Den Rusland-ledede forsvarsalliance omfatter bl.a. Kasakhstan, Kirgisistan og Tadsjikistan.",
+   "link": "https://t.me/MFARussia/33234",
+   "ids": [
+    "3d6f25d034a87582"
+   ],
+   "at": "2026-11-05T07:42:30+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-10-det-nye-knesset-tages-i-ed-i-israel",
+   "date": "2026-11-10",
+   "w": 2,
+   "title": "Det nye Knesset tages i ed i “israel”",
+   "kind": "valg",
+   "place": "Jerusalem",
+   "why": "Ingen blok fik de 61 mandater, der giver flertal, ved valget 27. oktober: Netanyahus blok fik 53, Eisenkots 48 og de arabiske partier 19.",
+   "link": "https://www.aa.com.tr/en/middle-east/over-29-000-double-envelope-ballots-counted-in-israeli-election-around-6-of-total/4104596",
+   "ids": [
+    "9026a28cb878a494",
+    "32aaa2f2194571ba"
+   ],
+   "at": "2026-10-30T04:10:17+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-10-kinas-pause-i-eksportrestriktionerne-paa",
+   "date": "2026-11-10",
+   "w": 3,
+   "title": "Kinas pause i eksportrestriktionerne på sjældne jordarter udløber",
+   "kind": "frist",
+   "place": "Kina",
+   "why": "Sjældne jordarter fra Kina bruges i USA's industri og våbenproduktion.",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxONFFCeG5lVnMzT3V4SGVGaVI3SENwWUthb2ttMzlnTHJRYmVRQlpQS1gyMkl0Z2FBN2FXNUVnQXlBZkI0OHA0R19SQS1tQVJSbm0yMzBlbllMWWJKNnBHV2N3UUdQWEc4emZqbjc2Z3dkQU44RlZ5emFkd1JZaVhtMlBmSWZHSzNOMHpqSlhrcGRQT0lz?oc=5",
+   "ids": [
+    "63feaf87dd084cc0"
+   ],
+   "at": "2026-11-05T15:41:52+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-rusland-usa-og-ukraine-genoptager-trepar",
+   "date": "2026-11-10",
+   "w": 3,
+   "title": "USA mægler ved trepartsforhandlinger mellem Rusland og Ukraine i Abu Dhabi",
+   "kind": "forhandling",
+   "place": "Abu Dhabi",
+   "why": "Rusland, USA og Ukraine forhandler om en afslutning på krigen; Putin har bekræftet mødet.",
+   "link": "https://www.aa.com.tr/en/russia-ukraine-war/putin-confirms-russia-us-ukraine-talks-scheduled-for-next-tuesday-in-abu-dhabi/4114672",
+   "ids": [
+    "f1cd576f8975d7dd"
+   ],
+   "at": "2026-11-07T04:10:11+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-11-frist-praesident-herzog-skal-udpege-hvem",
+   "date": "2026-11-11",
+   "w": 2,
+   "title": "Frist: Præsident Herzog skal udpege, hvem der skal forsøge at danne regering i “israel”",
+   "kind": "frist",
+   "place": "Jerusalem",
+   "why": "Ingen blok fik flertal ved valget; Bennetts parti anbefaler Eisenkot, og Netanyahus blok har 53 mandater.",
+   "link": "https://www.aljazeera.com/news/2026/11/1/israel-election-when-will-government-be-formed-who-will-lead-it?traffic_source=rss",
+   "ids": [
+    "7bc626e8e1310f2c",
+    "eb43282022f6a5f4"
+   ],
+   "at": "2026-11-02T04:08:55+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-12-sikkerhedsaftalen-med-usa-om-groenland-f",
+   "date": "2026-11-12",
+   "w": 2,
+   "title": "Sikkerhedsaftalen med USA om Grønland førstebehandles i Folketinget",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen giver USA lov til at etablere to nye baser i Grønland.",
+   "link": "https://www.bt.dk/politik/groenland-aftale-med-usa-skal-debatteres-i-folketinget-om-tre-uger",
+   "ids": [
+    "3f4ee4e778b876d2",
+    "72d0662648bd5ca1"
+   ],
+   "at": "2026-10-22T09:03:45+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-kontaktgruppen-for-ukraines-forsvar-moed",
+   "date": "2026-11-17",
+   "title": "Kontaktgruppen for Ukraines forsvar mødes i Bruxelles",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "Gruppen samler de vestlige staters våbenhjælp til Ukraine.",
+   "link": "https://www.ukrinform.net/rubric-polytics/4179365-next-udcg-meeting-to-take-place-in-brussels-on-nov-17.html",
+   "ids": [
+    "2976a4b170716f60",
+    "0df4703991499508"
+   ],
+   "at": "2026-10-30T07:42:08+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-18-apec-topmoede",
+   "date": "2026-11-18",
+   "w": 3,
+   "title": "APEC-topmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Kina bekræfter drøftelser om et møde mellem Xi, Trump og Putin, muligvis ved topmødet i Shenzhen.",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPTXNOWUl3UmNKZ0k2Q0ZwT2g2NTJqZm9ycXc0QW1PZ1NjcGs3ZDFXa05ERlkwNEVQZDViSUxQcWlqUDBTMjZiV1NVZWF5eG0yWlpfdy03YUdlVXhfeVhEbHN5NEtXeEVOeEUtQmk2LVFpQzJJTVp3emxjelhZREE4U1EtaUx1SHpvYm5Db0JEVUk2YzZy?oc=5",
+   "ids": [
+    "e7207f1a9a05aa8b"
+   ],
+   "at": "2026-11-07T11:11:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-fn-s-domstol-afsiger-dom-i-folkedrabssag",
+   "date": "2026-11-19",
+   "w": 2,
+   "title": "FN's Domstol afsiger dom i folkedrabssagen om rohingyaerne i Myanmar",
+   "kind": "retssag",
+   "place": "Haag",
+   "why": "Sagen gælder Myanmars behandling af rohingya-muslimerne.",
+   "link": "https://www.france24.com/en/live-news/20261103-top-un-court-to-rule-nov-19-on-myanmar-rohingya-genocide-case",
+   "ids": [
+    "9a09cf08f8a2d418"
+   ],
+   "at": "2026-11-04T07:42:20+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-folketinget-stemmer-om-sikkerhedsaftalen",
+   "date": "2026-11-19",
+   "w": 3,
+   "title": "Folketinget stemmer om sikkerhedsaftalen med USA om Grønland",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen mellem Danmark, Grønland og USA er uden slutdato, og Grønlands parlament har stemt om den.",
+   "link": "https://www.bt.dk/politik/kaempe-aftale-nu-har-groenlaenderne-stemt?referrer=RSS",
+   "ids": [
+    "b79693276015c44d",
+    "e34a06e999abd557"
+   ],
+   "at": "2026-11-04T11:13:07+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-koalitionen-af-villige-holder-topmoede-o",
+   "date": "2026-11-19",
+   "w": 2,
+   "title": "»Koalitionen af villige« holder topmøde om Ukraine i Berlin",
+   "kind": "topmøde",
+   "place": "Berlin",
+   "why": "De europæiske stater bag en styrke til Ukraine mødes, mens USA mægler mellem Rusland og Ukraine.",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQUWJTRi01eVVSNjdfMlhQQ3dUTGQzanhycnlmb1FUcTZzX1JIV1ZFd1IyRF9SN2ZGeGQ4WU5FUG56ZFBPbGRrYVJfUUFOMmZzbThvMk1SSGFFc1ZFUmVuSlZoTG9vZEIwQW9EZ1FwdWVpQWF6blp6WkRBQUdiaGEwR2FieVZuTzJscXRmRkdmMThUQUhYZmpZZG56VmFWV3BRNFAxRElYOHFNNGFpYV9hNVFDRFFSR1kx?oc=5",
+   "ids": [
+    "db4c372f42fb3915"
+   ],
+   "at": "2026-11-04T07:42:20+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "w": 2,
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml.",
+   "link": "https://www.reuters.com/business/energy/us-extends-deadline-buyers-lukoil-foreign-assets-until-november-21-2026-10-22/",
+   "ids": [
+    "97c64bbbcfa2f005"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "w": 3,
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027.",
+   "link": "https://www.france24.com/en/russia-agrees-to-resume-trilateral-peace-talks-on-ukraine-war",
+   "ids": [
+    "795c911280f064ea"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-29-frist-i-usa-s-undersoegelse-om-nye-tolds",
+   "date": "2026-11-29",
+   "title": "Frist i USA's undersøgelse om nye toldsatser på varer fra Vietnam",
+   "kind": "frist",
+   "place": "USA / Vietnam",
+   "why": "Tesla og Samsung går imod de nye amerikanske toldsatser på varer fra Vietnam.",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOTUJxSGZ6aEZSWjV4VHFHeVBzTXMxVDFKcEg5OG1sbEdjTkliSDZSS2NvYmlRbUxfQks0eUVUbjJRSktzZVFqWnZTWlplTHM5YjVnUkNESHd4ZmgyRk5ib2lHdlNKYlZlQ3VqUHdvcHZvMjAzYXE2NDZLbnFnel9CZ1FoSHI5Nk1zY3NiTy1tSjhrZ1hZdVRnNVB3eHBfVUticXc1ejZ2cWlhUjR6ajRhTGRsVWVDVV9I?oc=5",
+   "ids": [
+    "8424febb5cc9d688"
+   ],
+   "at": "2026-11-02T15:13:23+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-29-parlamentsvalg-i-spanien",
+   "date": "2026-11-29",
+   "title": "Parlamentsvalg i Spanien",
+   "kind": "valg",
+   "place": "Spanien",
+   "why": "Premierminister Pedro Sánchez går til valg efter landets anden store togulykke på mindre end et år.",
+   "link": "https://www.berlingske.dk/internationalt/sanchez-gik-til-valg-paa-perfekt-maerkesag-nu-smadrer-togtragedie-hans-snedige-plan?referrer=RSS",
+   "ids": [
+    "6339a020f876322c"
+   ],
+   "at": "2026-10-29T04:09:48+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-g20-topmoede-i-miami",
+   "date": "2026-12",
+   "approx": true,
+   "w": 3,
+   "title": "G20-topmøde i Miami",
+   "kind": "topmøde",
+   "place": "Miami, USA",
+   "why": "Trump vil ifølge The Atlantic have en fredsaftale mellem Rusland og Ukraine underskrevet under topmødet, og Rubio siger, at Putin kan deltage.",
+   "link": "https://tass.com/world/2205771",
+   "ids": [
+    "a3e22059badd37db",
+    "d0bfb087ae46b82b"
+   ],
+   "at": "2026-10-22T04:08:21+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2027-06-usa-s-frist-for-irak-til-at-afvaebne-de",
+   "date": "2027-06",
+   "approx": true,
+   "w": 2,
+   "title": "USA's frist for Irak til at afvæbne de væbnede grupper udløber",
+   "kind": "frist",
+   "place": "Irak",
+   "why": "Ifølge Farhad Atrushi har USA sat fristen og truet med sanktioner, hvis grupperne ikke er afvæbnet.",
+   "link": "https://www.kurdistan24.net/en/story/948943/us-gives-iraq-until-june-2027-to-disarm-armed-groups-or-face-sanctions-farhad-atrushi",
+   "ids": [
+    "fd499c416e670f64"
+   ],
+   "at": "2026-10-28T07:42:13+00:00",
+   "src": "ed"
+  }
+ ]
+}
