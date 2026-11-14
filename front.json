@@ -1,0 +1,83 @@
+{
+ "updated": "2026-11-14T21:02:57+00:00",
+ "lede": "Zelenskyj siger, at USA har luftet Nato-medlemskab for Ukraine mod Donbas, mens Trump torsdag mødes med Putin og Xi, og “israel” presser Trump til ny krig mod Iran",
+ "lede_ids": [
+  "09eed01c88655f65",
+  "d74567d39c1a03cb",
+  "470693033e0bde97"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "title": "Zelenskyj: USA har luftet ukrainsk Nato-medlemskab, hvis Ukraine opgiver Donbas",
+   "story": "09eed01c88655f65",
+   "with": [
+    "62edbf740c64e2a7"
+   ],
+   "timeline": "Rusland, USA og Ukraine",
+   "picture": true
+  },
+  {
+   "kind": "liste",
+   "title": "Topmødet Trump–Xi–Putin",
+   "stories": [
+    "d74567d39c1a03cb",
+    "a34cc17bbff62320",
+    "e4886b43b650e1a9",
+    "6ec16cd148e55944"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "begivenhed",
+   "event": "iran-hormuz-2026-10"
+  },
+  {
+   "kind": "liste",
+   "title": "Iran og USA",
+   "stories": [
+    "470693033e0bde97",
+    "03cf457e8d4a1929",
+    "c267d717c0d0f205",
+    "72f18e418498055f",
+    "484cad6a4b3379d5",
+    "adcf1c90d7ca0513"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Ukraine-forhandlingerne",
+   "stories": [
+    "f96d6523995a1255",
+    "714a7149c73cc0c1",
+    "e714f1ca4c543522",
+    "e3208acccb08dff2"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Golfen, Yemen og Egypten",
+   "stories": [
+    "50da13aa9c826784",
+    "54d6e7fee3405240",
+    "88c3d6237e81a339",
+    "3854e661d3e71021"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Palæstina og “israel”",
+   "stories": [
+    "7c84c969670e00cf",
+    "0d75995a4f1e9aa2",
+    "882e2155cd3066d8",
+    "1a5bdecf2c5f0d29",
+    "711f001511715559"
+   ],
+   "style": "kompakt"
+  }
+ ]
+}

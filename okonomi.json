@@ -1,0 +1,130 @@
+{
+ "at": "2026-11-14T15:12:21+00:00",
+ "dag": {
+  "text": "Irans Revolutionsgarde siger, at tankskibe har ramt miner og er brudt i brand i Hormuzstrædet, og i dag melder Irans flåde endnu et olietankskib i brand øst for strædet. USA og Kina holdt det første møde i deres nye handelsråd om told og landbrugshandel før topmødet mellem Xi og Trump. Ukraine ramte et russisk olieknudepunkt i Samara-regionen.",
+  "ids": [
+   "03cf457e8d4a1929",
+   "c7cebe7fd06b385a",
+   "c0fe5bb985d63309",
+   "bf8961d6cb44ebd6"
+  ],
+  "src": [
+   "Anadolu",
+   "Middle East Eye",
+   "Kyiv Independent"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Iraks udenrigsminister siger, at Irak har genoptaget olieeksporten gennem Hormuzstrædet under USA's beskyttelse. Norges højesteret har erklæret godkendelsen af tre olie- og gasfelter i Nordsøen ugyldig.",
+   "ids": [
+    "edfe8093d185e73c",
+    "a6313db2d1e49ea0"
+   ],
+   "src": [
+    "TASS",
+    "BT"
+   ],
+   "stories": [
+    "03cf457e8d4a1929",
+    "edfe8093d185e73c",
+    "a6313db2d1e49ea0"
+   ]
+  },
+  "fuel": {
+   "text": "En analytiker siger til The Moscow Times, at Ukraines angreb på Ruslands største raffinaderier de seneste to uger kan have standset omkring 55 % af landets benzinproduktion. I Danmark står Dansk Folkeparti og Moderaterne sammen bag aftalen om billigere benzin.",
+   "ids": [
+    "e31a86c378c2d125",
+    "1cd5fa9143884169"
+   ],
+   "src": [
+    "Ukrainska Pravda",
+    "Jyllands-Posten"
+   ],
+   "stories": [
+    "e31a86c378c2d125",
+    "bf8961d6cb44ebd6",
+    "1cd5fa9143884169"
+   ]
+  },
+  "mkt": {
+   "text": "USA og Kina holdt det første møde i deres nye handelsråd, hvor de drøftede told og landbrugshandel; Washington beholder tolden på kinesiske varer.",
+   "ids": [
+    "c0fe5bb985d63309"
+   ],
+   "src": [
+    "Anadolu"
+   ],
+   "stories": [
+    "c0fe5bb985d63309",
+    "6e61f5da319a5558"
+   ]
+  },
+  "ai": {
+   "text": "Jensen Huang og handelsminister Lutnick er indkaldt til at vidne for Senatets bankudvalg efter Huangs afgang som Nvidias topchef. Amerikanske embedsmænd siger, at Trump ikke vil rejse spionsagen over for Xi, og at samtalerne skal handle om handelsaftalen.",
+   "ids": [
+    "5f016991af3af0b6",
+    "fdd081bd38499bd8"
+   ],
+   "src": [
+    "Al Jazeera",
+    "Clash Report"
+   ],
+   "stories": [
+    "a040155e49cf141b",
+    "5f016991af3af0b6",
+    "fdd081bd38499bd8"
+   ]
+  },
+  "kris": {
+   "text": "Von der Leyen lover at fremlægge EU's 22. sanktionspakke mod Rusland hurtigst muligt og forslag om militær finansiering af Ukraine inden årets udgang. Udenrigsminister Rubio siger, at yderligere amerikansk militær handling mod et økonomisk svækket Iran ikke er nødvendig.",
+   "ids": [
+    "8e1cade7e7d2d052",
+    "7fba9a1e6298b1c7"
+   ],
+   "src": [
+    "TASS",
+    "Asharq Al-Awsat"
+   ],
+   "stories": [
+    "8e1cade7e7d2d052",
+    "7fba9a1e6298b1c7",
+    "eafc0e905573aacc"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "ed-2026-11-16-eu-indfoerer-nye-sanktioner-mod-rusland",
+   "date": "2026-11-16",
+   "title": "EU indfører nye sanktioner mod Rusland",
+   "kind": "frist",
+   "place": "Bruxelles",
+   "why": "EU's udsendinge er enige om 145 nye sanktionslister mod Rusland, blandt dem 50 banker og skyggeflåden."
+  },
+  {
+   "id": "ed-2026-11-19-trump-xi-og-putin-holder-deres-foerste-t",
+   "date": "2026-11-19",
+   "title": "Trump, Xi og Putin holder deres første trepartstopmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Første topmøde mellem lederne af USA, Kina og Rusland; Det Hvide Hus siger, at det handler om atomnedrustning og krigen mod Iran, ikke Ukraine."
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml."
+  },
+  {
+   "id": "sp-frankrig-2026-11-27",
+   "date": "2026-11-27",
+   "title": "S&P vurderer Frankrigs kreditværdighed",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "S&P giver i dag Frankrig A+ med stabile udsigter. Vurderingen afgør, hvad investorerne kræver for at låne den franske stat penge."
+  }
+ ]
+}

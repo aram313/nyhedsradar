@@ -1,0 +1,245 @@
+{
+ "updated": "2026-11-14T04:18:52+00:00",
+ "items": [
+  {
+   "id": "overskrift-foerst-det-tunge",
+   "rule": "Hver kørsel: skriv overskrift til HVER linje under 'Headlines to write' – op til 30, de ældste med 'waited' over 6 t og de store (mange medier) først – og skriv i noten 'N af M' med tallene fra den overskrift, aldrig kun de nye.",
+   "why": "13/11: Gazas første kuldedødsfald (9 medier) ventede 32 t, droneaktiviteten over USA's base i Storbritannien (14 medier, tier 1) 5 t 32 min, mens noterne sagde '7 af 7' og '12 af 12'. 10/11 og 30/10-5/11 det samme.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "overskrift-foelger-laes-artiklen",
+   "rule": "Overskrift og resumé siger nyheden i kortets første artikel ('Læs'): dens sted, tal og hvem der taler – aldrig en anden artikels vinkel. Skriv under kortets eget id og tjek talerens navn og stedet mod kildens overskrift før publish.",
+   "why": "13/11: QudsN's 'styrker tilbageholder landmænd ved Ya'bad' blev 'Bosættere angriber olivenhøstere'; QudsN's Al-Mughayyir blev Hebron; Reuters' 'Storbritannien sanktionerer Slavneft' blev 'Burnham varsler sanktioner'; JP's 'USA-udsending: Putin er villig' blev 'Putins rådgiver'; BT's missilbyer blev Trumps trussel. 12/1",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "tal-kun-fra-baerende-historie",
+   "rule": "Hver gang du ændrer en begivenhedsside: tjek hvert tal i bokse, dek og afsnit mod 'Numbers in its stories'. Står tallet ikke i en historie, siden citerer, så find en, der bærer det, eller fjern boksen og tallet samme kørsel – aldrig 'kilde ikke rørt' eller 'til næste side-kørsel' i en note.",
+   "why": "12/11: Gaza-sidens 1.622 og 5.878 stod uden bærende historie (kilderne gav 1.614 og 5.849); noterne kl. 21 og 22 sagde 'ikke rørt; til næste side-kørsel'. 10/11 Houthi-sidens 33 dræbt, 7/11 Frankrig-sidens 600.000.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "aldrig-the-hindu",
+   "rule": "Skriv aldrig 'ifølge The Hindu' eller 'The Hindu citerer' – find tallet eller udsagnet hos en anden kilde, eller lad det ude.",
+   "why": "To resuméer (moskéen i Mikhmas, Frankrig) havde The Hindu som kilde.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ingen-distance-citationstegn",
+   "rule": "Når en kilde skriver et ord i citationstegn uden at sige, hvem der siger det ('en \"fejlslagen\" samfundsmodel'), så skriv det uden citationstegn eller med den, der siger det.",
+   "why": "BT's 'fejlslagen' stod i citationstegn i et resumé, efter at det var rettet på begivenhedssiden.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ejerens-titel-paa-siden",
+   "rule": "Når ejeren har skrevet en begivenhedssides titel, er det sidens titel fra næste ændring: skriv hans titel i 'title'.",
+   "why": "Ejeren omdøbte Frankrig-siden til 'Kaos i Frankrig'.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "begivenhedskort-har-tal",
+   "rule": "En begivenhedsside på forsiden skal have en underlinje, der siger det vigtigste nye. Faktabokse kun med tal af nyhedsværdi for begivenheden som helhed (dræbte, sårede, anholdte, demonstranter, fordrevne, stemmer) – ellers ingen bokse. En dato er aldrig en boks.",
+   "why": "Valgsiden havde boksen 'Valgdag: 27. oktober'; ejeren 19/10: hellere ingen bokse end svage.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ingen-meta-i-resume",
+   "rule": "Overskrifter, resuméer og tidslinjer siger, hvem der gjorde eller sagde hvad – aldrig 'X skriver/citerer/beskriver/bringer' eller 'ifølge <medie>'; et medie kun som modtager ('siger kilder til Reuters'). Søg din fil for de ord før publish og gør den, der handler, til subjekt.",
+   "why": "13/11: 'Det skriver Reuters fra Paris. Times of Israel citerer …', 'BT og Ekstra Bladet citerer', 'DW beskriver', 'DR bringer en udtalelse', 'ifølge BT'. Fjortende dag i træk.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "samme-faktum-samme-tal",
+   "rule": "Når to historier fortæller det samme, giver overskrifterne samme tal – det, den første artikel giver. Vokser tallet, så skriv overskrift og boks om med det nye tal og hvem der giver det. Giver kilderne forskellige tal, så sig spændet ('fra titusinder til 200.000') eller hvem der giver hvert.",
+   "why": "8/11: Amsterdam stod med 'Omkring 20.000', 'Titusinder' og The New Arabs 200.000; Yemen med 33 (The New Arab) over BT's 22. Tidligere Shabwa 53/40/58.",
+   "since": "2026-10-19"
+  },
+  {
+   "id": "ingen-dato-uden-kilde",
+   "rule": "Skriv aldrig en dato i en overskrift, et resumé eller kalenderen, som historien ikke selv siger. 'Mandag' eller 'næste uge' gør du ikke selv til en dato.",
+   "why": "'Egyptens parlament udsætter afstemning … til 26. oktober' – kilden sagde kun, at samtalerne genoptages mandag.",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "islam-i-nyhederne-vejer",
+   "rule": "Når en stat, et parti eller en borgmester kobler politik til muslimer eller islam (tørklædeforbud, terrorstempel eller forbud mod en islamisk bevægelse), en kandidat angribes for sin tro, eller en gerningsmand vælger muslimske ofre: tier 6 – overskrift straks, ind i Live, overvej pick og forside samme dag.",
+   "why": "9/11: Egypten gjorde Det Muslimske Broderskabs terrorstempel permanent (The National) – overskrift, men ingen pick eller forside. 30-31/10 Trappes-skytten og Gladsaxe-forslaget.",
+   "since": "2026-10-20"
+  },
+  {
+   "id": "kilde-i-samme-saetning",
+   "rule": "En påstand eller et tal fra unavngivne kilder eller én part (embedsmænd, efterretninger, hackere, en minister) står altid med hvem der giver den i samme sætning – i overskrift og resumé, aldrig bag 'Opgørelse:' eller 'Choktal'. Skriv aldrig deres forklaring af et motiv som faktum.",
+   "why": "9/11: 'Opgørelse: 450.000 russere dræbt' – tallet kom fra hackere i Ruslands statistikbureau (Novaya Gazeta Europe). Tidligere: iranske embedsmænds motiv skrevet som faktum.",
+   "since": "2026-10-21"
+  },
+  {
+   "id": "golfens-sikkerhed-vejer",
+   "rule": "Når en magt flytter styrker, fly eller diplomater ind i eller ud af Golfen eller “israel”, eller muslimske stater indgår, udvider eller overvejer en forsvarspagt (Mekka-pagten), er det en plan: overskrift samme kørsel, ind i Live og på Iran-siden, og overvej pick og forside.",
+   "why": "1/11: 'Syrien overvejer at tilslutte sig Mekka-forsvarspagten' (MEE, NYT) ventede 35 t uden overskrift. 30/10: ti fragtfly til “israel” ventede 4 t 43 min.",
+   "since": "2026-10-22"
+  },
+  {
+   "id": "plan-for-et-folk-vejer",
+   "rule": "Når en regeringsleder siger, at han vil fordrive et folk eller vælte en stats styre (Netanyahu om Iran, Trump om at »gøre Cuba færdig«), er det en plan: overskrift og Live samme kørsel, også når radaren har sat den lavt; pick og forside, når ét etableret medie bærer den.",
+   "why": "12/11: Trumps ord om at vælte Cubas styre før han går af (5 medier, Al Jazeera, Anadolu) stod uden for Live (rang 80) uden overskrift. 22/10 og 25/10 Netanyahu.",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "resume-kun-til-nyheder",
+   "rule": "Intet resumé til nyhedsbreve, morgenposter, podcasts, klummer, ledere, anmeldelser, kommentarer, analyser, debatindlæg (undtagen om islam og muslimer), sport, kongehuset, kendisstof eller lokale kriminalsager – og aldrig et resumé, der siger, at kilden ikke giver navn. Tag næste historie af vægt.",
+   "why": "13/11: resuméer til Berlingskes morgenpost, Henrik Qvortrups analyse i BT, Al Jazeeras analyse 'hverken krig eller fred' og Jyllands-Postens politiske overblik, mens houthi-angrebet på Riyadhs lufthavn (9 medier) intet fik. 12/11 det samme.",
+   "since": "2026-10-23"
+  },
+  {
+   "id": "varslet-operation-begynder-side",
+   "rule": "Når en varslet militæroperation, offensiv eller fordrivelse begynder (wire-linjer om stormede byer, evakuerede familier, 'operationen er begyndt'), laver den kørsel, der ser det først, begivenhedssiden – vent ikke på næste begivenhedsredaktør. 'Hold øje' i noterne er ikke nok.",
+   "why": "23-24/10: Vestbredden-operationen stod som 'hold øje' i fire noter; den begyndte kl. 23 (Hebron, 15 byer stormet), uden side før kl. 05.",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "hvem-goer-hvad-ordret",
+   "rule": "Læs kildens overskrift ordret: hvem gør hvad mod hvem. Vend aldrig subjekt og objekt, byt aldrig to lande om, gør aldrig et spørgsmål til en påstand, og læg ingen vurdering ind, som kilden ikke har. Hører et led til en anden nyhed i samme overskrift ('… as he mulls offer'), så hører det ikke til den første.",
+   "why": "9/11: AOL's 'Iran giver USA ultimatum; Trump … Dana White som pressesekretær, som han overvejer at tilbyde' blev 'Trump overvejer tilbuddet'; Heralds 'Kan Rusland gøre sin Afrika-strategi til økonomisk magt?' blev en påstand. 4/11 Sudan/Etiopien byttet om.",
+   "since": "2026-10-24"
+  },
+  {
+   "id": "dagens-historie-flytter-sig",
+   "rule": "Dagens historie (den første i 'order' og top-blokken) er den udvikling, der flytter sig mest i dag efter hjernen. Når dens nyeste linje er over 5 timer gammel, og en tung udvikling (tier 1-5) har fået tre nye linjer, så skift order og top-blok – lad aldrig en morgenhistorie stå hele dagen af vane.",
+   "why": "28/10 kl. 23: 'Valget i “israel”' (nyeste linje 17.57) var stadig Dagens historie, mens 'Iran og USA' (tier 2) fik Araghchi, Axios og Vance-brevet. 24/10 det samme med 'Trump og Rusland'.",
+   "since": "2026-10-25"
+  },
+  {
+   "id": "hersker-faelder-vejer",
+   "rule": "Når et valg, et kup eller en revolte fjerner en mangeårig hersker (Vučić i Serbien), er det tier 4: overskrift og tidslinjelinje samme nat, pick i næste kørsel og en begivenhedsside med stemmer, mandater og valgdeltagelse. Et genvalg uden skifte vejer lavere.",
+   "why": "25-26/10: Vučić indrømmede nederlag kl. 21.43 (16 medier); kun én tidslinjelinje, ingen pick og ingen side før kl. 05.",
+   "since": "2026-10-26"
+  },
+  {
+   "id": "frist-faar-sit-udfald",
+   "rule": "Når en frist eller et ventet udfald er sket, skriver næste kørsel lede, dek, overskrift og resumé om – og fjerner kalenderposten, der ventede på det. Ved et valgs endelige resultat skrives valgsidens bokse, dek og artikel om samme kørsel. Et tal, siden har fjernet, fjernes også fra resuméerne.",
+   "why": "31/10: kalenderen ventede stadig 'officielt resultat 4/11', efter at valgkomitéen havde offentliggjort det; DR-resuméet bar stadig '60 dages frist', som valgsiden havde fjernet. 30/10: 'delvis optælling' stod tilbage.",
+   "since": "2026-10-28"
+  },
+  {
+   "id": "beslut-om-siden",
+   "rule": "Beslut om en begivenhedsside i den kørsel, der ser sagen: lav den, eller skriv én gang i noten, at den ingen side får, og hvorfor. Skriv aldrig 'stadig uden egen side' eller 'vurdér ved næste kørsel' i note efter note.",
+   "why": "27/10 stod 'Jordan-sagen stadig uden egen side' i syv noter fra kl. 17 til 23.",
+   "since": "2026-10-28"
+  },
+  {
+   "id": "massedrab-tages-ind",
+   "rule": "Når et angreb eller en massakre i den muslimske verden eller Afrika dræber over 50 (Sudan, Gaza, Yemen), så tag historien ind i Live med overskrift samme kørsel, også når den står under linjen, og overvej den til forsiden.",
+   "why": "28/10: angrebet på et marked i Darfur med over 100 dræbte (6 medier) stod under linjen, mens fem Venstre-historier stod i Live.",
+   "since": "2026-10-29"
+  },
+  {
+   "id": "katz-uden-fornavn",
+   "rule": "Skriv “israels” forsvarsminister som 'forsvarsminister Katz' – aldrig med fornavnet “israel”, som appen og værktøjet gør til “israel” Katz. Det samme for andre personnavne med “israel” i.",
+   "why": "Vestbredden-siden: '“israels” forsvarsminister “israel” Katz leder et sikkerhedsmøde'.",
+   "since": "2026-10-30"
+  },
+  {
+   "id": "tal-hoerer-til-sit-ord",
+   "rule": "Et tal hører til det ord, det står ved: '336 killed in 1,087 operations' er 336 dræbt, ikke 1.087. Læs hele kildens sætning, før du skriver et tal, og ret aldrig et tal til et andet mediums uden at læse, hvad det tæller.",
+   "why": "30/10: 'Yemens hær: 1.087 houthi-krigere dræbt' – Kurdistan24 skrev 336 dræbt i 1.087 operationer; noterne kl. 22 og 23 kaldte det 'rettet'.",
+   "since": "2026-10-31"
+  },
+  {
+   "id": "kommentar-siger-sin-paastand",
+   "rule": "En kommentar, analyse, forklaring eller et podcastafsnit får aldrig en emne-etiket ('The New Arab om Netanyahu og en ny krig') eller en 'kan få betydning'-overskrift. Skriv påstanden som 'Hvem: påstand' fra overskrift eller teaser – eller drop den fra Live, hvis den ingen påstand har.",
+   "why": "12/11: 'The New Arab om Netanyahu og en ny krig mod Iran', 'Al-Monitor: En ny amerikansk kongres kan få betydning for krigen'. 30/10 fem valg-kommentarer.",
+   "since": "2026-10-31"
+  },
+  {
+   "id": "vestens-splid-vejer",
+   "rule": "Når USA's allierede samarbejder uden om USA, USA beder Europa ændre kurs over for Rusland eller Kina, USA beder Rusland om en aftale med Europa, eller Europa udelukkes fra en stormagtsforhandling: tier 1/3 – overskrift samme kørsel, pick og overvej forsiden, også med få medier.",
+   "why": "11/11: Axios' 'USA beder Rusland foreslå en ny sikkerhedsaftale med Europa' (tier 1) ventede 15 t 37 min uden overskrift og pick. 9/11: 'USA-udsending: Varig aftale kræver dialog mellem Europa og Rusland' ventede 20 t.",
+   "since": "2026-11-01"
+  },
+  {
+   "id": "picks-fornyes",
+   "rule": "Picks ses efter ved hver kørsel kl. 12 og 20: en pick, der er over 12 timer gammel, skiftes ud, når en tungere historie er kommet (tier 1-4, eller samme udvikling med en ny vending). Skriv aldrig 'picks beholdt' i fire noter i træk uden at have vejet dem mod top-listen.",
+   "why": "4/11: FT-interviewet fra 3/11 og Qatars '36 timer' stod som picks hele dagen, mens Saudi-Arabien og Tyrkiet ratificerede forsvarspagter. 31/10 det samme.",
+   "since": "2026-11-01"
+  },
+  {
+   "id": "praefiks-kun-laes-mediet",
+   "rule": "Sæt kun et navn foran med kolon, når netop det medie, den person eller det firma selv siger det. Et medies afsløring om et firma eller et land får aldrig firmaets eller landets navn foran ('Rockwool:', 'Rusland:'); skriv hvem der afslører. Aldrig 'skriver sydkoreansk avis' bagved.",
+   "why": "13/11: 'Rockwool: 50 millioner kroner … sendt til en krigsorganisation' over Berlingskes 'Medie: 50 millioner kroner fra Rockwool er gået til Ruslands hær'. 6/11 'Rusland: manøvre i rummet …'.",
+   "since": "2026-11-02"
+  },
+  {
+   "id": "citater-paa-dansk",
+   "rule": "Citér altid på dansk i overskrifter, resuméer, citater og begivenhedssider – oversæt citatet og behold hvem der siger det. Aldrig en engelsk sætning i appens danske tekst.",
+   "why": "2/11: overskriften 'Trump truer Iran …; AFP: »Give them the hammer«' og resuméet med 'very soon, one way or the other'.",
+   "since": "2026-11-03"
+  },
+  {
+   "id": "ingen-tilfoejet-religion-eller-oprindelse",
+   "rule": "Skriv aldrig 'muslimsk', 'fra muslimske lande', en religion eller en oprindelse ind i en overskrift eller et resumé, når kilden ikke selv skriver den. Skriver kilden 'flygtninge', skriver du 'flygtninge'.",
+   "why": "2/11: Berlingskes 'Flygtninge fylder hullerne i ældreplejen' blev 'Indvandrere fra muslimske lande fylder stadig mere i ældreplejen'.",
+   "since": "2026-11-03"
+  },
+  {
+   "id": "pick-er-en-handling",
+   "rule": "En pick er en magts handling eller plan (møde, aftale, angreb, sanktioner, tropper), aldrig en leders gentagne ord. En stormagts handling med en anden (USA og Rusland om en aftale, Irans budskab til Putin) går forud for et besøg; den første tier 1-historie i 'Top stories' er pick, ellers siger noten hvorfor.",
+   "why": "5/11: Trumps møde med Putins udsending ('stor aftale på vej', tier 1, 17 medier, døgnets stærkeste) og Rezaeis budskab fra Khamenei til Putin (17 medier) var ikke picks, mens Blairs Gaza-besøg var. 3/11 det samme med Kremls Putin-Trump-Xi-møde.",
+   "since": "2026-11-04"
+  },
+  {
+   "id": "efter-udfaldet-ryd-forhaandsstof",
+   "rule": "Når et valg, en frist, en afstemning, en forhandling eller et topmøde har fået sit udfald, så skriv forventningens overskrift om til resultatet samme kørsel – især på en pick eller på forsiden – drop forhåndsstoffet og giv begivenhedssiden resultatets tal samme nat.",
+   "why": "11/11: pick 1 stod stadig som 'Forhandling om Ukraine-krigen slutter efter få timer' næste morgen. 8/11: 'Herzog: Eisenkot får søndag mandat' stod efter ceremonien. Egyptens parlament stod som 'genoptager drøftelser' efter godkendelsen.",
+   "since": "2026-11-05"
+  },
+  {
+   "id": "titler-fra-dagens-nyheder",
+   "rule": "Tag lederes navne og embeder fra dagens nyheder, ikke fra hukommelsen. Irans øverste leder er Mojtaba Khamenei; Ali Khamenei er den tidligere. Skriv 'Irans øverste leder, Mojtaba Khamenei' eller blot 'Khamenei' – aldrig 'Ali Khamenei, Irans øverste leder'.",
+   "why": "Hormuz-siden citerede 'Ali Khamenei, Irans øverste leder', mens Anadolu 5/11 kalder Mojtaba Khamenei øverste leder og Ali Khamenei den tidligere.",
+   "since": "2026-11-06"
+  },
+  {
+   "id": "usa-aendrer-stoette-vejer",
+   "rule": "Når USA stopper, skærer i eller stiller betingelser for sin militærhjælp til “israel” eller en anden stat i regionen: tier 1-2 – overskrift samme kørsel, Live, pick, også med ét medie. Anadolu, Times of Israel og Al Jazeera er etablerede: kald det aldrig ubekræftet uden at læse Also-listen.",
+   "why": "10/11: 'Trumps beslutning om at stoppe militærhjælpen til “israel”' (Anadolu, Times of Israel med Rubio, Al Jazeera) blev i noten kl. 21 kaldt 'kun kanaler, ubekræftet' og fik hverken overskrift eller pick. 4/11 og 6/11 det samme.",
+   "since": "2026-11-07"
+  },
+  {
+   "id": "kolonister-ved-israels-navn",
+   "rule": "Kildernes 'kolonister' og 'besættere' om bosættere står kun ved navnet ('“israelske” bosættere') – aldrig 'Kolonister angriber …' alene. 'Besættelsesstyrker' skrives '“israels” besættelsesstyrker' eller '“israelske” styrker'.",
+   "why": "6/11: 'Kolonister angriber olivenhøstere nær Ramallah' over Anadolus '“israeli” army, occupiers carry out attacks …'.",
+   "since": "2026-11-07"
+  },
+  {
+   "id": "kalender-ingen-dubletter",
+   "rule": "Før du skriver en kalenderpost: se om kalenderen allerede har begivenheden (radarens poster står med '– radar'). Har den, så skriv ingen ny; ret kun vægten med samme titel og dato.",
+   "why": "APEC-topmødet 18/11 og valget i Spanien 29/11 stod to gange hver – én fra radaren, én fra redaktøren.",
+   "since": "2026-11-08"
+  },
+  {
+   "id": "tier2-foer-tier5-i-picks",
+   "rule": "Kl. 07 og 12: vej picks mod 'Top stories'. En stormagts udsagn om en aftale, krig eller allieret (Rubio: aftale med Iran måske ikke mulig; Trump: modvilje mod “israel” kostede valget; Trump–Xi–Putin ved APEC) går forud for en enkelt skade eller et opsnappet missil (tier 5).",
+   "why": "8/11 kl. 23: pick 6 var 'Aramco-bygning lider mindre skade' (tier 5), mens Rubio (tier 2, 9 medier) og Trumps ord om “israel” (tier 2) ingen pick fik.",
+   "since": "2026-11-09"
+  },
+  {
+   "id": "slut-side-lukkes-samme-dag",
+   "rule": "Når en begivenhedssides møde, forhandling, strejke eller valg er slut, så sæt siden 'afsluttet' i samme kørsel med en dek om udfaldet, så pladsen er fri til en ny. Skriv aldrig 'ret eller luk ved næste kørsel' – har siden id'er, der ikke findes mere, så skriv den om med de id'er, der står i input, eller fjern den.",
+   "why": "11/11: Abu Dhabi-forhandlingerne sluttede kl. 12; siden stod 'i gang', og to noter (22 og 23) skubbede lukningen til kl. 07, mens fem sider var fyldt.",
+   "since": "2026-11-12"
+  },
+  {
+   "id": "overskrift-har-en-nyhed",
+   "rule": "En overskrift siger, hvad der skete. Står der kun 'detaljer om', 'en detalje gik igen' eller 'afslører detaljer' i kilden, så skriv detaljen, hvis teaseren giver den – ellers drop historien fra Live.",
+   "why": "12/11: 'Irakisk nyhedsbureau: Detaljer om samtaler mellem Rusland, Ukraine og USA', 'Kong Frederik mødte Zelenskyj …; detalje fra første møde gik igen', BT's 'Afslører pludselig vilde detaljer' over en russisk udtalelse.",
+   "since": "2026-11-13"
+  },
+  {
+   "id": "stormagtstopmoede-er-pick-og-kalender",
+   "rule": "Når nyhederne giver en dato for et møde mellem USA og en anden stormagt (Trump–Xi–Putin torsdag 19/11), så gør den kørsel, der ser det, historien til pick, skriver den i kalenderen med vægt 3 og på topmødets begivenhedsside – samme kørsel, også når en anden tier 1-historie allerede er pick.",
+   "why": "13/11: Det Hvide Hus' første trepartstopmøde Trump–Xi–Putin (40 medier, døgnets stærkeste) fik hverken pick, kalenderpost eller plads på APEC-siden.",
+   "since": "2026-11-14"
+  }
+ ]
+}

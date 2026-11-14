@@ -1,0 +1,386 @@
+{
+ "updated": "2026-11-14T21:02:57+00:00",
+ "items": [
+  {
+   "id": "ed-2026-11-12-sikkerhedsaftalen-med-usa-om-groenland-f",
+   "date": "2026-11-12",
+   "w": 2,
+   "title": "Sikkerhedsaftalen med USA om Grønland førstebehandles i Folketinget",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen giver USA lov til at etablere to nye baser i Grønland.",
+   "link": "https://www.bt.dk/politik/groenland-aftale-med-usa-skal-debatteres-i-folketinget-om-tre-uger",
+   "ids": [
+    "3f4ee4e778b876d2",
+    "72d0662648bd5ca1"
+   ],
+   "at": "2026-10-22T09:03:45+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-12-usa-s-udsendinge-witkoff-og-kushner-i-mo",
+   "date": "2026-11-12",
+   "w": 3,
+   "title": "USA's udsendinge Witkoff og Kushner i Moskva om fangeudvekslingen",
+   "kind": "forhandling",
+   "place": "Moskva",
+   "why": "Udvekslingen blev aftalt i Abu Dhabi mellem Rusland, Ukraine og USA; besøget skal fastlægge tallene.",
+   "link": "https://www.aa.com.tr/en/world/trump-envoys-to-visit-moscow-thursday-to-finalize-numbers-for-biggest-humanitarian-release-of-prisoners-kushner/4120622",
+   "ids": [
+    "85ceacc589d29bfc"
+   ],
+   "at": "2026-11-11T15:46:59+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-13-qatar-og-tyrkiet-holder-samtaler-i-istan",
+   "date": "2026-11-13",
+   "w": 2,
+   "title": "Qatar og Tyrkiet holder samtaler i Istanbul om flere aftaler",
+   "kind": "forhandling",
+   "place": "Istanbul, Tyrkiet",
+   "why": "To af regionens stater, der mægler mellem USA og Iran, forhandler om nye aftaler.",
+   "link": "https://www.dailysabah.com/politics/qatar-turkiye-eye-more-deals-in-critical-istanbul-talks/news",
+   "ids": [
+    "200df2f472e9c3d4"
+   ],
+   "at": "2026-11-12T07:47:07+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-14-venstres-landsmoede-i-herning",
+   "date": "2026-11-14",
+   "w": 2,
+   "title": "Venstres landsmøde i Herning",
+   "kind": "dansk",
+   "place": "Herning",
+   "why": "V-borgmester Jens-Kristian Lütken vil foreslå forbud mod religiøse tørklæder i klasselokaler; formand Troels Lund Poulsens fremtid drøftes.",
+   "link": "https://www.berlingske.dk/politik/efter-aars-overvejelser-blaeser-v-borgmester-til-moderne-frihedskamp-paa-landsmoede-vil-indfoere-vidtgaaende-forbud-mod-religioese-toerklaeder?referrer=RSS",
+   "ids": [
+    "e06f1c377bcbe889",
+    "80d0580e3bc706b2"
+   ],
+   "at": "2026-11-12T04:18:30+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-16-eu-indfoerer-nye-sanktioner-mod-rusland",
+   "date": "2026-11-16",
+   "w": 3,
+   "title": "EU indfører nye sanktioner mod Rusland",
+   "kind": "frist",
+   "place": "Bruxelles",
+   "why": "EU's udsendinge er enige om 145 nye sanktionslister mod Rusland, blandt dem 50 banker og skyggeflåden.",
+   "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQQUdNOXVnNXI2X2xlbEQ4UGtYck5xSTN6OXRqSVpTSHMySlI0NjhXa3VRbWFUQk4zNDhBMk43elprQ3dPcGd5SG1SeHFnanBkd3ZTNHZ0N2NlRlBDTGg5Q2FwbGN5SnR6R1V6TmtpUzBfbWlueUVsZlYwRUlYRHl4V0ZBbkZOcEQzUTZiLUlsVkI1aWZhTllBbDJSVm90UnBJTHVQdVpsb2xHMDBEUnZKWm5POFBGaktZYWJHUkx6dExGNHh0QW5acVVEVUY?oc=5",
+   "ids": [
+    "2e4aa92df62c87b3"
+   ],
+   "at": "2026-11-12T15:15:41+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-fagforbundet-cgt-kalder-til-ny-landsdaek",
+   "date": "2026-11-17",
+   "title": "Fagforbundet CGT kalder til ny landsdækkende protestdag i Frankrig",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "CGT kalder til ny mobilisering mod regeringens sparepolitik efter ugers protester.",
+   "link": "https://www.aa.com.tr/en/europe/frances-cgt-union-calls-for-renewed-nationwide-mobilization-on-nov-17/4117883",
+   "ids": [
+    "ad15df0f5e7570af"
+   ],
+   "at": "2026-11-10T07:49:28+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-knesset-stemmer-om-en-ny-formand",
+   "date": "2026-11-17",
+   "w": 2,
+   "title": "Knesset stemmer om en ny formand",
+   "kind": "andet",
+   "place": "Jerusalem",
+   "why": "Et flertal af Knessets medlemmer har krævet afstemningen, efter at Netanyahus blok mistede flertallet.",
+   "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxQcEZIbGhRSjA2cmRocE10RThib1p2cXdnb3JlaDhITDdyZXBRNkIwTTVIUTdsU05QeG1TM2Ftd3BKNDdpMm9xUWpkZHk1NHZPSmh2M2o2b29ZZy1telFlZjFsVkh3RDF3VWJsYWUzdUU3VmJVcW9UQVA4QnN3Mlg4MVBSUF9hTng0S0ZWNjN3WDBvZGlIenJRMWZlLWJXZTJDd25VSnRZcDgtODVhUHg1WjhrQXdzTVpHdmMxdlRHRUkwNE85Rnc4YXkteThMWjN5YkVOZEFZOU8temdIOXI0?oc=5",
+   "ids": [
+    "77cf6ddaac0bc00b",
+    "a0ffc583f360db58"
+   ],
+   "at": "2026-11-11T15:46:59+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-kontaktgruppen-for-ukraines-forsvar-moed",
+   "date": "2026-11-17",
+   "title": "Kontaktgruppen for Ukraines forsvar mødes i Bruxelles",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "Gruppen samler de vestlige staters våbenhjælp til Ukraine.",
+   "link": "https://www.ukrinform.net/rubric-polytics/4179365-next-udcg-meeting-to-take-place-in-brussels-on-nov-17.html",
+   "ids": [
+    "2976a4b170716f60",
+    "0df4703991499508"
+   ],
+   "at": "2026-10-30T07:42:08+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-serbiens-nye-parlament-traeder-sammen-ef",
+   "date": "2026-11-17",
+   "title": "Serbiens nye parlament træder sammen efter studenterbevægelsens valgsejr",
+   "kind": "valg",
+   "place": "Beograd, Serbien",
+   "why": "Studenterbevægelsens liste vandt valget over Vučić og skal danne regering.",
+   "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNYUFhZDM5NUN0M2cwV3BmS19hSVNwTUw2VC1rYmhPZVlCMVRZR21RSk5XVUVaSHoyVUpCLUszTS1KR21NbE9IWGFPaWV4RDFHb05lYlBiUHhaYkVERWJ5WVd4NmZlVkU3Q2R3bmVPcDV2dVdES0xCLUN1STFWSnV1UDM2elozODVPSWJfNzdFZEJOVWlYN282N1Y5LWNEQmlyV1F4YVU1TDUtM3FsX0E?oc=5",
+   "ids": [
+    "47ec48d5382435c3"
+   ],
+   "at": "2026-11-08T15:46:48+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-trump-deltager-i-saerligt-asean-usa-topm",
+   "date": "2026-11-17",
+   "w": 3,
+   "title": "Trump deltager i særligt ASEAN–USA-topmøde i Manila",
+   "kind": "topmøde",
+   "place": "Manila, Filippinerne",
+   "why": "Filippinernes udenrigsministerium bekræftede deltagelsen; topmødet ligger dagen før APEC-topmødet i Kina.",
+   "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPN3dtWW5SRnNkSEFrQUk1SzFZQzlOWjBqRWl4dW5qeGF6aG43M3dRelpmYmVBLTIyaXdlWk5xbzc4WDlqczh1a1hWWVJKbFo3by1feUVCQzhYY2QwV1BCUGN1UzBtcFA1Q1REa2J3RVRfc2xyRl9QV2c4ZzhSVkN5WFVTY0xXMjhlWndBZzRxZlVZeUlucS1NQ2ZyZmxTS2c2OVdmSDNEUzAyc3BjaXF6MG80dlFMUXRaMlZaVWpVQXd4QXI4YjNHNWNwQnNoZGdNTnctbzVEX0VPNkJ1N2c?oc=5",
+   "ids": [
+    "18d1acde0d09eac6",
+    "61a2789f8202754b"
+   ],
+   "at": "2026-11-11T15:46:59+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-17-trump-moedes-med-quad-lederne-fra-japan",
+   "date": "2026-11-17",
+   "w": 3,
+   "title": "Trump mødes med Quad-lederne fra Japan, Indien og Australien i Manila",
+   "kind": "topmøde",
+   "place": "Manila, Filippinerne",
+   "why": "USA samler sine allierede i Asien to dage før trepartstopmødet med Xi og Putin.",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNSkJpakJlUjRXbXpPc01TZFBYdXpIcGdDWldNS0J4U2kwZ2pqczhDekh3UEFraUx6bHdacG1aem1qY1k1Y1haYVpPVTROa21JOVhZaldkWUxNTE91UmJlSGZ2RFNsbGQxajBlOGlYR1ZuRmwwYkVxYU9uZmtiY2pXMHJuZlBOWFU5WkU1Sk93SnFCcHhGRGcwN1h0bnliVHlwVE0xbG9FWE9aWk15LXJFbg?oc=5",
+   "ids": [
+    "ee3e6d88d4223fcd"
+   ],
+   "at": "2026-11-14T07:48:03+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-fn-s-domstol-afsiger-dom-i-folkedrabssag",
+   "date": "2026-11-19",
+   "w": 2,
+   "title": "FN's Domstol afsiger dom i folkedrabssagen om rohingyaerne i Myanmar",
+   "kind": "retssag",
+   "place": "Haag",
+   "why": "Sagen gælder Myanmars behandling af rohingya-muslimerne.",
+   "link": "https://www.france24.com/en/live-news/20261103-top-un-court-to-rule-nov-19-on-myanmar-rohingya-genocide-case",
+   "ids": [
+    "9a09cf08f8a2d418"
+   ],
+   "at": "2026-11-04T07:42:20+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-folketinget-stemmer-om-sikkerhedsaftalen",
+   "date": "2026-11-19",
+   "w": 3,
+   "title": "Folketinget stemmer om sikkerhedsaftalen med USA om Grønland",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Aftalen mellem Danmark, Grønland og USA er uden slutdato, og Grønlands parlament har stemt om den.",
+   "link": "https://www.bt.dk/politik/kaempe-aftale-nu-har-groenlaenderne-stemt?referrer=RSS",
+   "ids": [
+    "b79693276015c44d",
+    "e34a06e999abd557"
+   ],
+   "at": "2026-11-04T11:13:07+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-koalitionen-af-villige-holder-topmoede-o",
+   "date": "2026-11-19",
+   "w": 2,
+   "title": "»Koalitionen af villige« holder topmøde om Ukraine i Berlin",
+   "kind": "topmøde",
+   "place": "Berlin",
+   "why": "De europæiske stater bag en styrke til Ukraine mødes, mens USA mægler mellem Rusland og Ukraine.",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQUWJTRi01eVVSNjdfMlhQQ3dUTGQzanhycnlmb1FUcTZzX1JIV1ZFd1IyRF9SN2ZGeGQ4WU5FUG56ZFBPbGRrYVJfUUFOMmZzbThvMk1SSGFFc1ZFUmVuSlZoTG9vZEIwQW9EZ1FwdWVpQWF6blp6WkRBQUdiaGEwR2FieVZuTzJscXRmRkdmMThUQUhYZmpZZG56VmFWV3BRNFAxRElYOHFNNGFpYV9hNVFDRFFSR1kx?oc=5",
+   "ids": [
+    "db4c372f42fb3915"
+   ],
+   "at": "2026-11-04T07:42:20+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-19-trump-xi-og-putin-holder-deres-foerste-t",
+   "date": "2026-11-19",
+   "w": 3,
+   "title": "Trump, Xi og Putin holder deres første trepartstopmøde",
+   "kind": "topmøde",
+   "place": "Shenzhen, Kina",
+   "why": "Første topmøde mellem lederne af USA, Kina og Rusland; Det Hvide Hus siger, at det handler om atomnedrustning og krigen mod Iran, ikke Ukraine.",
+   "link": "https://www.dr.dk/nyheder/udland/trump-skal-torsdag-moedes-med-putin-og-xi-i-kina",
+   "ids": [
+    "d74567d39c1a03cb",
+    "66c717e5a35a1ecd",
+    "a34cc17bbff62320",
+    "d37c943603abffc2"
+   ],
+   "at": "2026-11-14T04:18:52+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "w": 2,
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml.",
+   "link": "https://www.reuters.com/business/energy/us-extends-deadline-buyers-lukoil-foreign-assets-until-november-21-2026-10-22/",
+   "ids": [
+    "97c64bbbcfa2f005"
+   ],
+   "at": "2026-10-22T15:43:32+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "w": 3,
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027.",
+   "link": "https://www.france24.com/en/russia-agrees-to-resume-trilateral-peace-talks-on-ukraine-war",
+   "ids": [
+    "795c911280f064ea"
+   ],
+   "at": "2026-10-23T11:16:35+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-11-29-frist-i-usa-s-undersoegelse-om-nye-tolds",
+   "date": "2026-11-29",
+   "title": "Frist i USA's undersøgelse om nye toldsatser på varer fra Vietnam",
+   "kind": "frist",
+   "place": "USA / Vietnam",
+   "why": "Tesla og Samsung går imod de nye amerikanske toldsatser på varer fra Vietnam.",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOTUJxSGZ6aEZSWjV4VHFHeVBzTXMxVDFKcEg5OG1sbEdjTkliSDZSS2NvYmlRbUxfQks0eUVUbjJRSktzZVFqWnZTWlplTHM5YjVnUkNESHd4ZmgyRk5ib2lHdlNKYlZlQ3VqUHdvcHZvMjAzYXE2NDZLbnFnel9CZ1FoSHI5Nk1zY3NiTy1tSjhrZ1hZdVRnNVB3eHBfVUticXc1ejZ2cWlhUjR6ajRhTGRsVWVDVV9I?oc=5",
+   "ids": [
+    "8424febb5cc9d688"
+   ],
+   "at": "2026-11-02T15:13:23+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-usa-beslutter-om-en-permanent-militaerba",
+   "date": "2026-12",
+   "approx": true,
+   "w": 3,
+   "title": "USA beslutter om en permanent militærbase i Polen",
+   "kind": "frist",
+   "place": "Polen",
+   "why": "Polens forsvarsminister siger, at Pentagon har givet grønt lys, og at beslutningen falder i starten af december.",
+   "link": "https://tass.com/world/2215755",
+   "ids": [
+    "21c3f96480653f03",
+    "3eff576b7a2a47bf"
+   ],
+   "at": "2026-11-11T07:47:36+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-01-lavere-afgifter-paa-benzin-og-diesel-tra",
+   "date": "2026-12-01",
+   "title": "Lavere afgifter på benzin og diesel træder i kraft i Danmark",
+   "kind": "dansk",
+   "place": "Danmark",
+   "why": "Skatteaftalen mellem regeringen og Dansk Folkeparti giver billigere brændstof i et år mod højere afgifter og gebyrer permanent.",
+   "link": "https://www.dr.dk/nyheder/politik/aftale-giver-bilister-billigere-benzin-i-et-aar-men-hoejere-afgifter-og-gebyrer-permanent",
+   "ids": [
+    "7c7cd6d041f6398f"
+   ],
+   "at": "2026-11-13T15:17:33+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-02-indonesiens-overhus-vaelger-ny-vicepraes",
+   "date": "2026-12-02",
+   "w": 2,
+   "title": "Indonesiens overhus vælger ny vicepræsident",
+   "kind": "valg",
+   "place": "Jakarta, Indonesien",
+   "why": "Posten blev ledig, da vicepræsidenten gik af før tid i verdens største muslimske stat.",
+   "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPRnA3bUNiM2luMTJQQ2NHd3F3dXh0UUpOVmw4elREMjltSkI2V0lfR0VtYXBNMGJqQnI4OUNIa1NGNGdKeGFZeC1VMVBkZGRjSDNfUXZHMmJvWDdxV1VoaXNoWVNmQmhNM0pPVC11b0s2R08yWmkxNU9Ba1V3VGFnT2paaUhFajRrUWc0RzJMcVp2TmR4SnMtMW1fcVB3ZDdFeElWOUdEZ0Y4aVdsNWduX0Y2ZTQwekQ3eW1EaWoxOTFycDJNLUYzQQ?oc=5",
+   "ids": [
+    "ea3903543ac311d9"
+   ],
+   "at": "2026-11-14T07:48:03+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-02-nato-s-udenrigsministre-moedes-i-bruxell",
+   "date": "2026-12-02",
+   "w": 2,
+   "title": "NATO's udenrigsministre mødes i Bruxelles",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "Alliancens udenrigsministre mødes, mens USA, Rusland og Ukraine forhandler om europæisk sikkerhed.",
+   "link": "https://tass.com/world/2217927",
+   "ids": [
+    "d8655d449995f1db"
+   ],
+   "at": "2026-11-13T16:16:41+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2026-12-03-eco-s-topmoede-for-stats-og-regeringsche",
+   "date": "2026-12-03",
+   "w": 2,
+   "title": "ECO's topmøde for stats- og regeringschefer i Teheran (3.-4. december)",
+   "kind": "topmøde",
+   "place": "Teheran, Iran",
+   "why": "Organisationen for Økonomisk Samarbejde samler Iran, Tyrkiet, Pakistan og Centralasiens stater.",
+   "link": "https://en.irna.ir/news/86319045/Aref-ECO-Summit-of-Heads-of-State-to-be-held-in-Tehran-on-Dec",
+   "ids": [
+    "cecc50d97956cbd4"
+   ],
+   "at": "2026-11-11T15:46:59+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2027-02-11-valg-i-sydsudan",
+   "date": "2027-02-11",
+   "title": "Valg i Sydsudan",
+   "kind": "valg",
+   "place": "Sydsudan",
+   "why": "Valgkommissionen har udskudt det længe ventede valg igen og sat denne dato.",
+   "link": "https://www.aa.com.tr/en/africa/south-sudan-s-long-awaited-elections-delayed-again-as-nec-sets-feb-11-2027-poll-date/4125040",
+   "ids": [
+    "7bb98e9f0db33457"
+   ],
+   "at": "2026-11-14T15:46:47+00:00",
+   "src": "ed"
+  },
+  {
+   "id": "ed-2027-06-usa-s-frist-for-irak-til-at-afvaebne-de",
+   "date": "2027-06",
+   "approx": true,
+   "w": 2,
+   "title": "USA's frist for Irak til at afvæbne de væbnede grupper udløber",
+   "kind": "frist",
+   "place": "Irak",
+   "why": "Ifølge Farhad Atrushi har USA sat fristen og truet med sanktioner, hvis grupperne ikke er afvæbnet.",
+   "link": "https://www.kurdistan24.net/en/story/948943/us-gives-iraq-until-june-2027-to-disarm-armed-groups-or-face-sanctions-farhad-atrushi",
+   "ids": [
+    "fd499c416e670f64"
+   ],
+   "at": "2026-10-28T07:42:13+00:00",
+   "src": "ed"
+  }
+ ]
+}

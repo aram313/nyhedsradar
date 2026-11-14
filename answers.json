@@ -1,0 +1,51 @@
+{
+ "items": {
+  "30601": {
+   "nr": "30601",
+   "date": "2026-11-02",
+   "title_da": "Svar på spørgsmål: Protester i Europa og årsagerne til dets økonomiske svækkelse",
+   "question_da": "Hvorfor er der nye bølger af protester i Frankrig, Tyskland, Portugal og andre europæiske lande, og hvordan er Europas økonomi blevet så svækket, at den ikke kan finansiere uddannelse og velfærd?",
+   "note_da": "Protesterne har siden september 2026 været tilbagevendende hver lørdag og er blevet voldelige i Frankrig. Svaret peger på Europas svigtende konkurrence med USA og Kina inden for teknologi, afskæringen fra russisk gas, Trumps toldsatser, USA's tilbagetrækning fra Europas beskyttelse og krigen mod Iran med lukningen af Hormuzstrædet. Europas stater er økonomisk pressede og har få midler til velfærd.",
+   "url": "https://www.hizb-ut-tahrir.info/en/index.php/qestions/political-questions/30601.html",
+   "readings": [
+    {
+     "subject": "europa",
+     "kind": "tilstand",
+     "value": "økonomisk svækket",
+     "text_da": "Europas økonomi svækkes af dyr energi, amerikanske told, konkurrence fra USA og Kina og store militærudgifter."
+    },
+    {
+     "subject": "usa-europa",
+     "kind": "forhold",
+     "text_da": "USA har under Trump fralagt sig ansvaret for Europas beskyttelse og kræver, at Europa betaler mere for forsvar og for støtten til Ukraine."
+    },
+    {
+     "subject": "frankrig",
+     "kind": "tilstand",
+     "text_da": "Frankrig er økonomisk presset, og protesterne er blevet tilbagevendende og voldelige siden september 2026."
+    },
+    {
+     "subject": "tyskland",
+     "kind": "tilstand",
+     "text_da": "Tyskland rammes af høje energiregninger, og en del virksomheder udskyder investeringer eller flytter produktion."
+    },
+    {
+     "subject": "hormuzstraedet",
+     "kind": "tilstand",
+     "text_da": "Lukningen af Hormuzstrædet kostede ifølge Jacques Delors-instituttet Europas økonomier 39,6 milliarder euro de første to måneder."
+    }
+   ],
+   "begreber": [
+    "europa",
+    "frankrig",
+    "tyskland",
+    "usa",
+    "usa-europa",
+    "rusland",
+    "ukraine",
+    "hormuzstraedet",
+    "iran-sagen"
+   ]
+  }
+ }
+}

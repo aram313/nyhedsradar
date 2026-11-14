@@ -1,0 +1,739 @@
+{
+ "updated": "2026-11-14T21:02:57+00:00",
+ "items": [
+  {
+   "id": "houthi-saudi-krig-2026-10",
+   "title": "Houthiernes krig mod Saudi-Arabien",
+   "kicker": "Yemen",
+   "status": "i gang",
+   "dek": "Houthierne siger, at de har angrebet Riyadhs lufthavn og den saudiske olierørledning ved Yanbu og nu Aden med missiler, mens FN siger, at over 333.000 er fordrevet i Yemen siden august.",
+   "since": "2026-10-01",
+   "topic": "Golfen og Saudi-Arabien",
+   "facts": [
+    {
+     "label": "Fordrevet i Yemen siden august",
+     "value": "over 333.000",
+     "note": "ifølge FN's nødhjælpskontor OCHA",
+     "ids": [
+      "648f73bbd7dffab3"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "label": "Fordrevet den seneste uge",
+     "value": "over 24.000",
+     "note": "ifølge FN's nødhjælpskontor OCHA",
+     "ids": [
+      "648f73bbd7dffab3"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "places": [
+    "Sanaa",
+    "Aden",
+    "Marib",
+    "Taiz",
+    "Al-Hazm",
+    "Saada",
+    "Mokha",
+    "Shabwa",
+    "Hodeida",
+    "Riyadh",
+    "Jazan",
+    "Yemen"
+   ],
+   "quotes": [],
+   "stories": [
+    "88c3d6237e81a339",
+    "3854e661d3e71021",
+    "d2e11db3e954b0f8",
+    "648f73bbd7dffab3",
+    "3e7eb3d1713dccd2",
+    "ec018b3817dc43c4",
+    "d394eeae86bf3bdb",
+    "c6ed64aa8f76a41b"
+   ],
+   "article": [
+    {
+     "text": "Houthierne siger, at de har angrebet lufthavnen i Riyadh og den saudiske olierørledning mellem øst og vest ved Yanbu, og at de har affyret missiler mod saudiske styrker i Jazan. De afviser at have sigtet mod Mekka.",
+     "ids": [
+      "88c3d6237e81a339"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Houthierne har fornyet deres angreb på Saudi-Arabien, og den saudiledede koalition siger, at den har opsnappet en række houthi-droner mod olie- og militæranlæg. FN's Sikkerhedsråd har samtidig forlænget sanktionerne.",
+     "ids": [
+      "d2e11db3e954b0f8"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Yemens regeringshær siger, at houthierne fredag angreb Aden med ballistiske missiler, og kalder det en alvorlig optrapning. Hæren oplyser at have gennemført 943 angreb på houthi-stillinger.",
+     "ids": [
+      "3854e661d3e71021",
+      "3e7eb3d1713dccd2"
+     ],
+     "src": [
+      "Anadolu",
+      "Al Arabiya"
+     ]
+    },
+    {
+     "text": "FN's nødhjælpskontor OCHA siger, at over 333.000 mennesker er fordrevet i Yemen siden august, over 24.000 alene den seneste uge, og at volden skader sundhedsfaciliteter og begrænser den humanitære adgang.",
+     "ids": [
+      "648f73bbd7dffab3"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Den saudiledede koalition siger, at den torsdag opsnappede droner over Riyadh og tre houthi-krydsermissiler mod byen.",
+     "ids": [
+      "ec018b3817dc43c4",
+      "c6ed64aa8f76a41b"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://images.jpost.com/image/upload/f_auto,fl_lossy/q_auto/c_fill,g_faces:center,h_2625,w_3937/742131",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "pl": "l20c5effdd911abf4.jpg",
+   "at": "2026-11-14T11:17:19+00:00"
+  },
+  {
+   "id": "iran-hormuz-2026-10",
+   "title": "Opgøret mellem USA og Iran om Hormuz",
+   "kicker": "Iran",
+   "status": "i gang",
+   "dek": "Iran siger, at to olietankskibe har ramt miner ved Hormuz, og advarer om et øjeblikkeligt svar på ethvert nyt angreb, mens det venter på Washingtons svar på sine betingelser.",
+   "since": "2026-02-28",
+   "topic": "Iran og USA",
+   "facts": [],
+   "places": [
+    "Jask",
+    "Sirik",
+    "Qeshm",
+    "Bandar Abbas",
+    "Bandar Khamir",
+    "Bandar Lengeh",
+    "Iran"
+   ],
+   "map": {
+    "km": 400,
+    "focus": [
+     "Qeshm",
+     "Bandar Abbas",
+     "Bandar Lengeh"
+    ]
+   },
+   "quotes": [
+    {
+     "who": "Mohsen Rezaei",
+     "text": "Vi har bedt amerikanerne om et klart og udtrykkeligt svar på vores betingelser, men det har de ikke givet endnu.",
+     "ids": [
+      "d0824b01af67b45a"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "who": "Hakeem Jeffries om krigen mod Iran",
+     "text": "En hensynsløs og kostbar krig, som USA selv har valgt, og som har skadet amerikanske interesser.",
+     "ids": [
+      "d1768e441ed561d8"
+     ],
+     "src": [
+      "Jerusalem Post"
+     ]
+    }
+   ],
+   "stories": [
+    "03cf457e8d4a1929",
+    "470693033e0bde97",
+    "d9a591d3f58d57af",
+    "809aee754d16043c",
+    "484cad6a4b3379d5",
+    "0209cf0ed00d2c40",
+    "adcf1c90d7ca0513",
+    "d0824b01af67b45a",
+    "cbd2a99423f742ba",
+    "f8458ff020689404"
+   ],
+   "article": [
+    {
+     "text": "Irans Revolutionsgarde siger, at to olietankskibe er sat ud af spil af eksplosioner i Hormuz-strædet, og Irans hær siger, at de ramte miner øst for strædet og brød i brand. Iran advarer om et øjeblikkeligt svar på ethvert nyt amerikansk eller “israelsk” angreb og kritiserer Golfstaterne.",
+     "ids": [
+      "03cf457e8d4a1929",
+      "fd40063125941d5a",
+      "d9a591d3f58d57af"
+     ],
+     "src": [
+      "Anadolu",
+      "Xinhua",
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Irans Revolutionsgarde siger, at den har ødelagt en amerikansk tidligvarslingsradar i Bahrain som svar på et amerikansk angreb på en telemast i Sirik. USA's militær afviser det og siger, at det skød to angrebsdroner ned på vej mod Bahrain, uden at de gjorde skade.",
+     "ids": [
+      "809aee754d16043c"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "USA, Iran og Golfstaterne udvekslede fredag skarpe beskyldninger på et møde i FN's Sikkerhedsråd. Pakistan krævede en øjeblikkelig ende på de militære provokationer i Golfen og fornyet regionalt diplomati.",
+     "ids": [
+      "484cad6a4b3379d5"
+     ],
+     "src": [
+      "Dawn"
+     ]
+    },
+    {
+     "text": "Irans chefforhandler siger, at Iran har sendt USA et klart svar og nu venter på Washingtons beslutning. Iran prioriterer fred, siger han, men fastholder syv betingelser for at genåbne Hormuz-strædet og genoptage forhandlingerne. Iran siger også, at USA har bedt Rusland mægle mellem Teheran og Washington.",
+     "ids": [
+      "d0824b01af67b45a",
+      "f8458ff020689404"
+     ],
+     "src": [
+      "Times of Israel"
+     ]
+    },
+    {
+     "text": "Trump siger, at han er fuldt parat til at bruge militær magt mod Iran »lige nu«, hvis amerikanske allierede og skibe trues, og at USA's flådeblokade presser styret hårdt. New York Times beretter, at regeringen ser ud til at bevæge sig mod en langvarig økonomisk presskampagne, mens Trump ikke har travlt med en atomaftale.",
+     "ids": [
+      "cbd2a99423f742ba",
+      "adcf1c90d7ca0513"
+     ],
+     "src": [
+      "BT",
+      "New York Times"
+     ]
+    },
+    {
+     "text": "“israels” public service-medie Kan siger, at USA har bedt “israelske” styrker forberede sig på at genoptage krigen mod Iran; USA's centralkommando kalder det spekulation. Mossads chef er i Washington, mens Netanyahu presser Trump til at genoptage krigen.",
+     "ids": [
+      "cbd2a99423f742ba",
+      "470693033e0bde97"
+     ],
+     "src": [
+      "BT",
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://www.thenationalnews.com/resizer/v2/INOHGNMSTNFIPGRQGRUUI6A73U?auth=361c6e11b0c297fbf996b5d01ad0a87cc82dbee46e31176eeb6c576a585f6cb0&smart=true&width=8618&height=4848",
+   "pf": [
+    0.5,
+    0.4,
+    1.777,
+    0,
+    0
+   ],
+   "pl": "l83741372c90458dc.jpg",
+   "at": "2026-11-14T06:22:40+00:00"
+  },
+  {
+   "id": "knessetvalg-2026-10-27",
+   "title": "Valget og regeringsdannelsen i “israel”",
+   "kicker": "“israel”",
+   "status": "i gang",
+   "dek": "Netanyahu opfordrer Gadi Eisenkot til en national samlingsregering, mens Eisenkot kalder det en politisk manøvre og forhandler om et flertal i Knesset.",
+   "since": "2026-10-27",
+   "topic": "Valget i “israel”",
+   "facts": [],
+   "places": [
+    "Jerusalem",
+    "Tel Aviv",
+    "Lod",
+    "Kafr Manda",
+    "Tayibe",
+    "Nazareth"
+   ],
+   "quotes": [
+    {
+     "who": "Gadi Eisenkot",
+     "text": "Netanyahus opfordring til at forhandle om en national samlingsregering er blot en politisk manøvre.",
+     "ids": [
+      "26159624a55d8f61"
+     ],
+     "src": [
+      "Kurdistan24"
+     ]
+    },
+    {
+     "who": "Gadi Eisenkot",
+     "text": "Netanyahu nærer en racistisk og fjendtlig kampagne mod de arabiske borgere.",
+     "ids": [
+      "1a5bdecf2c5f0d29"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "stories": [
+    "26159624a55d8f61",
+    "1a5bdecf2c5f0d29",
+    "4d7fc94ef5b9706b"
+   ],
+   "article": [
+    {
+     "text": "Efter valget 27. oktober fik præsident Isaac Herzog Gadi Eisenkot til at danne regering, og Eisenkot forhandler nu om et flertal i Knesset.",
+     "ids": [
+      "1a5bdecf2c5f0d29"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Efter et møde med Eisenkot sagde Netanyahu lørdag, at en national samlingsregering er nødvendig nu. Eisenkot kalder opfordringen en politisk manøvre og beskylder Netanyahu for at nære en racistisk og fjendtlig kampagne mod de arabiske borgere.",
+     "ids": [
+      "26159624a55d8f61",
+      "1a5bdecf2c5f0d29"
+     ],
+     "src": [
+      "Kurdistan24",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Eisenkots blok vil ophæve love fra Netanyahus tid om dommerudnævnelser, regeringens juridiske tilsyn, politiets efterforskninger, mediereguleringen og reglerne for at erklære en premierminister uegnet, før en ny regering dannes.",
+     "ids": [
+      "4d7fc94ef5b9706b"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://d2wqffb2bc8st5.cloudfront.net/images/1794678684_kurdistan24.jpg",
+   "pf": [
+    0.429,
+    0.493,
+    1.778,
+    1,
+    0.504
+   ],
+   "at": "2026-11-14T20:03:48+00:00"
+  },
+  {
+   "id": "gaza-vaabenhvile-2026-11",
+   "title": "Angreb i Gaza under våbenhvilen",
+   "kicker": "Gaza",
+   "status": "i gang",
+   "dek": "FN advarer om, at “israelske” angreb har bragt Gazas sundhedsvæsen til randen af sammenbrud, mens vinterens første barn er død af kulde i teltene, og 53 lande og organisationer kræver nødhjælpen lukket ind.",
+   "since": "2025-10-11",
+   "topic": "Palæstina og “israel”",
+   "facts": [],
+   "places": [
+    "Khan Younis",
+    "Gaza",
+    "Al-Bureij",
+    "Deir al-Balah"
+   ],
+   "quotes": [],
+   "stories": [
+    "bc31c6c3507b5c4e",
+    "7c84c969670e00cf",
+    "0d75995a4f1e9aa2",
+    "9ffb0d6f80e48e0e",
+    "645cc3e1ec3201bb",
+    "78b2f4f8c4cb3fb8",
+    "967a1a5b67c4fc97",
+    "15d0c29dc7a19cff"
+   ],
+   "article": [
+    {
+     "text": "FN's menneskerettighedskontor siger, at gentagne “israelske” angreb på hospitaler og sundhedsfaciliteter har bragt Gazas sundhedsvæsen til randen af sammenbrud. Det seneste ramte Nasser-hospitalet i Khan Younis.",
+     "ids": [
+      "bc31c6c3507b5c4e"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Et “israelsk” luftangreb ramte natten til torsdag Nasser-hospitalet i Khan Younis i det sydlige Gaza. Sundhedsmyndighederne siger, at mindst seks palæstinensere blev dræbt, blandt dem en kirurg og en teenagedreng.",
+     "ids": [
+      "78b2f4f8c4cb3fb8",
+      "9ffb0d6f80e48e0e"
+     ],
+     "src": [
+      "BT",
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "UNRWA's chef sætter spørgsmålstegn ved våbenhvilen, efter at “israelske” angreb i løbet af dagen dræbte 11 mennesker i Gaza, seks af dem på Nasser-hospitalet.",
+     "ids": [
+      "15d0c29dc7a19cff",
+      "9ffb0d6f80e48e0e"
+     ],
+     "src": [
+      "Ahram Online"
+     ]
+    },
+    {
+     "text": "En ni måneder gammel baby er død af kulde, oplyser Gazas sundhedsministerium – vinterens første dødsfald af kulde. Tusinder af fordrevne bor i telte efter dage med storme og oversvømmelser.",
+     "ids": [
+      "7c84c969670e00cf",
+      "a6d8ad8b4a1dbffe"
+     ],
+     "src": [
+      "Anadolu",
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "53 lande og organisationer kræver, at “israel” straks åbner alle grænseovergange til Gaza og lader nødhjælp komme ind før vinteren, siger Storbritanniens udsending til FN. Fredsrådet kræver, at Trumps Gaza-plan gennemføres øjeblikkeligt efter angrebet på Nasser-hospitalet.",
+     "ids": [
+      "645cc3e1ec3201bb",
+      "967a1a5b67c4fc97"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://web-cdnprod.aa.com.tr/uploads/Contents/2026/11/13/thumbs_b_c_6807785a909b40bc8dc2d551b206b94a.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "pl": "l308e7ab8051a8a21.jpg",
+   "at": "2026-11-14T04:18:52+00:00"
+  },
+  {
+   "id": "apec-shenzhen-2026-11",
+   "title": "APEC-topmødet i Shenzhen",
+   "kicker": "Kina",
+   "status": "kommende",
+   "dek": "Trump, Xi og Putin holder torsdag 19. november deres første trepartstopmøde ved APEC-topmødet i Shenzhen; Det Hvide Hus siger, at det handler om atomnedrustning og krigen mod Iran, ikke Ukraine.",
+   "date": "2026-11-18",
+   "topic": "APEC-topmødet i Shenzhen",
+   "facts": [],
+   "places": [
+    "Shenzhen",
+    "Kina"
+   ],
+   "quotes": [
+    {
+     "who": "USA's udenrigsministerium",
+     "text": "Rubio og Wang Yi var enige om vigtigheden af samtaler på lederniveau for at fremme mål som atomnedrustning, herunder ved et muligt trepartsmøde mellem lederne med Rusland.",
+     "ids": [
+      "8b4d26281e614317"
+     ],
+     "src": [
+      "Jerusalem Post"
+     ]
+    }
+   ],
+   "stories": [
+    "d74567d39c1a03cb",
+    "a34cc17bbff62320",
+    "807f3c732a8743eb",
+    "d37c943603abffc2",
+    "e4886b43b650e1a9",
+    "c7765020582dd246",
+    "8b4d26281e614317",
+    "81fdd5b614c1ca81"
+   ],
+   "article": [
+    {
+     "text": "Det Hvide Hus siger, at Trump, Xi og Putin holder deres første trepartstopmøde torsdag 19. november i forbindelse med APEC-topmødet i Kina. Mødet skal ifølge en amerikansk embedsmand handle om atomnedrustning og krigen mod Iran, ikke om Ukraine.",
+     "ids": [
+      "d74567d39c1a03cb",
+      "d37c943603abffc2",
+      "e4886b43b650e1a9"
+     ],
+     "src": [
+      "DR",
+      "Kyiv Independent",
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Det Hvide Hus siger, at Trump vil tage nedskæringer i atomvåbnene op med Putin og Xi.",
+     "ids": [
+      "a34cc17bbff62320"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Kina oplyser, at Xi taler ved APEC-topmødet og holder bilaterale møder i Shenzhen i næste uge.",
+     "ids": [
+      "807f3c732a8743eb"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Kreml har for første gang bekræftet, at Putin deltager i APEC-topmødet i Kina. Beijing har tidligere bekræftet, at der er kontakt om et topmøde mellem Kina, USA og Rusland.",
+     "ids": [
+      "c7765020582dd246"
+     ],
+     "src": [
+      "UA.NEWS"
+     ]
+    },
+    {
+     "text": "USA's udenrigsminister Marco Rubio og Kinas udenrigsminister Wang Yi talte onsdag i telefon om forholdet mellem landene og om et muligt trepartsmøde mellem lederne med Rusland. Kina kalder samtalen positiv og konstruktiv.",
+     "ids": [
+      "8b4d26281e614317"
+     ],
+     "src": [
+      "Jerusalem Post"
+     ]
+    },
+    {
+     "text": "USA og Kina skal ved topmødet også føre samtaler om kunstig intelligens.",
+     "ids": [
+      "81fdd5b614c1ca81"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://asset.dr.dk/drdk/umbraco-images/h1opxck1/20260925-193542-l.jpg?im=AspectCrop=(1200,675),xPosition=.5,yPosition=.5;Resize=(1200,675)&impolicy=medium",
+   "pf": [
+    0.672,
+    0.243,
+    1.778,
+    1,
+    0.219
+   ],
+   "pl": "l2a156f6773201a62.jpg",
+   "at": "2026-11-14T06:22:40+00:00"
+  },
+  {
+   "id": "spanien-generalstrejke-2026-11",
+   "title": "Generalstrejke i Spanien",
+   "kicker": "Spanien",
+   "status": "afsluttet",
+   "dek": "Spaniens parlament har vedtaget nye boliglove, der begrænser udsættelser, efter landets første generalstrejke i 14 år over høje huslejer.",
+   "since": "2026-11-12",
+   "facts": [
+    {
+     "label": "På gaden i Madrid",
+     "value": "120.000",
+     "note": "ifølge Ekstra Bladet",
+     "ids": [
+      "98dd07d55f320eea"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "places": [
+    "Madrid",
+    "Spanien"
+   ],
+   "quotes": [],
+   "stories": [
+    "536c0521e12bf1e8",
+    "98dd07d55f320eea"
+   ],
+   "article": [
+    {
+     "text": "Spanien holdt sin første generalstrejke i 14 år. Fagforeninger, lejerforeninger og boligaktivister gik sammen om en 24 timer lang strejke mod høje huslejer og stigende boligpriser, og strejken ramte den offentlige transport.",
+     "ids": [
+      "98dd07d55f320eea"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "Ifølge den spanske centralbank mangler der 750.000 boliger i landet. Den gennemsnitlige husleje er 1.176 euro om måneden, oplyser Spaniens Ungdomsråd, og det svarer til 98,7 procent af et ungt menneskes gennemsnitlige månedsindkomst.",
+     "ids": [
+      "98dd07d55f320eea"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "Efter strejken vedtog Spaniens parlament nye love, der begrænser udsættelser af lejere. Hvor længe de gælder, afhænger af det kommende valg.",
+     "ids": [
+      "536c0521e12bf1e8"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://asset.dr.dk/drdk/umbraco-images/wwfb0ce1/20261111-190125-1.jpg?im=AspectCrop=(1200,675),xPosition=.5,yPosition=.5;Resize=(1200,675)&impolicy=medium",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "at": "2026-11-13T06:17:32+00:00"
+  },
+  {
+   "id": "abu-dhabi-ukraine-samtaler-2026-11",
+   "title": "Trepartsforhandlinger om Ukraine i Abu Dhabi",
+   "kicker": "Abu Dhabi",
+   "status": "afsluttet",
+   "dek": "Forhandlingerne mellem Rusland, Ukraine og USA i Abu Dhabi sluttede 11. november efter to dage med en aftale om en ny, omfattende fangeudveksling, men uden en fredsaftale.",
+   "since": "2026-11-10",
+   "topic": "Rusland, USA og Ukraine",
+   "facts": [],
+   "places": [
+    "Abu Dhabi"
+   ],
+   "quotes": [
+    {
+     "who": "Lederen af Ruslands forhandlingsdelegation",
+     "text": "Vi er blevet enige om en ny, omfattende fangeudveksling og vil offentliggøre detaljerne senere.",
+     "ids": [
+      "3f535a429059b8ed"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "Volodymyr Zelenskyj",
+     "text": "Putin lever i en anden virkelighed.",
+     "ids": [
+      "d175cc5b70ed1b78"
+     ],
+     "src": [
+      "Clash Report"
+     ]
+    },
+    {
+     "who": "Tysklands regering",
+     "text": "Europa hører til ved dette bord.",
+     "ids": [
+      "28e9656a0020f64f"
+     ],
+     "src": [
+      "DR"
+     ]
+    }
+   ],
+   "stories": [
+    "73f23b518601d6f2",
+    "71437b5da86c7068",
+    "48304d05ed05ad32",
+    "b3911000be920664",
+    "cd133f4c5a426b20",
+    "28e9656a0020f64f",
+    "e091e650409f2b09",
+    "8bcb477f4d936929",
+    "484d349c97d9c82b",
+    "76897cfcf5163577",
+    "289cafdfc32ef794",
+    "2da54af02f47f075"
+   ],
+   "article": [
+    {
+     "text": "Forhandlingerne mellem Rusland, Ukraine og USA i Abu Dhabi, de første trepartsforhandlinger siden februar, sluttede onsdag efter to dage. Lederen af Ruslands delegation siger, at parterne er enige om en ny, omfattende fangeudveksling, hvis detaljer offentliggøres senere, og Zelenskyj siger, at forhandlingerne drøftede en udveksling af op til 1.500 fanger på hver side.",
+     "ids": [
+      "73f23b518601d6f2",
+      "71437b5da86c7068",
+      "3f535a429059b8ed"
+     ],
+     "src": [
+      "BT"
+     ]
+    },
+    {
+     "text": "USA, Ukraine og europæiske partnere er enige om at bevæge sig mod bredere multilaterale forhandlinger om at afslutte krigen. En fælles erklæring siger, at enhver aftale skal respektere Ukraines suverænitet og territoriale integritet.",
+     "ids": [
+      "cd133f4c5a426b20"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Trumps udsending Jared Kushner siger, at han er opmuntret, og at delegationerne arbejder på en sikkerhedsramme for Ukraine. Kreml siger, at den russiske delegation ikke talte med europæiske embedsmænd i Abu Dhabi.",
+     "ids": [
+      "66c854d77accb0ad",
+      "94a1621eb9216150",
+      "c37db8edffd5e433"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Rusland afviser en fastfrysning af krigen og siger, at Kyiv ville bruge en pause til at genopruste.",
+     "ids": [
+      "8bcb477f4d936929"
+     ],
+     "src": [
+      "The National"
+     ]
+    },
+    {
+     "text": "Ukraines præsident Volodymyr Zelenskyj glæder sig over et skifte i USA's tilgang og siger, at Europa skal med i forhandlingerne. Tyskland har sagt til USA, at Europa hører til ved bordet.",
+     "ids": [
+      "48304d05ed05ad32",
+      "28e9656a0020f64f"
+     ],
+     "src": [
+      "Asharq Al-Awsat"
+     ]
+    },
+    {
+     "text": "Efter forhandlingerne siger Ruslands chefforhandler Medinskij, at Rusland ikke ser mulighed for at bytte territorium med Ukraine. Kushner siger, at han og Witkoff rejser til Moskva torsdag for at møde Putin og derefter til Dublin for at møde Zelenskyj. Timer efter forhandlingerne angreb Rusland Kyiv med ballistiske missiler.",
+     "ids": [
+      "289cafdfc32ef794",
+      "76897cfcf5163577",
+      "2da54af02f47f075"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    }
+   ],
+   "pic": "https://www.al-monitor.com/sites/default/files/styles/social_media_share/public/2026-11/2026-11-11T152315Z_1_LYNXNPEMAA1H9_RTROPTP_3_UKRAINE-CRISIS-TALKS-ABU-DHABI.JPG?h=c9f93661&itok=raiRBgNU",
+   "pf": [
+    0.475,
+    0.311,
+    1.911,
+    1,
+    0.375
+   ],
+   "at": "2026-11-12T04:18:30+00:00"
+  }
+ ]
+}
