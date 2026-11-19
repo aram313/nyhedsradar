@@ -1,4 +1,5 @@
 # Radarens helbred
+
 - 2026-10-10: Alt kører. Seneste kørsel 06:04 dansk tid. 61 kilder, 0 i stykker (Islamisk Viden og DIP Podcast har fejlet 5 kørsler i træk, holdes øje med).
 - 2026-10-11: Alt kører. Seneste kørsel 06:40 dansk tid. 62 kilder, 0 i stykker (Islamisk Viden og DIP Podcast har fejlet hhv. 23 og 18 kørsler i træk, holdes øje med). Danmark 58 · Mellemøsten 103 · Verden 140.
 - 2026-10-12: Alt kører. Seneste kørsel 06:40 dansk tid. 62 kilder, 0 i stykker. Danmark 84 · Mellemøsten 177 · Verden 214.
@@ -39,3 +40,4 @@
 - 2026-11-16: Radaren kører. Seneste kørsel 04:31 UTC. 121 kilder, 3 i stykker: Ariana News, Reuters direkte (Reuters dækkes af Google News) og Information – uændret, værterne er blokeret fra sandkassen så nye adresser ikke kan verificeres; US Treasury svarer men har 0 emner. Danmark 89 · Mellemøsten 284 · Verden 672.
 - 2026-11-17: Radaren kører. Seneste kørsel 04:31 UTC. 121 kilder, 3 i stykker: Ariana News, Reuters direkte (Reuters dækkes af Google News) og Information – uændret, nye adresser kan ikke verificeres fra sandkassen. Danmark 85 · Mellemøsten 295 · Verden 675.
 - 2026-11-18: Radaren kører. Seneste kørsel 04:31 UTC. 121 kilder, 3 i stykker: Ariana News, Reuters direkte (Reuters dækkes af Google News) og Information – uændret, nye adresser kan ikke verificeres fra sandkassen. Danmark 90 · Mellemøsten 351 · Verden 687.
+- 2026-11-19: Radaren kører. Seneste kørsel 04:32 UTC. 121 kilder, 3 i stykker: Ariana News, Reuters direkte (Reuters dækkes af Google News) og Information – uændret, nye adresser kan ikke verificeres fra sandkassen. Danmark 97 · Mellemøsten 359 · Verden 743.
