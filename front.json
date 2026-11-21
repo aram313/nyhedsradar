@@ -1,0 +1,76 @@
+{
+ "updated": "2026-11-21T13:03:27+00:00",
+ "lede": "To tankskibe ramt i Hormuz, Trump afviser Irans vilkår, houthierne angriber Riyadh, og USA vil have fred i Ukraine inden januar",
+ "lede_ids": [
+  "ade0546b0f787675",
+  "ef5ea499010195ee",
+  "d99210657eb42696",
+  "32f4dd46acb81ccb"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "story": "ef5ea499010195ee",
+   "with": [
+    "ade0546b0f787675"
+   ],
+   "timeline": "Iran og USA i Golfen",
+   "picture": true
+  },
+  {
+   "kind": "top",
+   "title": "USA vil have en fredsaftale mellem Rusland og Ukraine i begyndelsen af januar 2027",
+   "story": "32f4dd46acb81ccb",
+   "with": [
+    "6aa9e6ce3cc60ac9"
+   ],
+   "timeline": "Rusland, USA og Ukraine",
+   "picture": false
+  },
+  {
+   "kind": "liste",
+   "title": "Saudi-Arabien og Yemen",
+   "stories": [
+    "d99210657eb42696",
+    "e08fd4115d485622",
+    "2d376fa5ea2760cb",
+    "5bd3dee86995157b"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Iran og USA",
+   "stories": [
+    "5d679329aa661e7e",
+    "70d1f4a5ef936f55",
+    "0645b22231d774cd",
+    "4a29a681fd04195e",
+    "a2f0c53e703a865c"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "“israel”, Gaza og Vestbredden",
+   "stories": [
+    "af499b484cd5a78b",
+    "687e8877c31dcd3a",
+    "7655b2e29c5273c3",
+    "f4fea6f78e41a976"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Danmark",
+   "stories": [
+    "7e369f5a5dbfcb0a",
+    "b7d499ec44ec55be",
+    "5172e6995030073c",
+    "3fe000eb283cfc78"
+   ],
+   "style": "kompakt"
+  }
+ ]
+}

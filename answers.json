@@ -1,0 +1,96 @@
+{
+ "items": {
+  "30668": {
+   "nr": "30668",
+   "date": "2026-11-11",
+   "title_da": "Svar på spørgsmål: Sudan og spændingerne med Etiopien",
+   "question_da": "Hvad ligger bag spændingerne mellem Sudan og Etiopien efter de gensidige lukninger af konsulater, og spiller USA en rolle, når det presser Sudans regering til at forhandle med de separatistiske oprørere?",
+   "note_da": "Spændingerne mellem Sudan og Etiopien er endnu et middel i USA's plan om at udskille Darfur fra Sudan, på linje med Boulos-forslaget om en 90-dages våbenhvile, udtalelsen fra udenrigsministeriet den 23/9/2026 og nægtelsen af visum til Burhan. Etiopien griber kun ind efter amerikansk anvisning og har desuden egne interesser i striden om GERD-dæmningen. Sudans herskere forventes ikke at genvinde Darfur.",
+   "url": "https://www.hizb-ut-tahrir.info/en/index.php/qestions/political-questions/30668.html",
+   "readings": [
+    {
+     "subject": "sudan--usa",
+     "kind": "plan",
+     "object": "usa",
+     "value": "udskillelse af Darfur",
+     "text_da": "USA planlægger at udskille Darfur fra Sudan, som det gjorde med Sydsudan."
+    },
+    {
+     "subject": "etiopien",
+     "kind": "rolle",
+     "object": "usa",
+     "value": "nyt pres på Sudan",
+     "text_da": "Etiopien bruges som nyt middel til at presse Sudan og handler kun efter amerikansk anvisning."
+    },
+    {
+     "subject": "etiopien--sudan",
+     "kind": "forhold",
+     "text_da": "Spændingen mellem Sudan og Etiopien næres af GERD-dæmningen, som begge Sudan og Egypten modsætter sig."
+    },
+    {
+     "subject": "sudan",
+     "kind": "stilling",
+     "object": "usa",
+     "value": "underordnet",
+     "text_da": "Sudans herskere opfylder USA's ønsker og forventes ikke at tage Darfur tilbage."
+    }
+   ],
+   "begreber": [
+    "sudan",
+    "sudan-sagen",
+    "etiopien",
+    "usa",
+    "darfur",
+    "egypten",
+    "fns-sikkerhedsraad"
+   ]
+  },
+  "30601": {
+   "nr": "30601",
+   "date": "2026-11-02",
+   "title_da": "Svar på spørgsmål: Protester i Europa og årsagerne til dets økonomiske svækkelse",
+   "question_da": "Hvorfor er der nye bølger af protester i Frankrig, Tyskland, Portugal og andre europæiske lande, og hvordan er Europas økonomi blevet så svækket, at den ikke kan finansiere uddannelse og velfærd?",
+   "note_da": "Protesterne har siden september 2026 været tilbagevendende hver lørdag og er blevet voldelige i Frankrig. Svaret peger på Europas svigtende konkurrence med USA og Kina inden for teknologi, afskæringen fra russisk gas, Trumps toldsatser, USA's tilbagetrækning fra Europas beskyttelse og krigen mod Iran med lukningen af Hormuzstrædet. Europas stater er økonomisk pressede og har få midler til velfærd.",
+   "url": "https://www.hizb-ut-tahrir.info/en/index.php/qestions/political-questions/30601.html",
+   "readings": [
+    {
+     "subject": "europa",
+     "kind": "tilstand",
+     "value": "økonomisk svækket",
+     "text_da": "Europas økonomi svækkes af dyr energi, amerikanske told, konkurrence fra USA og Kina og store militærudgifter."
+    },
+    {
+     "subject": "usa-europa",
+     "kind": "forhold",
+     "text_da": "USA har under Trump fralagt sig ansvaret for Europas beskyttelse og kræver, at Europa betaler mere for forsvar og for støtten til Ukraine."
+    },
+    {
+     "subject": "frankrig",
+     "kind": "tilstand",
+     "text_da": "Frankrig er økonomisk presset, og protesterne er blevet tilbagevendende og voldelige siden september 2026."
+    },
+    {
+     "subject": "tyskland",
+     "kind": "tilstand",
+     "text_da": "Tyskland rammes af høje energiregninger, og en del virksomheder udskyder investeringer eller flytter produktion."
+    },
+    {
+     "subject": "hormuzstraedet",
+     "kind": "tilstand",
+     "text_da": "Lukningen af Hormuzstrædet kostede ifølge Jacques Delors-instituttet Europas økonomier 39,6 milliarder euro de første to måneder."
+    }
+   ],
+   "begreber": [
+    "europa",
+    "frankrig",
+    "tyskland",
+    "usa",
+    "usa-europa",
+    "rusland",
+    "ukraine",
+    "hormuzstraedet",
+    "iran-sagen"
+   ]
+  }
+ }
+}

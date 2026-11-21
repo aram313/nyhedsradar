@@ -1,0 +1,604 @@
+{
+ "items": [
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T13:03:27+00:00",
+   "did": "2 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T12:03:21+00:00",
+   "did": "7 overskrifter, 1 linje i udviklingen, begivenheder"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-21T11:18:06+00:00",
+   "did": "ny lede, forsiden, 15 overskrifter, 1 resumé, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T10:03:08+00:00",
+   "did": "3 overskrifter, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T09:03:36+00:00",
+   "did": "6 overskrifter, 2 resuméer, 2 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T08:03:09+00:00",
+   "did": "6 overskrifter, 2 resuméer, 3 linjer i udviklingen"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-21T07:46:39+00:00",
+   "did": "36 overskrifter, 39 kasserede historier taget ind"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T07:02:39+00:00",
+   "did": "11 overskrifter"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-21T06:16:44+00:00",
+   "did": "ny lede, forsiden, 23 overskrifter, 1 resumé, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-21T05:03:21+00:00",
+   "did": "ny lede, 22 overskrifter, 1 resumé"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-21T04:18:29+00:00",
+   "did": "31 overskrifter, 7 resuméer, begivenheder, kalenderen, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T22:02:57+00:00",
+   "did": "11 overskrifter, 6 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T21:03:18+00:00",
+   "did": "10 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T20:02:59+00:00",
+   "did": "9 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-20T19:17:50+00:00",
+   "did": "ny lede, forsiden, 15 overskrifter, 3 resuméer, 5 linjer i udviklingen, begivenheder, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T18:03:19+00:00",
+   "did": "9 overskrifter, 3 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T17:03:24+00:00",
+   "did": "ny lede, 9 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T16:03:47+00:00",
+   "did": "forsiden, 13 overskrifter, 2 resuméer, 1 linje i udviklingen, begivenheder"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-20T15:47:44+00:00",
+   "did": "39 overskrifter, 40 kasserede historier taget ind"
+  },
+  {
+   "by": "økonomiredaktør",
+   "at": "2026-11-20T15:15:12+00:00",
+   "did": "9 overskrifter, Økonomi"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T14:03:22+00:00",
+   "did": "3 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T13:03:53+00:00",
+   "did": "1 overskrift, 3 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T12:03:33+00:00",
+   "did": "7 overskrifter"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-20T11:20:24+00:00",
+   "did": "ny lede, forsiden, 14 overskrifter, 5 resuméer, 4 linjer i udviklingen, begivenheder, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T10:03:07+00:00",
+   "did": "1 resumé, 3 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T09:03:56+00:00",
+   "did": "5 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T08:03:17+00:00",
+   "did": "2 overskrifter, 1 resumé"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-20T07:46:53+00:00",
+   "did": "38 overskrifter, 38 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T07:03:26+00:00",
+   "did": "4 overskrifter, 1 resumé"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-20T06:18:49+00:00",
+   "did": "1 overskrift"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-20T06:18:26+00:00",
+   "did": "ny lede, forsiden, 14 overskrifter, 6 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-20T05:03:42+00:00",
+   "did": "ny lede, 2 overskrifter, 1 resumé"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-20T04:22:07+00:00",
+   "did": "5 overskrifter"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-20T04:21:47+00:00",
+   "did": "33 overskrifter, 2 resuméer, begivenheder, kalenderen, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T22:03:07+00:00",
+   "did": "4 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T21:03:09+00:00",
+   "did": "5 overskrifter, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T20:03:42+00:00",
+   "did": "8 overskrifter, 2 resuméer, 4 linjer i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-19T19:19:19+00:00",
+   "did": "ny lede, forsiden, 18 overskrifter, 2 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T18:03:58+00:00",
+   "did": "7 overskrifter, 1 linje i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T17:03:43+00:00",
+   "did": "5 overskrifter, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T16:03:35+00:00",
+   "did": "9 overskrifter, 1 resumé"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-19T15:47:33+00:00",
+   "did": "36 overskrifter, 40 kasserede historier taget ind"
+  },
+  {
+   "by": "økonomiredaktør",
+   "at": "2026-11-19T15:15:57+00:00",
+   "did": "11 overskrifter, 2 resuméer, Økonomi"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T14:03:33+00:00",
+   "did": "1 overskrift, 3 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T13:03:34+00:00",
+   "did": "5 overskrifter, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T12:03:33+00:00",
+   "did": "4 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-19T11:18:33+00:00",
+   "did": "ny lede, forsiden, 9 overskrifter, 4 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T10:03:38+00:00",
+   "did": "6 overskrifter, 3 resuméer, 3 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T09:03:32+00:00",
+   "did": "ny lede, 11 overskrifter, 2 resuméer, 4 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T08:03:54+00:00",
+   "did": "10 overskrifter"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-19T07:47:13+00:00",
+   "did": "39 overskrifter, 40 kasserede historier taget ind"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T07:03:06+00:00",
+   "did": "5 overskrifter, 2 resuméer, 1 linje i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-19T06:17:59+00:00",
+   "did": "ny lede, forsiden, 12 overskrifter, 2 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-19T05:03:36+00:00",
+   "did": "ny lede, 21 overskrifter"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-19T04:17:17+00:00",
+   "did": "36 overskrifter, 12 resuméer, begivenheder, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T22:03:02+00:00",
+   "did": "6 overskrifter, 6 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T21:03:01+00:00",
+   "did": "9 overskrifter, 6 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T20:03:03+00:00",
+   "did": "8 overskrifter"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-18T19:17:12+00:00",
+   "did": "forsiden, 15 overskrifter, 3 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T18:03:03+00:00",
+   "did": "7 overskrifter, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T17:03:20+00:00",
+   "did": "ny lede, 7 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T16:03:11+00:00",
+   "did": "7 overskrifter, 2 resuméer"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-18T15:47:28+00:00",
+   "did": "37 overskrifter, 38 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "økonomiredaktør",
+   "at": "2026-11-18T15:15:11+00:00",
+   "did": "9 overskrifter, Økonomi"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T14:03:20+00:00",
+   "did": "1 overskrift, 2 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T13:03:43+00:00",
+   "did": "ny lede, 7 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T12:03:36+00:00",
+   "did": "10 overskrifter"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-18T11:17:39+00:00",
+   "did": "ny lede, forsiden, 5 overskrifter, 2 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T10:02:47+00:00",
+   "did": "8 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T09:03:10+00:00",
+   "did": "4 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T08:03:47+00:00",
+   "did": "18 overskrifter, 1 resumé, 3 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-18T07:47:25+00:00",
+   "did": "32 overskrifter, 38 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T07:03:27+00:00",
+   "did": "6 overskrifter, 1 resumé"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-18T06:18:16+00:00",
+   "did": "ny lede, forsiden, 5 overskrifter, 2 resuméer, 5 linjer i udviklingen, begivenheder, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-18T05:03:44+00:00",
+   "did": "ny lede, forsiden, 16 overskrifter, 1 resumé, 5 linjer i udviklingen"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-18T04:19:00+00:00",
+   "did": "36 overskrifter, 15 resuméer, begivenheder, kalenderen, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T22:03:36+00:00",
+   "did": "forsiden, 6 overskrifter, 1 resumé, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T21:02:56+00:00",
+   "did": "9 overskrifter, 3 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T20:03:16+00:00",
+   "did": "6 overskrifter, 2 resuméer"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-17T19:19:14+00:00",
+   "did": "ny lede, forsiden, 10 overskrifter, 5 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T18:02:56+00:00",
+   "did": "4 overskrifter, 3 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T17:03:20+00:00",
+   "did": "11 overskrifter, 2 resuméer, 4 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T16:03:34+00:00",
+   "did": "16 overskrifter, 1 resumé, 4 linjer i udviklingen"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-17T15:46:36+00:00",
+   "did": "27 overskrifter, 29 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "økonomiredaktør",
+   "at": "2026-11-17T15:15:51+00:00",
+   "did": "6 overskrifter, 2 resuméer, kalenderen, Økonomi"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T14:03:33+00:00",
+   "did": "5 overskrifter, 4 resuméer"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T13:03:52+00:00",
+   "did": "9 overskrifter, 6 resuméer, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T12:03:50+00:00",
+   "did": "4 overskrifter, 4 resuméer, 3 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-17T11:19:47+00:00",
+   "did": "forsiden, 10 overskrifter, 5 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T10:03:55+00:00",
+   "did": "15 overskrifter, 6 resuméer, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T09:03:06+00:00",
+   "did": "10 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T08:02:48+00:00",
+   "did": "9 overskrifter"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-17T07:48:01+00:00",
+   "did": "38 overskrifter, 40 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T07:03:13+00:00",
+   "did": "3 overskrifter, 5 resuméer, 1 linje i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-17T06:20:12+00:00",
+   "did": "forsiden, 7 overskrifter, 5 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-17T05:03:03+00:00",
+   "did": "ny lede, 6 overskrifter"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-17T04:20:19+00:00",
+   "did": "28 overskrifter, 6 resuméer, begivenheder, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T22:02:52+00:00",
+   "did": "4 overskrifter"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T21:03:08+00:00",
+   "did": "8 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T20:03:07+00:00",
+   "did": "6 overskrifter, 1 resumé, 1 linje i udviklingen"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-16T19:17:52+00:00",
+   "did": "ny lede, forsiden, 12 overskrifter, 1 resumé, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T18:03:34+00:00",
+   "did": "1 linje i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T17:03:42+00:00",
+   "did": "5 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T16:04:07+00:00",
+   "did": "13 overskrifter"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-16T15:45:58+00:00",
+   "did": "28 overskrifter, 29 kasserede historier taget ind, kalenderen"
+  },
+  {
+   "by": "økonomiredaktør",
+   "at": "2026-11-16T15:16:33+00:00",
+   "did": "17 overskrifter, Økonomi"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T14:04:21+00:00",
+   "did": "3 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T13:04:44+00:00",
+   "did": "5 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T12:03:56+00:00",
+   "did": "6 overskrifter, 1 resumé"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-16T11:17:39+00:00",
+   "did": "forsiden, 14 overskrifter, 3 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T10:03:08+00:00",
+   "did": "8 overskrifter, 3 resuméer, 1 linje i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T09:03:49+00:00",
+   "did": "5 overskrifter, 1 resumé"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T08:04:12+00:00",
+   "did": "9 overskrifter, 1 resumé, 2 linjer i udviklingen"
+  },
+  {
+   "by": "filterredaktør",
+   "at": "2026-11-16T07:46:16+00:00",
+   "did": "24 overskrifter, 28 kasserede historier taget ind"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T07:03:49+00:00",
+   "did": "5 overskrifter"
+  },
+  {
+   "by": "begivenhedsredaktør",
+   "at": "2026-11-16T06:17:49+00:00",
+   "did": "ny lede, forsiden, 7 overskrifter, 3 resuméer, 5 linjer i udviklingen, begivenheder"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-16T05:03:22+00:00",
+   "did": "ny lede, 12 overskrifter"
+  },
+  {
+   "by": "chefredaktør",
+   "at": "2026-11-16T04:22:39+00:00",
+   "did": "32 overskrifter, 11 resuméer, begivenheder, fejlbogen, rapporten"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-15T22:03:17+00:00",
+   "did": "7 overskrifter, 2 linjer i udviklingen"
+  },
+  {
+   "by": "forsideredaktør",
+   "at": "2026-11-15T21:03:34+00:00",
+   "did": "5 overskrifter, 2 linjer i udviklingen"
+  }
+ ]
+}

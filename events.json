@@ -1,0 +1,771 @@
+{
+ "updated": "2026-11-21T13:03:27+00:00",
+ "items": [
+  {
+   "id": "houthi-saudi-krig-2026-10",
+   "title": "Houthiernes krig mod Saudi-Arabien",
+   "kicker": "Yemen",
+   "status": "i gang",
+   "dek": "Den saudisk ledede koalition har indledt en militær operation mod houthi-mål i Yemen, blandt dem Hodeidah, mens houthierne angriber mål i Saudi-Arabien og truer alle saudiske havne ved Det Røde Hav.",
+   "since": "2026-10-01",
+   "topic": "Golfen og Saudi-Arabien",
+   "facts": [
+    {
+     "label": "Dræbt på et døgn",
+     "value": "41",
+     "note": "ifølge houthierne",
+     "ids": [
+      "d99210657eb42696"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "label": "Houthi-krigere dræbt el. såret",
+     "value": "193",
+     "note": "ifølge Yemens saudisk støttede styrker",
+     "ids": [
+      "d99210657eb42696"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    }
+   ],
+   "places": [
+    "Hodeidah",
+    "Riyadh",
+    "Jizan",
+    "Jeddah",
+    "Sanaa",
+    "Aden",
+    "Bab el-Mandeb",
+    "Jubail",
+    "Marib",
+    "Mokha",
+    "Taiz",
+    "Yemen"
+   ],
+   "quotes": [],
+   "stories": [
+    "d99210657eb42696",
+    "88543c5b6ba00486",
+    "e08fd4115d485622",
+    "5bd3dee86995157b",
+    "3231cb2350206b02",
+    "2d376fa5ea2760cb",
+    "84956cef75b320f5",
+    "ce9ff22f14fccdc0",
+    "510630954dd9a487"
+   ],
+   "article": [
+    {
+     "text": "Den saudisk ledede koalition har indledt en militær operation mod houthi-mål i Yemen, blandt dem havnebyen Hodeidah, timer efter at den bad civile forlade havnen i Hodeidah af hensyn til deres sikkerhed. Koalitionen siger, at angrebene fortsætter.",
+     "ids": [
+      "88543c5b6ba00486",
+      "d99210657eb42696",
+      "3231cb2350206b02",
+      "2203222034e2fdb4"
+     ],
+     "src": [
+      "CNN Arabic",
+      "Al-Monitor",
+      "Anadolu",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Houthierne siger, at de har angrebet Al-Shuqaiq-kraftværket og havnen i Jizan i Saudi-Arabien. De truer med at ramme Jeddah og alle saudiske havne ved Det Røde Hav, hvis Hodeidah bliver bombet, og har erklæret saudisk luftrum usikkert.",
+     "ids": [
+      "d99210657eb42696",
+      "2d376fa5ea2760cb",
+      "510630954dd9a487"
+     ],
+     "src": [
+      "Al-Monitor",
+      "Middle East Eye"
+     ]
+    },
+    {
+     "text": "Houthierne siger, at koalitionens angreb har dræbt 41 mennesker på et døgn, og anklager Saudi-Arabien for at have ramt en civil båd, hvor 19 blev dræbt. Yemens saudisk støttede styrker siger, at luftangreb, droneangreb og artilleri har dræbt eller såret 193 houthi-krigere.",
+     "ids": [
+      "d99210657eb42696"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Et højhus i Riyadhs finansdistrikt, der huser Saudi-Arabiens statslige investeringsfond, er beskadiget efter et houthi-angreb. Den saudisk ledede koalition siger, at vragdele fra et missil har forårsaget skaderne, og at den har opsnappet houthiernes ballistiske missiler og krydsermissiler mod Riyadh og det sydlige Saudi-Arabien.",
+     "ids": [
+      "84956cef75b320f5",
+      "2d28465773b4f412"
+     ],
+     "src": [
+      "Anadolu",
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Natten til lørdag siger koalitionen, at den har opsnappet og ødelagt tre ballistiske missiler, som houthierne affyrede mod Riyadh. Et kraftigt brag blev hørt i Riyadh, efter at Saudi-Arabiens civilforsvar havde udsendt varsler.",
+     "ids": [
+      "e08fd4115d485622",
+      "a26bd5cf4909bcfd",
+      "ce9ff22f14fccdc0",
+      "a60a019dd797b170"
+     ],
+     "src": [
+      "Middle East Eye",
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "pic": "https://cnn-arabic-images.cnn.io/cloudinary/image/upload/x_0,y_128,w_4876,h_2743,c_crop/w_1920,h_1080,c_fill,q_auto,g_center/cnnarabic/2026/11/20/images/350442.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "pl": "l4aebecf8ad5253e0.jpg",
+   "at": "2026-11-21T04:18:29+00:00"
+  },
+  {
+   "id": "iran-hormuz-2026-10",
+   "title": "Opgøret mellem USA og Iran om Hormuz",
+   "kicker": "Iran",
+   "status": "i gang",
+   "dek": "To tankskibe er angrebet i Hormuzstrædet, mens Trump siger, at Iran ikke vil lave en aftale, han kan acceptere, og Revolutionsgarden siger, at den har skudt amerikanske droner ned.",
+   "since": "2026-02-28",
+   "topic": "Iran og USA i Golfen",
+   "facts": [
+    {
+     "label": "MQ-9-droner skudt ned",
+     "value": "58",
+     "note": "ifølge Revolutionsgarden",
+     "ids": [
+      "2173f4fbdc7b3642"
+     ],
+     "src": [
+      "Al Mayadeen English",
+      "IRNA"
+     ]
+    }
+   ],
+   "places": [
+    "Qeshm",
+    "Jask",
+    "Sirik",
+    "Bandar Abbas",
+    "Bandar Khamir",
+    "Bandar Lengeh",
+    "Iran"
+   ],
+   "map": {
+    "km": 400,
+    "focus": [
+     "Qeshm",
+     "Bandar Abbas",
+     "Bandar Lengeh"
+    ]
+   },
+   "quotes": [
+    {
+     "who": "Trump",
+     "text": "Jeg vil gentage den militære operation mod Iran. Vi kan ikke lade landet få et atomvåben.",
+     "ids": [
+      "67d5dda93a063f2f"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "Araghchi",
+     "text": "Iran søger en god, ærefuld og værdig aftale.",
+     "ids": [
+      "38f5f65fe6dec069"
+     ],
+     "src": [
+      "Middle East Eye"
+     ]
+    }
+   ],
+   "stories": [
+    "ef5ea499010195ee",
+    "ade0546b0f787675",
+    "5d679329aa661e7e",
+    "1c69855faa1a3006",
+    "ecc47916b513ee09",
+    "2173f4fbdc7b3642",
+    "38f5f65fe6dec069",
+    "d6af836264c923c0",
+    "70d1f4a5ef936f55",
+    "4a29a681fd04195e",
+    "a8283b9aa6d72bc7",
+    "b6f408d26c2cac0a",
+    "761d71556d2acab4",
+    "1d059c07a6c33e19",
+    "0ad7b4dfadb467a3",
+    "015e18fb87951a8b",
+    "9eac88092d304546"
+   ],
+   "article": [
+    {
+     "text": "To tankskibe er angrebet i Hormuzstrædet ud for Oman, oplyser den britiske søfartsmyndighed UKMTO. Et olietankskib blev ramt i agterenden af et ukendt projektil, mens det sejlede gennem strædet; ingen kom til skade. Revolutionsgardens flåde har tidligere sagt, at tankskibe tog brand efter at have ramt miner i farvandet ved strædet.",
+     "ids": [
+      "ade0546b0f787675",
+      "ecc47916b513ee09",
+      "c33ad273a1e24386"
+     ],
+     "src": [
+      "Asharq Al-Awsat",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Trump sagde fredag aften, at USA vil gentage den militære operation mod Iran, fordi landet ikke må få et atomvåben, og at USA har fuld kontrol over Hormuzstrædet takket være flådeblokaden og den amerikanske militærmagt. Vicepræsident Vance siger, at det er Trump, der træffer beslutningen om krigen mod Iran, og at hans job er at støtte ham.",
+     "ids": [
+      "67d5dda93a063f2f",
+      "71770e3ea8aecc99",
+      "10876c85670ad6ac",
+      "4a29a681fd04195e"
+     ],
+     "src": [
+      "Al Jazeera",
+      "Al Arabiya"
+     ]
+    },
+    {
+     "text": "Irans udenrigsminister Abbas Araghchi siger, at Iran stadig håber, at diplomati kan afslutte krigen, og at Iran søger en god, ærefuld og værdig aftale, men han vil have Trump til udtrykkeligt at sige, at han ønsker en aftale. Trump siger, at Iran vil have en aftale, men ikke en, han kan acceptere. USA's finansminister Bessent siger, at USA vil fastholde presset på Iran.",
+     "ids": [
+      "ef5ea499010195ee",
+      "1c69855faa1a3006",
+      "38f5f65fe6dec069",
+      "5d679329aa661e7e",
+      "d6af836264c923c0"
+     ],
+     "src": [
+      "Middle East Eye",
+      "Al-Monitor",
+      "Asharq Al-Awsat"
+     ]
+    },
+    {
+     "text": "Revolutionsgarden siger, at dens luftforsvar har opsnappet en amerikansk MQ-9-drone over Hormuzstrædet – den 58. – og at den har skudt en amerikansk MQ-1-drone ned over øen Qeshm.",
+     "ids": [
+      "2173f4fbdc7b3642",
+      "3c190f2ecd025f80"
+     ],
+     "src": [
+      "Al Jazeera",
+      "Al Mayadeen English",
+      "IRNA"
+     ]
+    },
+    {
+     "text": "Militæret i Kuwait og Bahrain meldte natten til onsdag om fjendtlige angreb, og Bahrain siger, at Iran står bag. Iran siger, at det angreb amerikanske drone- og missilsteder i Kuwait, efter at USA angreb øen Qeshm i Hormuzstrædet – de første iranske angreb på Kuwait siden september.",
+     "ids": [
+      "761d71556d2acab4",
+      "1d059c07a6c33e19"
+     ],
+     "src": [
+      "Dawn"
+     ]
+    },
+    {
+     "text": "USA's Senat stemte torsdag imod en resolution, der ville pålægge Trump at stoppe de militære operationer mod Iran eller indhente Kongressens tilladelse. Trump siger til Axios, at han ikke har travlt med en beslutning om Iran.",
+     "ids": [
+      "a8283b9aa6d72bc7",
+      "0ad7b4dfadb467a3",
+      "9eac88092d304546"
+     ],
+     "src": [
+      "Reuters",
+      "BT",
+      "Axios"
+     ]
+    }
+   ],
+   "pic": "https://www.aljazeera.net/wp-content/uploads/2026/11/afp_6b0092667b33-1795199590.jpg?resize=1920%2C1440",
+   "pf": [
+    0.539,
+    0.285,
+    1.333,
+    1,
+    0.247
+   ],
+   "pl": "lc6a5362e49f0b175.jpg",
+   "at": "2026-11-21T11:18:06+00:00"
+  },
+  {
+   "id": "knessetvalg-2026-10-27",
+   "title": "Valget og regeringsdannelsen i “israel”",
+   "kicker": "“israel”",
+   "status": "i gang",
+   "dek": "Knesset har valgt Eisenkots allierede Matan Kahana som formand, mens Eisenkots blok udelukker en samlingsregering med Netanyahu.",
+   "since": "2026-10-27",
+   "topic": "Valget i “israel”",
+   "facts": [],
+   "places": [
+    "Jerusalem",
+    "Tel Aviv",
+    "Lod",
+    "Kafr Manda",
+    "Tayibe",
+    "Nazareth"
+   ],
+   "quotes": [],
+   "stories": [
+    "6010abf0a7f65d26",
+    "8d307e27f1086f4b",
+    "76f91b47d0835dea",
+    "66963da922518e3e"
+   ],
+   "article": [
+    {
+     "text": "Knesset valgte tirsdag Matan Kahana fra Eisenkots parti Yashar som formand; han slog Likuds kandidat. Formanden har stor indflydelse på, hvilke lovforslag der kommer til afstemning.",
+     "ids": [
+      "6010abf0a7f65d26",
+      "76f91b47d0835dea",
+      "8d307e27f1086f4b"
+     ],
+     "src": [
+      "AFP",
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Netanyahu og Likud fordømmer valget af Kahana. Kilder i Eisenkots blok udelukker en samlingsregering med Netanyahu, kalder indblandingen i valget et kupforsøg og kræver cheferne for Shin Bet og Mossad fjernet.",
+     "ids": [
+      "8d307e27f1086f4b"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Naftali Bennett har mødt Netanyahu til en sikkerhedsorientering uden at informere Eisenkot, og Eisenkots blok har udskudt et topmøde for partilederne.",
+     "ids": [
+      "66963da922518e3e"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://web-cdnprod.aa.com.tr/uploads/Contents/2026/11/19/thumbs_b_c_9cc1c6c7243d46f0f034362bcc0bdcb3.jpg",
+   "pf": [
+    0.466,
+    0.283,
+    1.776,
+    1,
+    0.263
+   ],
+   "at": "2026-11-19T17:03:43+00:00"
+  },
+  {
+   "id": "gaza-vaabenhvile-2026-11",
+   "title": "Angreb i Gaza under våbenhvilen",
+   "kicker": "Gaza",
+   "status": "i gang",
+   "dek": "“israels” hær har afsluttet sin største jordoperation over den gule linje i det centrale Gaza siden våbenhvilen; de “israelske” angreb i Gaza fortsætter.",
+   "since": "2025-10-10",
+   "topic": "Palæstina og “israel”",
+   "facts": [],
+   "places": [
+    "Nuseirat",
+    "Maghazi",
+    "Deir al-Balah",
+    "Al-Bureij",
+    "Khan Younis",
+    "Gaza",
+    "Jabalia",
+    "Rafah"
+   ],
+   "quotes": [],
+   "stories": [
+    "5600372dde8ca708",
+    "954772252cc12d5f",
+    "7a0377618eec63db",
+    "6e0e0f41f2fea261",
+    "7ae6547d2a96878d",
+    "e72d56f4d0c9c280",
+    "e34986341413cb13"
+   ],
+   "article": [
+    {
+     "text": "“israels” hær indledte onsdag en militæroperation i tre områder i det centrale Gaza nær den gule linje – den første annoncerede operation siden våbenhvilen i oktober 2025. Dele af Salah al-Din-vejen, Gazas vigtigste nord-syd-forbindelse, blev lukket.",
+     "ids": [
+      "7a0377618eec63db",
+      "6e0e0f41f2fea261"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Kampvognene rykkede frem vest for den gule linje, og hæren siger, at operationen skulle ødelægge en formodet Hamas-tunnel. Dusinvis af fordrevne palæstinensere flygtede fra telte og shelters i området.",
+     "ids": [
+      "954772252cc12d5f",
+      "5600372dde8ca708"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "Torsdag sagde “israels” hær, at den har afsluttet operationen, dens største jordoperation over den gule linje siden våbenhvilen, og palæstinensere begyndte at vende tilbage til deres ødelagte lejr.",
+     "ids": [
+      "5600372dde8ca708",
+      "954772252cc12d5f"
+     ],
+     "src": [
+      "Al-Monitor"
+     ]
+    },
+    {
+     "text": "“israelske” styrker har sprængt palæstinensiske hjem i luften nær Nuseirat- og Maghazi-lejrene, og “israelsk” artilleri dræbte en palæstinenser i al-Zaytoun-kvarteret i Gaza by. Fredag ved daggry blev en palæstinenser dræbt, da en “israelsk” drone ramte Nuseirat-lejren, siger Al-Aqsa-hospitalet i Deir al-Balah.",
+     "ids": [
+      "7ae6547d2a96878d",
+      "e72d56f4d0c9c280",
+      "eba572bdfc5b3b85"
+     ],
+     "src": [
+      "Anadolu",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Hamas kalder offensiven et brud på våbenhvilen og opfordrer mæglerne til at gribe ind med det samme.",
+     "ids": [
+      "e0570834cbdd72ed"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://web-cdnprod.aa.com.tr/uploads/Contents/2026/11/18/thumbs_b_c_77bb42dd44ce709b355a411aebc57cd8.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.778,
+    0,
+    0
+   ],
+   "at": "2026-11-20T11:20:24+00:00"
+  },
+  {
+   "id": "ukraine-fred-2026-11",
+   "title": "Krigen i Ukraine og forhandlingerne om fred",
+   "kicker": "Ukraine",
+   "status": "i gang",
+   "dek": "USA vil have en fredsaftale mellem Rusland og Ukraine i begyndelsen af januar 2027, siger kilder til Financial Times; russiske angreb fortsatte natten til lørdag.",
+   "since": "2022-02-24",
+   "topic": "Rusland, USA og Ukraine",
+   "facts": [
+    {
+     "label": "Dræbt i Kyiv fredag",
+     "value": "6",
+     "note": "ifølge Ukraines nødmyndighed",
+     "ids": [
+      "4bee57ecdb2bcf46"
+     ],
+     "src": [
+      "Al Jazeera"
+     ],
+     "was": {
+      "value": "3",
+      "when": "fredag morgen",
+      "ids": [
+       "804a4534b1f20c9d"
+      ]
+     }
+    }
+   ],
+   "places": [
+    "Kyiv",
+    "Lviv",
+    "Kharkiv",
+    "Dnipro",
+    "Krim",
+    "Moskva",
+    "Berlin",
+    "Polen",
+    "Ukraine"
+   ],
+   "quotes": [
+    {
+     "who": "Zelenskyj",
+     "text": "For os er han en fjende og en morder.",
+     "ids": [
+      "633d3b37de6e5634"
+     ],
+     "src": [
+      "BBC"
+     ]
+    },
+    {
+     "who": "Trump",
+     "text": "Jeg vil ikke tale om sikkerhedsgarantier. Først skal der være en aftale mellem Rusland og Ukraine.",
+     "ids": [
+      "f57dd8724565d4ef"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "USA's udsending Kushner",
+     "text": "Trump er åben for at give Ukraine en garanti, der ligner NATO's klausul om gensidigt forsvar, men USA skal også beskytte sine interesser.",
+     "ids": [
+      "dbb52d80e202a311"
+     ],
+     "src": [
+      "AFP"
+     ]
+    }
+   ],
+   "stories": [
+    "32f4dd46acb81ccb",
+    "d76cbdd5e18a76f2",
+    "633d3b37de6e5634",
+    "a887a57274b55092",
+    "fc97698bb24dca0a",
+    "77581637bbd40e79",
+    "dbb52d80e202a311",
+    "b93239395a9bdad6",
+    "0bff806eed56d819",
+    "983464145a40bd41",
+    "804a4534b1f20c9d",
+    "42252c6facb4ecff",
+    "6def7c43dfd62a81"
+   ],
+   "article": [
+    {
+     "text": "USA har sagt til EU og Ukraine, at det vil se en fredsaftale mellem Rusland og Ukraine i begyndelsen af januar 2027, siger kilder til Financial Times. Trump siger, at han og Putin havde meget gode samtaler om Ukraine, men at sikkerhedsgarantier må vente, til Rusland og Ukraine har en aftale.",
+     "ids": [
+      "32f4dd46acb81ccb",
+      "77581637bbd40e79",
+      "f57dd8724565d4ef"
+     ],
+     "src": [
+      "Jerusalem Post",
+      "Al-Monitor",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Zelenskyj kalder Putin en morder, efter at Trump kaldte Putin sin ven, og siger, at Krim-broen ikke bliver stående. Ruslands udenrigsministerium siger, at EU's udenrigschef Kaja Kallas' deltagelse i forhandlingerne vil afspore fredsinitiativerne.",
+     "ids": [
+      "633d3b37de6e5634",
+      "a887a57274b55092",
+      "fc97698bb24dca0a"
+     ],
+     "src": [
+      "BBC",
+      "Clash Report",
+      "Anadolu"
+     ]
+    },
+    {
+     "text": "Rusland indledte natten til fredag et massivt angreb mod Ukraine, efter at Putin havde lovet hævn. I Kyiv steg dødstallet til seks, og 15 er såret, siger Ukraines nødmyndighed; ifølge borgmesteren blev tre broer i hovedstaden ramt, og to blev dræbt i Lviv, siger embedsmænd.",
+     "ids": [
+      "4bee57ecdb2bcf46",
+      "804a4534b1f20c9d",
+      "42252c6facb4ecff"
+     ],
+     "src": [
+      "Al Jazeera",
+      "Clash Report"
+     ]
+    },
+    {
+     "text": "Natten til lørdag dræbte russiske droneangreb to og sårede 55 i fem distrikter i Dnipropetrovsk-provinsen, siger guvernøren. I Kharkiv blev 11 såret i angreb på beboelsesejendomme, siger Ukraines nødmyndighed. Ruslands forsvarsministerium siger, at luftforsvaret skød 275 ukrainske droner ned i løbet af natten.",
+     "ids": [
+      "cc9ad07b9d2ff0fe",
+      "87ac842d32ea6808",
+      "0508fb14df8200e9"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Polens operative kommando meldte om et brud på luftrummet under det russiske angreb og undersøger et vragstykke. Polens regering siger, at et russisk missil krænkede polsk luftrum, og forsvarsministeren kalder det en ny provokation og vil bede NATO om mere støtte.",
+     "ids": [
+      "cbb349af35009f5d",
+      "983464145a40bd41",
+      "bf319bf552368cfe"
+     ],
+     "src": [
+      "Anadolu",
+      "DR",
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Efter trepartstopmødet med Trump og Xi i Shenzhen siger Putin, at Rusland har inviteret europæiske repræsentanter til Moskva for at høre Europas holdning, før Moskva beslutter formatet for den videre dialog med Ukraine. Få timer efter topmødet pressede Trump i et opkald fra Air Force One europæiske ledere om den fortsatte militærhjælp til Ukraine.",
+     "ids": [
+      "6def7c43dfd62a81",
+      "69d2cf0fb939d44e"
+     ],
+     "src": [
+      "Politiken",
+      "BT"
+     ]
+    }
+   ],
+   "pic": "https://assets.kyivindependent.com/content/images/2025/09/GettyImages-1212250437.jpg",
+   "pf": [
+    0.5,
+    0.4,
+    1.5,
+    0,
+    0
+   ],
+   "at": "2026-11-21T12:03:21+00:00",
+   "pl": "l3a3aad738b539970.jpg"
+  },
+  {
+   "id": "apec-shenzhen-2026-11",
+   "title": "APEC-topmødet i Shenzhen",
+   "kicker": "Kina",
+   "status": "afsluttet",
+   "dek": "Topmødet sluttede med USA's, Kinas og Ruslands første trepartsmøde og en fælles fredserklæring om atomvåben, energi og de vigtigste internationale spørgsmål.",
+   "since": "2026-11-18",
+   "topic": "APEC-topmødet i Shenzhen",
+   "facts": [],
+   "places": [
+    "Shenzhen",
+    "Kina"
+   ],
+   "map": {
+    "km": 300,
+    "focus": [
+     "Shenzhen"
+    ]
+   },
+   "quotes": [
+    {
+     "who": "Fælles erklæring fra Kina, USA og Rusland",
+     "text": "En atomkrig kan ikke vindes og må aldrig udkæmpes.",
+     "ids": [
+      "ef7d862f6b49b6cd"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "who": "Trump",
+     "text": "USA, Rusland og Kina er unikt positioneret til at forhandle om atomvåben.",
+     "ids": [
+      "de14f5e1642902d1"
+     ],
+     "src": [
+      "Anadolu"
+     ]
+    },
+    {
+     "who": "Putins rådgiver Usjakov",
+     "text": "Trepartsforhandlingerne foregik i en positiv atmosfære.",
+     "ids": [
+      "5447c6bb82b2fdef"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    }
+   ],
+   "stories": [
+    "b2cd975d071e1b24",
+    "5e180d1e21304e27",
+    "95edfad9fff64780",
+    "4eb7ec3fca4f5d21",
+    "de14f5e1642902d1",
+    "554f5b41b1556e71",
+    "da45e694bf43886d",
+    "1b2941aeb9d93482",
+    "c1b1969ccddb8c1e",
+    "ca1bc971bcfba1d2"
+   ],
+   "article": [
+    {
+     "text": "Trump, Xi og Putin har torsdag afsluttet det første trepartstopmøde mellem USA's, Kinas og Ruslands præsidenter i Shenzhen. Mødet varede omkring 90 minutter, og de drøftede krigen i Ukraine og atomvåben.",
+     "ids": [
+      "b2cd975d071e1b24",
+      "9ddccce2d3bd2168",
+      "3e8e7c37fd018056"
+     ],
+     "src": [
+      "Jyllands-Posten"
+     ]
+    },
+    {
+     "text": "Efter mødet vedtog de tre ledere en fælles fredserklæring om de vigtigste internationale spørgsmål, oplyser Ruslands udenrigsministerium og Kinas statsmedier. I erklæringen gentager de, at en atomkrig ikke kan vindes og aldrig må udkæmpes, og de erklærer, at de indleder en dialog om at nedbringe atomrisici og forhindre spredning af atomvåben.",
+     "ids": [
+      "5e180d1e21304e27",
+      "79711d6660440135",
+      "ef7d862f6b49b6cd",
+      "c2da3cfe535098ec"
+     ],
+     "src": [
+      "Berlingske"
+     ]
+    },
+    {
+     "text": "Erklæringen siger også, at Den Internationale Straffedomstol og lignende institutioner ikke må misbruge deres dømmende magt. De tre bekræfter vigtigheden af stabile energistrømme og planlægger at øge produktionen og forsyningen af raffinerede olieprodukter.",
+     "ids": [
+      "cbdf5b3584d0ea66",
+      "a63fb31d72913594",
+      "73eb29138d0bc922"
+     ],
+     "src": [
+      "Al Jazeera"
+     ]
+    },
+    {
+     "text": "Under mødet sagde Trump, at USA, Rusland og Kina er unikt positioneret til at forhandle om atomvåben, og at Ukraine skal have fred. Xi sagde, at de tre lande skal arbejde sammen for at beskytte den internationale fred, og Putin, at samarbejde med Washington og Beijing kan fremme stabiliteten i verden. Putins rådgiver Usjakov siger, at samtalerne foregik i en positiv atmosfære.",
+     "ids": [
+      "de14f5e1642902d1",
+      "581d28848e49f674",
+      "ef08cac7a38a7300",
+      "554f5b41b1556e71",
+      "5447c6bb82b2fdef"
+     ],
+     "src": [
+      "DR"
+     ]
+    },
+    {
+     "text": "Før trepartsmødet mødtes Trump og Putin alene; Kreml siger, at Ukraine-krigen og forholdet mellem Rusland og USA blev drøftet. Derefter holdt Xi og Trump bilaterale forhandlinger, hvor Trump sagde, at de er enige om, at olien skal flyde gennem Hormuzstrædet.",
+     "ids": [
+      "95edfad9fff64780",
+      "1b2941aeb9d93482",
+      "56adc8dafe849396",
+      "ccbe4b9a0cc38e20",
+      "6cdc82611c35e303"
+     ],
+     "src": [
+      "Jyllands-Posten",
+      "Anadolu"
+     ]
+    }
+   ],
+   "pic": "https://akamai-aptoma-production.bmcdn.dk/users/berlingske/images/167539794.webp?t[strip]=true&t[quality]=70&accessToken=938fbebeeffc37f7ce8f25a4d604294f1d181cd39937ad514e84099c987f0b99",
+   "pf": [
+    0.5,
+    0.4,
+    1.553,
+    0,
+    0
+   ],
+   "pl": "l0c5453652c535940.jpg",
+   "at": "2026-11-19T19:19:19+00:00"
+  }
+ ]
+}

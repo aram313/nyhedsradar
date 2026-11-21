@@ -1,0 +1,133 @@
+{
+ "at": "2026-11-20T15:15:12+00:00",
+ "dag": {
+  "text": "Storbritannien og Australien har indført sanktioner mod “israelske” bosættelser, og Tyrkiet og 14 andre lande bifalder dem. Irans hær siger, at to olietankskibe brød i brand efter at have ramt søminer øst for Hormuzstrædet. Russiske dieseltankskibe, der blev sendt mod USA under en aftale mellem Trump og Putin, er ankommet til Brasilien i stedet.",
+  "ids": [
+   "976a4254977d56c2",
+   "c33ad273a1e24386",
+   "ee85f7de3a988a11"
+  ],
+  "src": [
+   "Anadolu",
+   "Meduza"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Irans hær siger, at to olietankskibe brød i brand efter at have ramt søminer øst for Hormuzstrædet, og advarer skibe mod at sejle gennem strædet uden forudgående koordinering. Revolutionsgarden siger, at tankskibene havde over 4 millioner tønder råolie om bord.",
+   "ids": [
+    "c33ad273a1e24386",
+    "da63d0cad366eebc"
+   ],
+   "src": [
+    "Anadolu",
+    "Al-Monitor"
+   ],
+   "stories": [
+    "c33ad273a1e24386",
+    "da63d0cad366eebc",
+    "895981c36c0270e0"
+   ]
+  },
+  "fuel": {
+   "text": "Russiske dieseltankskibe, der blev sendt mod USA under Trump og Putins dieselaftale, er ankommet til Brasilien uden at anløbe en amerikansk havn. Ukrainske droner har ramt en russisk kemifabrik i Smolensk-regionen.",
+   "ids": [
+    "ee85f7de3a988a11",
+    "5ba39588aa63f98b"
+   ],
+   "src": [
+    "Meduza"
+   ],
+   "stories": [
+    "ee85f7de3a988a11",
+    "5ba39588aa63f98b",
+    "8c887609b063f9b2"
+   ]
+  },
+  "mkt": {
+   "text": "Tysklands kansler Merz foreslår at lette sanktionerne mod Rusland trinvis, efterhånden som en aftale om Ukraine skrider frem. Væksten i Danmarks økonomi var overraskende høj i tredje kvartal.",
+   "ids": [
+    "6245375281f7bdb9",
+    "5222b601f0487aee"
+   ],
+   "src": [
+    "TASS",
+    "Jyllands-Posten"
+   ],
+   "stories": [
+    "6245375281f7bdb9",
+    "5222b601f0487aee"
+   ]
+  },
+  "ai": {
+   "text": "Californiens statsadvokat undersøger, om Nvidias avancerede chips eller fortrolige oplysninger er nået til Kina. En komité i Repræsentanternes Hus siger, at USA godkendte salg af næsten 900.000 AI-chips til Kina på seks måneder, mens USA's nye begrænsninger rammer kinesiske techaktier.",
+   "ids": [
+    "0a7a260dfa85e9e6",
+    "dbbd568913ba5e0e",
+    "55d04133b6908843"
+   ],
+   "src": [
+    "Anadolu",
+    "Al Jazeera",
+    "Reuters"
+   ],
+   "stories": [
+    "0a7a260dfa85e9e6",
+    "dbbd568913ba5e0e",
+    "55d04133b6908843"
+   ]
+  },
+  "kris": {
+   "text": "Storbritannien og Australien har indført sanktioner mod “israelske” bosættelser, og Tyrkiet og 14 andre lande bifalder dem. USA har indført sanktioner mod en Hizbollah-tilknyttet velgørenhedsorganisation og selskaber, og Trump foreslår oliesanktioner mod Rusland.",
+   "ids": [
+    "976a4254977d56c2",
+    "42bd95b8a0ff10cb",
+    "4c0485d7fb5c9e18"
+   ],
+   "src": [
+    "Anadolu",
+    "The National",
+    "KFOX"
+   ],
+   "stories": [
+    "976a4254977d56c2",
+    "4c0485d7fb5c9e18",
+    "42bd95b8a0ff10cb"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "ed-2026-11-21-usa-s-frist-for-koebere-af-lukoils-udenl",
+   "date": "2026-11-21",
+   "title": "USA's frist for købere af Lukoils udenlandske aktiver udløber",
+   "kind": "frist",
+   "place": "USA",
+   "why": "Fristen hører til USA's sanktioner mod Ruslands største private olieselskab og samtalerne mellem Washington og Kreml."
+  },
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027."
+  },
+  {
+   "id": "sp-frankrig-2026-11-27",
+   "date": "2026-11-27",
+   "title": "S&P vurderer Frankrigs kreditværdighed",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "S&P giver i dag Frankrig A+ med stabile udsigter. Vurderingen afgør, hvad investorerne kræver for at låne den franske stat penge."
+  },
+  {
+   "id": "opec-2026-11-29",
+   "date": "2026-11-29",
+   "title": "OPEC og OPEC+ holder ministermøde",
+   "kind": "topmøde",
+   "place": "Wien",
+   "why": "OPEC+ samler OPEC-landene – bl.a. Saudi-Arabien, Irak, Iran, Kuwait og Emiraterne – og Rusland og flere andre olielande. Mødet fastsætter, hvor meget olie landene producerer; det påvirker olieprisen, benzinprisen i Danmark og statsbudgetterne i Golfen og Rusland."
+  }
+ ]
+}
