@@ -1645,3 +1645,6 @@ img { -webkit-user-drag: none; }
 .ark-step:active { opacity: .6; }
 .ark-q { margin-top: var(--s3); }
 .ev-was { margin: 6px 0 0; font-size: var(--fs-meta); font-style: italic; color: var(--text-3); }
+
+/* 21/11: Forside and Økonomi closed – their pages and tab buttons stay out of the layout */
+#list > .page[hidden], .tabs > button[hidden] { display: none !important; }

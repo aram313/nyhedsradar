@@ -152,8 +152,10 @@ OWNER_REPLY, OWNER_KEEP, OWNER_OPEN, OWNER_TITLES = 600, 14, 7, 12
 # Danish time – keep the two alike): which editor an update comes from when it does not say, and the owner's overview of
 # the runs (19/10, the owner: 'en widget på indstillinger for admin så jeg kan se hvad tid forskellige redaktører og andre
 # automationer kører') – every update leaves a line in runs.json on the digest branch (who, when, what it did)
-SCHEDULE = {'forsideredaktør': (5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22), 'begivenhedsredaktør': (6, 11, 19),
-            'økonomiredaktør': (15,), 'chefredaktør': (4,), 'filterredaktør': (7, 15)}
+# 21/11, the owner: 'en claude kørsel om dagen som gennemtjekker links som er blevet valgt og tilretter søgningen til
+# næste dag' – the front-page, senior, economy and chief editors and the caretaker are paused; the filter editor alone
+# runs, once a day at 04.30 UTC (05.30 Danish winter time)
+SCHEDULE = {'filterredaktør': (4,)}
 RUNS_KEPT = 120
 LESSON_ID = re.compile(r'^[a-z0-9][a-z0-9-]{2,60}$')
 CAL_KINDS = ('valg', 'topmøde', 'centralbank', 'frist', 'retssag', 'forhandling', 'dansk', 'andet')
@@ -1834,7 +1836,7 @@ def econ_input(args, now):
 # the digest branch also holds its report to the owner (the verdict, the misses, the patterns of what the radar gets
 # wrong and its proposals for the radar's rules – the owner's admin block shows it) and its own rules.
 FILTER = 'filterredaktør'
-FILTER_BACK = (8, 24)    # hours it reads back: since its last run, at least 8 and at most 24
+FILTER_BACK = (20, 28)   # hours it reads back: since its last run (once a day since 21/11), at least 20 and at most 28
 FILTER_LINES = 4000      # stories listed at most; beyond them the ones ranked lowest are counted
 FILTER_MISSES = 40       # misses one run may take in
 FILTER_KEEP = 14         # days a miss is kept for the radar to learn from

@@ -141,7 +141,9 @@ jobs:
       # happened since the last update, it fires the editor's Claude routine through its API trigger – at most
       # editor_fires_per_day (config/settings.json) a Danish day, spread over the day; the fires are kept in
       # state/editor-gate.json. Without the two secrets it only looks (a dry run). A failure here never stops the save.
+      # 21/11: off – the owner closed the Claude editors; only the filter editor's daily routine runs (on its own clock)
       - name: Editor's quarter-hour look
+        if: false
         continue-on-error: true
         timeout-minutes: 3
         env:

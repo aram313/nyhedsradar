@@ -896,7 +896,7 @@ def test_every_update_leaves_a_line_of_who_when_and_what():
     assert editor.runner({'memo': {'by': 'begivenhedsredaktør', 'text': 'x'}}, now) == 'begivenhedsredaktør'
     assert editor.runner({'report': 'Godt.'}, now) == 'chefredaktør'
     assert editor.runner({'okonomi': {'dag': {}}}, now) == 'økonomiredaktør'
-    assert editor.runner({'titles': []}, now) == 'begivenhedsredaktør'                    # 06 UTC is the senior's hour
+    assert editor.runner({'titles': []}, now) == 'forsideredaktør'                        # 21/11: no editor has 06 UTC now
     assert editor.runner({}, now.replace(hour=13)) == 'forsideredaktør'
     did = editor.run_note({'lede': 'Ny.', 'front': {'blocks': []}, 'titles': [{'id': 'a'}, {'id': 'b'}],
                            'topics': [{'name': 'x', 'lines': [{}, {}, {}]}], 'events': [{'id': 'e'}], 'owner_notes': [{}]})
@@ -978,7 +978,7 @@ def test_the_filter_editor_reads_what_the_radar_left_out_and_takes_its_misses_in
            'w': {'id': 'w', 'title': 'A wire line', 'found': at(5), 'source': wire},
            'r': {'id': 'r', 'title': 'One the owner removed', 'found': at(5), 'source': 'AP', 'removed': True}}
     since = editor.filter_since({}, now)
-    assert since == now - timedelta(hours=24)                              # its first run reads a day back
+    assert since == now - timedelta(hours=28)                              # its first run reads 28 hours back (daily since 21/11)
     below, cut = editor.discarded(data, raw, since, now)
     assert [i['id'] for i in below] == ['b'] and [i['id'] for i in cut] == ['c']
     assert editor.filter_card(below[0], 108) == '[b] world · t11 · r96 (12 under) · 1 · AP · Under the line'   # the tier the books give its headline
@@ -1000,8 +1000,8 @@ def test_the_filter_editor_reads_what_the_radar_left_out_and_takes_its_misses_in
                        {}, find, {'a', 'a2'}, now, problems)
     assert len(problems) == 2
     # the next run reads from where this one stopped (at least 8 hours back)
-    assert editor.filter_since({'at': at(10)}, now) == now - timedelta(hours=10)
-    assert editor.filter_since({'at': at(2)}, now) == now - timedelta(hours=8)
+    assert editor.filter_since({'at': at(24)}, now) == now - timedelta(hours=24)   # once a day since 21/11: from its last run
+    assert editor.filter_since({'at': at(2)}, now) == now - timedelta(hours=20)    # at least 20 hours back
     assert editor.runner({'filter': {'verdict': 'x'}}, now) == 'filterredaktør'
 
 

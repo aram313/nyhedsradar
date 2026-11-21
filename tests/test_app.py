@@ -15,7 +15,10 @@ def test_five_tabs_forside_live_kalender_okonomi_analyser_in_that_order():
     nav = INDEX[INDEX.index('<nav class="tabs"'):INDEX.index('</nav>')]
     assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'kalender', 'okonomi', 'analyses']
     assert [s for s in re.findall(r'<span>([^<]+)</span>', nav)] == ['Forside', 'Live', 'Kalender', 'Økonomi', 'Analyser']
-    assert "const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];" in APP
+    # 21/11: Forside and Økonomi closed – their buttons stay hidden, the swipe holds Live, Kalender, Analyser
+    assert "const SWIPE_TABS = ['latest', 'kalender', 'analyses'];" in APP
+    assert "const CLOSED_TABS = new Set(['home', 'okonomi']);" in APP and "if (CLOSED_TABS.has(next)) next = 'latest';" in APP
+    assert 'data-tab="home" aria-selected="false" hidden>' in nav and 'data-tab="okonomi" aria-selected="false" hidden>' in nav
     # Økonomi's icon: a chart in the same line style as the others (no fill, the same stroke)
     sym = INDEX[INDEX.index('<symbol id="i-chart"'):]
     sym = sym[:sym.index('</symbol>')]

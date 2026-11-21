@@ -55,7 +55,7 @@ idle(() => { try { localStorage.removeItem('lastSums'); localStorage.removeItem(
 let data = slim(parse(RAW.news, null));
 let digest = parse(RAW.digest, null);
 let { sums, titles } = readSummaries(parse(RAW.sums, null));   // story id -> the editor's summary {text, paywall}; article id -> its headline
-let tab = 'home', query = '';
+let tab = 'latest', query = '';   // 21/11: the app opens in Live (Forside and Økonomi are closed)
 let shared = store.get('shared', null) || store.get('copied', {});   // id -> {at, title, link, source}
 // Gem (pro-plan 5.1): what the reader saved on this phone, newest first – a story with its snapshot (so it opens offline
 // and after it has left Live), an answer by its number, a wiki page by its id. Nothing leaves the phone.
@@ -4830,14 +4830,17 @@ addEventListener('online', () => {
 // or swapped while it moves (the neighbours are drawn beforehand), so nothing can hop. The pill in the tab bar and the
 // title follow along; once the pages stand still, the page in view is the tab.
 // Forside · Live · Kalender · Økonomi · Analyser (the pages lie in this order in #list; the map's Kort is shelved)
-const SWIPE_TABS = ['home', 'latest', 'kalender', 'okonomi', 'analyses'];
+// 21/11, the owner: 'skære khabar.nu ned til live feed og kalender og analyser' – Forside and Økonomi are closed (their
+// pages stay hidden in #list; every way to them leads to Live)
+const SWIPE_TABS = ['latest', 'kalender', 'analyses'];
+const CLOSED_TABS = new Set(['home', 'okonomi']);
 // pages over the tabs, reached from a button or a link and left by a tab or the logo (with its back mark): Udvikling,
 // an answer of the amir's, a wiki page, the wiki's index and what is saved; search lies beside the tabs in its own way
 const SIDE = new Set(['threads', 'svar', 'begreb', 'begreber', 'gemt', 'nyhed', 'begivenhed', 'forsider', 'forside']);
 // the tab a side page belongs to: it stays selected while the side page is in view (an answer, a page, A–Å: Analyser)
-const HOME_OF = { threads: 'home', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '', begivenhed: 'home', forsider: 'home', forside: 'home' };
+const HOME_OF = { threads: 'latest', svar: 'analyses', begreb: 'analyses', begreber: 'analyses', gemt: '', nyhed: '', begivenhed: 'latest', forsider: 'latest', forside: 'latest' };
 const ASIDE = new Set(['search', ...SIDE]);
-let settleT = 0, jumping = false, backTo = 'home';   // jumping: the pages moved by a tap on a tab, not by a finger
+let settleT = 0, jumping = false, backTo = 'latest';   // jumping: the pages moved by a tap on a tab, not by a finger
 // the side pages one came through (a story's concept, its answer, an earlier answer …): the logo goes back through them
 const backStack = [];
 const sideArg = t => t === 'svar' ? svarNr : t === 'begreb' ? begrebId : t === 'threads' ? udFocus : t === 'nyhed' ? nyhedId : t === 'begivenhed' ? evId : t === 'forside' ? arkDate : '';
@@ -4980,6 +4983,7 @@ addEventListener('resize', () => { if (!ASIDE.has(tab)) showPage(tab); });
 
 // ---------------------------------------------------------------- tabs + search
 function setTab(next, opts = {}) {
+  if (CLOSED_TABS.has(next)) next = 'latest';
   if (next === tab) {
     if (tab === 'search') $('search').focus({ preventScroll: true }); else cur().scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
     return;
@@ -5403,20 +5407,13 @@ $('adminStats').addEventListener('click', async e => {
 const RUNS = [
   { name: 'Radaren', what: 'henter og vejer nyhederne, laver billeder, notifikationer og statistik', every: 'hvert 5. minut',
     last: () => data && data.updated, stale: 20 },
-  { name: 'Forsideredaktøren', by: 'forsideredaktør', what: 'forsiden, overskrifter, resuméer og Live – kun når der er noget at rette',
-    utc: [5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22] },
-  { name: 'Seniorredaktøren', by: 'begivenhedsredaktør', what: 'begivenhedssiderne og hele forsiden', utc: [6, 11, 19], always: true },
-  { name: 'Økonomiredaktøren', by: 'økonomiredaktør', what: 'Økonomi-siden og kalenderen', utc: [15], always: true },
-  { name: 'Chefredaktøren', by: 'chefredaktør', what: 'gennemgår døgnet, fører fejlbogen og skriver rapporten til dig', utc: [4], always: true },
-  { name: 'Filterredaktøren', by: 'filterredaktør', what: 'læser alt, radaren kasserede, vejer det mod hjernen og tager det oversete ind',
-    utc: [7, 15], min: 30, always: true },
-  { name: 'Vagtmesteren', what: 'retter kilder, der holder op med at svare', utc: [4], min: 30 },
+  { name: 'Filterredaktøren', by: 'filterredaktør', what: 'gennemgår døgnets Live, tager det oversete ind, fjerner det forkerte og retter radarens søgning til næste dag',
+    utc: [4], min: 30, always: true },
   { name: 'Økonomi-tallene', what: 'priser, kurser og gæld – hver kilde i sit eget tempo', every: 'i hver radarkørsel',
     last: () => (V('eco') || {}).updated },
   { name: 'Kalenderen', what: 'valg, topmøder og rentemøder', every: 'i radarens kørsler, hver kilde én gang i døgnet',
     last: () => (V('cal') || {}).updated },
   { name: 'Hizb ut-Tahrirs svar', what: 'ser efter nye svar', every: 'hver 3. time, i radarens kørsel' },
-  { name: 'Aftenens notifikation', what: 'dagens resumé til telefonerne', every: 'ved første opdatering efter kl. 21' },
 ];
 const dkClock = t => FMT.dkt.format(t).replace(':', '.');
 // the day's runs of a clock: each UTC hour of today as a moment, in order
@@ -6195,7 +6192,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
 // links into the app: the old section tabs (?tab=dk|me|world, from notifications and shortcuts) open Live; a wiki page or
 // an answer opens over the front page
 // the shelved map's ?tab=kort opens the front page; ?kalender=<id> opens the Kalender tab at that event
-const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kalender: 'kalender', kort: 'home', okonomi: 'okonomi', priser: 'okonomi', search: 'search', analyses: 'analyses' };
+const START = { dk: 'latest', me: 'latest', world: 'latest', latest: 'latest', kalender: 'kalender', kort: 'latest', okonomi: 'latest', priser: 'latest', search: 'search', analyses: 'analyses' };
 const startTab = params.get('kalender') ? 'kalender' : START[params.get('tab')];
 need('bix'); need('mix');   // the wiki's small index (the names the news link) and the answers' (the line under a story)
 takeMove();   // a 'Flyt til en anden telefon' link: its saves added to this phone's

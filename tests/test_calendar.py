@@ -241,7 +241,7 @@ def test_the_tab_its_icon_and_its_links():
     assert '<section class="page" data-tab="kalender" id="page-kalender" role="tabpanel" aria-labelledby="tab-kalender">' in INDEX
     assert "kalender: 'Kalender'" in CODE.split('const TITLES = ')[1].split('};')[0]
     start = CODE.split('const START = ')[1].split('};')[0]
-    assert "kalender: 'kalender'" in start and "kort: 'home'" in start
+    assert "kalender: 'kalender'" in start and "kort: 'latest'" in start
     assert "params.get('kalender') ? 'kalender'" in CODE   # ?kalender=<id> opens the tab at the event
     assert "'kalender', 'begivenhed', 'forside', 'forsider'].some(k => q.has(k))" in INDEX   # and skips the intro
     assert 'kalender: kalenderPage' in CODE.split('const OWN = ')[1].split('\n')[0]   # drawn before the news come

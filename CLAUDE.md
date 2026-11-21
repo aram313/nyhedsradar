@@ -22,6 +22,18 @@ named in the news open a wiki page compiled only from those answers. The site is
 subscription's daily run cap (docs/hjerne/cadence.md). The users are young Danish Muslims who use the news in their
 da'wah.
 
+**Slimmed down (the owner's decision of 2026-11-21, binding over the paragraphs below):** "lad os skære khabar.nu ned
+til live feed og kalender og analyser, og en claude kørsel om dagen som gennemtjekker links som er blevet valgt og
+tilretter søgningen til næste dag". The app shows three tabs – **Live · Kalender · Analyser** – and opens in Live;
+Forside and Økonomi are closed (their pages and buttons stay `hidden` in index.html, `CLOSED_TABS` in app.js sends every
+way to them to Live; the code is kept). The front-page editor, the senior (event) editor, the chief editor, the economy
+editor and the caretaker routines are **paused** (enabled: false at claude.ai/code/routines – not deleted), and radar.yml's
+quarter-hour gate that fired the editor is `if: false`. The one Claude run left is the **filter editor**
+(`trig_01GX7Xp3wgDx6qAJUZK3AXhE`), once a day at 04.30 UTC (05.30 Danish winter time): it goes through the last day's
+Live and everything the radar left out, takes the misses in (the radar learns from them – that is how the search is
+adjusted for the next day), takes out what does not belong and writes Danish headlines for the foreign stories it keeps
+or takes in. The radar, the calendar's sources and the energy figures still run in Actions without Claude.
+
 ## Stack
 
 - **Type:** `web-app`

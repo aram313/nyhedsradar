@@ -9,6 +9,11 @@ Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
 ## [Unreleased]
 
+### Changed
+- 2026-11-21: Khabar skåret ned til Live, Kalender og Analyser (Forside og Økonomi lukket); appen åbner i Live. Kun én
+  Claude-kørsel om dagen (filterredaktøren kl. 05.30) – de øvrige redaktører og vagtmesteren er sat på pause, og
+  radarens kvarterstjek, der kaldte redaktøren, er slået fra.
+
 - **21 sources removed** (2026-10-20, the owner: 'Har vi måske for mange kilder …' – then 'Ja fjern dem'). Over three
   days none of their ~600 articles a day reached Live: four regional TV stations (TV 2 Øst, TV 2 Østjylland, TV Syd, TV 2
   Fyn), seven large state or regional agencies (AllAfrica, APP, WAM, Yonhap, AKIpress, Antara, QNA), three duplicate

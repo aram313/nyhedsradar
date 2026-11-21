@@ -45,7 +45,7 @@ def test_the_kort_tab_and_its_page_are_gone():
 
 def test_an_old_kort_link_opens_the_front_page():
     start = CODE.split('const START = ')[1].split('};')[0]
-    assert "kort: 'home'" in start
+    assert "kort: 'latest'" in start   # 21/11: the front page is closed
     assert "else if (startTab && startTab !== 'home') setTab(startTab, { top: true });" in CODE   # Forside draws itself
 
 
@@ -84,7 +84,7 @@ def test_the_radar_no_longer_makes_the_map():
 def test_okonomi_is_the_fourth_tab_and_hosts_the_energy_page():
     nav = INDEX[INDEX.index('<nav class="tabs"'):INDEX.index('</nav>')]
     assert re.findall(r'data-tab="(\w+)"', nav) == ['home', 'latest', 'kalender', 'okonomi', 'analyses']
-    assert '<section class="page" data-tab="okonomi" id="page-okonomi" role="tabpanel" aria-labelledby="tab-okonomi">' in INDEX
+    assert '<section class="page" data-tab="okonomi" id="page-okonomi" hidden role="tabpanel" aria-labelledby="tab-okonomi">' in INDEX   # closed 21/11
     page = fn('okPage')
     assert "if (pg.querySelector('iframe')) return;" in page   # made once, when first shown
     assert '<iframe src="energi/?embed=1"' in page
@@ -92,7 +92,7 @@ def test_okonomi_is_the_fourth_tab_and_hosts_the_energy_page():
     assert "if (tab === 'okonomi') okPage(pageEl('okonomi'));" in fn('setTab')
     assert 'okPage' not in CODE.split('const START = ')[1].split('\n')[0]   # nothing at the start
     start = CODE.split('const START = ')[1].split('};')[0]
-    assert "okonomi: 'okonomi'" in start and "priser: 'okonomi'" in start   # ?tab=priser stays an alias
+    assert "okonomi: 'latest'" in start and "priser: 'latest'" in start   # 21/11: the tab is closed, its links open Live
     assert re.search(r'\.page\[data-tab="okonomi"\] \{ overflow-y: hidden; \}', RULES)
     assert 'var(--dock)' in rule('.ok-pr iframe')
 
