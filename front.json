@@ -1,0 +1,62 @@
+{
+ "updated": "2026-11-24T04:49:42+00:00",
+ "lede": "Bahrain melder iransk angreb på en industrifacilitet, Trump afviser Irans vilkår, houthierne angriber Riyadh, og USA vil have fred i Ukraine inden januar",
+ "lede_ids": [
+  "68dafc6639c37730",
+  "c7e555767b88ecd8",
+  "d99210657eb42696",
+  "32f4dd46acb81ccb"
+ ],
+ "blocks": [
+  {
+   "kind": "top",
+   "story": "c7e555767b88ecd8",
+   "with": [],
+   "timeline": "Iran og USA i Golfen",
+   "picture": true
+  },
+  {
+   "kind": "top",
+   "title": "USA vil have en fredsaftale mellem Rusland og Ukraine i begyndelsen af januar 2027",
+   "story": "32f4dd46acb81ccb",
+   "with": [],
+   "timeline": "Rusland, USA og Ukraine",
+   "picture": false
+  },
+  {
+   "kind": "liste",
+   "title": "Iran og USA",
+   "stories": [
+    "4182f61c7ce221b8",
+    "df9fa15340f8a1b3",
+    "5d679329aa661e7e"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Saudi-Arabien og Yemen",
+   "stories": [
+    "6ec36764b5e7e9fd"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "“israel”, Gaza og Vestbredden",
+   "stories": [
+    "3b19209c43196d60",
+    "3e68a7f10452ddd9"
+   ],
+   "style": "kompakt"
+  },
+  {
+   "kind": "liste",
+   "title": "Danmark",
+   "stories": [
+    "5172e6995030073c"
+   ],
+   "style": "kompakt"
+  }
+ ]
+}

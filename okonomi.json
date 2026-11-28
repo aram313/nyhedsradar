@@ -1,0 +1,129 @@
+{
+ "at": "2026-11-21T15:11:58+00:00",
+ "dag": {
+  "text": "USA's finansministerium har indført sanktioner mod fire iranere, som det kalder olieforvaltere, og presser Singapore og Malaysia til at overholde sanktionerne mod Iran. Irans udenrigsminister Araghchi siger, at USA's flådeblokade skal brydes, før Irans olieeksport kan genoptages, mens Revolutionsgarden siger, at et olietankskib er brudt i brand efter at have ramt en mine i Hormuzstrædet.",
+  "ids": [
+   "0645b22231d774cd",
+   "bd0114678d667412",
+   "b1125e7aeeb8ed6d",
+   "a7fcc5887f7b5bfe"
+  ],
+  "src": [
+   "Anadolu",
+   "The New Arab"
+  ]
+ },
+ "emner": {
+  "oil": {
+   "text": "Revolutionsgardens flåde siger, at et olietankskib, der sejlede »under amerikansk ledelse«, ramte en mine i Hormuzstrædet, og UKMTO siger, at et tankskib blev ramt af et ukendt projektil ud for Oman. Olien er på vej mod sit tredje ugentlige fald, mens Iran prøver USA's blokade.",
+   "ids": [
+    "a7fcc5887f7b5bfe",
+    "ecc47916b513ee09",
+    "f7ce97a6d8460989"
+   ],
+   "src": [
+    "Anadolu",
+    "Al-Monitor"
+   ],
+   "stories": [
+    "a7fcc5887f7b5bfe",
+    "b1125e7aeeb8ed6d",
+    "f7ce97a6d8460989"
+   ]
+  },
+  "fuel": {
+   "text": "USA, Rusland og Kina er blevet enige om at øge produktionen af brændstof; Trump siger, at det skal lette presset på verdens priser. Russiske dieseltankskibe, der blev sendt mod USA under Trump og Putins aftale, er ankommet til Brasilien uden at anløbe en amerikansk havn.",
+   "ids": [
+    "a6b48528b0c3423b",
+    "ee85f7de3a988a11"
+   ],
+   "src": [
+    "TASS",
+    "Meduza"
+   ],
+   "stories": [
+    "a6b48528b0c3423b",
+    "ee85f7de3a988a11",
+    "127dd31e83fac3d1"
+   ]
+  },
+  "ai": {
+   "text": "Jensen Huang er gået af som Nvidias topchef, og Trump siger, at han gerne ser ham få en ny chance. Californiens statsadvokat undersøger, om Nvidias avancerede chips er nået til Kina, og Trump vil kun sælge ældre chips til Kina.",
+   "ids": [
+    "f34e02e461892b49",
+    "0a7a260dfa85e9e6",
+    "bf86fc435ce07ea4"
+   ],
+   "src": [
+    "AFP",
+    "Anadolu",
+    "Reuters"
+   ],
+   "stories": [
+    "f34e02e461892b49",
+    "0a7a260dfa85e9e6",
+    "bf86fc435ce07ea4"
+   ]
+  },
+  "kris": {
+   "text": "USA's finansministerium har indført sanktioner mod fire iranere, som det siger indsamler Irans olieindtægter, og presser Singapore og Malaysia på sanktionerne mod Iran. Præsident Pezeshkian siger, at Iran står i en »stille økonomisk krig«, der er hårdere end missilkrigen.",
+   "ids": [
+    "0645b22231d774cd",
+    "bd0114678d667412",
+    "c0abc4c2d20965ea"
+   ],
+   "src": [
+    "Anadolu",
+    "The New Arab"
+   ],
+   "stories": [
+    "0645b22231d774cd",
+    "bd0114678d667412",
+    "c0abc4c2d20965ea"
+   ]
+  }
+ },
+ "kommende": [
+  {
+   "id": "ed-2026-11-26-eu-ekstratopmoede-om-finansieringen-af-u",
+   "date": "2026-11-26",
+   "title": "EU-ekstratopmøde om finansieringen af Ukraine og EU's langtidsbudget",
+   "kind": "topmøde",
+   "place": "Bruxelles",
+   "why": "EU's ledere skal ifølge en EU-embedsmand blive enige om at dække Ukraines udækkede behov på 70 mia. euro i 2027."
+  },
+  {
+   "id": "sp-frankrig-2026-11-27",
+   "date": "2026-11-27",
+   "title": "S&P vurderer Frankrigs kreditværdighed",
+   "kind": "andet",
+   "place": "Frankrig",
+   "why": "S&P giver i dag Frankrig A+ med stabile udsigter. Vurderingen afgør, hvad investorerne kræver for at låne den franske stat penge."
+  },
+  {
+   "id": "opec-2026-11-29",
+   "date": "2026-11-29",
+   "title": "OPEC og OPEC+ holder ministermøde",
+   "kind": "topmøde",
+   "place": "Wien",
+   "why": "OPEC+ samler OPEC-landene – bl.a. Saudi-Arabien, Irak, Iran, Kuwait og Emiraterne – og Rusland og flere andre olielande. Mødet fastsætter, hvor meget olie landene producerer; det påvirker olieprisen, benzinprisen i Danmark og statsbudgetterne i Golfen og Rusland."
+  },
+  {
+   "id": "ed-2026-11-29-frist-i-usa-s-undersoegelse-om-nye-tolds",
+   "date": "2026-11-29",
+   "title": "Frist i USA's undersøgelse om nye toldsatser på varer fra Vietnam",
+   "kind": "frist",
+   "place": "USA / Vietnam",
+   "why": "Tesla og Samsung går imod de nye amerikanske toldsatser på varer fra Vietnam."
+  }
+ ],
+ "citat": {
+  "who": "Irans præsident Masoud Pezeshkian",
+  "text": "Iran står over for en stille økonomisk krig, der er hårdere end missilkrigen.",
+  "ids": [
+   "c0abc4c2d20965ea"
+  ],
+  "u": "https://www.aa.com.tr/en/middle-east/iran-facing-silent-economic-war-that-is-tougher-than-missile-war-says-president-pezeshkian/4132988",
+  "s": "Anadolu"
+ }
+}
